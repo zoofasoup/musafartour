@@ -27,6 +27,7 @@ import ArticlesPage from "./pages/admin/Articles";
 import ArticleForm from "./pages/admin/ArticleForm";
 import Hotels from "./pages/admin/Hotels";
 import HotelForm from "./pages/admin/HotelForm";
+import FloatingWhatsApp from "./components/FloatingWhatsApp";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <FloatingWhatsApp />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
