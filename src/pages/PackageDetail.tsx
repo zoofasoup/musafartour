@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Calendar, 
   Plane, 
@@ -19,7 +20,9 @@ import {
   XCircle,
   Package,
   ExternalLink,
-  ArrowLeft
+  ArrowLeft,
+  Train,
+  Bus
 } from "lucide-react";
 import { formatWhatsAppUrl } from "@/lib/utils";
 import { format } from "date-fns";
@@ -39,6 +42,11 @@ interface PackageDetail {
     triple: number;
     double: number;
   };
+  five_star_package_price?: {
+    quad: number;
+    triple: number;
+    double: number;
+  };
   makkah_hotel_name?: string;
   makkah_hotel_star?: number;
   makkah_distance?: string;
@@ -47,6 +55,16 @@ interface PackageDetail {
   madinah_hotel_star?: number;
   madinah_distance?: string;
   madinah_duration_walk?: string;
+  five_star_makkah_hotel_name?: string;
+  five_star_makkah_hotel_star?: number;
+  five_star_makkah_distance?: string;
+  five_star_makkah_duration_walk?: string;
+  five_star_madinah_hotel_name?: string;
+  five_star_madinah_hotel_star?: number;
+  five_star_madinah_distance?: string;
+  five_star_madinah_duration_walk?: string;
+  best_seller_transport?: string;
+  five_star_transport?: string;
   included_items?: string;
   excluded_items?: string;
   equipment_list?: string;
@@ -74,6 +92,7 @@ const PackageDetail = () => {
   const navigate = useNavigate();
   const [packageData, setPackageData] = useState<PackageDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedTier, setSelectedTier] = useState<"best-seller" | "five-star">("best-seller");
 
   useEffect(() => {
     if (id) {
@@ -100,7 +119,12 @@ const PackageDetail = () => {
           quad: number;
           triple: number;
           double: number;
-        }
+        },
+        five_star_package_price: data.five_star_package_price as any as {
+          quad: number;
+          triple: number;
+          double: number;
+        } | undefined
       });
     }
     setLoading(false);
@@ -249,7 +273,34 @@ const PackageDetail = () => {
               <div className="lg:col-span-2">
                 <Card className="lg:sticky lg:top-24 shadow-xl border-2">
                   <CardContent className="p-6">
-                    <h2 className="text-xl font-bold mb-6 text-foreground">Harga Paket</h2>
+                    <h2 className="text-xl font-bold mb-4 text-foreground">Harga Paket</h2>
+                    
+                    {/* Tier Selector */}
+                    {packageData.five_star_package_price && (
+                      <div className="mb-6">
+                        <label className="text-sm font-medium mb-2 block">Pilih Tier</label>
+                        <Select value={selectedTier} onValueChange={(value: "best-seller" | "five-star") => setSelectedTier(value)}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="best-seller">
+                              <div className="flex items-center gap-2">
+                                <Bus className="w-4 h-4" />
+                                <span>Best Seller - {packageData.best_seller_transport || "Bus Eksklusif"}</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="five-star">
+                              <div className="flex items-center gap-2">
+                                <Train className="w-4 h-4" />
+                                <span>Five Star - {packageData.five_star_transport || "Kereta Cepat"}</span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
                     <div className="space-y-4 mb-6">
                       <div className="flex justify-between items-center pb-4 border-b-2">
                         <div>
@@ -257,7 +308,11 @@ const PackageDetail = () => {
                           <p className="text-xs text-muted-foreground">(4 orang/kamar)</p>
                         </div>
                         <p className="text-2xl font-bold text-destructive">
-                          {formatPrice(packageData.package_price.quad)}
+                          {formatPrice(
+                            selectedTier === "five-star" && packageData.five_star_package_price
+                              ? packageData.five_star_package_price.quad
+                              : packageData.package_price.quad
+                          )}
                         </p>
                       </div>
                       <div className="flex justify-between items-center pb-4 border-b-2">
@@ -266,7 +321,11 @@ const PackageDetail = () => {
                           <p className="text-xs text-muted-foreground">(3 orang/kamar)</p>
                         </div>
                         <p className="text-2xl font-bold text-destructive">
-                          {formatPrice(packageData.package_price.triple)}
+                          {formatPrice(
+                            selectedTier === "five-star" && packageData.five_star_package_price
+                              ? packageData.five_star_package_price.triple
+                              : packageData.package_price.triple
+                          )}
                         </p>
                       </div>
                       <div className="flex justify-between items-center pb-4 border-b-2">
@@ -275,7 +334,11 @@ const PackageDetail = () => {
                           <p className="text-xs text-muted-foreground">(2 orang/kamar)</p>
                         </div>
                         <p className="text-2xl font-bold text-destructive">
-                          {formatPrice(packageData.package_price.double)}
+                          {formatPrice(
+                            selectedTier === "five-star" && packageData.five_star_package_price
+                              ? packageData.five_star_package_price.double
+                              : packageData.package_price.double
+                          )}
                         </p>
                       </div>
                     </div>
@@ -339,10 +402,10 @@ const PackageDetail = () => {
               <CardContent className="p-6">
                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                   <Hotel className="h-6 w-6 text-primary" />
-                  Informasi Hotel
+                  Informasi Hotel {selectedTier === "five-star" ? "(Five Star)" : "(Best Seller)"}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {packageData.makkah_hotel_name && (
+                  {(selectedTier === "best-seller" ? packageData.makkah_hotel_name : packageData.five_star_makkah_hotel_name || packageData.makkah_hotel_name) && (
                     <div className="bg-muted/50 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-3">
                         <MapPin className="h-5 w-5 text-green-600" />

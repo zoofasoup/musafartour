@@ -20,6 +20,7 @@ const packageSchema = z.object({
   flight: z.string().min(1, "Maskapai wajib diisi"),
   flight_type: z.string().min(1, "Tipe penerbangan wajib diisi"),
   
+  // Best Seller Tier
   madinah_hotel_name: z.string().optional(),
   madinah_hotel_star: z.number().optional(),
   madinah_distance: z.string().optional(),
@@ -33,6 +34,25 @@ const packageSchema = z.object({
   price_quad: z.number().min(0, "Harga tidak valid"),
   price_triple: z.number().min(0, "Harga tidak valid"),
   price_double: z.number().min(0, "Harga tidak valid"),
+  
+  best_seller_transport: z.string().optional(),
+  
+  // Five-Star Tier
+  five_star_madinah_hotel_name: z.string().optional(),
+  five_star_madinah_hotel_star: z.number().optional(),
+  five_star_madinah_distance: z.string().optional(),
+  five_star_madinah_duration_walk: z.string().optional(),
+  
+  five_star_makkah_hotel_name: z.string().optional(),
+  five_star_makkah_hotel_star: z.number().optional(),
+  five_star_makkah_distance: z.string().optional(),
+  five_star_makkah_duration_walk: z.string().optional(),
+  
+  five_star_price_quad: z.number().min(0, "Harga tidak valid"),
+  five_star_price_triple: z.number().min(0, "Harga tidak valid"),
+  five_star_price_double: z.number().min(0, "Harga tidak valid"),
+  
+  five_star_transport: z.string().optional(),
   
   included_items: z.string().optional(),
   excluded_items: z.string().optional(),
@@ -67,6 +87,11 @@ const PackageForm = () => {
       price_quad: 0,
       price_triple: 0,
       price_double: 0,
+      best_seller_transport: "Bus Eksklusif",
+      five_star_price_quad: 0,
+      five_star_price_triple: 0,
+      five_star_price_double: 0,
+      five_star_transport: "Kereta Cepat",
       status: "draft",
     },
   });
@@ -97,6 +122,7 @@ const PackageForm = () => {
         }
 
         const priceData = data.package_price as any;
+        const fiveStarPriceData = data.five_star_package_price as any;
         form.reset({
           package_name: data.package_name,
           departure_date: data.departure_date,
@@ -117,6 +143,22 @@ const PackageForm = () => {
           price_quad: priceData?.quad || 0,
           price_triple: priceData?.triple || 0,
           price_double: priceData?.double || 0,
+          best_seller_transport: data.best_seller_transport || "Bus Eksklusif",
+          
+          five_star_madinah_hotel_name: data.five_star_madinah_hotel_name || "",
+          five_star_madinah_hotel_star: data.five_star_madinah_hotel_star || 0,
+          five_star_madinah_distance: data.five_star_madinah_distance || "",
+          five_star_madinah_duration_walk: data.five_star_madinah_duration_walk || "",
+          
+          five_star_makkah_hotel_name: data.five_star_makkah_hotel_name || "",
+          five_star_makkah_hotel_star: data.five_star_makkah_hotel_star || 0,
+          five_star_makkah_distance: data.five_star_makkah_distance || "",
+          five_star_makkah_duration_walk: data.five_star_makkah_duration_walk || "",
+          
+          five_star_price_quad: fiveStarPriceData?.quad || 0,
+          five_star_price_triple: fiveStarPriceData?.triple || 0,
+          five_star_price_double: fiveStarPriceData?.double || 0,
+          five_star_transport: data.five_star_transport || "Kereta Cepat",
           
           included_items: data.included_items || "",
           excluded_items: data.excluded_items || "",
@@ -265,6 +307,24 @@ const PackageForm = () => {
           triple: values.price_triple,
           double: values.price_double,
         },
+        best_seller_transport: values.best_seller_transport,
+        
+        five_star_madinah_hotel_name: values.five_star_madinah_hotel_name,
+        five_star_madinah_hotel_star: values.five_star_madinah_hotel_star,
+        five_star_madinah_distance: values.five_star_madinah_distance,
+        five_star_madinah_duration_walk: values.five_star_madinah_duration_walk,
+        
+        five_star_makkah_hotel_name: values.five_star_makkah_hotel_name,
+        five_star_makkah_hotel_star: values.five_star_makkah_hotel_star,
+        five_star_makkah_distance: values.five_star_makkah_distance,
+        five_star_makkah_duration_walk: values.five_star_makkah_duration_walk,
+        
+        five_star_package_price: {
+          quad: values.five_star_price_quad,
+          triple: values.five_star_price_triple,
+          double: values.five_star_price_double,
+        },
+        five_star_transport: values.five_star_transport,
         
         banner_image: bannerUrl,
         gallery_images: galleryUrls,
@@ -590,10 +650,24 @@ const PackageForm = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Harga Paket</CardTitle>
-              <CardDescription>Harga berdasarkan tipe kamar</CardDescription>
+              <CardTitle>Tier Best Seller</CardTitle>
+              <CardDescription>Hotel, harga dan transportasi untuk paket Best Seller</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="best_seller_transport"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Transportasi Makkah-Madinah</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Bus Eksklusif" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
@@ -645,6 +719,245 @@ const PackageForm = () => {
                           {...field}
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                           placeholder="30000000"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Akomodasi Madinah - Five Star</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="five_star_madinah_hotel_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Hotel</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Nama hotel di Madinah (Five Star)" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="five_star_madinah_hotel_star"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bintang Hotel</FormLabel>
+                      <Select
+                        onValueChange={(val) => field.onChange(parseInt(val))}
+                        value={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih bintang" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="3">3 Bintang</SelectItem>
+                          <SelectItem value="4">4 Bintang</SelectItem>
+                          <SelectItem value="5">5 Bintang</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="five_star_madinah_distance"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Jarak ke Masjid Nabawi</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="100 meter" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="five_star_madinah_duration_walk"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Durasi Jalan Kaki</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="5 menit" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Akomodasi Makkah - Five Star</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="five_star_makkah_hotel_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Hotel</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Nama hotel di Makkah (Five Star)" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="five_star_makkah_hotel_star"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bintang Hotel</FormLabel>
+                      <Select
+                        onValueChange={(val) => field.onChange(parseInt(val))}
+                        value={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih bintang" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="3">3 Bintang</SelectItem>
+                          <SelectItem value="4">4 Bintang</SelectItem>
+                          <SelectItem value="5">5 Bintang</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="five_star_makkah_distance"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Jarak ke Masjidil Haram</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="200 meter" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="five_star_makkah_duration_walk"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Durasi Jalan Kaki</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="10 menit" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Tier Five Star</CardTitle>
+              <CardDescription>Harga dan transportasi untuk paket Five Star</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="five_star_transport"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Transportasi Makkah-Madinah</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Kereta Cepat" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="five_star_price_quad"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quad (4 orang)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          placeholder="35000000"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="five_star_price_triple"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Triple (3 orang)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          placeholder="37000000"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="five_star_price_double"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Double (2 orang)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          placeholder="40000000"
                         />
                       </FormControl>
                       <FormMessage />
@@ -798,7 +1111,7 @@ const PackageForm = () => {
                 name="equipment_list"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Perlengkapan</FormLabel>
+                    <FormLabel>Perlengkapan yang Disediakan</FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}

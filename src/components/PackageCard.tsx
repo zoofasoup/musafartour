@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plane, Calendar, Hotel, Star } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plane, Calendar, Hotel, Star, Train, Bus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface PackageCardProps {
@@ -19,6 +21,14 @@ interface PackageCardProps {
   hotelMadinahRating?: number;
   category: string;
   seatAvailable?: boolean;
+  // Five-Star tier props
+  fiveStarPrice?: string;
+  fiveStarHotelMakkah?: string;
+  fiveStarHotelMakkahRating?: number;
+  fiveStarHotelMadinah?: string;
+  fiveStarHotelMadinahRating?: number;
+  fiveStarTransport?: string;
+  bestSellerTransport?: string;
 }
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -51,8 +61,25 @@ export const PackageCard = ({
   hotelMadinahRating = 4,
   category,
   seatAvailable = true,
+  fiveStarPrice,
+  fiveStarHotelMakkah,
+  fiveStarHotelMakkahRating = 5,
+  fiveStarHotelMadinah,
+  fiveStarHotelMadinahRating = 5,
+  fiveStarTransport = "Kereta Cepat",
+  bestSellerTransport = "Bus Eksklusif",
 }: PackageCardProps) => {
   const navigate = useNavigate();
+  const [selectedTier, setSelectedTier] = useState<"best-seller" | "five-star">("best-seller");
+  
+  const hasFiveStarTier = !!fiveStarPrice && !!fiveStarHotelMakkah && !!fiveStarHotelMadinah;
+  
+  const displayPrice = selectedTier === "five-star" && fiveStarPrice ? fiveStarPrice : price;
+  const displayMakkahHotel = selectedTier === "five-star" && fiveStarHotelMakkah ? fiveStarHotelMakkah : hotelMakkah;
+  const displayMakkahRating = selectedTier === "five-star" && fiveStarHotelMakkah ? fiveStarHotelMakkahRating : hotelMakkahRating;
+  const displayMadinahHotel = selectedTier === "five-star" && fiveStarHotelMadinah ? fiveStarHotelMadinah : hotelMadinah;
+  const displayMadinahRating = selectedTier === "five-star" && fiveStarHotelMadinah ? fiveStarHotelMadinahRating : hotelMadinahRating;
+  const displayTransport = selectedTier === "five-star" ? fiveStarTransport : bestSellerTransport;
 
   const handleViewDetails = () => {
     if (id) {
@@ -84,6 +111,19 @@ export const PackageCard = ({
           {/* Title */}
           <h3 className="font-bold text-lg text-foreground leading-tight line-clamp-2">{title}</h3>
 
+          {/* Tier Selector */}
+          {hasFiveStarTier && (
+            <Select value={selectedTier} onValueChange={(value: "best-seller" | "five-star") => setSelectedTier(value)}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="best-seller">Best Seller</SelectItem>
+                <SelectItem value="five-star">Five Star</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+
           {/* Date and Duration */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Calendar className="w-4 h-4" />
@@ -106,23 +146,31 @@ export const PackageCard = ({
             </Badge>
           </div>
 
+          {/* Transport Badge */}
+          <div className="flex gap-2">
+            <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200 rounded-full text-xs">
+              {selectedTier === "five-star" ? <Train className="w-3 h-3 mr-1" /> : <Bus className="w-3 h-3 mr-1" />}
+              {displayTransport}
+            </Badge>
+          </div>
+
           {/* Hotels */}
           <div className="space-y-2">
-            {hotelMakkah && (
+            {displayMakkahHotel && (
               <div className="flex items-start gap-2">
                 <Hotel className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-foreground truncate">{hotelMakkah}</p>
-                  <StarRating rating={hotelMakkahRating} />
+                  <p className="text-xs font-medium text-foreground truncate">{displayMakkahHotel}</p>
+                  <StarRating rating={displayMakkahRating} />
                 </div>
               </div>
             )}
-            {hotelMadinah && (
+            {displayMadinahHotel && (
               <div className="flex items-start gap-2">
                 <Hotel className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-foreground truncate">{hotelMadinah}</p>
-                  <StarRating rating={hotelMadinahRating} />
+                  <p className="text-xs font-medium text-foreground truncate">{displayMadinahHotel}</p>
+                  <StarRating rating={displayMadinahRating} />
                 </div>
               </div>
             )}
@@ -133,7 +181,7 @@ export const PackageCard = ({
         <div className="flex items-center justify-between pt-4 mt-4 border-t">
           <div>
             <p className="text-xs text-muted-foreground">Harga Mulai</p>
-            <p className="text-xl font-bold text-red-600">{price}</p>
+            <p className="text-xl font-bold text-red-600">{displayPrice}</p>
           </div>
           <Button 
             onClick={handleViewDetails}

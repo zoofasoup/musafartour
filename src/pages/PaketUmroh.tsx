@@ -23,10 +23,21 @@ interface PackageData {
     triple: number;
     double: number;
   };
+  five_star_package_price?: {
+    quad: number;
+    triple: number;
+    double: number;
+  };
   makkah_hotel_name: string | null;
   makkah_hotel_star: number | null;
   madinah_hotel_name: string | null;
   madinah_hotel_star: number | null;
+  five_star_makkah_hotel_name?: string | null;
+  five_star_makkah_hotel_star?: number | null;
+  five_star_madinah_hotel_name?: string | null;
+  five_star_madinah_hotel_star?: number | null;
+  best_seller_transport?: string | null;
+  five_star_transport?: string | null;
 }
 
 const PaketUmroh = () => {
@@ -94,13 +105,21 @@ const PaketUmroh = () => {
     date: format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId }),
     duration: `${pkg.duration_days} Hari`,
     airline: pkg.flight,
-    transit: pkg.flight_type === "direct" ? "Direct" : "Transit",
+    transit: pkg.flight_type.toLowerCase() === "direct" ? "Direct" : "Transit",
     hotelMakkah: pkg.makkah_hotel_name || undefined,
     hotelMakkahRating: pkg.makkah_hotel_star || undefined,
     hotelMadinah: pkg.madinah_hotel_name || undefined,
     hotelMadinahRating: pkg.madinah_hotel_star || undefined,
     category: getCategoryFromPrice(pkg.package_price.quad),
     seatAvailable: true,
+    // Five-star tier data
+    fiveStarPrice: pkg.five_star_package_price?.quad ? formatPrice(pkg.five_star_package_price.quad) : undefined,
+    fiveStarHotelMakkah: pkg.five_star_makkah_hotel_name || undefined,
+    fiveStarHotelMakkahRating: pkg.five_star_makkah_hotel_star || undefined,
+    fiveStarHotelMadinah: pkg.five_star_madinah_hotel_name || undefined,
+    fiveStarHotelMadinahRating: pkg.five_star_madinah_hotel_star || undefined,
+    fiveStarTransport: pkg.five_star_transport || undefined,
+    bestSellerTransport: pkg.best_seller_transport || undefined,
   }));
 
   return (

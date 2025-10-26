@@ -71,12 +71,23 @@ export type Database = {
       packages: {
         Row: {
           banner_image: string | null
+          best_seller_transport: string | null
           catalog_link: string | null
           created_at: string
           departure_date: string
           duration_days: number
           equipment_list: string | null
           excluded_items: string | null
+          five_star_madinah_distance: string | null
+          five_star_madinah_duration_walk: string | null
+          five_star_madinah_hotel_name: string | null
+          five_star_madinah_hotel_star: number | null
+          five_star_makkah_distance: string | null
+          five_star_makkah_duration_walk: string | null
+          five_star_makkah_hotel_name: string | null
+          five_star_makkah_hotel_star: number | null
+          five_star_package_price: Json | null
+          five_star_transport: string | null
           flight: string
           flight_type: string
           gallery_images: string[] | null
@@ -98,12 +109,23 @@ export type Database = {
         }
         Insert: {
           banner_image?: string | null
+          best_seller_transport?: string | null
           catalog_link?: string | null
           created_at?: string
           departure_date: string
           duration_days: number
           equipment_list?: string | null
           excluded_items?: string | null
+          five_star_madinah_distance?: string | null
+          five_star_madinah_duration_walk?: string | null
+          five_star_madinah_hotel_name?: string | null
+          five_star_madinah_hotel_star?: number | null
+          five_star_makkah_distance?: string | null
+          five_star_makkah_duration_walk?: string | null
+          five_star_makkah_hotel_name?: string | null
+          five_star_makkah_hotel_star?: number | null
+          five_star_package_price?: Json | null
+          five_star_transport?: string | null
           flight: string
           flight_type: string
           gallery_images?: string[] | null
@@ -125,12 +147,23 @@ export type Database = {
         }
         Update: {
           banner_image?: string | null
+          best_seller_transport?: string | null
           catalog_link?: string | null
           created_at?: string
           departure_date?: string
           duration_days?: number
           equipment_list?: string | null
           excluded_items?: string | null
+          five_star_madinah_distance?: string | null
+          five_star_madinah_duration_walk?: string | null
+          five_star_madinah_hotel_name?: string | null
+          five_star_madinah_hotel_star?: number | null
+          five_star_makkah_distance?: string | null
+          five_star_makkah_duration_walk?: string | null
+          five_star_makkah_hotel_name?: string | null
+          five_star_makkah_hotel_star?: number | null
+          five_star_package_price?: Json | null
+          five_star_transport?: string | null
           flight?: string
           flight_type?: string
           gallery_images?: string[] | null
