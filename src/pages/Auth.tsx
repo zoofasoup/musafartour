@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import musafarLogo from "@/assets/musafar-logo.svg";
+import { getSafeErrorMessage } from "@/lib/errorHandler";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ const Auth = () => {
     } catch (error: any) {
       toast({
         title: "Login gagal",
-        description: error.message,
+        description: getSafeErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -73,7 +74,7 @@ const Auth = () => {
     } catch (error: any) {
       toast({
         title: "Registrasi gagal",
-        description: error.message,
+        description: getSafeErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -102,7 +103,7 @@ const Auth = () => {
     } catch (error: any) {
       toast({
         title: "Gagal mengirim email",
-        description: error.message,
+        description: getSafeErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -129,7 +130,7 @@ const Auth = () => {
     } catch (error: any) {
       toast({
         title: "Gagal mengubah password",
-        description: error.message,
+        description: getSafeErrorMessage(error),
         variant: "destructive",
       });
     } finally {

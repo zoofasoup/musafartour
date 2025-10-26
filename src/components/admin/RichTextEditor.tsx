@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Bold, Italic, List, ListOrdered, Heading1, Heading2, Link as LinkIcon, Quote } from "lucide-react";
+import DOMPurify from "dompurify";
 
 interface RichTextEditorProps {
   value: string;
@@ -14,7 +15,12 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
 
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== value) {
-      editorRef.current.innerHTML = value;
+      // Sanitize content when setting innerHTML
+      const sanitized = DOMPurify.sanitize(value, {
+        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'a'],
+        ALLOWED_ATTR: ['href', 'target', 'rel']
+      });
+      editorRef.current.innerHTML = sanitized;
     }
   }, [value]);
 

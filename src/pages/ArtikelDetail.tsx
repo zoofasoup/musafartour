@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import DOMPurify from "dompurify";
 
 interface Article {
   id: string;
@@ -171,7 +172,12 @@ const ArtikelDetail = () => {
               prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-6
               prose-li:text-foreground prose-li:mb-2
               prose-img:rounded-lg prose-img:my-8"
-            dangerouslySetInnerHTML={{ __html: article.content.replace(/\n/g, '<br />') }}
+            dangerouslySetInnerHTML={{ 
+              __html: DOMPurify.sanitize(article.content.replace(/\n/g, '<br />'), {
+                ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'a', 'img'],
+                ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'target', 'rel']
+              })
+            }}
           />
         </div>
       </article>
