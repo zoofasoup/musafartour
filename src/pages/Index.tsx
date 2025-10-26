@@ -118,7 +118,7 @@ const Index = () => {
             Temukan Paket Umroh Sempurna untuk Perjalanan Anda
           </h1>
           <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-gray-200">
-            Musafar Tour menawarkan pengalaman Umroh yang dirancang dengan penuh perhatian — dari budget hingga bintang lima, semuanya dibimbing dengan penuh kasih sayang.
+            Musafar Tour menawarkan pengalaman Umroh yang dirancang dengan penuh perhatian, dari budget hingga bintang lima, semuanya dibimbing dengan penuh kasih sayang.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
