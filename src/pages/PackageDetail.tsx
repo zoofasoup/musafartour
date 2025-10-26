@@ -225,47 +225,6 @@ const PackageDetail = () => {
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  
-                  {/* Info Bar Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-border">
-                    <div className="p-4 md:p-6">
-                      <h1 className="text-2xl md:text-3xl font-bold mb-4 text-foreground">{packageData.package_name}</h1>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Calendar className="h-6 w-6 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase">Keberangkatan</p>
-                            <p className="text-sm md:text-base font-bold text-foreground">
-                              {format(new Date(packageData.departure_date), "dd MMM yyyy", { locale: localeId })}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Clock className="h-6 w-6 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase">Durasi</p>
-                            <p className="text-sm md:text-base font-bold text-foreground">{packageData.duration_days} Hari</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Plane className="h-6 w-6 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase">Penerbangan</p>
-                            <p className="text-sm md:text-base font-bold text-foreground">{packageData.flight}</p>
-                            <Badge variant="outline" className="mt-1 bg-primary/10 text-primary border-primary/20 text-xs">
-                              {packageData.flight_type}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
 
