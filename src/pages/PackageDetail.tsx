@@ -232,6 +232,45 @@ const PackageDetail = () => {
               <div>
                 <Card className="lg:sticky lg:top-24 shadow-xl border-2">
                   <CardContent className="p-6">
+                    {/* Package Info */}
+                    <div className="mb-6 pb-6 border-b">
+                      <h1 className="text-2xl md:text-3xl font-bold mb-4 text-foreground">{packageData.package_name}</h1>
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Calendar className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground font-medium uppercase">Keberangkatan</p>
+                            <p className="text-sm font-bold text-foreground">
+                              {format(new Date(packageData.departure_date), "dd MMM yyyy", { locale: localeId })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Clock className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground font-medium uppercase">Durasi</p>
+                            <p className="text-sm font-bold text-foreground">{packageData.duration_days} Hari</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Plane className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground font-medium uppercase">Penerbangan</p>
+                            <p className="text-sm font-bold text-foreground">{packageData.flight}</p>
+                            <Badge variant="outline" className="mt-1 bg-primary/10 text-primary border-primary/20 text-xs">
+                              {packageData.flight_type}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     <h2 className="text-xl font-bold mb-4 text-foreground">Harga Paket</h2>
                     
                     {/* Tier Selector */}
