@@ -172,48 +172,159 @@ const PackageDetail = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      {/* Header */}
-      <section className="py-8 border-b">
+      {/* Back Button */}
+      <section className="py-4 border-b">
         <div className="container mx-auto px-4">
           <Button 
             variant="ghost" 
             onClick={() => navigate(-1)}
-            className="mb-4"
+            className="mb-2"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Kembali
           </Button>
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">{packageData.package_name}</h1>
-          <div className="flex flex-wrap gap-4 items-center text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              <span>{format(new Date(packageData.departure_date), "dd MMMM yyyy", { locale: localeId })}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              <span>{packageData.duration_days} Hari</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Plane className="h-5 w-5" />
-              <span>{packageData.flight}</span>
-            </div>
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-              {packageData.flight_type}
-            </Badge>
-          </div>
         </div>
       </section>
 
-      {/* Banner Image */}
+      {/* Hero Section */}
       {packageData.banner_image && (
-        <section className="py-8">
+        <section className="py-6 md:py-8 bg-gradient-to-b from-muted/30 to-background">
           <div className="container mx-auto px-4">
-            <div className="relative aspect-[1080/1350] md:aspect-[16/9] max-w-5xl mx-auto overflow-hidden rounded-lg">
-              <img
-                src={packageData.banner_image}
-                alt={packageData.package_name}
-                className="w-full h-full object-cover"
-              />
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
+              {/* Flyer Image - 60% on desktop */}
+              <div className="lg:col-span-3">
+                <div className="relative bg-white rounded-xl shadow-lg overflow-hidden">
+                  <div className="aspect-[1080/1350] relative">
+                    <img
+                      src={packageData.banner_image}
+                      alt={packageData.package_name}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  
+                  {/* Info Bar Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-border">
+                    <div className="p-4 md:p-6">
+                      <h1 className="text-2xl md:text-3xl font-bold mb-4 text-foreground">{packageData.package_name}</h1>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Calendar className="h-6 w-6 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground font-medium uppercase">Keberangkatan</p>
+                            <p className="text-sm md:text-base font-bold text-foreground">
+                              {format(new Date(packageData.departure_date), "dd MMM yyyy", { locale: localeId })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Clock className="h-6 w-6 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground font-medium uppercase">Durasi</p>
+                            <p className="text-sm md:text-base font-bold text-foreground">{packageData.duration_days} Hari</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Plane className="h-6 w-6 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground font-medium uppercase">Penerbangan</p>
+                            <p className="text-sm md:text-base font-bold text-foreground">{packageData.flight}</p>
+                            <Badge variant="outline" className="mt-1 bg-primary/10 text-primary border-primary/20 text-xs">
+                              {packageData.flight_type}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Price & CTA Panel - 40% on desktop */}
+              <div className="lg:col-span-2">
+                <Card className="lg:sticky lg:top-24 shadow-xl border-2">
+                  <CardContent className="p-6">
+                    <h2 className="text-xl font-bold mb-6 text-foreground">Harga Paket</h2>
+                    <div className="space-y-4 mb-6">
+                      <div className="flex justify-between items-center pb-4 border-b-2">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">Quad</p>
+                          <p className="text-xs text-muted-foreground">(4 orang/kamar)</p>
+                        </div>
+                        <p className="text-2xl font-bold text-destructive">
+                          {formatPrice(packageData.package_price.quad)}
+                        </p>
+                      </div>
+                      <div className="flex justify-between items-center pb-4 border-b-2">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">Triple</p>
+                          <p className="text-xs text-muted-foreground">(3 orang/kamar)</p>
+                        </div>
+                        <p className="text-2xl font-bold text-destructive">
+                          {formatPrice(packageData.package_price.triple)}
+                        </p>
+                      </div>
+                      <div className="flex justify-between items-center pb-4 border-b-2">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">Double</p>
+                          <p className="text-xs text-muted-foreground">(2 orang/kamar)</p>
+                        </div>
+                        <p className="text-2xl font-bold text-destructive">
+                          {formatPrice(packageData.package_price.double)}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      onClick={handleBooking}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg mb-4"
+                      size="lg"
+                    >
+                      <Users className="mr-2 h-5 w-5" />
+                      Daftar Sekarang
+                    </Button>
+
+                    {/* Secondary Buttons */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {packageData.catalog_link && (
+                        <a
+                          href={packageData.catalog_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full"
+                        >
+                          <Button variant="outline" className="w-full text-xs md:text-sm">
+                            <ExternalLink className="mr-1 h-4 w-4" />
+                            Katalog
+                          </Button>
+                        </a>
+                      )}
+                      {packageData.itinerary_link && (
+                        <a
+                          href={packageData.itinerary_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full"
+                        >
+                          <Button variant="outline" className="w-full text-xs md:text-sm">
+                            <ExternalLink className="mr-1 h-4 w-4" />
+                            Itinerary
+                          </Button>
+                        </a>
+                      )}
+                    </div>
+                    
+                    <p className="text-xs text-center text-muted-foreground mt-4">
+                      Hubungi kami melalui WhatsApp untuk informasi lebih lanjut dan pendaftaran
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
         </section>
@@ -222,221 +333,153 @@ const PackageDetail = () => {
       {/* Main Content */}
       <section className="py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Details */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Hotel Information */}
-              <Card>
-                <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                    <Hotel className="h-6 w-6 text-primary" />
-                    Informasi Hotel
-                  </h2>
-                  <div className="space-y-6">
-                    {packageData.makkah_hotel_name && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <MapPin className="h-5 w-5 text-green-600" />
-                          <h3 className="font-semibold text-lg">Makkah</h3>
-                        </div>
-                        <p className="text-lg font-medium mb-2">{packageData.makkah_hotel_name}</p>
-                        {packageData.makkah_hotel_star && (
+          <div className="max-w-5xl mx-auto space-y-6">
+            {/* Hotel Information */}
+            <Card className="shadow-md">
+              <CardContent className="p-6">
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                  <Hotel className="h-6 w-6 text-primary" />
+                  Informasi Hotel
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {packageData.makkah_hotel_name && (
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <MapPin className="h-5 w-5 text-green-600" />
+                        <h3 className="font-bold text-lg">Makkah</h3>
+                      </div>
+                      <p className="text-base font-semibold mb-2">{packageData.makkah_hotel_name}</p>
+                      {packageData.makkah_hotel_star && (
+                        <div className="mb-2">
                           <StarRating rating={packageData.makkah_hotel_star} />
-                        )}
-                        {packageData.makkah_distance && (
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Jarak: {packageData.makkah_distance}
-                            {packageData.makkah_duration_walk && ` • ${packageData.makkah_duration_walk} berjalan kaki`}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                    {packageData.madinah_hotel_name && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <MapPin className="h-5 w-5 text-green-600" />
-                          <h3 className="font-semibold text-lg">Madinah</h3>
                         </div>
-                        <p className="text-lg font-medium mb-2">{packageData.madinah_hotel_name}</p>
-                        {packageData.madinah_hotel_star && (
+                      )}
+                      {packageData.makkah_distance && (
+                        <p className="text-sm text-muted-foreground">
+                          📍 {packageData.makkah_distance}
+                          {packageData.makkah_duration_walk && ` • 🚶 ${packageData.makkah_duration_walk}`}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {packageData.madinah_hotel_name && (
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <MapPin className="h-5 w-5 text-green-600" />
+                        <h3 className="font-bold text-lg">Madinah</h3>
+                      </div>
+                      <p className="text-base font-semibold mb-2">{packageData.madinah_hotel_name}</p>
+                      {packageData.madinah_hotel_star && (
+                        <div className="mb-2">
                           <StarRating rating={packageData.madinah_hotel_star} />
-                        )}
-                        {packageData.madinah_distance && (
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Jarak: {packageData.madinah_distance}
-                            {packageData.madinah_duration_walk && ` • ${packageData.madinah_duration_walk} berjalan kaki`}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Included Items */}
-              {packageData.included_items && (
-                <Card>
-                  <CardContent className="p-6">
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                      <CheckCircle2 className="h-6 w-6 text-green-600" />
-                      Termasuk dalam Paket
-                    </h2>
-                    <ul className="space-y-3">
-                      {parseListItems(packageData.included_items).map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-3">
-                          <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Excluded Items */}
-              {packageData.excluded_items && (
-                <Card>
-                  <CardContent className="p-6">
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                      <XCircle className="h-6 w-6 text-red-600" />
-                      Tidak Termasuk dalam Paket
-                    </h2>
-                    <ul className="space-y-3">
-                      {parseListItems(packageData.excluded_items).map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-3">
-                          <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Equipment List */}
-              {packageData.equipment_list && (
-                <Card>
-                  <CardContent className="p-6">
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                      <Package className="h-6 w-6 text-primary" />
-                      Perlengkapan yang Perlu Dibawa
-                    </h2>
-                    <ul className="space-y-3">
-                      {parseListItems(packageData.equipment_list).map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-3">
-                          <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Gallery Images */}
-              {packageData.gallery_images && packageData.gallery_images.length > 0 && (
-                <Card>
-                  <CardContent className="p-6">
-                    <h2 className="text-2xl font-bold mb-6">Galeri</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {packageData.gallery_images.map((image, idx) => (
-                        <div key={idx} className="relative aspect-square overflow-hidden rounded-lg">
-                          <img
-                            src={image}
-                            alt={`Gallery ${idx + 1}`}
-                            className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                          />
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Links */}
-              {(packageData.catalog_link || packageData.itinerary_link) && (
-                <Card>
-                  <CardContent className="p-6">
-                    <h2 className="text-2xl font-bold mb-6">Dokumen Tambahan</h2>
-                    <div className="flex flex-col gap-3">
-                      {packageData.catalog_link && (
-                        <a
-                          href={packageData.catalog_link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-primary hover:underline"
-                        >
-                          <ExternalLink className="h-5 w-5" />
-                          <span>Lihat Katalog Lengkap</span>
-                        </a>
                       )}
-                      {packageData.itinerary_link && (
-                        <a
-                          href={packageData.itinerary_link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-primary hover:underline"
-                        >
-                          <ExternalLink className="h-5 w-5" />
-                          <span>Lihat Itinerary Detail</span>
-                        </a>
+                      {packageData.madinah_distance && (
+                        <p className="text-sm text-muted-foreground">
+                          📍 {packageData.madinah_distance}
+                          {packageData.madinah_duration_walk && ` • 🚶 ${packageData.madinah_duration_walk}`}
+                        </p>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Right Column - Booking Card */}
-            <div>
-              <Card className="sticky top-24">
+            {/* Included Items */}
+            {packageData.included_items && (
+              <Card className="shadow-md border-l-4 border-l-green-600">
                 <CardContent className="p-6">
-                  <h2 className="text-xl font-bold mb-6">Harga Paket</h2>
-                  <div className="space-y-4 mb-6">
-                    <div className="flex justify-between items-center pb-3 border-b">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Quad</p>
-                        <p className="text-xs text-muted-foreground">(4 orang/kamar)</p>
-                      </div>
-                      <p className="text-lg font-bold text-primary">
-                        {formatPrice(packageData.package_price.quad)}
-                      </p>
-                    </div>
-                    <div className="flex justify-between items-center pb-3 border-b">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Triple</p>
-                        <p className="text-xs text-muted-foreground">(3 orang/kamar)</p>
-                      </div>
-                      <p className="text-lg font-bold text-primary">
-                        {formatPrice(packageData.package_price.triple)}
-                      </p>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Double</p>
-                        <p className="text-xs text-muted-foreground">(2 orang/kamar)</p>
-                      </div>
-                      <p className="text-lg font-bold text-primary">
-                        {formatPrice(packageData.package_price.double)}
-                      </p>
-                    </div>
-                  </div>
-                  <Button 
-                    onClick={handleBooking}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg"
-                    size="lg"
-                  >
-                    Daftar Sekarang
-                  </Button>
-                  <p className="text-xs text-center text-muted-foreground mt-4">
-                    Hubungi kami melalui WhatsApp untuk informasi lebih lanjut dan pendaftaran
-                  </p>
+                  <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-green-600">
+                    <CheckCircle2 className="h-6 w-6" />
+                    Termasuk dalam Paket
+                  </h2>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {parseListItems(packageData.included_items).map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-3">
+                        <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </CardContent>
               </Card>
-            </div>
+            )}
+
+            {/* Excluded Items */}
+            {packageData.excluded_items && (
+              <Card className="shadow-md border-l-4 border-l-destructive">
+                <CardContent className="p-6">
+                  <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-destructive">
+                    <XCircle className="h-6 w-6" />
+                    Tidak Termasuk dalam Paket
+                  </h2>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {parseListItems(packageData.excluded_items).map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-3">
+                        <XCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                        <span className="text-sm">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Equipment List */}
+            {packageData.equipment_list && (
+              <Card className="shadow-md border-l-4 border-l-primary">
+                <CardContent className="p-6">
+                  <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-primary">
+                    <Package className="h-6 w-6" />
+                    Perlengkapan yang Perlu Dibawa
+                  </h2>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {parseListItems(packageData.equipment_list).map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-3">
+                        <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                        <span className="text-sm">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Gallery Images */}
+            {packageData.gallery_images && packageData.gallery_images.length > 0 && (
+              <Card className="shadow-md">
+                <CardContent className="p-6">
+                  <h2 className="text-2xl font-bold mb-6">Galeri Foto</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {packageData.gallery_images.map((image, idx) => (
+                      <div key={idx} className="relative aspect-square overflow-hidden rounded-lg shadow-sm">
+                        <img
+                          src={image}
+                          alt={`Gallery ${idx + 1}`}
+                          className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </section>
+
+      {/* Sticky Mobile CTA */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg z-50 p-4">
+        <Button 
+          onClick={handleBooking}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg"
+          size="lg"
+        >
+          <Users className="mr-2 h-5 w-5" />
+          Daftar Sekarang
+        </Button>
+      </div>
 
       <Footer />
     </div>
