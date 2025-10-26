@@ -19,6 +19,7 @@ interface Article {
   category?: string;
   created_at: string;
   author_id?: string;
+  author_name?: string;
   meta_description?: string;
 }
 
@@ -135,7 +136,7 @@ const Artikel = () => {
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-1">
                         <User className="h-3 w-3" />
-                        <span>Admin</span>
+                        <span>{article.author_name || "Admin"}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
