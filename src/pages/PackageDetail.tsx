@@ -273,7 +273,10 @@ const PackageDetail = () => {
                     <h2 className="text-xl font-bold mb-4 text-foreground">Harga Paket</h2>
                     
                     {/* Tier Selector */}
-                    {packageData.five_star_package_price && (
+                    {packageData.five_star_package_price && 
+                     (packageData.five_star_package_price.quad > 0 || 
+                      packageData.five_star_package_price.triple > 0 || 
+                      packageData.five_star_package_price.double > 0) && (
                       <div className="mb-6">
                         <label className="text-sm font-medium mb-2 block">Pilih Tier</label>
                         <Select value={selectedTier} onValueChange={(value: "best-seller" | "five-star") => setSelectedTier(value)}>
