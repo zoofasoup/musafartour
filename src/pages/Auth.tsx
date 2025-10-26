@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 import musafarLogo from "@/assets/musafar-logo.svg";
 
 const Auth = () => {
@@ -155,6 +156,18 @@ const Auth = () => {
               </form>
             </TabsContent>
           </Tabs>
+
+          <div className="mt-4 pt-4 border-t text-center">
+            <Link to="/admin/setup">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <ShieldCheck className="h-4 w-4" />
+                Setup Admin Pertama
+              </Button>
+            </Link>
+            <p className="text-xs text-muted-foreground mt-2">
+              Belum ada admin? Setup admin pertama dengan kode rahasia
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -14,6 +14,7 @@ import Artikel from "./pages/Artikel";
 import Kontak from "./pages/Kontak";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import AdminSetup from "./pages/AdminSetup";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
 
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/artikel" element={<Artikel />} />
           <Route path="/kontak" element={<Kontak />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/admin/setup" element={<AdminSetup />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
           </Route>
