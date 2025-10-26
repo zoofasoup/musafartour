@@ -8,11 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X, Upload } from "lucide-react";
 
 const packageSchema = z.object({
   package_name: z.string().min(1, "Nama paket wajib diisi"),
@@ -51,6 +50,11 @@ const PackageForm = () => {
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(!!id);
+  const [bannerImage, setBannerImage] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string>("");
+  const [galleryImages, setGalleryImages] = useState<File[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   const form = useForm<PackageFormValues>({
     resolver: zodResolver(packageSchema),
@@ -84,6 +88,14 @@ const PackageForm = () => {
       if (error) throw error;
 
       if (data) {
+        // Set image previews
+        if (data.banner_image) {
+          setBannerPreview(data.banner_image);
+        }
+        if (data.gallery_images && Array.isArray(data.gallery_images)) {
+          setGalleryPreviews(data.gallery_images);
+        }
+
         const priceData = data.package_price as any;
         form.reset({
           package_name: data.package_name,
@@ -122,9 +134,115 @@ const PackageForm = () => {
     }
   };
 
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File terlalu besar. Maksimal 5MB");
+        return;
+      }
+      setBannerImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBannerPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGalleryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length + galleryImages.length > 10) {
+      toast.error("Maksimal 10 gambar untuk galeri");
+      return;
+    }
+
+    const validFiles = files.filter(file => {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} melebihi 5MB`);
+        return false;
+      }
+      return true;
+    });
+
+    setGalleryImages(prev => [...prev, ...validFiles]);
+    
+    validFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setGalleryPreviews(prev => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeBannerImage = () => {
+    setBannerImage(null);
+    setBannerPreview("");
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setGalleryImages(prev => prev.filter((_, i) => i !== index));
+    setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadBannerImage = async (): Promise<string | null> => {
+    if (!bannerImage) return bannerPreview || null;
+
+    const fileExt = bannerImage.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `banners/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('package-images')
+      .upload(filePath, bannerImage);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('package-images')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  const uploadGalleryImages = async (): Promise<string[]> => {
+    const existingUrls = galleryPreviews.filter(url => url.startsWith('http'));
+    
+    if (galleryImages.length === 0) return existingUrls;
+
+    const uploadPromises = galleryImages.map(async (file) => {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `galleries/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('package-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('package-images')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    });
+
+    const newUrls = await Promise.all(uploadPromises);
+    return [...existingUrls, ...newUrls];
+  };
+
   const onSubmit = async (values: PackageFormValues) => {
     setLoading(true);
+    setUploadingImages(true);
     try {
+      // Upload images first
+      const bannerUrl = await uploadBannerImage();
+      const galleryUrls = await uploadGalleryImages();
+      
+      setUploadingImages(false);
+
       const packageData = {
         package_name: values.package_name,
         departure_date: values.departure_date,
@@ -147,6 +265,9 @@ const PackageForm = () => {
           triple: values.price_triple,
           double: values.price_double,
         },
+        
+        banner_image: bannerUrl,
+        gallery_images: galleryUrls,
         
         included_items: values.included_items,
         excluded_items: values.excluded_items,
@@ -179,6 +300,7 @@ const PackageForm = () => {
       toast.error("Gagal menyimpan paket: " + error.message);
     } finally {
       setLoading(false);
+      setUploadingImages(false);
     }
   };
 
@@ -533,6 +655,103 @@ const PackageForm = () => {
             </CardContent>
           </Card>
 
+          {/* Banner Image Upload */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Banner Image</CardTitle>
+              <CardDescription>Upload banner untuk paket (1080x1350px)</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Upload className="w-4 h-4" />
+                  Upload Banner
+                </label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBannerChange}
+                  disabled={loading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Ukuran ideal: 1080x1350px (portrait). Maksimal 5MB
+                </p>
+              </div>
+
+              {bannerPreview && (
+                <div className="relative w-48 mx-auto">
+                  <div className="aspect-[1080/1350] overflow-hidden rounded-lg border">
+                    <img
+                      src={bannerPreview}
+                      alt="Banner preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-2 -right-2"
+                    onClick={removeBannerImage}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Gallery Images Upload */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Gallery Images</CardTitle>
+              <CardDescription>Upload gambar galeri (maksimal 10 gambar)</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Upload className="w-4 h-4" />
+                  Upload Gallery Images
+                </label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleGalleryChange}
+                  disabled={loading || galleryPreviews.length >= 10}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Maksimal 10 gambar. Masing-masing maksimal 5MB
+                </p>
+              </div>
+
+              {galleryPreviews.length > 0 && (
+                <div className="grid grid-cols-3 gap-4">
+                  {galleryPreviews.map((preview, index) => (
+                    <div key={index} className="relative">
+                      <div className="aspect-square overflow-hidden rounded-lg border">
+                        <img
+                          src={preview}
+                          alt={`Gallery ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 w-6 h-6"
+                        onClick={() => removeGalleryImage(index)}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Fasilitas & Perlengkapan</CardTitle>
@@ -661,8 +880,8 @@ const PackageForm = () => {
             >
               Batal
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Menyimpan..." : "Simpan Paket"}
+            <Button type="submit" disabled={loading || uploadingImages}>
+              {uploadingImages ? "Uploading images..." : loading ? "Menyimpan..." : "Simpan Paket"}
             </Button>
           </div>
         </form>
