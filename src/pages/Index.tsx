@@ -1,63 +1,114 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { PackageCard } from "@/components/PackageCard";
 import { FeatureCard } from "@/components/FeatureCard";
 import { TestimonialCard } from "@/components/TestimonialCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plane, MapPin, Hotel, MessageCircle, Heart } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Plane, MapPin, Hotel, MessageCircle, Heart, Package } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
 import heroImage from "@/assets/foto umroh rame.webp";
-import makkahImage from "@/assets/makkah.jpg";
-import madinahImage from "@/assets/madinah.jpg";
 import musafarLogo from "@/assets/musafar-logo.svg";
+
+interface PackageData {
+  id: string;
+  package_name: string;
+  departure_date: string;
+  duration_days: number;
+  flight: string;
+  flight_type: string;
+  banner_image: string | null;
+  package_price: {
+    quad: number;
+    triple: number;
+    double: number;
+  };
+  makkah_hotel_name: string | null;
+  makkah_hotel_star: number | null;
+  madinah_hotel_name: string | null;
+  madinah_hotel_star: number | null;
+}
 const Index = () => {
   const [category, setCategory] = useState<string>("all");
   const [airline, setAirline] = useState<string>("all");
   const [month, setMonth] = useState<string>("all");
   const [flightType, setFlightType] = useState<string>("all");
-  const packages = [{
-    image: makkahImage,
-    title: "Umroh Plus Aqsha",
-    price: "52,9 Juta",
-    date: "8 November 2025",
-    duration: "12 Hari",
-    airline: "Qatar Airways",
-    transit: "Transit",
-    hotelMakkah: "Concorde Al Khair *4",
-    hotelMakkahRating: 4,
-    hotelMadinah: "Emaar Grand *5",
-    hotelMadinahRating: 5,
-    category: "Comfort",
-    seatAvailable: true
-  }, {
-    image: madinahImage,
-    title: "Paket Umroh Budget",
-    price: "22 Juta",
-    date: "15 Agustus 2025",
-    duration: "9 Hari",
-    airline: "Saudia Airlines",
-    hotelMakkah: "Makkah Hotel *3",
-    hotelMakkahRating: 3,
-    hotelMadinah: "Madinah Inn *3",
-    hotelMadinahRating: 3,
-    category: "Budget",
-    seatAvailable: true
-  }, {
-    image: makkahImage,
-    title: "Paket Umroh Premium Bintang 5",
-    price: "45 Juta",
-    date: "20 September 2025",
-    duration: "14 Hari",
-    airline: "Emirates",
-    transit: "Direct",
-    hotelMakkah: "Hilton Makkah *5",
-    hotelMakkahRating: 5,
-    hotelMadinah: "Marriott Madinah *5",
-    hotelMadinahRating: 5,
-    category: "Five-Star",
-    seatAvailable: false
-  }];
+  const [packages, setPackages] = useState<PackageData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPackages();
+  }, []);
+
+  const fetchPackages = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("packages")
+        .select("*")
+        .eq("status", "published")
+        .order("departure_date", { ascending: true })
+        .limit(6); // Show only 6 packages on homepage
+
+      if (error) throw error;
+      setPackages(data as any || []);
+    } catch (error) {
+      console.error("Error fetching packages:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatPrice = (price: number) => {
+    const millions = price / 1000000;
+    return millions % 1 === 0 
+      ? `${millions} Juta` 
+      : `${millions.toFixed(1).replace('.', ',')} Juta`;
+  };
+
+  const getCategoryFromPrice = (price: number) => {
+    if (price < 25000000) return "budget";
+    if (price <= 40000000) return "comfort";
+    return "five-star";
+  };
+
+  const getMonthFromDate = (date: string) => {
+    return format(new Date(date), "MMMM yyyy", { locale: localeId }).toLowerCase();
+  };
+
+  const filteredPackages = packages.filter((pkg) => {
+    const pkgCategory = getCategoryFromPrice(pkg.package_price.quad);
+    const pkgMonth = getMonthFromDate(pkg.departure_date);
+    
+    const categoryMatch = category === "all" || pkgCategory === category;
+    const airlineMatch = airline === "all" || pkg.flight.toLowerCase().includes(airline);
+    const monthMatch = month === "all" || pkgMonth.includes(month.toLowerCase());
+    const flightTypeMatch = flightType === "all" || 
+      (flightType === "direct" && pkg.flight_type.toLowerCase() === "direct") ||
+      (flightType === "transit" && pkg.flight_type.toLowerCase() === "transit");
+
+    return categoryMatch && airlineMatch && monthMatch && flightTypeMatch;
+  });
+
+  const transformedPackages = filteredPackages.map((pkg) => ({
+    image: pkg.banner_image || "/placeholder.svg",
+    title: pkg.package_name,
+    price: formatPrice(pkg.package_price.quad),
+    date: format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId }),
+    duration: `${pkg.duration_days} Hari`,
+    airline: pkg.flight,
+    transit: pkg.flight_type === "direct" ? "Direct" : "Transit",
+    hotelMakkah: pkg.makkah_hotel_name || undefined,
+    hotelMakkahRating: pkg.makkah_hotel_star || undefined,
+    hotelMadinah: pkg.madinah_hotel_name || undefined,
+    hotelMadinahRating: pkg.madinah_hotel_star || undefined,
+    category: getCategoryFromPrice(pkg.package_price.quad),
+    seatAvailable: true,
+  }));
   const features = [{
     icon: Plane,
     title: "Penerbangan & Visa Lengkap",
@@ -197,9 +248,29 @@ untuk Perjalanan Anda</h1>
         </div>
 
         {/* Package Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {packages.map((pkg, index) => <PackageCard key={index} {...pkg} />)}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="space-y-4">
+                <Skeleton className="aspect-[1080/1350] w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : transformedPackages.length === 0 ? (
+          <div className="text-center py-16">
+            <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-xl font-semibold mb-2">Tidak ada paket tersedia</h3>
+            <p className="text-muted-foreground">
+              Coba ubah filter atau kembali lagi nanti
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {transformedPackages.map((pkg, index) => <PackageCard key={index} {...pkg} />)}
+          </div>
+        )}
       </section>
 
       {/* Why Choose Musafar */}
