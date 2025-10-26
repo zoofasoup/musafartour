@@ -24,6 +24,8 @@ import WisataHalalPage from "./pages/admin/WisataHalal";
 import WisataHalalForm from "./pages/admin/WisataHalalForm";
 import ArticlesPage from "./pages/admin/Articles";
 import ArticleForm from "./pages/admin/ArticleForm";
+import Hotels from "./pages/admin/Hotels";
+import HotelForm from "./pages/admin/HotelForm";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +53,9 @@ const App = () => (
             <Route path="packages" element={<Packages />} />
             <Route path="packages/new" element={<PackageForm />} />
             <Route path="packages/:id" element={<PackageForm />} />
+            <Route path="hotels" element={<Hotels />} />
+            <Route path="hotels/new" element={<HotelForm />} />
+            <Route path="hotels/:id" element={<HotelForm />} />
             <Route path="wisata-halal" element={<WisataHalalPage />} />
             <Route path="wisata-halal/new" element={<WisataHalalForm />} />
             <Route path="wisata-halal/:id" element={<WisataHalalForm />} />

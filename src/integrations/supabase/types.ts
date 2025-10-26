@@ -68,6 +68,39 @@ export type Database = {
         }
         Relationships: []
       }
+      hotels: {
+        Row: {
+          created_at: string
+          distance: string
+          id: string
+          location: string
+          name: string
+          star_rating: number
+          updated_at: string
+          walking_duration: string
+        }
+        Insert: {
+          created_at?: string
+          distance: string
+          id?: string
+          location: string
+          name: string
+          star_rating: number
+          updated_at?: string
+          walking_duration: string
+        }
+        Update: {
+          created_at?: string
+          distance?: string
+          id?: string
+          location?: string
+          name?: string
+          star_rating?: number
+          updated_at?: string
+          walking_duration?: string
+        }
+        Relationships: []
+      }
       packages: {
         Row: {
           banner_image: string | null

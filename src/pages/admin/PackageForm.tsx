@@ -75,6 +75,8 @@ const PackageForm = () => {
   const [galleryImages, setGalleryImages] = useState<File[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [makkahHotels, setMakkahHotels] = useState<any[]>([]);
+  const [madinahHotels, setMadinahHotels] = useState<any[]>([]);
 
   const form = useForm<PackageFormValues>({
     resolver: zodResolver(packageSchema),
@@ -97,10 +99,71 @@ const PackageForm = () => {
   });
 
   useEffect(() => {
+    fetchHotels();
     if (id) {
       fetchPackage();
     }
   }, [id]);
+
+  const fetchHotels = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("hotels")
+        .select("*")
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+
+      const makkah = data?.filter((h: any) => h.location === "makkah") || [];
+      const madinah = data?.filter((h: any) => h.location === "madinah") || [];
+      
+      setMakkahHotels(makkah);
+      setMadinahHotels(madinah);
+    } catch (error) {
+      console.error("Error fetching hotels:", error);
+      toast.error("Gagal memuat data hotel");
+    }
+  };
+
+  const handleBestSellerMadinahHotelChange = (hotelId: string) => {
+    const hotel = madinahHotels.find((h) => h.id === hotelId);
+    if (hotel) {
+      form.setValue("madinah_hotel_name", hotel.name);
+      form.setValue("madinah_hotel_star", hotel.star_rating);
+      form.setValue("madinah_distance", hotel.distance);
+      form.setValue("madinah_duration_walk", hotel.walking_duration);
+    }
+  };
+
+  const handleBestSellerMakkahHotelChange = (hotelId: string) => {
+    const hotel = makkahHotels.find((h) => h.id === hotelId);
+    if (hotel) {
+      form.setValue("makkah_hotel_name", hotel.name);
+      form.setValue("makkah_hotel_star", hotel.star_rating);
+      form.setValue("makkah_distance", hotel.distance);
+      form.setValue("makkah_duration_walk", hotel.walking_duration);
+    }
+  };
+
+  const handleFiveStarMadinahHotelChange = (hotelId: string) => {
+    const hotel = madinahHotels.find((h) => h.id === hotelId);
+    if (hotel) {
+      form.setValue("five_star_madinah_hotel_name", hotel.name);
+      form.setValue("five_star_madinah_hotel_star", hotel.star_rating);
+      form.setValue("five_star_madinah_distance", hotel.distance);
+      form.setValue("five_star_madinah_duration_walk", hotel.walking_duration);
+    }
+  };
+
+  const handleFiveStarMakkahHotelChange = (hotelId: string) => {
+    const hotel = makkahHotels.find((h) => h.id === hotelId);
+    if (hotel) {
+      form.setValue("five_star_makkah_hotel_name", hotel.name);
+      form.setValue("five_star_makkah_hotel_star", hotel.star_rating);
+      form.setValue("five_star_makkah_distance", hotel.distance);
+      form.setValue("five_star_makkah_duration_walk", hotel.walking_duration);
+    }
+  };
 
   const fetchPackage = async () => {
     try {
@@ -502,9 +565,23 @@ const PackageForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nama Hotel</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Nama hotel di Madinah" />
-                      </FormControl>
+                      <Select
+                        onValueChange={handleBestSellerMadinahHotelChange}
+                        value={madinahHotels.find((h) => h.name === field.value)?.id}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih hotel Madinah" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {madinahHotels.map((hotel) => (
+                            <SelectItem key={hotel.id} value={hotel.id}>
+                              {hotel.name} ({hotel.star_rating}⭐)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -581,9 +658,23 @@ const PackageForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nama Hotel</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Nama hotel di Makkah" />
-                      </FormControl>
+                      <Select
+                        onValueChange={handleBestSellerMakkahHotelChange}
+                        value={makkahHotels.find((h) => h.name === field.value)?.id}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih hotel Makkah" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {makkahHotels.map((hotel) => (
+                            <SelectItem key={hotel.id} value={hotel.id}>
+                              {hotel.name} ({hotel.star_rating}⭐)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -741,9 +832,23 @@ const PackageForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nama Hotel</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Nama hotel di Madinah (Five Star)" />
-                      </FormControl>
+                      <Select
+                        onValueChange={handleFiveStarMadinahHotelChange}
+                        value={madinahHotels.find((h) => h.name === field.value)?.id}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih hotel Madinah (Five Star)" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {madinahHotels.map((hotel) => (
+                            <SelectItem key={hotel.id} value={hotel.id}>
+                              {hotel.name} ({hotel.star_rating}⭐)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -820,9 +925,23 @@ const PackageForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nama Hotel</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Nama hotel di Makkah (Five Star)" />
-                      </FormControl>
+                      <Select
+                        onValueChange={handleFiveStarMakkahHotelChange}
+                        value={makkahHotels.find((h) => h.name === field.value)?.id}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih hotel Makkah (Five Star)" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {makkahHotels.map((hotel) => (
+                            <SelectItem key={hotel.id} value={hotel.id}>
+                              {hotel.name} ({hotel.star_rating}⭐)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

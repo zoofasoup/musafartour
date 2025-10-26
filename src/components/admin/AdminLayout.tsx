@@ -1,7 +1,7 @@
 import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Package, Plane, FileText, Home } from "lucide-react";
+import { LogOut, LayoutDashboard, Package, Plane, FileText, Home, Hotel } from "lucide-react";
 import { useEffect } from "react";
 import musafarLogo from "@/assets/musafar-logo.svg";
 
@@ -44,6 +44,7 @@ const AdminLayout = () => {
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
     { icon: Package, label: "Paket Umroh", path: "/admin/packages" },
+    { icon: Hotel, label: "Hotel", path: "/admin/hotels" },
     { icon: Plane, label: "Wisata Halal", path: "/admin/wisata-halal" },
     { icon: FileText, label: "Artikel", path: "/admin/articles" },
   ];
