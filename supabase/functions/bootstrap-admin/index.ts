@@ -36,29 +36,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if any admin already exists
-    const { data: existingAdmins, error: checkError } = await supabase
-      .from('user_roles')
-      .select('id')
-      .eq('role', 'admin')
-      .limit(1);
-
-    if (checkError) {
-      console.error('Error checking existing admins:', checkError);
-      return new Response(
-        JSON.stringify({ error: 'Gagal memeriksa admin yang ada' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (existingAdmins && existingAdmins.length > 0) {
-      console.error('Admin already exists, bootstrap disabled');
-      return new Response(
-        JSON.stringify({ error: 'Admin sudah ada. Bootstrap hanya bisa digunakan sekali.' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     // Find user by email
     const { data: { users }, error: userError } = await supabase.auth.admin.listUsers();
     
@@ -77,6 +54,33 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'User dengan email tersebut tidak ditemukan. Silakan sign up terlebih dahulu.' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if user already has admin role
+    const { data: existingRole, error: roleCheckError } = await supabase
+      .from('user_roles')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .maybeSingle();
+
+    if (roleCheckError) {
+      console.error('Error checking user role:', roleCheckError);
+      return new Response(
+        JSON.stringify({ error: 'Gagal memeriksa role user' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (existingRole) {
+      console.log('User is already an admin:', email);
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          message: 'User sudah menjadi admin.'
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
