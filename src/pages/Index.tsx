@@ -4,7 +4,9 @@ import { PackageCard } from "@/components/PackageCard";
 import { FeatureCard } from "@/components/FeatureCard";
 import { TestimonialCard } from "@/components/TestimonialCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plane, MapPin, Hotel, MessageCircle, FileCheck, Users, Heart } from "lucide-react";
+import { Plane, MapPin, Hotel, MessageCircle, Heart } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import heroImage from "@/assets/hero-umrah.jpg";
 import makkahImage from "@/assets/makkah.jpg";
 import madinahImage from "@/assets/madinah.jpg";
@@ -19,61 +21,31 @@ const Index = () => {
   const packages = [
     {
       image: makkahImage,
-      title: "Comfort Umrah + Thaif, July 2025",
-      price: "Rp 28,500,000",
-      duration: "12 Days",
+      title: "Paket Umroh Comfort + Thaif, Juli 2025",
+      price: "Rp 28.500.000",
+      duration: "12 Hari",
       airline: "Garuda Indonesia",
-      hotelClass: "4-Star (Near Haram)",
+      hotelClass: "Bintang 4 (Dekat Haram)",
       departureCity: "Jakarta",
       category: "Comfort",
     },
     {
       image: madinahImage,
-      title: "Budget Umrah Package, August 2025",
-      price: "Rp 22,000,000",
-      duration: "9 Days",
+      title: "Paket Umroh Budget, Agustus 2025",
+      price: "Rp 22.000.000",
+      duration: "9 Hari",
       airline: "Saudia Airlines",
-      hotelClass: "3-Star",
+      hotelClass: "Bintang 3",
       departureCity: "Surabaya",
       category: "Budget",
     },
     {
       image: makkahImage,
-      title: "Five-Star Premium Umrah, September 2025",
-      price: "Rp 45,000,000",
-      duration: "14 Days",
+      title: "Paket Umroh Premium Bintang 5, September 2025",
+      price: "Rp 45.000.000",
+      duration: "14 Hari",
       airline: "Emirates",
-      hotelClass: "5-Star (Haram View)",
-      departureCity: "Jakarta",
-      category: "Five-Star",
-    },
-    {
-      image: madinahImage,
-      title: "Comfort Umrah Direct Flight, July 2025",
-      price: "Rp 32,000,000",
-      duration: "10 Days",
-      airline: "Qatar Airways",
-      hotelClass: "4-Star",
-      departureCity: "Jakarta",
-      category: "Comfort",
-    },
-    {
-      image: makkahImage,
-      title: "Budget Umrah Transit Package, June 2025",
-      price: "Rp 19,500,000",
-      duration: "9 Days",
-      airline: "Garuda Indonesia",
-      hotelClass: "3-Star",
-      departureCity: "Bandung",
-      category: "Budget",
-    },
-    {
-      image: madinahImage,
-      title: "Five-Star Luxury Umrah, October 2025",
-      price: "Rp 52,000,000",
-      duration: "15 Days",
-      airline: "Emirates",
-      hotelClass: "5-Star (Premium)",
+      hotelClass: "Bintang 5 (View Haram)",
       departureCity: "Jakarta",
       category: "Five-Star",
     },
@@ -82,23 +54,23 @@ const Index = () => {
   const features = [
     {
       icon: Plane,
-      title: "All-Inclusive Flights & Visa",
-      description: "Complete travel arrangements with trusted airlines and hassle-free visa processing.",
+      title: "Penerbangan & Visa Lengkap",
+      description: "Pengaturan perjalanan lengkap dengan maskapai terpercaya dan proses visa tanpa ribet.",
     },
     {
       icon: MapPin,
-      title: "Guided Worship & Mentorship",
-      description: "Experienced Musamin guides to support your spiritual journey every step of the way.",
+      title: "Bimbingan Ibadah & Mentoring",
+      description: "Pembimbing Musamin berpengalaman mendampingi perjalanan spiritual Anda di setiap langkah.",
     },
     {
       icon: Hotel,
-      title: "Hotels Close to the Haram",
-      description: "Comfortable accommodations within walking distance to Masjid al-Haram and Masjid Nabawi.",
+      title: "Hotel Dekat dengan Haram",
+      description: "Akomodasi nyaman dalam jarak berjalan kaki ke Masjidil Haram dan Masjid Nabawi.",
     },
     {
       icon: Heart,
-      title: "Friendly Personal Assistance",
-      description: "Our caring team is always ready to help you with warmth and dedication.",
+      title: "Pelayanan Pribadi yang Ramah",
+      description: "Tim kami yang peduli selalu siap membantu Anda dengan kehangatan dan dedikasi.",
     },
   ];
 
@@ -106,29 +78,31 @@ const Index = () => {
     {
       name: "Siti Nurhaliza",
       image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop",
-      text: "Alhamdulillah, our Umrah with Musafar Tour was truly blessed. The team was so caring and professional. Highly recommended!",
+      text: "Alhamdulillah, Umroh kami bersama Musafar Tour benar-benar diberkahi. Timnya sangat peduli dan profesional. Sangat direkomendasikan!",
       location: "Jakarta",
     },
     {
       name: "Ahmad Fauzi",
       image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
-      text: "Everything was perfectly organized. The hotel was close to Haram and the Musamin guide was very helpful. Best decision ever.",
+      text: "Semuanya diatur dengan sempurna. Hotelnya dekat dengan Haram dan pembimbing Musamin sangat membantu. Keputusan terbaik!",
       location: "Bandung",
     },
     {
       name: "Fatimah Rahman",
       image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
-      text: "My family and I felt at home throughout the journey. Musafar Tour made our spiritual journey unforgettable. Thank you!",
+      text: "Keluarga saya merasa seperti di rumah sepanjang perjalanan. Musafar Tour membuat perjalanan spiritual kami tak terlupakan. Terima kasih!",
       location: "Surabaya",
     },
   ];
 
   const handleWhatsAppClick = () => {
-    window.open("https://wa.me/6281234567890?text=Hi%20Musamin,%20I'm%20interested%20in%20learning%20more%20about%20Umrah%20packages", "_blank");
+    window.open("https://wa.me/6281234567890?text=Halo%20Musamin,%20saya%20tertarik%20untuk%20mengetahui%20lebih%20lanjut%20tentang%20paket%20Umroh", "_blank");
   };
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
+      
       {/* Hero Section */}
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
         <div
@@ -141,10 +115,10 @@ const Index = () => {
         <div className="relative z-10 container mx-auto px-4 text-center text-white">
           <img src={musafarLogo} alt="Musafar Tour" className="h-16 mx-auto mb-8 opacity-90" />
           <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
-            Find the Perfect Umrah Package for Your Journey
+            Temukan Paket Umroh Sempurna untuk Perjalanan Anda
           </h1>
           <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-gray-200">
-            Musafar Tour offers thoughtfully designed Umrah experiences — from budget to five-star, all guided with care.
+            Musafar Tour menawarkan pengalaman Umroh yang dirancang dengan penuh perhatian — dari budget hingga bintang lima, semuanya dibimbing dengan penuh kasih sayang.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
@@ -152,7 +126,7 @@ const Index = () => {
               className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold text-lg px-8"
               onClick={() => document.getElementById('packages')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Browse All Packages
+              Lihat Semua Paket
             </Button>
             <Button
               size="lg"
@@ -161,7 +135,7 @@ const Index = () => {
               onClick={handleWhatsAppClick}
             >
               <MessageCircle className="mr-2 h-5 w-5" />
-              Chat with Musamin 🤍
+              Chat dengan Musamin 🤍
             </Button>
           </div>
         </div>
@@ -170,31 +144,31 @@ const Index = () => {
       {/* Filter & Package Catalog */}
       <section id="packages" className="py-16 container mx-auto px-4">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-center mb-2 text-foreground">Our Umrah Packages</h2>
-          <p className="text-center text-muted-foreground">Find the journey that speaks to your heart</p>
+          <h2 className="text-3xl font-bold text-center mb-2 text-foreground">Paket Umroh Unggulan Kami</h2>
+          <p className="text-center text-muted-foreground">Temukan perjalanan yang berbicara kepada hati Anda</p>
         </div>
 
         {/* Filter Bar */}
-        <div className="bg-card p-6 rounded-lg shadow-md mb-12 sticky top-4 z-40 border">
+        <div className="bg-card p-6 rounded-lg shadow-md mb-12 sticky top-20 z-40 border">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger>
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder="Kategori" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="all">Semua Kategori</SelectItem>
                 <SelectItem value="budget">Budget</SelectItem>
                 <SelectItem value="comfort">Comfort</SelectItem>
-                <SelectItem value="five-star">Five-Star</SelectItem>
+                <SelectItem value="five-star">Bintang 5</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={airline} onValueChange={setAirline}>
               <SelectTrigger>
-                <SelectValue placeholder="Airline" />
+                <SelectValue placeholder="Maskapai" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Airlines</SelectItem>
+                <SelectItem value="all">Semua Maskapai</SelectItem>
                 <SelectItem value="garuda">Garuda Indonesia</SelectItem>
                 <SelectItem value="saudia">Saudia Airlines</SelectItem>
                 <SelectItem value="qatar">Qatar Airways</SelectItem>
@@ -204,25 +178,25 @@ const Index = () => {
 
             <Select value={month} onValueChange={setMonth}>
               <SelectTrigger>
-                <SelectValue placeholder="Month" />
+                <SelectValue placeholder="Bulan" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Months</SelectItem>
-                <SelectItem value="june">June 2025</SelectItem>
-                <SelectItem value="july">July 2025</SelectItem>
-                <SelectItem value="august">August 2025</SelectItem>
+                <SelectItem value="all">Semua Bulan</SelectItem>
+                <SelectItem value="june">Juni 2025</SelectItem>
+                <SelectItem value="july">Juli 2025</SelectItem>
+                <SelectItem value="august">Agustus 2025</SelectItem>
                 <SelectItem value="september">September 2025</SelectItem>
-                <SelectItem value="october">October 2025</SelectItem>
+                <SelectItem value="october">Oktober 2025</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={flightType} onValueChange={setFlightType}>
               <SelectTrigger>
-                <SelectValue placeholder="Flight Type" />
+                <SelectValue placeholder="Jenis Penerbangan" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="direct">Direct</SelectItem>
+                <SelectItem value="all">Semua Jenis</SelectItem>
+                <SelectItem value="direct">Langsung</SelectItem>
                 <SelectItem value="transit">Transit</SelectItem>
               </SelectContent>
             </Select>
@@ -237,7 +211,7 @@ const Index = () => {
               setFlightType("all");
             }}
           >
-            Reset Filters
+            Reset Filter
           </Button>
         </div>
 
@@ -253,8 +227,8 @@ const Index = () => {
       <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-2 text-foreground">Why Choose Musafar Tour</h2>
-            <p className="text-muted-foreground">We accompany you with heart and professionalism</p>
+            <h2 className="text-3xl font-bold mb-2 text-foreground">Mengapa Memilih Musafar Tour</h2>
+            <p className="text-muted-foreground">Kami mendampingi Anda dengan hati dan profesionalisme</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
@@ -268,8 +242,8 @@ const Index = () => {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-2 text-foreground">Real Stories from Our Happy Musafriends</h2>
-            <p className="text-muted-foreground">Hear from those who've walked this blessed path with us</p>
+            <h2 className="text-3xl font-bold mb-2 text-foreground">Kisah Nyata dari Musafriends Kami</h2>
+            <p className="text-muted-foreground">Dengarkan dari mereka yang telah menempuh jalan yang diberkahi ini bersama kami</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((testimonial, index) => (
@@ -283,10 +257,10 @@ const Index = () => {
       <section className="py-20 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Not Sure Which Umrah Package Fits You?
+            Belum Yakin Paket Umroh Mana yang Cocok untuk Anda?
           </h2>
           <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-            Our Musamin team is ready to help you find the perfect journey for your needs and budget.
+            Tim Musamin kami siap membantu Anda menemukan perjalanan sempurna sesuai kebutuhan dan budget Anda.
           </p>
           <Button
             size="lg"
@@ -294,46 +268,12 @@ const Index = () => {
             onClick={handleWhatsAppClick}
           >
             <MessageCircle className="mr-2 h-5 w-5" />
-            Consult Now via WhatsApp
+            Konsultasi Sekarang via WhatsApp
           </Button>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-foreground text-background py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <img src={musafarLogo} alt="Musafar Tour" className="h-12 mb-4" />
-              <p className="text-sm opacity-80">
-                Every step toward the Holy Land begins with pure intention — and sincere guidance.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-3">Contact Us</h3>
-              <p className="text-sm opacity-80 mb-2">
-                Jl. Kebon Jeruk Raya No. 123<br />
-                Jakarta Barat 11530
-              </p>
-              <p className="text-sm opacity-80">
-                PPIU License: 123/2024/PPIU<br />
-                Phone: +62 812 3456 7890
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-3">Follow Us</h3>
-              <div className="flex gap-4 text-sm">
-                <a href="#" className="opacity-80 hover:opacity-100 transition-opacity">Instagram</a>
-                <a href="#" className="opacity-80 hover:opacity-100 transition-opacity">Facebook</a>
-                <a href="#" className="opacity-80 hover:opacity-100 transition-opacity">YouTube</a>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-background/20 pt-6 text-center text-sm opacity-80">
-            © 2025 Musafar Tour. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
