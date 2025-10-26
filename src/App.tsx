@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import JadwalUmroh from "./pages/JadwalUmroh";
 import PaketUmroh from "./pages/PaketUmroh";
+import PackageDetail from "./pages/PackageDetail";
 import HajiKhusus from "./pages/HajiKhusus";
 import WisataHalal from "./pages/WisataHalal";
 import TentangKami from "./pages/TentangKami";
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/jadwal-umroh" element={<JadwalUmroh />} />
           <Route path="/paket-umroh" element={<PaketUmroh />} />
+          <Route path="/paket-umroh/:id" element={<PackageDetail />} />
           <Route path="/haji-khusus" element={<HajiKhusus />} />
           <Route path="/wisata-halal" element={<WisataHalal />} />
           <Route path="/tentang-kami" element={<TentangKami />} />

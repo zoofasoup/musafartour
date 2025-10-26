@@ -87,6 +87,7 @@ const PaketUmroh = () => {
   });
 
   const transformedPackages = filteredPackages.map((pkg) => ({
+    id: pkg.id,
     image: pkg.banner_image || "/placeholder.svg",
     title: pkg.package_name,
     price: formatPrice(pkg.package_price.quad),
@@ -195,8 +196,8 @@ const PaketUmroh = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {transformedPackages.map((pkg, index) => (
-              <PackageCard key={index} {...pkg} />
+            {transformedPackages.map((pkg) => (
+              <PackageCard key={pkg.id} {...pkg} />
             ))}
           </div>
         )}

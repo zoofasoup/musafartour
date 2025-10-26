@@ -1,14 +1,52 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BookOpen, Clock, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
+
+interface Article {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  featured_image?: string;
+  category?: string;
+  created_at: string;
+  author_id?: string;
+  meta_description?: string;
+}
 
 const Artikel = () => {
   const [email, setEmail] = useState("");
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchArticles();
+  }, []);
+
+  const fetchArticles = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("articles")
+      .select("*")
+      .eq("status", "published")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching articles:", error);
+    } else {
+      setArticles(data || []);
+    }
+    setLoading(false);
+  };
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,68 +65,6 @@ const Artikel = () => {
     }
   };
 
-  const articles = [
-    {
-      id: "panduan-umroh-pemula",
-      title: "Panduan Lengkap Persiapan Umroh untuk Pemula",
-      excerpt: "Tips dan panduan praktis untuk Anda yang akan berangkat Umroh pertama kali. Mulai dari dokumen hingga perlengkapan yang harus dibawa.",
-      image: "https://images.unsplash.com/photo-1591604021695-0c69b7c05981?w=800&h=400&fit=crop",
-      author: "Tim Musafar",
-      date: "15 Januari 2025",
-      readTime: "5 menit",
-      category: "Panduan",
-    },
-    {
-      id: "doa-penting-umroh",
-      title: "Doa-Doa Penting Saat Umroh dan Haji",
-      excerpt: "Kumpulan doa-doa yang dianjurkan untuk dibaca saat melaksanakan ibadah Umroh dan Haji di Tanah Suci.",
-      image: "https://images.unsplash.com/photo-1564769625905-50e93615e769?w=800&h=400&fit=crop",
-      author: "Ustadz Ahmad",
-      date: "10 Januari 2025",
-      readTime: "8 menit",
-      category: "Ibadah",
-    },
-    {
-      id: "tips-kesehatan-umroh",
-      title: "Tips Menjaga Kesehatan Selama Umroh",
-      excerpt: "Cara menjaga kondisi tubuh tetap fit dan sehat selama melaksanakan ibadah Umroh di Arab Saudi.",
-      image: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800&h=400&fit=crop",
-      author: "dr. Fatimah",
-      date: "5 Januari 2025",
-      readTime: "6 menit",
-      category: "Kesehatan",
-    },
-    {
-      id: "sejarah-masjidil-haram",
-      title: "Mengenal Sejarah Masjidil Haram",
-      excerpt: "Sejarah dan perkembangan Masjidil Haram dari masa ke masa hingga menjadi masjid terbesar di dunia.",
-      image: "https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=800&h=400&fit=crop",
-      author: "Ustadz Ridwan",
-      date: "28 Desember 2024",
-      readTime: "10 menit",
-      category: "Sejarah",
-    },
-    {
-      id: "perlengkapan-wajib-umroh",
-      title: "Perlengkapan Wajib yang Harus Dibawa Saat Umroh",
-      excerpt: "Checklist lengkap barang-barang penting yang wajib dibawa saat berangkat Umroh agar perjalanan lebih nyaman.",
-      image: "https://images.unsplash.com/photo-1591287915932-7d4b7d6b29c2?w=800&h=400&fit=crop",
-      author: "Tim Musafar",
-      date: "20 Desember 2024",
-      readTime: "7 menit",
-      category: "Panduan",
-    },
-    {
-      id: "adab-etika-tanah-suci",
-      title: "Adab dan Etika di Tanah Suci",
-      excerpt: "Panduan tentang adab dan etika yang harus dijaga saat berada di Makkah dan Madinah.",
-      image: "https://images.unsplash.com/photo-1580418827493-f2b22c0a76cb?w=800&h=400&fit=crop",
-      author: "Ustadzah Aisyah",
-      date: "15 Desember 2024",
-      readTime: "6 menit",
-      category: "Ibadah",
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -107,50 +83,77 @@ const Artikel = () => {
 
       {/* Articles Grid */}
       <section className="py-16 container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {articles.map((article, index) => (
-            <article 
-              key={index} 
-              className="bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow cursor-pointer"
-              onClick={() => toast({
-                title: "Artikel akan segera tersedia",
-                description: "Fitur detail artikel sedang dalam pengembangan.",
-              })}
-            >
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src={article.image}
-                  alt={article.title}
-                  className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                />
-                <div className="absolute top-4 left-4">
-                  <span className="bg-accent text-accent-foreground text-xs font-semibold px-3 py-1 rounded">
-                    {article.category}
-                  </span>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-card rounded-lg overflow-hidden shadow-md">
+                <Skeleton className="h-48 w-full" />
+                <div className="p-6 space-y-4">
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
                 </div>
               </div>
-              <div className="p-6">
-                <h2 className="text-xl font-bold mb-3 line-clamp-2 hover:text-primary transition-colors">{article.title}</h2>
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                  {article.excerpt}
-                </p>
-                <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1">
-                      <User className="h-3 w-3" />
-                      <span>{article.author}</span>
+            ))}
+          </div>
+        ) : articles.length === 0 ? (
+          <div className="text-center py-12">
+            <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-xl text-muted-foreground">Belum ada artikel tersedia</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {articles.map((article) => (
+              <article 
+                key={article.id} 
+                className="bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow cursor-pointer"
+                onClick={() => toast({
+                  title: "Artikel akan segera tersedia",
+                  description: "Fitur detail artikel sedang dalam pengembangan.",
+                })}
+              >
+                <div className="relative h-48 overflow-hidden">
+                  <img
+                    src={article.featured_image || "https://images.unsplash.com/photo-1591604021695-0c69b7c05981?w=800&h=400&fit=crop"}
+                    alt={article.title}
+                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                  />
+                  {article.category && (
+                    <div className="absolute top-4 left-4">
+                      <span className="bg-accent text-accent-foreground text-xs font-semibold px-3 py-1 rounded">
+                        {article.category}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>{article.readTime}</span>
+                  )}
+                </div>
+                <div className="p-6">
+                  <h2 className="text-xl font-bold mb-3 line-clamp-2 hover:text-primary transition-colors">
+                    {article.title}
+                  </h2>
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                    {article.excerpt || article.meta_description || ""}
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        <span>Admin</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>5 menit</span>
+                      </div>
                     </div>
                   </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {format(new Date(article.created_at), "dd MMMM yyyy", { locale: localeId })}
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">{article.date}</p>
-              </div>
-            </article>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Newsletter CTA */}
