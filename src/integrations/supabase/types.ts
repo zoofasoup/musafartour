@@ -14,16 +14,222 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      articles: {
+        Row: {
+          author_id: string | null
+          category: string | null
+          content: string
+          created_at: string
+          excerpt: string | null
+          featured_image: string | null
+          id: string
+          meta_description: string | null
+          meta_title: string | null
+          published_at: string | null
+          slug: string
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          category?: string | null
+          content: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          slug: string
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          category?: string | null
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          slug?: string
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      packages: {
+        Row: {
+          banner_image: string | null
+          catalog_link: string | null
+          created_at: string
+          departure_date: string
+          duration_days: number
+          equipment_list: string | null
+          excluded_items: string | null
+          flight: string
+          flight_type: string
+          gallery_images: string[] | null
+          id: string
+          included_items: string | null
+          itinerary_link: string | null
+          madinah_distance: string | null
+          madinah_duration_walk: string | null
+          madinah_hotel_name: string | null
+          madinah_hotel_star: number | null
+          makkah_distance: string | null
+          makkah_duration_walk: string | null
+          makkah_hotel_name: string | null
+          makkah_hotel_star: number | null
+          package_name: string
+          package_price: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          banner_image?: string | null
+          catalog_link?: string | null
+          created_at?: string
+          departure_date: string
+          duration_days: number
+          equipment_list?: string | null
+          excluded_items?: string | null
+          flight: string
+          flight_type: string
+          gallery_images?: string[] | null
+          id?: string
+          included_items?: string | null
+          itinerary_link?: string | null
+          madinah_distance?: string | null
+          madinah_duration_walk?: string | null
+          madinah_hotel_name?: string | null
+          madinah_hotel_star?: number | null
+          makkah_distance?: string | null
+          makkah_duration_walk?: string | null
+          makkah_hotel_name?: string | null
+          makkah_hotel_star?: number | null
+          package_name: string
+          package_price?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          banner_image?: string | null
+          catalog_link?: string | null
+          created_at?: string
+          departure_date?: string
+          duration_days?: number
+          equipment_list?: string | null
+          excluded_items?: string | null
+          flight?: string
+          flight_type?: string
+          gallery_images?: string[] | null
+          id?: string
+          included_items?: string | null
+          itinerary_link?: string | null
+          madinah_distance?: string | null
+          madinah_duration_walk?: string | null
+          madinah_hotel_name?: string | null
+          madinah_hotel_star?: number | null
+          makkah_distance?: string | null
+          makkah_duration_walk?: string | null
+          makkah_hotel_name?: string | null
+          makkah_hotel_star?: number | null
+          package_name?: string
+          package_price?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wisata_halal: {
+        Row: {
+          airline: string | null
+          created_at: string
+          departure_city: string
+          description: string | null
+          destination: string
+          duration: string
+          facilities: Json | null
+          id: string
+          image_url: string | null
+          price: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          airline?: string | null
+          created_at?: string
+          departure_city: string
+          description?: string | null
+          destination: string
+          duration: string
+          facilities?: Json | null
+          id?: string
+          image_url?: string | null
+          price: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          airline?: string | null
+          created_at?: string
+          departure_city?: string
+          description?: string | null
+          destination?: string
+          duration?: string
+          facilities?: Json | null
+          id?: string
+          image_url?: string | null
+          price?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +356,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
