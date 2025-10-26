@@ -1,8 +1,6 @@
-import { useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Bold, Italic, List, ListOrdered, Heading1, Heading2, Link, Quote } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Bold, Italic, List, ListOrdered, Heading1, Heading2, Link as LinkIcon, Quote } from "lucide-react";
 
 interface RichTextEditorProps {
   value: string;
@@ -11,42 +9,41 @@ interface RichTextEditorProps {
 }
 
 const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) => {
-  const [cursorPosition, setCursorPosition] = useState(0);
-  const textareaRef = useState<HTMLTextAreaElement | null>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
 
-  const insertFormatting = (before: string, after: string = "", placeholder: string = "") => {
-    const textarea = document.querySelector('textarea[name="content"]') as HTMLTextAreaElement;
-    if (!textarea) return;
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      editorRef.current.innerHTML = value;
+    }
+  }, [value]);
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = value.substring(start, end);
-    const textToInsert = selectedText || placeholder;
-    
-    const newText = 
-      value.substring(0, start) + 
-      before + textToInsert + after + 
-      value.substring(end);
-    
-    onChange(newText);
+  const handleInput = () => {
+    if (editorRef.current) {
+      onChange(editorRef.current.innerHTML);
+    }
+  };
 
-    // Set cursor position after insertion
-    setTimeout(() => {
-      textarea.focus();
-      const newCursorPos = start + before.length + textToInsert.length;
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
+  const executeCommand = (command: string, value?: string) => {
+    document.execCommand(command, false, value);
+    editorRef.current?.focus();
+  };
+
+  const insertLink = () => {
+    const url = prompt("Masukkan URL:");
+    if (url) {
+      executeCommand("createLink", url);
+    }
   };
 
   const toolbarButtons = [
-    { icon: Bold, label: "Bold", action: () => insertFormatting("<strong>", "</strong>", "teks tebal") },
-    { icon: Italic, label: "Italic", action: () => insertFormatting("<em>", "</em>", "teks miring") },
-    { icon: Heading1, label: "Heading 1", action: () => insertFormatting("<h1>", "</h1>", "Judul Besar") },
-    { icon: Heading2, label: "Heading 2", action: () => insertFormatting("<h2>", "</h2>", "Judul Sedang") },
-    { icon: List, label: "Bullet List", action: () => insertFormatting("<ul>\n  <li>", "</li>\n</ul>", "Item") },
-    { icon: ListOrdered, label: "Numbered List", action: () => insertFormatting("<ol>\n  <li>", "</li>\n</ol>", "Item") },
-    { icon: Quote, label: "Quote", action: () => insertFormatting("<blockquote>", "</blockquote>", "Kutipan") },
-    { icon: Link, label: "Link", action: () => insertFormatting('<a href="url">', "</a>", "teks link") },
+    { icon: Bold, label: "Bold (Ctrl+B)", action: () => executeCommand("bold") },
+    { icon: Italic, label: "Italic (Ctrl+I)", action: () => executeCommand("italic") },
+    { icon: Heading1, label: "Heading 1", action: () => executeCommand("formatBlock", "<h2>") },
+    { icon: Heading2, label: "Heading 2", action: () => executeCommand("formatBlock", "<h3>") },
+    { icon: List, label: "Bullet List", action: () => executeCommand("insertUnorderedList") },
+    { icon: ListOrdered, label: "Numbered List", action: () => executeCommand("insertOrderedList") },
+    { icon: Quote, label: "Quote", action: () => executeCommand("formatBlock", "<blockquote>") },
+    { icon: LinkIcon, label: "Insert Link", action: insertLink },
   ];
 
   return (
@@ -66,16 +63,25 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
           </Button>
         ))}
       </div>
-      <Textarea
-        name="content"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        rows={15}
-        className="font-mono text-sm rounded-t-none"
+      <div
+        ref={editorRef}
+        contentEditable
+        onInput={handleInput}
+        className="min-h-[400px] w-full rounded-b-md border border-t-0 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+          prose prose-sm max-w-none
+          prose-headings:font-bold prose-headings:text-foreground
+          prose-p:text-foreground prose-p:leading-relaxed
+          prose-strong:text-foreground prose-strong:font-semibold
+          prose-em:text-foreground
+          prose-a:text-primary prose-a:underline
+          prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic
+          prose-ul:list-disc prose-ul:pl-6
+          prose-ol:list-decimal prose-ol:pl-6
+          prose-li:text-foreground"
+        data-placeholder={placeholder}
       />
       <p className="text-xs text-muted-foreground">
-        Tip: Pilih teks dan gunakan toolbar untuk format, atau gunakan HTML langsung
+        Tip: Pilih teks dan gunakan toolbar untuk format. Tekan Enter dua kali untuk paragraf baru.
       </p>
     </div>
   );
