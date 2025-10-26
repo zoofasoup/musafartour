@@ -24,8 +24,15 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
   };
 
   const executeCommand = (command: string, value?: string) => {
-    document.execCommand(command, false, value);
     editorRef.current?.focus();
+    document.execCommand(command, false, value);
+  };
+
+  const insertHeading = (level: number) => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      executeCommand('formatBlock', `h${level}`);
+    }
   };
 
   const insertLink = () => {
@@ -38,11 +45,11 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
   const toolbarButtons = [
     { icon: Bold, label: "Bold (Ctrl+B)", action: () => executeCommand("bold") },
     { icon: Italic, label: "Italic (Ctrl+I)", action: () => executeCommand("italic") },
-    { icon: Heading1, label: "Heading 1", action: () => executeCommand("formatBlock", "<h2>") },
-    { icon: Heading2, label: "Heading 2", action: () => executeCommand("formatBlock", "<h3>") },
+    { icon: Heading1, label: "Heading 1", action: () => insertHeading(2) },
+    { icon: Heading2, label: "Heading 2", action: () => insertHeading(3) },
     { icon: List, label: "Bullet List", action: () => executeCommand("insertUnorderedList") },
     { icon: ListOrdered, label: "Numbered List", action: () => executeCommand("insertOrderedList") },
-    { icon: Quote, label: "Quote", action: () => executeCommand("formatBlock", "<blockquote>") },
+    { icon: Quote, label: "Quote", action: () => executeCommand("formatBlock", "blockquote") },
     { icon: LinkIcon, label: "Insert Link", action: insertLink },
   ];
 
