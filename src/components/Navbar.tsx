@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronDown } from "lucide-react";
-import musafarLogo from "@/assets/musafar-logo.svg";
+import musafarLogoLight from "@/assets/musafar-logo.svg";
+import musafarLogoDark from "@/assets/musafar-logo-dark.svg";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +13,27 @@ import {
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    // Check initial dark mode
+    const checkDarkMode = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      setIsDarkMode(isDark);
+    };
+
+    checkDarkMode();
+
+    // Watch for theme changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -21,7 +42,11 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center">
-            <img src={musafarLogo} alt="Musafar Tour" className="h-10" />
+            <img 
+              src={isDarkMode ? musafarLogoLight : musafarLogoDark} 
+              alt="Musafar Tour" 
+              className="h-10" 
+            />
           </Link>
 
           {/* Desktop Menu */}
