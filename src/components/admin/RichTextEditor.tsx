@@ -24,21 +24,45 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
   };
 
   const executeCommand = (command: string, value?: string) => {
-    editorRef.current?.focus();
-    document.execCommand(command, false, value);
+    if (!editorRef.current) return;
+    
+    editorRef.current.focus();
+    
+    try {
+      document.execCommand(command, false, value);
+    } catch (error) {
+      console.error("Command execution error:", error);
+    }
+    
+    // Trigger update
+    handleInput();
   };
 
   const insertHeading = (level: number) => {
+    if (!editorRef.current) return;
+    editorRef.current.focus();
+    
     const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      executeCommand('formatBlock', `h${level}`);
-    }
+    if (!selection || selection.rangeCount === 0) return;
+    
+    document.execCommand('formatBlock', false, `<h${level}>`);
+    handleInput();
   };
 
   const insertLink = () => {
+    if (!editorRef.current) return;
+    
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || selection.toString().trim() === '') {
+      alert("Pilih teks terlebih dahulu untuk dijadikan link");
+      return;
+    }
+    
     const url = prompt("Masukkan URL:");
     if (url) {
-      executeCommand("createLink", url);
+      editorRef.current.focus();
+      document.execCommand("createLink", false, url);
+      handleInput();
     }
   };
 
@@ -49,7 +73,7 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
     { icon: Heading2, label: "Heading 2", action: () => insertHeading(3) },
     { icon: List, label: "Bullet List", action: () => executeCommand("insertUnorderedList") },
     { icon: ListOrdered, label: "Numbered List", action: () => executeCommand("insertOrderedList") },
-    { icon: Quote, label: "Quote", action: () => executeCommand("formatBlock", "blockquote") },
+    { icon: Quote, label: "Quote", action: () => executeCommand("formatBlock", "<blockquote>") },
     { icon: LinkIcon, label: "Insert Link", action: insertLink },
   ];
 
