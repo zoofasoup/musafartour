@@ -301,13 +301,91 @@ const PackageDetail = () => {
                       </div>
                     )}
 
+                    {/* Hotel Information */}
+                    <div className="mb-6 p-4 bg-muted/30 rounded-lg border">
+                      <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
+                        <Hotel className="h-4 w-4 text-primary" />
+                        Informasi Hotel
+                      </h3>
+                      <div className="grid grid-cols-1 gap-3">
+                        {(selectedTier === "best-seller" ? packageData.makkah_hotel_name : packageData.five_star_makkah_hotel_name || packageData.makkah_hotel_name) && (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
+                              <span className="font-semibold text-sm">Makkah</span>
+                            </div>
+                            <p className="text-sm pl-6">
+                              {selectedTier === "best-seller" 
+                                ? packageData.makkah_hotel_name 
+                                : packageData.five_star_makkah_hotel_name || packageData.makkah_hotel_name}
+                            </p>
+                            {((selectedTier === "best-seller" ? packageData.makkah_hotel_star : packageData.five_star_makkah_hotel_star) || packageData.makkah_hotel_star) && (
+                              <div className="pl-6">
+                                <StarRating rating={
+                                  selectedTier === "best-seller" 
+                                    ? packageData.makkah_hotel_star || 0
+                                    : packageData.five_star_makkah_hotel_star || packageData.makkah_hotel_star || 0
+                                } />
+                              </div>
+                            )}
+                            {((selectedTier === "best-seller" ? packageData.makkah_distance : packageData.five_star_makkah_distance) || packageData.makkah_distance) && (
+                              <p className="text-xs text-muted-foreground pl-6">
+                                📍 {selectedTier === "best-seller" 
+                                  ? packageData.makkah_distance 
+                                  : packageData.five_star_makkah_distance || packageData.makkah_distance}
+                                {((selectedTier === "best-seller" ? packageData.makkah_duration_walk : packageData.five_star_makkah_duration_walk) || packageData.makkah_duration_walk) && 
+                                  ` • 🚶 ${selectedTier === "best-seller" 
+                                    ? packageData.makkah_duration_walk 
+                                    : packageData.five_star_makkah_duration_walk || packageData.makkah_duration_walk}`
+                                }
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {(selectedTier === "best-seller" ? packageData.madinah_hotel_name : packageData.five_star_madinah_hotel_name || packageData.madinah_hotel_name) && (
+                          <div className="space-y-1 pt-2 border-t">
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
+                              <span className="font-semibold text-sm">Madinah</span>
+                            </div>
+                            <p className="text-sm pl-6">
+                              {selectedTier === "best-seller" 
+                                ? packageData.madinah_hotel_name 
+                                : packageData.five_star_madinah_hotel_name || packageData.madinah_hotel_name}
+                            </p>
+                            {((selectedTier === "best-seller" ? packageData.madinah_hotel_star : packageData.five_star_madinah_hotel_star) || packageData.madinah_hotel_star) && (
+                              <div className="pl-6">
+                                <StarRating rating={
+                                  selectedTier === "best-seller" 
+                                    ? packageData.madinah_hotel_star || 0
+                                    : packageData.five_star_madinah_hotel_star || packageData.madinah_hotel_star || 0
+                                } />
+                              </div>
+                            )}
+                            {((selectedTier === "best-seller" ? packageData.madinah_distance : packageData.five_star_madinah_distance) || packageData.madinah_distance) && (
+                              <p className="text-xs text-muted-foreground pl-6">
+                                📍 {selectedTier === "best-seller" 
+                                  ? packageData.madinah_distance 
+                                  : packageData.five_star_madinah_distance || packageData.madinah_distance}
+                                {((selectedTier === "best-seller" ? packageData.madinah_duration_walk : packageData.five_star_madinah_duration_walk) || packageData.madinah_duration_walk) && 
+                                  ` • 🚶 ${selectedTier === "best-seller" 
+                                    ? packageData.madinah_duration_walk 
+                                    : packageData.five_star_madinah_duration_walk || packageData.madinah_duration_walk}`
+                                }
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
                     <div className="space-y-4 mb-6">
                       <div className="flex justify-between items-center pb-4 border-b-2">
                         <div>
-                          <p className="text-sm font-semibold text-foreground">Quad</p>
+                          <p className="text-base font-semibold text-foreground">Quad</p>
                           <p className="text-xs text-muted-foreground">(4 orang/kamar)</p>
                         </div>
-                        <p className="text-2xl font-bold text-destructive">
+                        <p className="text-3xl font-bold text-destructive">
                           {formatPrice(
                             selectedTier === "five-star" && packageData.five_star_package_price
                               ? packageData.five_star_package_price.quad
@@ -315,12 +393,12 @@ const PackageDetail = () => {
                           )}
                         </p>
                       </div>
-                      <div className="flex justify-between items-center pb-4 border-b-2">
+                      <div className="flex justify-between items-center pb-4 border-b">
                         <div>
-                          <p className="text-sm font-semibold text-foreground">Triple</p>
+                          <p className="text-sm font-medium text-foreground">Triple</p>
                           <p className="text-xs text-muted-foreground">(3 orang/kamar)</p>
                         </div>
-                        <p className="text-2xl font-bold text-destructive">
+                        <p className="text-xl font-bold text-destructive">
                           {formatPrice(
                             selectedTier === "five-star" && packageData.five_star_package_price
                               ? packageData.five_star_package_price.triple
@@ -328,12 +406,12 @@ const PackageDetail = () => {
                           )}
                         </p>
                       </div>
-                      <div className="flex justify-between items-center pb-4 border-b-2">
+                      <div className="flex justify-between items-center pb-4 border-b">
                         <div>
-                          <p className="text-sm font-semibold text-foreground">Double</p>
+                          <p className="text-sm font-medium text-foreground">Double</p>
                           <p className="text-xs text-muted-foreground">(2 orang/kamar)</p>
                         </div>
-                        <p className="text-2xl font-bold text-destructive">
+                        <p className="text-xl font-bold text-destructive">
                           {formatPrice(
                             selectedTier === "five-star" && packageData.five_star_package_price
                               ? packageData.five_star_package_price.double
@@ -397,57 +475,6 @@ const PackageDetail = () => {
       <section className="py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto space-y-6">
-            {/* Hotel Information */}
-            <Card className="shadow-md">
-              <CardContent className="p-6">
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                  <Hotel className="h-6 w-6 text-primary" />
-                  Informasi Hotel {selectedTier === "five-star" ? "(Five Star)" : "(Best Seller)"}
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {(selectedTier === "best-seller" ? packageData.makkah_hotel_name : packageData.five_star_makkah_hotel_name || packageData.makkah_hotel_name) && (
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <MapPin className="h-5 w-5 text-green-600" />
-                        <h3 className="font-bold text-lg">Makkah</h3>
-                      </div>
-                      <p className="text-base font-semibold mb-2">{packageData.makkah_hotel_name}</p>
-                      {packageData.makkah_hotel_star && (
-                        <div className="mb-2">
-                          <StarRating rating={packageData.makkah_hotel_star} />
-                        </div>
-                      )}
-                      {packageData.makkah_distance && (
-                        <p className="text-sm text-muted-foreground">
-                          📍 {packageData.makkah_distance}
-                          {packageData.makkah_duration_walk && ` • 🚶 ${packageData.makkah_duration_walk}`}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  {packageData.madinah_hotel_name && (
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <MapPin className="h-5 w-5 text-green-600" />
-                        <h3 className="font-bold text-lg">Madinah</h3>
-                      </div>
-                      <p className="text-base font-semibold mb-2">{packageData.madinah_hotel_name}</p>
-                      {packageData.madinah_hotel_star && (
-                        <div className="mb-2">
-                          <StarRating rating={packageData.madinah_hotel_star} />
-                        </div>
-                      )}
-                      {packageData.madinah_distance && (
-                        <p className="text-sm text-muted-foreground">
-                          📍 {packageData.madinah_distance}
-                          {packageData.madinah_duration_walk && ` • 🚶 ${packageData.madinah_duration_walk}`}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Included Items */}
             {packageData.included_items && (
