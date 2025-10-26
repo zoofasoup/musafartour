@@ -214,9 +214,9 @@ const PackageDetail = () => {
       {packageData.banner_image && (
         <section className="py-6 md:py-8 bg-gradient-to-b from-muted/30 to-background">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
-              {/* Flyer Image - 60% on desktop */}
-              <div className="lg:col-span-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+              {/* Flyer Image - 50% on desktop */}
+              <div>
                 <div className="relative bg-white rounded-xl shadow-lg overflow-hidden">
                   <div className="aspect-[1080/1350] relative">
                     <img
@@ -269,8 +269,8 @@ const PackageDetail = () => {
                 </div>
               </div>
 
-              {/* Price & CTA Panel - 40% on desktop */}
-              <div className="lg:col-span-2">
+              {/* Price & CTA Panel - 50% on desktop */}
+              <div>
                 <Card className="lg:sticky lg:top-24 shadow-xl border-2">
                   <CardContent className="p-6">
                     <h2 className="text-xl font-bold mb-4 text-foreground">Harga Paket</h2>
