@@ -13,6 +13,9 @@ import Galeri from "./pages/Galeri";
 import Artikel from "./pages/Artikel";
 import Kontak from "./pages/Kontak";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +35,10 @@ const App = () => (
           <Route path="/galeri" element={<Galeri />} />
           <Route path="/artikel" element={<Artikel />} />
           <Route path="/kontak" element={<Kontak />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

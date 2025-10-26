@@ -18,31 +18,45 @@ const Index = () => {
   const [flightType, setFlightType] = useState<string>("all");
   const packages = [{
     image: makkahImage,
-    title: "Paket Umroh Comfort + Thaif, Juli 2025",
-    price: "Rp 28.500.000",
+    title: "Umroh Plus Aqsha",
+    price: "52,9 Juta",
+    date: "8 November 2025",
     duration: "12 Hari",
-    airline: "Garuda Indonesia",
-    hotelClass: "Bintang 4 (Dekat Haram)",
-    departureCity: "Jakarta",
-    category: "Comfort"
+    airline: "Qatar Airways",
+    transit: "Transit",
+    hotelMakkah: "Concorde Al Khair *4",
+    hotelMakkahRating: 4,
+    hotelMadinah: "Emaar Grand *5",
+    hotelMadinahRating: 5,
+    category: "Comfort",
+    seatAvailable: true
   }, {
     image: madinahImage,
-    title: "Paket Umroh Budget, Agustus 2025",
-    price: "Rp 22.000.000",
+    title: "Paket Umroh Budget",
+    price: "22 Juta",
+    date: "15 Agustus 2025",
     duration: "9 Hari",
     airline: "Saudia Airlines",
-    hotelClass: "Bintang 3",
-    departureCity: "Surabaya",
-    category: "Budget"
+    hotelMakkah: "Makkah Hotel *3",
+    hotelMakkahRating: 3,
+    hotelMadinah: "Madinah Inn *3",
+    hotelMadinahRating: 3,
+    category: "Budget",
+    seatAvailable: true
   }, {
     image: makkahImage,
-    title: "Paket Umroh Premium Bintang 5, September 2025",
-    price: "Rp 45.000.000",
+    title: "Paket Umroh Premium Bintang 5",
+    price: "45 Juta",
+    date: "20 September 2025",
     duration: "14 Hari",
     airline: "Emirates",
-    hotelClass: "Bintang 5 (View Haram)",
-    departureCity: "Jakarta",
-    category: "Five-Star"
+    transit: "Direct",
+    hotelMakkah: "Hilton Makkah *5",
+    hotelMakkahRating: 5,
+    hotelMadinah: "Marriott Madinah *5",
+    hotelMadinahRating: 5,
+    category: "Five-Star",
+    seatAvailable: false
   }];
   const features = [{
     icon: Plane,

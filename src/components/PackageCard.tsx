@@ -1,82 +1,144 @@
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plane, Calendar, Hotel, MapPin } from "lucide-react";
+import { Plane, Calendar, Hotel, Star } from "lucide-react";
 import { formatWhatsAppUrl } from "@/lib/utils";
 
 interface PackageCardProps {
   image: string;
   title: string;
   price: string;
+  date: string;
   duration: string;
   airline: string;
-  hotelClass: string;
-  departureCity: string;
+  transit?: string;
+  hotelMakkah?: string;
+  hotelMakkahRating?: number;
+  hotelMadinah?: string;
+  hotelMadinahRating?: number;
   category: string;
+  seatAvailable?: boolean;
 }
+
+const StarRating = ({ rating }: { rating: number }) => {
+  return (
+    <div className="flex gap-0.5">
+      {[...Array(5)].map((_, i) => (
+        <Star
+          key={i}
+          className={`w-3.5 h-3.5 ${
+            i < rating ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"
+          }`}
+        />
+      ))}
+    </div>
+  );
+};
 
 export const PackageCard = ({
   image,
   title,
   price,
+  date,
   duration,
   airline,
-  hotelClass,
-  departureCity,
+  transit,
+  hotelMakkah,
+  hotelMakkahRating = 4,
+  hotelMadinah,
+  hotelMadinahRating = 4,
   category,
+  seatAvailable = true,
 }: PackageCardProps) => {
   const handleViewDetails = () => {
     const message = `Halo Musafar Tour, saya tertarik dengan ${title}. Mohon info lebih lanjut.`;
-    const whatsappUrl = formatWhatsAppUrl("6281917403797", message);
+    const whatsappUrl = formatWhatsAppUrl("081917403797", message);
     window.open(whatsappUrl, "_blank");
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
-      <div className="relative h-48 overflow-hidden">
+    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group max-w-sm mx-auto">
+      {/* Seat Badge */}
+      {seatAvailable && (
+        <div className="relative z-10 -mb-3">
+          <Badge className="absolute top-3 left-3 bg-orange-500 text-white border-0 rounded-sm px-3 py-1 text-xs font-bold shadow-lg">
+            SEAT TERBATAS
+          </Badge>
+        </div>
+      )}
+      
+      {/* Flyer Image - Portrait aspect ratio 1080:1350 */}
+      <div className="relative aspect-[1080/1350] overflow-hidden">
         <img
           src={image}
           alt={title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        <Badge className="absolute top-3 right-3 bg-primary text-primary-foreground">
-          {category}
-        </Badge>
       </div>
-      <CardContent className="p-5">
-        <h3 className="font-semibold text-lg mb-3 text-foreground">{title}</h3>
-        <div className="space-y-2 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-primary" />
-            <span>{duration}</span>
+
+      {/* Content Section */}
+      <CardContent className="p-4 space-y-3">
+        {/* Date and Duration */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Calendar className="w-4 h-4" />
+          <span>{date}</span>
+          <span className="mx-1">•</span>
+          <span>{duration}</span>
+        </div>
+
+        {/* Title */}
+        <h3 className="font-bold text-lg text-foreground leading-tight">{title}</h3>
+
+        {/* Transit & Airline Badges */}
+        <div className="flex gap-2 flex-wrap">
+          {transit && (
+            <Badge variant="outline" className="bg-pink-50 text-pink-600 border-pink-200 rounded-full text-xs">
+              <Plane className="w-3 h-3 mr-1" />
+              {transit}
+            </Badge>
+          )}
+          <Badge variant="outline" className="bg-cyan-50 text-cyan-600 border-cyan-200 rounded-full text-xs">
+            <Plane className="w-3 h-3 mr-1" />
+            {airline}
+          </Badge>
+        </div>
+
+        {/* Hotels */}
+        <div className="space-y-2">
+          {hotelMakkah && (
+            <div className="flex items-start gap-2">
+              <Hotel className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">{hotelMakkah}</p>
+                <StarRating rating={hotelMakkahRating} />
+              </div>
+            </div>
+          )}
+          {hotelMadinah && (
+            <div className="flex items-start gap-2">
+              <Hotel className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">{hotelMadinah}</p>
+                <StarRating rating={hotelMadinahRating} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Price and CTA */}
+        <div className="flex items-center justify-between pt-2">
+          <div>
+            <p className="text-xs text-muted-foreground">Harga Mulai</p>
+            <p className="text-2xl font-bold text-red-600">{price}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Plane className="w-4 h-4 text-primary" />
-            <span>{airline}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Hotel className="w-4 h-4 text-primary" />
-            <span>{hotelClass}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-primary" />
-            <span>{departureCity}</span>
-          </div>
+          <Button 
+            onClick={handleViewDetails}
+            className="bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg px-6"
+          >
+            Terbatas
+          </Button>
         </div>
       </CardContent>
-      <CardFooter className="p-5 pt-0 flex items-center justify-between">
-        <div>
-          <p className="text-xs text-muted-foreground">Starting from</p>
-          <p className="text-2xl font-bold text-primary">{price}</p>
-        </div>
-        <Button 
-          variant="outline" 
-          className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-          onClick={handleViewDetails}
-        >
-          Lihat Detail
-        </Button>
-      </CardFooter>
     </Card>
   );
 };
