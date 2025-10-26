@@ -145,6 +145,11 @@ const PackageDetail = () => {
     }).format(price);
   };
 
+  const formatPriceShort = (price: number) => {
+    const millions = price / 1000000;
+    return millions.toFixed(1).replace(".", ",");
+  };
+
   const parseListItems = (items?: string) => {
     if (!items) return [];
     return items.split("\n").filter(item => item.trim());
@@ -371,49 +376,77 @@ const PackageDetail = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-4 mb-6">
-                      <div className="flex justify-between items-center pb-4 border-b-2">
-                        <div>
-                          <p className="text-base font-semibold text-foreground">Quad</p>
-                          <p className="text-xs text-muted-foreground">(4 orang/kamar)</p>
+                    {/* Price Cards - Tier Style */}
+                    <div className="grid grid-cols-3 gap-3 mb-6">
+                      {/* Quad - Emphasized */}
+                      <div className="col-span-3 sm:col-span-1 relative">
+                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10">
+                          <Badge className="bg-orange-500 text-white border-0 rounded-sm px-2 py-0.5 text-xs font-bold shadow-lg">
+                            PALING POPULER
+                          </Badge>
                         </div>
-                        <p className="text-3xl font-bold text-destructive">
-                          {formatPrice(
-                            selectedTier === "five-star" && packageData.five_star_package_price
-                              ? packageData.five_star_package_price.quad
-                              : packageData.package_price.quad
-                          )}
-                        </p>
+                        <Card className="border-2 border-orange-500 bg-orange-50 shadow-lg">
+                          <CardContent className="p-4 text-center">
+                            <div className="mb-2">
+                              <p className="text-sm font-bold text-orange-700 uppercase">Quad</p>
+                              <p className="text-xs text-orange-600">(4 orang/kamar)</p>
+                            </div>
+                            <div className="mb-1">
+                              <p className="text-4xl font-bold text-orange-600">
+                                {formatPriceShort(
+                                  selectedTier === "five-star" && packageData.five_star_package_price
+                                    ? packageData.five_star_package_price.quad
+                                    : packageData.package_price.quad
+                                )}
+                              </p>
+                              <p className="text-xs text-orange-600 font-medium">juta</p>
+                            </div>
+                          </CardContent>
+                        </Card>
                       </div>
-                      
-                      {/* Triple & Double - Side by Side */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="flex flex-col pb-4 border-b sm:border-b-0 sm:border-r sm:pr-4">
-                          <div className="mb-2">
-                            <p className="text-sm font-medium text-foreground">Triple</p>
-                            <p className="text-xs text-muted-foreground">(3 orang/kamar)</p>
-                          </div>
-                          <p className="text-xl font-bold text-destructive">
-                            {formatPrice(
-                              selectedTier === "five-star" && packageData.five_star_package_price
-                                ? packageData.five_star_package_price.triple
-                                : packageData.package_price.triple
-                            )}
-                          </p>
-                        </div>
-                        <div className="flex flex-col pb-4 sm:pb-0">
-                          <div className="mb-2">
-                            <p className="text-sm font-medium text-foreground">Double</p>
-                            <p className="text-xs text-muted-foreground">(2 orang/kamar)</p>
-                          </div>
-                          <p className="text-xl font-bold text-destructive">
-                            {formatPrice(
-                              selectedTier === "five-star" && packageData.five_star_package_price
-                                ? packageData.five_star_package_price.double
-                                : packageData.package_price.double
-                            )}
-                          </p>
-                        </div>
+
+                      {/* Triple */}
+                      <div className="col-span-3 sm:col-span-1">
+                        <Card className="border bg-yellow-50 mt-6 sm:mt-0">
+                          <CardContent className="p-4 text-center">
+                            <div className="mb-2">
+                              <p className="text-sm font-bold text-yellow-700 uppercase">Triple</p>
+                              <p className="text-xs text-yellow-600">(3 orang/kamar)</p>
+                            </div>
+                            <div className="mb-1">
+                              <p className="text-3xl font-bold text-yellow-600">
+                                {formatPriceShort(
+                                  selectedTier === "five-star" && packageData.five_star_package_price
+                                    ? packageData.five_star_package_price.triple
+                                    : packageData.package_price.triple
+                                )}
+                              </p>
+                              <p className="text-xs text-yellow-600 font-medium">juta</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* Double */}
+                      <div className="col-span-3 sm:col-span-1">
+                        <Card className="border bg-gray-50 mt-6 sm:mt-0">
+                          <CardContent className="p-4 text-center">
+                            <div className="mb-2">
+                              <p className="text-sm font-bold text-gray-700 uppercase">Double</p>
+                              <p className="text-xs text-gray-600">(2 orang/kamar)</p>
+                            </div>
+                            <div className="mb-1">
+                              <p className="text-3xl font-bold text-gray-600">
+                                {formatPriceShort(
+                                  selectedTier === "five-star" && packageData.five_star_package_price
+                                    ? packageData.five_star_package_price.double
+                                    : packageData.package_price.double
+                                )}
+                              </p>
+                              <p className="text-xs text-gray-600 font-medium">juta</p>
+                            </div>
+                          </CardContent>
+                        </Card>
                       </div>
                     </div>
                     
