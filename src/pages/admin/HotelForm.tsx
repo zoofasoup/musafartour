@@ -84,12 +84,22 @@ const HotelForm = () => {
     try {
       setSubmitting(true);
 
+      // Add "meter" to distance if not already present
+      const distance = data.distance.includes('m') 
+        ? data.distance 
+        : `${data.distance} m`;
+
+      // Add "menit" to walking duration if not already present
+      const walkingDuration = data.walking_duration.includes('menit') 
+        ? data.walking_duration 
+        : `${data.walking_duration} menit`;
+
       const hotelData = {
         name: data.name,
         star_rating: data.star_rating,
         location: data.location,
-        distance: data.distance,
-        walking_duration: data.walking_duration,
+        distance: distance,
+        walking_duration: walkingDuration,
       };
 
       if (id) {
@@ -196,11 +206,16 @@ const HotelForm = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="distance">Jarak dari Haram</Label>
-                <Input
-                  id="distance"
-                  {...register("distance")}
-                  placeholder="Contoh: 100 m"
-                />
+                <div className="relative">
+                  <Input
+                    id="distance"
+                    {...register("distance")}
+                    placeholder="100"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    meter
+                  </span>
+                </div>
                 {errors.distance && (
                   <p className="text-sm text-destructive">{errors.distance.message}</p>
                 )}
@@ -208,11 +223,16 @@ const HotelForm = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="walking_duration">Waktu Tempuh Jalan Kaki</Label>
-                <Input
-                  id="walking_duration"
-                  {...register("walking_duration")}
-                  placeholder="Contoh: 5 menit"
-                />
+                <div className="relative">
+                  <Input
+                    id="walking_duration"
+                    {...register("walking_duration")}
+                    placeholder="5"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    menit
+                  </span>
+                </div>
                 {errors.walking_duration && (
                   <p className="text-sm text-destructive">{errors.walking_duration.message}</p>
                 )}
