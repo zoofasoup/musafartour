@@ -12,6 +12,7 @@ import WisataHalal from "./pages/WisataHalal";
 import TentangKami from "./pages/TentangKami";
 import Galeri from "./pages/Galeri";
 import Artikel from "./pages/Artikel";
+import ArtikelDetail from "./pages/ArtikelDetail";
 import Kontak from "./pages/Kontak";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -45,6 +46,7 @@ const App = () => (
           <Route path="/tentang-kami" element={<TentangKami />} />
           <Route path="/galeri" element={<Galeri />} />
           <Route path="/artikel" element={<Artikel />} />
+          <Route path="/artikel/:slug" element={<ArtikelDetail />} />
           <Route path="/kontak" element={<Kontak />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin/setup" element={<AdminSetup />} />

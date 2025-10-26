@@ -108,10 +108,7 @@ const Artikel = () => {
               <article 
                 key={article.id} 
                 className="bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow cursor-pointer"
-                onClick={() => toast({
-                  title: "Artikel akan segera tersedia",
-                  description: "Fitur detail artikel sedang dalam pengembangan.",
-                })}
+                onClick={() => window.location.href = `/artikel/${article.slug}`}
               >
                 <div className="relative h-48 overflow-hidden">
                   <img

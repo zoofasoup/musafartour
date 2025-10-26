@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Upload, X } from "lucide-react";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
 const articleSchema = z.object({
   title: z.string().min(1, "Judul wajib diisi"),
@@ -21,6 +22,7 @@ const articleSchema = z.object({
   category: z.string().optional(),
   meta_title: z.string().optional(),
   meta_description: z.string().optional(),
+  featured_image: z.string().optional(),
   status: z.string(),
 });
 
@@ -31,6 +33,8 @@ const ArticleForm = () => {
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(!!id);
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const form = useForm<ArticleFormValues>({
     resolver: zodResolver(articleSchema),
@@ -42,6 +46,7 @@ const ArticleForm = () => {
       category: "",
       meta_title: "",
       meta_description: "",
+      featured_image: "",
       status: "draft",
     },
   });
@@ -71,8 +76,12 @@ const ArticleForm = () => {
           category: data.category || "",
           meta_title: data.meta_title || "",
           meta_description: data.meta_description || "",
+          featured_image: data.featured_image || "",
           status: data.status || "draft",
         });
+        if (data.featured_image) {
+          setImagePreview(data.featured_image);
+        }
       }
     } catch (error: any) {
       toast.error("Gagal memuat data: " + error.message);
@@ -87,6 +96,51 @@ const ArticleForm = () => {
       .trim()
       .replace(/[^\w\s-]/g, "")
       .replace(/\s+/g, "-");
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("File harus berupa gambar");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ukuran gambar maksimal 5MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("article-images")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("article-images")
+        .getPublicUrl(filePath);
+
+      form.setValue("featured_image", publicUrl);
+      setImagePreview(publicUrl);
+      toast.success("Gambar berhasil diupload");
+    } catch (error: any) {
+      toast.error("Gagal upload gambar: " + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = () => {
+    form.setValue("featured_image", "");
+    setImagePreview(null);
   };
 
   const onSubmit = async (values: ArticleFormValues) => {
@@ -197,6 +251,59 @@ const ArticleForm = () => {
 
               <FormField
                 control={form.control}
+                name="featured_image"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Header Image</FormLabel>
+                    <FormControl>
+                      <div className="space-y-4">
+                        {imagePreview ? (
+                          <div className="relative">
+                            <img
+                              src={imagePreview}
+                              alt="Preview"
+                              className="w-full h-64 object-cover rounded-lg"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-2 right-2"
+                              onClick={removeImage}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              <Upload className="h-10 w-10 mb-3 text-muted-foreground" />
+                              <p className="mb-2 text-sm text-muted-foreground">
+                                <span className="font-semibold">Click to upload</span> atau drag and drop
+                              </p>
+                              <p className="text-xs text-muted-foreground">PNG, JPG, WEBP (MAX. 5MB)</p>
+                            </div>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              disabled={uploading}
+                            />
+                          </label>
+                        )}
+                        {uploading && (
+                          <p className="text-sm text-muted-foreground">Mengupload...</p>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="excerpt"
                 render={({ field }) => (
                   <FormItem>
@@ -216,7 +323,11 @@ const ArticleForm = () => {
                   <FormItem>
                     <FormLabel>Konten</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Tulis konten artikel lengkap..." rows={15} />
+                      <RichTextEditor
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Tulis konten artikel lengkap..."
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
