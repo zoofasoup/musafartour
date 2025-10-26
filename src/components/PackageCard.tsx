@@ -66,7 +66,7 @@ export const PackageCard = ({
         {/* Flyer Image - Left Side with 1080:1350 aspect ratio */}
         <div className="relative md:w-[300px] flex-shrink-0">
           {seatAvailable && (
-            <Badge className="absolute top-3 left-3 z-10 bg-orange-500 text-white border-0 rounded-sm px-3 py-1 text-xs font-bold shadow-lg">
+            <Badge className="absolute bottom-3 left-3 z-10 bg-orange-500 text-white border-0 rounded-sm px-3 py-1 text-xs font-bold shadow-lg">
               SEAT TERBATAS
             </Badge>
           )}
