@@ -44,6 +44,7 @@ const PaketUmroh = () => {
   const [category, setCategory] = useState<string>("all");
   const [airline, setAirline] = useState<string>("all");
   const [month, setMonth] = useState<string>("all");
+  const [flightType, setFlightType] = useState<string>("all");
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -77,8 +78,8 @@ const PaketUmroh = () => {
   };
 
   const getCategoryFromPrice = (price: number) => {
-    if (price < 25000000) return "budget";
-    if (price <= 40000000) return "comfort";
+    if (price < 25000000) return "hemat";
+    if (price <= 40000000) return "nyaman";
     return "five-star";
   };
 
@@ -93,8 +94,11 @@ const PaketUmroh = () => {
     const categoryMatch = category === "all" || pkgCategory === category;
     const airlineMatch = airline === "all" || pkg.flight.toLowerCase().includes(airline);
     const monthMatch = month === "all" || pkgMonth.includes(month.toLowerCase());
+    const flightTypeMatch = flightType === "all" || 
+      (flightType === "direct" && pkg.flight_type.toLowerCase() === "direct") ||
+      (flightType === "transit" && pkg.flight_type.toLowerCase() === "transit");
 
-    return categoryMatch && airlineMatch && monthMatch;
+    return categoryMatch && airlineMatch && monthMatch && flightTypeMatch;
   });
 
   const transformedPackages = filteredPackages.map((pkg) => ({
@@ -141,16 +145,33 @@ const PaketUmroh = () => {
       <section className="py-16 container mx-auto px-4">
         {/* Filter Bar */}
         <div className="bg-card p-6 rounded-lg shadow-md mb-12 border">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger>
                 <SelectValue placeholder="Kategori" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Kategori</SelectItem>
-                <SelectItem value="budget">Budget</SelectItem>
-                <SelectItem value="comfort">Comfort</SelectItem>
-                <SelectItem value="five-star">Bintang 5</SelectItem>
+                <SelectItem value="hemat">Hemat</SelectItem>
+                <SelectItem value="nyaman">Nyaman</SelectItem>
+                <SelectItem value="five-star">Five Star</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={month} onValueChange={setMonth}>
+              <SelectTrigger>
+                <SelectValue placeholder="Bulan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Bulan</SelectItem>
+                <SelectItem value="november">November 2025</SelectItem>
+                <SelectItem value="desember">Desember 2025</SelectItem>
+                <SelectItem value="januari">Januari 2026</SelectItem>
+                <SelectItem value="februari">Februari 2026</SelectItem>
+                <SelectItem value="maret">Maret 2026</SelectItem>
+                <SelectItem value="april">April 2026</SelectItem>
+                <SelectItem value="mei">Mei 2026</SelectItem>
+                <SelectItem value="juni">Juni 2026</SelectItem>
               </SelectContent>
             </Select>
 
@@ -164,20 +185,23 @@ const PaketUmroh = () => {
                 <SelectItem value="saudia">Saudia Airlines</SelectItem>
                 <SelectItem value="qatar">Qatar Airways</SelectItem>
                 <SelectItem value="emirates">Emirates</SelectItem>
+                <SelectItem value="etihad">Etihad Airways</SelectItem>
+                <SelectItem value="turkish">Turkish Airlines</SelectItem>
+                <SelectItem value="malaysia">Malaysia Airlines</SelectItem>
+                <SelectItem value="singapore">Singapore Airlines</SelectItem>
+                <SelectItem value="oman">Oman Air</SelectItem>
+                <SelectItem value="gulf">Gulf Air</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select value={month} onValueChange={setMonth}>
+            <Select value={flightType} onValueChange={setFlightType}>
               <SelectTrigger>
-                <SelectValue placeholder="Bulan" />
+                <SelectValue placeholder="Jenis" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua Bulan</SelectItem>
-                <SelectItem value="june">Juni 2025</SelectItem>
-                <SelectItem value="july">Juli 2025</SelectItem>
-                <SelectItem value="august">Agustus 2025</SelectItem>
-                <SelectItem value="september">September 2025</SelectItem>
-                <SelectItem value="october">Oktober 2025</SelectItem>
+                <SelectItem value="all">Semua</SelectItem>
+                <SelectItem value="direct">Direct</SelectItem>
+                <SelectItem value="transit">Transit</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -188,6 +212,7 @@ const PaketUmroh = () => {
               setCategory("all");
               setAirline("all");
               setMonth("all");
+              setFlightType("all");
             }}
           >
             Reset Filter
@@ -196,10 +221,10 @@ const PaketUmroh = () => {
 
         {/* Package Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="space-y-4">
-                <Skeleton className="aspect-[1080/1350] w-full" />
+                <Skeleton className="aspect-[4/5] w-full" />
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
               </div>
@@ -214,7 +239,7 @@ const PaketUmroh = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {transformedPackages.map((pkg) => (
               <PackageCard key={pkg.id} {...pkg} />
             ))}

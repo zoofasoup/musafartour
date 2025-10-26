@@ -88,15 +88,15 @@ export const PackageCard = ({
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col">
-      {/* Flyer Image - Top with 1080:1350 aspect ratio */}
-      <div className="relative">
+    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col md:flex-row">
+      {/* Banner Image - Left Column */}
+      <div className="relative md:w-2/5 flex-shrink-0">
         {seatAvailable && (
           <Badge className="absolute bottom-3 left-3 z-10 bg-orange-500 text-white border-0 rounded-sm px-3 py-1 text-xs font-bold shadow-lg">
             SEAT TERBATAS
           </Badge>
         )}
-        <div className="aspect-[1080/1350] overflow-hidden">
+        <div className="aspect-[4/5] md:aspect-auto md:h-full overflow-hidden">
           <img
             src={image}
             alt={title}
@@ -105,8 +105,8 @@ export const PackageCard = ({
         </div>
       </div>
 
-      {/* Content Section - Bottom */}
-      <CardContent className="p-4 flex flex-col flex-1">
+      {/* Content Section - Right Column */}
+      <CardContent className="p-4 flex flex-col flex-1 md:w-3/5">
         <div className="space-y-3 flex-1">
           {/* Title */}
           <h3 className="font-bold text-lg text-foreground leading-tight line-clamp-2">{title}</h3>
@@ -132,18 +132,17 @@ export const PackageCard = ({
             <span>{duration}</span>
           </div>
 
-          {/* Transit & Airline Badges */}
+          {/* Airline Badge */}
           <div className="flex gap-2 flex-wrap">
-            {transit && (
-              <Badge variant="outline" className="bg-pink-50 text-pink-600 border-pink-200 rounded-full text-xs">
-                <Plane className="w-3 h-3 mr-1" />
-                {transit}
-              </Badge>
-            )}
             <Badge variant="outline" className="bg-cyan-50 text-cyan-600 border-cyan-200 rounded-full text-xs">
               <Plane className="w-3 h-3 mr-1" />
               {airline}
             </Badge>
+            {transit && (
+              <Badge variant="outline" className="bg-pink-50 text-pink-600 border-pink-200 rounded-full text-xs">
+                {transit}
+              </Badge>
+            )}
           </div>
 
           {/* Transport Badge */}

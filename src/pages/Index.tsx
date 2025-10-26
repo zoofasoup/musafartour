@@ -27,10 +27,21 @@ interface PackageData {
     triple: number;
     double: number;
   };
+  five_star_package_price?: {
+    quad: number;
+    triple: number;
+    double: number;
+  };
   makkah_hotel_name: string | null;
   makkah_hotel_star: number | null;
   madinah_hotel_name: string | null;
   madinah_hotel_star: number | null;
+  five_star_makkah_hotel_name?: string | null;
+  five_star_makkah_hotel_star?: number | null;
+  five_star_madinah_hotel_name?: string | null;
+  five_star_madinah_hotel_star?: number | null;
+  best_seller_transport?: string | null;
+  five_star_transport?: string | null;
 }
 const Index = () => {
   const [category, setCategory] = useState<string>("all");
@@ -71,8 +82,8 @@ const Index = () => {
   };
 
   const getCategoryFromPrice = (price: number) => {
-    if (price < 25000000) return "budget";
-    if (price <= 40000000) return "comfort";
+    if (price < 25000000) return "hemat";
+    if (price <= 40000000) return "nyaman";
     return "five-star";
   };
 
@@ -102,13 +113,20 @@ const Index = () => {
     date: format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId }),
     duration: `${pkg.duration_days} Hari`,
     airline: pkg.flight,
-    transit: pkg.flight_type === "direct" ? "Direct" : "Transit",
+    transit: pkg.flight_type.toLowerCase() === "direct" ? "Direct" : "Transit",
     hotelMakkah: pkg.makkah_hotel_name || undefined,
     hotelMakkahRating: pkg.makkah_hotel_star || undefined,
     hotelMadinah: pkg.madinah_hotel_name || undefined,
     hotelMadinahRating: pkg.madinah_hotel_star || undefined,
     category: getCategoryFromPrice(pkg.package_price.quad),
     seatAvailable: true,
+    fiveStarPrice: pkg.five_star_package_price?.quad ? formatPrice(pkg.five_star_package_price.quad) : undefined,
+    fiveStarHotelMakkah: pkg.five_star_makkah_hotel_name || undefined,
+    fiveStarHotelMakkahRating: pkg.five_star_makkah_hotel_star || undefined,
+    fiveStarHotelMadinah: pkg.five_star_madinah_hotel_name || undefined,
+    fiveStarHotelMadinahRating: pkg.five_star_madinah_hotel_star || undefined,
+    fiveStarTransport: pkg.five_star_transport || undefined,
+    bestSellerTransport: pkg.best_seller_transport || undefined,
   }));
   const features = [{
     icon: Plane,
@@ -194,9 +212,26 @@ untuk Perjalanan Anda</h1>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Kategori</SelectItem>
-                <SelectItem value="budget">Budget</SelectItem>
-                <SelectItem value="comfort">Comfort</SelectItem>
-                <SelectItem value="five-star">Bintang 5</SelectItem>
+                <SelectItem value="hemat">Hemat</SelectItem>
+                <SelectItem value="nyaman">Nyaman</SelectItem>
+                <SelectItem value="five-star">Five Star</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={month} onValueChange={setMonth}>
+              <SelectTrigger>
+                <SelectValue placeholder="Bulan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Bulan</SelectItem>
+                <SelectItem value="november">November 2025</SelectItem>
+                <SelectItem value="desember">Desember 2025</SelectItem>
+                <SelectItem value="januari">Januari 2026</SelectItem>
+                <SelectItem value="februari">Februari 2026</SelectItem>
+                <SelectItem value="maret">Maret 2026</SelectItem>
+                <SelectItem value="april">April 2026</SelectItem>
+                <SelectItem value="mei">Mei 2026</SelectItem>
+                <SelectItem value="juni">Juni 2026</SelectItem>
               </SelectContent>
             </Select>
 
@@ -210,30 +245,22 @@ untuk Perjalanan Anda</h1>
                 <SelectItem value="saudia">Saudia Airlines</SelectItem>
                 <SelectItem value="qatar">Qatar Airways</SelectItem>
                 <SelectItem value="emirates">Emirates</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={month} onValueChange={setMonth}>
-              <SelectTrigger>
-                <SelectValue placeholder="Bulan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Bulan</SelectItem>
-                <SelectItem value="june">Juni 2025</SelectItem>
-                <SelectItem value="july">Juli 2025</SelectItem>
-                <SelectItem value="august">Agustus 2025</SelectItem>
-                <SelectItem value="september">September 2025</SelectItem>
-                <SelectItem value="october">Oktober 2025</SelectItem>
+                <SelectItem value="etihad">Etihad Airways</SelectItem>
+                <SelectItem value="turkish">Turkish Airlines</SelectItem>
+                <SelectItem value="malaysia">Malaysia Airlines</SelectItem>
+                <SelectItem value="singapore">Singapore Airlines</SelectItem>
+                <SelectItem value="oman">Oman Air</SelectItem>
+                <SelectItem value="gulf">Gulf Air</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={flightType} onValueChange={setFlightType}>
               <SelectTrigger>
-                <SelectValue placeholder="Jenis Penerbangan" />
+                <SelectValue placeholder="Jenis" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua Jenis</SelectItem>
-                <SelectItem value="direct">Langsung</SelectItem>
+                <SelectItem value="all">Semua</SelectItem>
+                <SelectItem value="direct">Direct</SelectItem>
                 <SelectItem value="transit">Transit</SelectItem>
               </SelectContent>
             </Select>
@@ -250,10 +277,10 @@ untuk Perjalanan Anda</h1>
 
         {/* Package Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="space-y-4">
-                <Skeleton className="aspect-[1080/1350] w-full" />
+                <Skeleton className="aspect-[4/5] w-full" />
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
               </div>
@@ -268,7 +295,7 @@ untuk Perjalanan Anda</h1>
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {transformedPackages.map((pkg) => <PackageCard key={pkg.id} {...pkg} />)}
           </div>
         )}
