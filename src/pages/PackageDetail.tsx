@@ -239,7 +239,7 @@ const PackageDetail = () => {
                   <CardContent className="p-6">
                     {/* Package Info */}
                     <div className="mb-6 pb-6 border-b">
-                      <h1 className="text-xl md:text-2xl font-bold mb-4 text-foreground">{packageData.package_name}</h1>
+                      <h1 className="text-2xl md:text-4xl font-bold mb-4 text-foreground leading-tight">{packageData.package_name}</h1>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="flex items-start gap-2">
                           <Calendar className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
