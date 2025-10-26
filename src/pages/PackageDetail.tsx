@@ -234,34 +234,28 @@ const PackageDetail = () => {
                   <CardContent className="p-6">
                     {/* Package Info */}
                     <div className="mb-6 pb-6 border-b">
-                      <h1 className="text-2xl md:text-3xl font-bold mb-4 text-foreground">{packageData.package_name}</h1>
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Calendar className="h-5 w-5 text-primary" />
-                          </div>
+                      <h1 className="text-xl md:text-2xl font-bold mb-4 text-foreground">{packageData.package_name}</h1>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="flex items-start gap-2">
+                          <Calendar className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                           <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase">Keberangkatan</p>
+                            <p className="text-xs text-muted-foreground font-medium">Keberangkatan</p>
                             <p className="text-sm font-bold text-foreground">
                               {format(new Date(packageData.departure_date), "dd MMM yyyy", { locale: localeId })}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Clock className="h-5 w-5 text-primary" />
-                          </div>
+                        <div className="flex items-start gap-2">
+                          <Clock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                           <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase">Durasi</p>
+                            <p className="text-xs text-muted-foreground font-medium">Durasi</p>
                             <p className="text-sm font-bold text-foreground">{packageData.duration_days} Hari</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Plane className="h-5 w-5 text-primary" />
-                          </div>
+                        <div className="flex items-start gap-2">
+                          <Plane className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                           <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase">Penerbangan</p>
+                            <p className="text-xs text-muted-foreground font-medium">Penerbangan</p>
                             <p className="text-sm font-bold text-foreground">{packageData.flight}</p>
                             <Badge variant="outline" className="mt-1 bg-primary/10 text-primary border-primary/20 text-xs">
                               {packageData.flight_type}
@@ -391,31 +385,35 @@ const PackageDetail = () => {
                           )}
                         </p>
                       </div>
-                      <div className="flex justify-between items-center pb-4 border-b">
-                        <div>
-                          <p className="text-sm font-medium text-foreground">Triple</p>
-                          <p className="text-xs text-muted-foreground">(3 orang/kamar)</p>
+                      
+                      {/* Triple & Double - Side by Side */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="flex flex-col pb-4 border-b sm:border-b-0 sm:border-r sm:pr-4">
+                          <div className="mb-2">
+                            <p className="text-sm font-medium text-foreground">Triple</p>
+                            <p className="text-xs text-muted-foreground">(3 orang/kamar)</p>
+                          </div>
+                          <p className="text-xl font-bold text-destructive">
+                            {formatPrice(
+                              selectedTier === "five-star" && packageData.five_star_package_price
+                                ? packageData.five_star_package_price.triple
+                                : packageData.package_price.triple
+                            )}
+                          </p>
                         </div>
-                        <p className="text-xl font-bold text-destructive">
-                          {formatPrice(
-                            selectedTier === "five-star" && packageData.five_star_package_price
-                              ? packageData.five_star_package_price.triple
-                              : packageData.package_price.triple
-                          )}
-                        </p>
-                      </div>
-                      <div className="flex justify-between items-center pb-4 border-b">
-                        <div>
-                          <p className="text-sm font-medium text-foreground">Double</p>
-                          <p className="text-xs text-muted-foreground">(2 orang/kamar)</p>
+                        <div className="flex flex-col pb-4 sm:pb-0">
+                          <div className="mb-2">
+                            <p className="text-sm font-medium text-foreground">Double</p>
+                            <p className="text-xs text-muted-foreground">(2 orang/kamar)</p>
+                          </div>
+                          <p className="text-xl font-bold text-destructive">
+                            {formatPrice(
+                              selectedTier === "five-star" && packageData.five_star_package_price
+                                ? packageData.five_star_package_price.double
+                                : packageData.package_price.double
+                            )}
+                          </p>
                         </div>
-                        <p className="text-xl font-bold text-destructive">
-                          {formatPrice(
-                            selectedTier === "five-star" && packageData.five_star_package_price
-                              ? packageData.five_star_package_price.double
-                              : packageData.package_price.double
-                          )}
-                        </p>
                       </div>
                     </div>
                     
