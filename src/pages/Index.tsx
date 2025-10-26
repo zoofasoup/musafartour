@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plane, MapPin, Hotel, MessageCircle, Heart } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import heroImage from "@/assets/hero-umrah.jpg";
+import heroImage from "@/assets/hero-umrah.png";
 import makkahImage from "@/assets/makkah.jpg";
 import madinahImage from "@/assets/madinah.jpg";
 import musafarLogo from "@/assets/musafar-logo.svg";
