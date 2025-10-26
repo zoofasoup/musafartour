@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Bold, Italic, List, ListOrdered, Heading1, Heading2, Link as LinkIcon, Quote } from "lucide-react";
 
@@ -10,6 +10,7 @@ interface RichTextEditorProps {
 
 const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
+  const [savedSelection, setSavedSelection] = useState<Range | null>(null);
 
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== value) {
@@ -23,34 +24,136 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
     }
   };
 
+  // Save selection when user interacts with editor
+  const saveSelection = () => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      setSavedSelection(selection.getRangeAt(0));
+    }
+  };
+
+  // Restore selection before executing commands
+  const restoreSelection = () => {
+    if (savedSelection && editorRef.current) {
+      editorRef.current.focus();
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(savedSelection);
+      }
+    }
+  };
+
   const executeCommand = (command: string, value?: string) => {
     if (!editorRef.current) return;
     
-    editorRef.current.focus();
+    restoreSelection();
     
     try {
-      document.execCommand(command, false, value);
+      const success = document.execCommand(command, false, value);
+      if (!success) {
+        console.warn(`Command ${command} failed`);
+      }
     } catch (error) {
       console.error("Command execution error:", error);
     }
     
-    // Trigger update
     handleInput();
+    saveSelection();
   };
 
   const insertHeading = (level: number) => {
     if (!editorRef.current) return;
-    editorRef.current.focus();
+    
+    restoreSelection();
+    
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      // If no selection, create one at cursor position
+      editorRef.current.focus();
+      return;
+    }
+    
+    try {
+      // Try different formats for better browser compatibility
+      let success = document.execCommand('formatBlock', false, `h${level}`);
+      if (!success) {
+        success = document.execCommand('formatBlock', false, `<h${level}>`);
+      }
+      if (!success) {
+        // Fallback: wrap selection in heading tag manually
+        const range = selection.getRangeAt(0);
+        const heading = document.createElement(`h${level}`);
+        try {
+          range.surroundContents(heading);
+        } catch (e) {
+          // If surroundContents fails, try extracting and appending
+          heading.appendChild(range.extractContents());
+          range.insertNode(heading);
+        }
+      }
+    } catch (error) {
+      console.error("Heading insertion error:", error);
+    }
+    
+    handleInput();
+    saveSelection();
+  };
+
+  const insertList = (ordered: boolean) => {
+    if (!editorRef.current) return;
+    
+    restoreSelection();
+    
+    const command = ordered ? 'insertOrderedList' : 'insertUnorderedList';
+    
+    try {
+      document.execCommand(command, false);
+    } catch (error) {
+      console.error("List insertion error:", error);
+    }
+    
+    handleInput();
+    saveSelection();
+  };
+
+  const insertQuote = () => {
+    if (!editorRef.current) return;
+    
+    restoreSelection();
     
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
     
-    document.execCommand('formatBlock', false, `<h${level}>`);
+    try {
+      // Try formatBlock with blockquote
+      let success = document.execCommand('formatBlock', false, 'blockquote');
+      if (!success) {
+        success = document.execCommand('formatBlock', false, '<blockquote>');
+      }
+      if (!success) {
+        // Manual fallback
+        const range = selection.getRangeAt(0);
+        const blockquote = document.createElement('blockquote');
+        try {
+          range.surroundContents(blockquote);
+        } catch (e) {
+          blockquote.appendChild(range.extractContents());
+          range.insertNode(blockquote);
+        }
+      }
+    } catch (error) {
+      console.error("Quote insertion error:", error);
+    }
+    
     handleInput();
+    saveSelection();
   };
 
   const insertLink = () => {
     if (!editorRef.current) return;
+    
+    restoreSelection();
     
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0 || selection.toString().trim() === '') {
@@ -59,11 +162,22 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
     }
     
     const url = prompt("Masukkan URL:");
-    if (url) {
-      editorRef.current.focus();
-      document.execCommand("createLink", false, url);
-      handleInput();
+    if (url && url.trim()) {
+      try {
+        // Validate and format URL
+        let formattedUrl = url.trim();
+        if (!formattedUrl.match(/^https?:\/\//)) {
+          formattedUrl = 'https://' + formattedUrl;
+        }
+        
+        document.execCommand("createLink", false, formattedUrl);
+      } catch (error) {
+        console.error("Link insertion error:", error);
+      }
     }
+    
+    handleInput();
+    saveSelection();
   };
 
   const toolbarButtons = [
@@ -71,9 +185,9 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
     { icon: Italic, label: "Italic (Ctrl+I)", action: () => executeCommand("italic") },
     { icon: Heading1, label: "Heading 1", action: () => insertHeading(2) },
     { icon: Heading2, label: "Heading 2", action: () => insertHeading(3) },
-    { icon: List, label: "Bullet List", action: () => executeCommand("insertUnorderedList") },
-    { icon: ListOrdered, label: "Numbered List", action: () => executeCommand("insertOrderedList") },
-    { icon: Quote, label: "Quote", action: () => executeCommand("formatBlock", "<blockquote>") },
+    { icon: List, label: "Bullet List", action: () => insertList(false) },
+    { icon: ListOrdered, label: "Numbered List", action: () => insertList(true) },
+    { icon: Quote, label: "Quote", action: insertQuote },
     { icon: LinkIcon, label: "Insert Link", action: insertLink },
   ];
 
@@ -86,6 +200,7 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
             type="button"
             variant="ghost"
             size="sm"
+            onMouseDown={(e) => e.preventDefault()} // Prevent focus loss
             onClick={button.action}
             title={button.label}
             className="h-8 w-8 p-0"
@@ -98,6 +213,8 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
         ref={editorRef}
         contentEditable
         onInput={handleInput}
+        onMouseUp={saveSelection}
+        onKeyUp={saveSelection}
         className="min-h-[400px] w-full rounded-b-md border border-t-0 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
           prose prose-sm max-w-none
           prose-headings:font-bold prose-headings:text-foreground
