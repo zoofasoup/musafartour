@@ -2,6 +2,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plane, Calendar, Hotel, MapPin } from "lucide-react";
+import { formatWhatsAppUrl } from "@/lib/utils";
 
 interface PackageCardProps {
   image: string;
@@ -24,6 +25,12 @@ export const PackageCard = ({
   departureCity,
   category,
 }: PackageCardProps) => {
+  const handleViewDetails = () => {
+    const message = `Halo Musafar Tour, saya tertarik dengan ${title}. Mohon info lebih lanjut.`;
+    const whatsappUrl = formatWhatsAppUrl("6281234567890", message);
+    window.open(whatsappUrl, "_blank");
+  };
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
       <div className="relative h-48 overflow-hidden">
@@ -62,8 +69,12 @@ export const PackageCard = ({
           <p className="text-xs text-muted-foreground">Starting from</p>
           <p className="text-2xl font-bold text-primary">{price}</p>
         </div>
-        <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-          View Details
+        <Button 
+          variant="outline" 
+          className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+          onClick={handleViewDetails}
+        >
+          Lihat Detail
         </Button>
       </CardFooter>
     </Card>

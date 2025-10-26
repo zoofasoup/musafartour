@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Plane, Clock } from "lucide-react";
+import { formatWhatsAppUrl } from "@/lib/utils";
 
 const JadwalUmroh = () => {
   const [month, setMonth] = useState<string>("all");
@@ -98,7 +99,16 @@ const JadwalUmroh = () => {
                   <Link to="/paket-umroh">
                     <Button variant="outline">Lihat Paket</Button>
                   </Link>
-                  <Button className="bg-accent hover:bg-accent/90">Daftar Sekarang</Button>
+                  <Button 
+                    className="bg-accent hover:bg-accent/90"
+                    onClick={() => {
+                      const message = `Halo Musafar Tour, saya ingin mendaftar untuk ${schedule.packageName} dengan keberangkatan ${schedule.date}.`;
+                      const whatsappUrl = formatWhatsAppUrl("6281234567890", message);
+                      window.open(whatsappUrl, "_blank");
+                    }}
+                  >
+                    Daftar Sekarang
+                  </Button>
                 </div>
               </div>
             </div>

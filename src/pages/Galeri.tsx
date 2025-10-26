@@ -1,8 +1,28 @@
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Camera } from "lucide-react";
+import { ImageLightbox } from "@/components/ImageLightbox";
 
 const Galeri = () => {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentImages, setCurrentImages] = useState<string[]>([]);
+
+  const openLightbox = (images: string[], index: number) => {
+    setCurrentImages(images);
+    setCurrentImageIndex(index);
+    setLightboxOpen(true);
+  };
+
+  const handlePrevious = () => {
+    setCurrentImageIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentImageIndex((prev) => Math.min(currentImages.length - 1, prev + 1));
+  };
+
   const galleries = [
     {
       title: "Umroh Ramadhan 2024",
@@ -59,6 +79,7 @@ const Galeri = () => {
                   <div
                     key={imgIndex}
                     className="relative overflow-hidden rounded-lg aspect-[4/3] group cursor-pointer"
+                    onClick={() => openLightbox(gallery.images, imgIndex)}
                   >
                     <img
                       src={image}
@@ -90,6 +111,15 @@ const Galeri = () => {
           </a>
         </div>
       </section>
+
+      <ImageLightbox
+        images={currentImages}
+        currentIndex={currentImageIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+      />
 
       <Footer />
     </div>

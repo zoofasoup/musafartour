@@ -1,13 +1,66 @@
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Phone, Mail, MapPin, Clock, MessageCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { formatWhatsAppUrl } from "@/lib/utils";
 
 const Kontak = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+  });
+  const { toast } = useToast();
+
   const handleWhatsAppClick = () => {
-    window.open("https://wa.me/6281234567890?text=Halo%20Musamin,%20saya%20ingin%20bertanya", "_blank");
+    const message = "Halo Musafar Tour, saya ingin bertanya tentang paket umroh.";
+    const whatsappUrl = formatWhatsAppUrl("6281234567890", message);
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.email || !formData.message) {
+      toast({
+        title: "Form tidak lengkap",
+        description: "Mohon lengkapi semua field yang wajib diisi.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const message = `Halo Musafar Tour,
+
+Nama: ${formData.name}
+Email: ${formData.email}
+Telepon: ${formData.phone}
+Subjek: ${formData.subject}
+
+Pesan:
+${formData.message}`;
+
+    const whatsappUrl = formatWhatsAppUrl("6281234567890", message);
+    window.open(whatsappUrl, "_blank");
+    
+    toast({
+      title: "Pesan terkirim!",
+      description: "Anda akan diarahkan ke WhatsApp untuk mengirim pesan.",
+    });
+
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      subject: "",
+      message: "",
+    });
   };
 
   return (
@@ -103,32 +156,55 @@ const Kontak = () => {
           {/* Contact Form */}
           <div className="bg-card p-8 rounded-lg shadow-md border">
             <h2 className="text-2xl font-bold mb-6">Kirim Pesan</h2>
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium mb-2">Nama Lengkap</label>
-                <Input placeholder="Masukkan nama lengkap Anda" />
+                <label className="block text-sm font-medium mb-2">Nama Lengkap *</label>
+                <Input 
+                  placeholder="Masukkan nama lengkap Anda"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  required
+                />
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Email</label>
-                <Input type="email" placeholder="nama@email.com" />
+                <label className="block text-sm font-medium mb-2">Email *</label>
+                <Input 
+                  type="email" 
+                  placeholder="nama@email.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  required
+                />
               </div>
               
               <div>
                 <label className="block text-sm font-medium mb-2">Nomor Telepon</label>
-                <Input type="tel" placeholder="+62 812 3456 7890" />
+                <Input 
+                  type="tel" 
+                  placeholder="+62 812 3456 7890"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                />
               </div>
               
               <div>
                 <label className="block text-sm font-medium mb-2">Subjek</label>
-                <Input placeholder="Perihal pesan Anda" />
+                <Input 
+                  placeholder="Perihal pesan Anda"
+                  value={formData.subject}
+                  onChange={(e) => setFormData({...formData, subject: e.target.value})}
+                />
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Pesan</label>
+                <label className="block text-sm font-medium mb-2">Pesan *</label>
                 <Textarea 
                   placeholder="Tulis pesan Anda di sini..."
                   rows={6}
+                  value={formData.message}
+                  onChange={(e) => setFormData({...formData, message: e.target.value})}
+                  required
                 />
               </div>
               

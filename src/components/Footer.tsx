@@ -21,9 +21,9 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold mb-3">Ikuti Kami</h3>
             <div className="flex gap-4 text-sm">
-              <a href="#" className="opacity-80 hover:opacity-100 transition-opacity">Instagram</a>
-              <a href="#" className="opacity-80 hover:opacity-100 transition-opacity">Facebook</a>
-              <a href="#" className="opacity-80 hover:opacity-100 transition-opacity">YouTube</a>
+              <a href="https://instagram.com/musafartour" target="_blank" rel="noopener noreferrer" className="opacity-80 hover:opacity-100 transition-opacity">Instagram</a>
+              <a href="https://facebook.com/musafartour" target="_blank" rel="noopener noreferrer" className="opacity-80 hover:opacity-100 transition-opacity">Facebook</a>
+              <a href="https://youtube.com/@musafartour" target="_blank" rel="noopener noreferrer" className="opacity-80 hover:opacity-100 transition-opacity">YouTube</a>
             </div>
           </div>
         </div>
