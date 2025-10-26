@@ -10,6 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft, X, Upload } from "lucide-react";
 
@@ -54,9 +57,9 @@ const packageSchema = z.object({
   
   five_star_transport: z.string().optional(),
   
-  included_items: z.string().optional(),
-  excluded_items: z.string().optional(),
-  equipment_list: z.string().optional(),
+  included_items: z.array(z.string()).optional(),
+  optional_items: z.array(z.string()).optional(),
+  equipment_type: z.enum(["lengkap", "minimalis"]),
   
   catalog_link: z.string().optional(),
   itinerary_link: z.string().optional(),
@@ -78,6 +81,73 @@ const PackageForm = () => {
   const [makkahHotels, setMakkahHotels] = useState<any[]>([]);
   const [madinahHotels, setMadinahHotels] = useState<any[]>([]);
 
+  // Standard items yang selalu termasuk
+  const standardIncludedItems = [
+    "Tiket dan Visa",
+    "Hotel Fullboard",
+    "Makan 3x Sehari",
+    "Handling",
+    "Manasik",
+    "City Tour",
+    "Transportasi",
+    "Tour Leader",
+    "Muthowwif",
+    "Perlengkapan",
+    "Transmitter",
+    "Al Baik"
+  ];
+
+  // Optional items yang bisa dipilih
+  const optionalIncludedItems = [
+    "Free Hotel Transit",
+    "Al Romansiah",
+    "Museum Al Wahyu",
+    "Museum As Safiyyah",
+    "Tour Badar",
+    "Tour Thaif",
+    "Tour Al Ula",
+    "City Tour Singapore",
+    "City Tour Doha",
+    "Kereta Cepat",
+    "Transport GMC",
+    "Al Ula Bus VIP 12"
+  ];
+
+  // Items yang tidak termasuk (fixed)
+  const excludedItems = [
+    "Pembuatan Paspor",
+    "Vaksin Meningitis",
+    "Tiket PP Daerah",
+    "Biaya Kelebihan Bagasi",
+    "Pengeluaran Pribadi",
+    "Biaya Kirim Perlengkapan"
+  ];
+
+  // Equipment options
+  const equipmentOptions = {
+    lengkap: [
+      "Ransel",
+      "Koper 24 Inch",
+      "Buku Panduan Umroh & Notebook",
+      "Syal",
+      "Kain Ihram",
+      "Baju Koko",
+      "Gamis",
+      "Mukena",
+      "Kaos Ikhwan",
+      "Strap Id Card",
+      "Tumbler"
+    ],
+    minimalis: [
+      "Koper 24 Inch",
+      "Buku Panduan Umroh & Notebook",
+      "Kain Ihram",
+      "Mukena",
+      "Baju Koko",
+      "Gamis"
+    ]
+  };
+
   const form = useForm<PackageFormValues>({
     resolver: zodResolver(packageSchema),
     defaultValues: {
@@ -94,6 +164,9 @@ const PackageForm = () => {
       five_star_price_triple: 0,
       five_star_price_double: 0,
       five_star_transport: "Kereta Cepat",
+      included_items: standardIncludedItems,
+      optional_items: [],
+      equipment_type: "lengkap" as const,
       status: "draft",
     },
   });
@@ -223,9 +296,15 @@ const PackageForm = () => {
           five_star_price_double: fiveStarPriceData?.double || 0,
           five_star_transport: data.five_star_transport || "Kereta Cepat",
           
-          included_items: data.included_items || "",
-          excluded_items: data.excluded_items || "",
-          equipment_list: data.equipment_list || "",
+          included_items: standardIncludedItems,
+          optional_items: (() => {
+            if (typeof data.included_items === 'string') {
+              const items = data.included_items.split(",").map((item: string) => item.trim());
+              return items.filter((item: string) => !standardIncludedItems.includes(item));
+            }
+            return [];
+          })(),
+          equipment_type: (data.equipment_list?.includes("Ransel") ? "lengkap" : "minimalis") as "lengkap" | "minimalis",
           
           catalog_link: data.catalog_link || "",
           itinerary_link: data.itinerary_link || "",
@@ -392,9 +471,9 @@ const PackageForm = () => {
         banner_image: bannerUrl,
         gallery_images: galleryUrls,
         
-        included_items: values.included_items,
-        excluded_items: values.excluded_items,
-        equipment_list: values.equipment_list,
+        included_items: [...standardIncludedItems, ...(values.optional_items || [])].join(", "),
+        excluded_items: excludedItems.join(", "),
+        equipment_list: equipmentOptions[values.equipment_type].join(", "),
         
         catalog_link: values.catalog_link,
         itinerary_link: values.itinerary_link,
@@ -1187,56 +1266,119 @@ const PackageForm = () => {
           <Card>
             <CardHeader>
               <CardTitle>Fasilitas & Perlengkapan</CardTitle>
+              <CardDescription>Kelola fasilitas yang termasuk dan tidak termasuk</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {/* Standard Included Items */}
+              <div className="space-y-3">
+                <FormLabel className="text-base font-semibold">Termasuk (Standard)</FormLabel>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-muted/50 rounded-lg">
+                  {standardIncludedItems.map((item) => (
+                    <div key={item} className="flex items-center gap-2">
+                      <Checkbox checked disabled />
+                      <span className="text-sm">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Optional Included Items */}
               <FormField
                 control={form.control}
-                name="included_items"
-                render={({ field }) => (
+                name="optional_items"
+                render={() => (
                   <FormItem>
-                    <FormLabel>Termasuk</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Tiket pesawat, Hotel, Visa, Makan 3x sehari..."
-                        rows={4}
-                      />
-                    </FormControl>
+                    <FormLabel className="text-base font-semibold">Termasuk (Opsional)</FormLabel>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Pilih fasilitas tambahan yang termasuk dalam paket ini
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 border rounded-lg">
+                      {optionalIncludedItems.map((item) => (
+                        <FormField
+                          key={item}
+                          control={form.control}
+                          name="optional_items"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={item}
+                                className="flex flex-row items-center space-x-2 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(item)}
+                                    onCheckedChange={(checked) => {
+                                      return checked
+                                        ? field.onChange([...(field.value || []), item])
+                                        : field.onChange(
+                                            field.value?.filter((value) => value !== item)
+                                          );
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="text-sm font-normal cursor-pointer">
+                                  {item}
+                                </FormLabel>
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      ))}
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="excluded_items"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tidak Termasuk</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Pengeluaran pribadi, Laundry..."
-                        rows={4}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Excluded Items (Fixed) */}
+              <div className="space-y-3">
+                <FormLabel className="text-base font-semibold">Tidak Termasuk</FormLabel>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-muted/50 rounded-lg">
+                  {excludedItems.map((item) => (
+                    <div key={item} className="flex items-center gap-2">
+                      <X className="w-4 h-4 text-destructive" />
+                      <span className="text-sm">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
+              {/* Equipment Type Selection */}
               <FormField
                 control={form.control}
-                name="equipment_list"
+                name="equipment_type"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Perlengkapan yang Disediakan</FormLabel>
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-base font-semibold">Pilihan Perlengkapan</FormLabel>
                     <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Koper, Tas ransel, Mukena..."
-                        rows={4}
-                      />
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        className="space-y-4"
+                      >
+                        <div className="flex items-start space-x-3 space-y-0 rounded-lg border p-4 hover:bg-accent/50 transition-colors">
+                          <RadioGroupItem value="lengkap" id="lengkap" />
+                          <div className="space-y-2 flex-1">
+                            <Label htmlFor="lengkap" className="font-semibold cursor-pointer">
+                              Perlengkapan Lengkap
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                              {equipmentOptions.lengkap.join(", ")}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-start space-x-3 space-y-0 rounded-lg border p-4 hover:bg-accent/50 transition-colors">
+                          <RadioGroupItem value="minimalis" id="minimalis" />
+                          <div className="space-y-2 flex-1">
+                            <Label htmlFor="minimalis" className="font-semibold cursor-pointer">
+                              Perlengkapan Minimalis
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                              {equipmentOptions.minimalis.join(", ")}
+                            </p>
+                          </div>
+                        </div>
+                      </RadioGroup>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
