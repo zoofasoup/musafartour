@@ -206,7 +206,7 @@ untuk Perjalanan Anda</h1>
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-2 text-foreground">Kisah Nyata dari Musafriends Kami</h2>
-            <p className="text-muted-foreground">Dengarkan dari mereka yang telah menempuh jalan yang diberkahi ini bersama kami</p>
+            <p className="text-muted-foreground">Dengarkan dari mereka yang telah menempuh jalan yang diberkahi ini bersama kami.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((testimonial, index) => <TestimonialCard key={index} {...testimonial} />)}

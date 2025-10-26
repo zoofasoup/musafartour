@@ -1,15 +1,11 @@
 import musafarLogo from "@/assets/musafar-logo.svg";
-
 const Footer = () => {
-  return (
-    <footer className="bg-foreground text-background py-12">
+  return <footer className="bg-foreground text-background py-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
             <img src={musafarLogo} alt="Musafar Tour" className="h-12 mb-4" />
-            <p className="text-sm opacity-80">
-              Setiap langkah menuju Tanah Suci dimulai dengan niat yang suci — dan bimbingan yang tulus.
-            </p>
+            <p className="text-sm opacity-80">Setiap langkah menuju Tanah Suci dimulai dengan niat yang suci — dan bimbingan yang tulus.</p>
           </div>
           <div>
             <h3 className="font-semibold mb-3">Hubungi Kami</h3>
@@ -35,8 +31,6 @@ const Footer = () => {
           © 2025 Musafar Tour. Hak Cipta Dilindungi.
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
