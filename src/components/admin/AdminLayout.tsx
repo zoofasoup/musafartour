@@ -44,7 +44,7 @@ const AdminLayout = () => {
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
     { icon: Package, label: "Paket Umroh", path: "/admin/packages" },
-    { icon: Plane, label: "Wisata Halal", path: "/admin/wisata" },
+    { icon: Plane, label: "Wisata Halal", path: "/admin/wisata-halal" },
     { icon: FileText, label: "Artikel", path: "/admin/articles" },
   ];
 

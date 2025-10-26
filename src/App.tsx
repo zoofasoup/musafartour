@@ -17,6 +17,12 @@ import Auth from "./pages/Auth";
 import AdminSetup from "./pages/AdminSetup";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
+import Packages from "./pages/admin/Packages";
+import PackageForm from "./pages/admin/PackageForm";
+import WisataHalalPage from "./pages/admin/WisataHalal";
+import WisataHalalForm from "./pages/admin/WisataHalalForm";
+import ArticlesPage from "./pages/admin/Articles";
+import ArticleForm from "./pages/admin/ArticleForm";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +46,15 @@ const App = () => (
           <Route path="/admin/setup" element={<AdminSetup />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
+            <Route path="packages" element={<Packages />} />
+            <Route path="packages/new" element={<PackageForm />} />
+            <Route path="packages/:id" element={<PackageForm />} />
+            <Route path="wisata-halal" element={<WisataHalalPage />} />
+            <Route path="wisata-halal/new" element={<WisataHalalForm />} />
+            <Route path="wisata-halal/:id" element={<WisataHalalForm />} />
+            <Route path="articles" element={<ArticlesPage />} />
+            <Route path="articles/new" element={<ArticleForm />} />
+            <Route path="articles/:id" element={<ArticleForm />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

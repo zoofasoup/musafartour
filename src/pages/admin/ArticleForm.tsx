@@ -1,0 +1,310 @@
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
+
+const articleSchema = z.object({
+  title: z.string().min(1, "Judul wajib diisi"),
+  slug: z.string().min(1, "Slug wajib diisi"),
+  excerpt: z.string().optional(),
+  content: z.string().min(1, "Konten wajib diisi"),
+  category: z.string().optional(),
+  meta_title: z.string().optional(),
+  meta_description: z.string().optional(),
+  status: z.string(),
+});
+
+type ArticleFormValues = z.infer<typeof articleSchema>;
+
+const ArticleForm = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(!!id);
+
+  const form = useForm<ArticleFormValues>({
+    resolver: zodResolver(articleSchema),
+    defaultValues: {
+      title: "",
+      slug: "",
+      excerpt: "",
+      content: "",
+      category: "",
+      meta_title: "",
+      meta_description: "",
+      status: "draft",
+    },
+  });
+
+  useEffect(() => {
+    if (id) {
+      fetchArticle();
+    }
+  }, [id]);
+
+  const fetchArticle = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("articles")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        form.reset({
+          title: data.title,
+          slug: data.slug,
+          excerpt: data.excerpt || "",
+          content: data.content,
+          category: data.category || "",
+          meta_title: data.meta_title || "",
+          meta_description: data.meta_description || "",
+          status: data.status || "draft",
+        });
+      }
+    } catch (error: any) {
+      toast.error("Gagal memuat data: " + error.message);
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-");
+  };
+
+  const onSubmit = async (values: ArticleFormValues) => {
+    setLoading(true);
+    try {
+      if (id) {
+        const { error } = await supabase
+          .from("articles")
+          .update(values as any)
+          .eq("id", id);
+
+        if (error) throw error;
+        toast.success("Artikel berhasil diupdate");
+      } else {
+        const { error } = await supabase
+          .from("articles")
+          .insert(values as any);
+
+        if (error) throw error;
+        toast.success("Artikel berhasil dibuat");
+      }
+
+      navigate("/admin/articles");
+    } catch (error: any) {
+      toast.error("Gagal menyimpan: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/admin/articles")}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold">{id ? "Edit Artikel" : "Tambah Artikel"}</h1>
+          <p className="text-muted-foreground">Tulis artikel untuk blog</p>
+        </div>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Informasi Artikel</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Judul</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Tips Memilih Paket Umroh"
+                        onChange={(e) => {
+                          field.onChange(e);
+                          if (!id) {
+                            form.setValue("slug", generateSlug(e.target.value));
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="slug"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Slug (URL)</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="tips-memilih-paket-umroh" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Kategori</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Tips, Panduan, Berita" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="excerpt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Excerpt (Ringkasan)</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Ringkasan singkat artikel..." rows={3} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Konten</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Tulis konten artikel lengkap..." rows={15} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>SEO</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="meta_title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Meta Title</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Judul untuk SEO (60 karakter)" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="meta_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Meta Description</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Deskripsi untuk SEO (160 karakter)" rows={3} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status Publikasi</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="published">Published</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate("/admin/articles")}
+            >
+              Batal
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Menyimpan..." : "Simpan Artikel"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
+};
+
+export default ArticleForm;
