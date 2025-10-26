@@ -109,12 +109,22 @@ export const PackageCard = ({
       <CardContent className="p-4 flex flex-col flex-1 md:w-3/5">
         <div className="space-y-3 flex-1">
           {/* Title */}
-          <h3 className="font-bold text-lg text-foreground leading-tight line-clamp-2">{title}</h3>
+          <h3 className="font-bold text-xl text-foreground leading-tight line-clamp-2">{title}</h3>
+
+          {/* Date and Duration - Prominent */}
+          <div className="flex items-center gap-3 text-base font-semibold text-foreground">
+            <div className="flex items-center gap-1">
+              <Calendar className="w-5 h-5" />
+              <span>{date}</span>
+            </div>
+            <span className="text-border">•</span>
+            <span>{duration}</span>
+          </div>
 
           {/* Tier Selector */}
           {hasFiveStarTier && (
             <Select value={selectedTier} onValueChange={(value: "best-seller" | "five-star") => setSelectedTier(value)}>
-              <SelectTrigger className="h-8 text-xs">
+              <SelectTrigger className="h-9 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -123,14 +133,6 @@ export const PackageCard = ({
               </SelectContent>
             </Select>
           )}
-
-          {/* Date and Duration */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Calendar className="w-4 h-4" />
-            <span>{date}</span>
-            <span className="mx-1">•</span>
-            <span>{duration}</span>
-          </div>
 
           {/* Airline Badge */}
           <div className="flex gap-2 flex-wrap">
@@ -179,8 +181,8 @@ export const PackageCard = ({
         {/* Price and CTA */}
         <div className="flex items-center justify-between pt-4 mt-4 border-t">
           <div>
-            <p className="text-xs text-muted-foreground">Harga Mulai</p>
-            <p className="text-xl font-bold text-red-600">{displayPrice}</p>
+            <p className="text-sm text-muted-foreground">Harga Mulai</p>
+            <p className="text-2xl font-bold text-red-600">{displayPrice}</p>
           </div>
           <Button 
             onClick={handleViewDetails}
