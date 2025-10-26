@@ -27,7 +27,7 @@ export const PackageCard = ({
 }: PackageCardProps) => {
   const handleViewDetails = () => {
     const message = `Halo Musafar Tour, saya tertarik dengan ${title}. Mohon info lebih lanjut.`;
-    const whatsappUrl = formatWhatsAppUrl("6281234567890", message);
+    const whatsappUrl = formatWhatsAppUrl("6281917403797", message);
     window.open(whatsappUrl, "_blank");
   };
 

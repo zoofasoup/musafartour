@@ -10,12 +10,14 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold mb-3">Hubungi Kami</h3>
             <p className="text-sm opacity-80 mb-2">
-              Jl. Kebon Jeruk Raya No. 123<br />
-              Jakarta Barat 11530
+              Commercial Park Harapan Indah Ruko Emerald Blok EB1 No. 28<br />
+              Medan Satria, Kota Bekasi, Jawa Barat 17131
             </p>
             <p className="text-sm opacity-80">
-              Izin PPIU: 123/2024/PPIU<br />
-              Telepon: +62 812 3456 7890
+              Izin PPIU: 17102200953750002<br />
+              Telepon: 021-38312137<br />
+              WhatsApp: 0819-1740-3797<br />
+              Email: musafartour@gmail.com
             </p>
           </div>
           <div>

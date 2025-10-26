@@ -20,7 +20,7 @@ const Kontak = () => {
 
   const handleWhatsAppClick = () => {
     const message = "Halo Musafar Tour, saya ingin bertanya tentang paket umroh.";
-    const whatsappUrl = formatWhatsAppUrl("6281234567890", message);
+    const whatsappUrl = formatWhatsAppUrl("6281917403797", message);
     window.open(whatsappUrl, "_blank");
   };
 
@@ -46,7 +46,7 @@ Subjek: ${formData.subject}
 Pesan:
 ${formData.message}`;
 
-    const whatsappUrl = formatWhatsAppUrl("6281234567890", message);
+    const whatsappUrl = formatWhatsAppUrl("6281917403797", message);
     window.open(whatsappUrl, "_blank");
     
     toast({
@@ -98,8 +98,8 @@ ${formData.message}`;
                 <div>
                   <h3 className="font-semibold mb-1">Alamat Kantor</h3>
                   <p className="text-sm text-muted-foreground">
-                    Jl. Kebon Jeruk Raya No. 123<br />
-                    Jakarta Barat 11530, Indonesia
+                    Commercial Park Harapan Indah Ruko Emerald Blok EB1 No. 28<br />
+                    Medan Satria, Kota Bekasi, Jawa Barat 17131
                   </p>
                 </div>
               </div>
@@ -109,9 +109,9 @@ ${formData.message}`;
                   <Phone className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">Telepon</h3>
-                  <p className="text-sm text-muted-foreground">+62 812 3456 7890</p>
-                  <p className="text-sm text-muted-foreground">+62 21 5555 4444</p>
+                  <h3 className="font-semibold mb-1">Telepon & WhatsApp</h3>
+                  <p className="text-sm text-muted-foreground">021-38312137</p>
+                  <p className="text-sm text-muted-foreground">0819-1740-3797 (WhatsApp)</p>
                 </div>
               </div>
 
@@ -121,8 +121,7 @@ ${formData.message}`;
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Email</h3>
-                  <p className="text-sm text-muted-foreground">info@musafartour.com</p>
-                  <p className="text-sm text-muted-foreground">customer@musafartour.com</p>
+                  <p className="text-sm text-muted-foreground">musafartour@gmail.com</p>
                 </div>
               </div>
 
@@ -182,7 +181,7 @@ ${formData.message}`;
                 <label className="block text-sm font-medium mb-2">Nomor Telepon</label>
                 <Input 
                   type="tel" 
-                  placeholder="+62 812 3456 7890"
+                  placeholder="0819-1740-3797"
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
                 />

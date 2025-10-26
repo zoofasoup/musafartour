@@ -103,7 +103,7 @@ const JadwalUmroh = () => {
                     className="bg-accent hover:bg-accent/90"
                     onClick={() => {
                       const message = `Halo Musafar Tour, saya ingin mendaftar untuk ${schedule.packageName} dengan keberangkatan ${schedule.date}.`;
-                      const whatsappUrl = formatWhatsAppUrl("6281234567890", message);
+                      const whatsappUrl = formatWhatsAppUrl("6281917403797", message);
                       window.open(whatsappUrl, "_blank");
                     }}
                   >

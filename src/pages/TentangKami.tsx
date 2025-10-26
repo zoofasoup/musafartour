@@ -90,7 +90,7 @@ const TentangKami = () => {
               <Shield className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
               <div>
                 <p className="font-semibold">Izin PPIU (Penyelenggara Perjalanan Ibadah Umroh)</p>
-                <p className="text-sm text-muted-foreground">No. 123/2024/PPIU - Kementerian Agama RI</p>
+                <p className="text-sm text-muted-foreground">No. 17102200953750002 - Kementerian Agama RI</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -118,12 +118,13 @@ const TentangKami = () => {
           <div className="max-w-2xl mx-auto bg-card p-8 rounded-lg shadow-md text-center">
             <h3 className="font-semibold text-xl mb-4">PT. Musafar Tour Indonesia</h3>
             <p className="text-muted-foreground mb-2">
-              Jl. Kebon Jeruk Raya No. 123<br />
-              Jakarta Barat 11530, Indonesia
+              Commercial Park Harapan Indah Ruko Emerald Blok EB1 No. 28<br />
+              Medan Satria, Kota Bekasi, Jawa Barat 17131
             </p>
             <p className="text-muted-foreground mb-4">
-              Telepon: +62 812 3456 7890<br />
-              Email: info@musafartour.com
+              Telepon: 021-38312137<br />
+              WhatsApp: 0819-1740-3797<br />
+              Email: musafartour@gmail.com
             </p>
             <p className="text-sm text-muted-foreground">
               Senin - Jumat: 09.00 - 17.00 WIB<br />

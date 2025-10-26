@@ -78,7 +78,7 @@ const Index = () => {
     location: "Surabaya"
   }];
   const handleWhatsAppClick = () => {
-    window.open("https://wa.me/6281234567890?text=Halo%20Musamin,%20saya%20tertarik%20untuk%20mengetahui%20lebih%20lanjut%20tentang%20paket%20Umroh", "_blank");
+    window.open("https://wa.me/6281917403797?text=Halo%20Musamin,%20saya%20tertarik%20untuk%20mengetahui%20lebih%20lanjut%20tentang%20paket%20Umroh", "_blank");
   };
   return <div className="min-h-screen bg-background">
       <Navbar />
