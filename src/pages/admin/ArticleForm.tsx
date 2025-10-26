@@ -17,6 +17,7 @@ import RichTextEditor from "@/components/admin/RichTextEditor";
 const articleSchema = z.object({
   title: z.string().min(1, "Judul wajib diisi"),
   slug: z.string().min(1, "Slug wajib diisi"),
+  author_name: z.string().optional(),
   excerpt: z.string().optional(),
   content: z.string().min(1, "Konten wajib diisi"),
   category: z.string().optional(),
@@ -41,6 +42,7 @@ const ArticleForm = () => {
     defaultValues: {
       title: "",
       slug: "",
+      author_name: "",
       excerpt: "",
       content: "",
       category: "",
@@ -71,6 +73,7 @@ const ArticleForm = () => {
         form.reset({
           title: data.title,
           slug: data.slug,
+          author_name: data.author_name || "",
           excerpt: data.excerpt || "",
           content: data.content,
           category: data.category || "",
@@ -229,6 +232,20 @@ const ArticleForm = () => {
                     <FormLabel>Slug (URL)</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="tips-memilih-paket-umroh" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="author_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nama Penulis</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Nama penulis artikel" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
