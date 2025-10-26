@@ -304,75 +304,75 @@ const PackageDetail = () => {
                         <Hotel className="h-4 w-4 text-primary" />
                         Informasi Hotel
                       </h3>
-                      <div className="grid grid-cols-1 gap-3">
-                        {(selectedTier === "best-seller" ? packageData.makkah_hotel_name : packageData.five_star_makkah_hotel_name || packageData.makkah_hotel_name) && (
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
-                              <span className="font-semibold text-sm">Makkah</span>
-                            </div>
-                            <p className="text-sm pl-6">
-                              {selectedTier === "best-seller" 
-                                ? packageData.makkah_hotel_name 
-                                : packageData.five_star_makkah_hotel_name || packageData.makkah_hotel_name}
-                            </p>
-                            {((selectedTier === "best-seller" ? packageData.makkah_hotel_star : packageData.five_star_makkah_hotel_star) || packageData.makkah_hotel_star) && (
-                              <div className="pl-6">
-                                <StarRating rating={
-                                  selectedTier === "best-seller" 
-                                    ? packageData.makkah_hotel_star || 0
-                                    : packageData.five_star_makkah_hotel_star || packageData.makkah_hotel_star || 0
-                                } />
-                              </div>
-                            )}
-                            {((selectedTier === "best-seller" ? packageData.makkah_distance : packageData.five_star_makkah_distance) || packageData.makkah_distance) && (
-                              <p className="text-xs text-muted-foreground pl-6">
-                                📍 {selectedTier === "best-seller" 
-                                  ? packageData.makkah_distance 
-                                  : packageData.five_star_makkah_distance || packageData.makkah_distance}
-                                {((selectedTier === "best-seller" ? packageData.makkah_duration_walk : packageData.five_star_makkah_duration_walk) || packageData.makkah_duration_walk) && 
-                                  ` • 🚶 ${selectedTier === "best-seller" 
-                                    ? packageData.makkah_duration_walk 
-                                    : packageData.five_star_makkah_duration_walk || packageData.makkah_duration_walk}`
-                                }
-                              </p>
-                            )}
-                          </div>
-                        )}
-                        {(selectedTier === "best-seller" ? packageData.madinah_hotel_name : packageData.five_star_madinah_hotel_name || packageData.madinah_hotel_name) && (
-                          <div className="space-y-1 pt-2 border-t">
-                            <div className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
-                              <span className="font-semibold text-sm">Madinah</span>
-                            </div>
-                            <p className="text-sm pl-6">
-                              {selectedTier === "best-seller" 
-                                ? packageData.madinah_hotel_name 
-                                : packageData.five_star_madinah_hotel_name || packageData.madinah_hotel_name}
-                            </p>
-                            {((selectedTier === "best-seller" ? packageData.madinah_hotel_star : packageData.five_star_madinah_hotel_star) || packageData.madinah_hotel_star) && (
-                              <div className="pl-6">
-                                <StarRating rating={
-                                  selectedTier === "best-seller" 
-                                    ? packageData.madinah_hotel_star || 0
-                                    : packageData.five_star_madinah_hotel_star || packageData.madinah_hotel_star || 0
-                                } />
-                              </div>
-                            )}
-                            {((selectedTier === "best-seller" ? packageData.madinah_distance : packageData.five_star_madinah_distance) || packageData.madinah_distance) && (
-                              <p className="text-xs text-muted-foreground pl-6">
-                                📍 {selectedTier === "best-seller" 
-                                  ? packageData.madinah_distance 
-                                  : packageData.five_star_madinah_distance || packageData.madinah_distance}
-                                {((selectedTier === "best-seller" ? packageData.madinah_duration_walk : packageData.five_star_madinah_duration_walk) || packageData.madinah_duration_walk) && 
-                                  ` • 🚶 ${selectedTier === "best-seller" 
-                                    ? packageData.madinah_duration_walk 
-                                    : packageData.five_star_madinah_duration_walk || packageData.madinah_duration_walk}`
-                                }
-                              </p>
-                            )}
-                          </div>
-                        )}
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         {(selectedTier === "best-seller" ? packageData.makkah_hotel_name : packageData.five_star_makkah_hotel_name || packageData.makkah_hotel_name) && (
+                           <div className="space-y-1">
+                             <div className="flex items-center gap-2">
+                               <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
+                               <span className="font-semibold text-sm">Makkah</span>
+                             </div>
+                             <p className="text-sm pl-6">
+                               {selectedTier === "best-seller" 
+                                 ? packageData.makkah_hotel_name 
+                                 : packageData.five_star_makkah_hotel_name || packageData.makkah_hotel_name}
+                             </p>
+                             {((selectedTier === "best-seller" ? packageData.makkah_hotel_star : packageData.five_star_makkah_hotel_star) || packageData.makkah_hotel_star) && (
+                               <div className="pl-6">
+                                 <StarRating rating={
+                                   selectedTier === "best-seller" 
+                                     ? packageData.makkah_hotel_star || 0
+                                     : packageData.five_star_makkah_hotel_star || packageData.makkah_hotel_star || 0
+                                 } />
+                               </div>
+                             )}
+                             {((selectedTier === "best-seller" ? packageData.makkah_distance : packageData.five_star_makkah_distance) || packageData.makkah_distance) && (
+                               <p className="text-xs text-muted-foreground pl-6">
+                                 📍 {selectedTier === "best-seller" 
+                                   ? packageData.makkah_distance 
+                                   : packageData.five_star_makkah_distance || packageData.makkah_distance}
+                                 {((selectedTier === "best-seller" ? packageData.makkah_duration_walk : packageData.five_star_makkah_duration_walk) || packageData.makkah_duration_walk) && 
+                                   ` • 🚶 ${selectedTier === "best-seller" 
+                                     ? packageData.makkah_duration_walk 
+                                     : packageData.five_star_makkah_duration_walk || packageData.makkah_duration_walk}`
+                                 }
+                               </p>
+                             )}
+                           </div>
+                         )}
+                         {(selectedTier === "best-seller" ? packageData.madinah_hotel_name : packageData.five_star_madinah_hotel_name || packageData.madinah_hotel_name) && (
+                           <div className="space-y-1">
+                             <div className="flex items-center gap-2">
+                               <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
+                               <span className="font-semibold text-sm">Madinah</span>
+                             </div>
+                             <p className="text-sm pl-6">
+                               {selectedTier === "best-seller" 
+                                 ? packageData.madinah_hotel_name 
+                                 : packageData.five_star_madinah_hotel_name || packageData.madinah_hotel_name}
+                             </p>
+                             {((selectedTier === "best-seller" ? packageData.madinah_hotel_star : packageData.five_star_madinah_hotel_star) || packageData.madinah_hotel_star) && (
+                               <div className="pl-6">
+                                 <StarRating rating={
+                                   selectedTier === "best-seller" 
+                                     ? packageData.madinah_hotel_star || 0
+                                     : packageData.five_star_madinah_hotel_star || packageData.madinah_hotel_star || 0
+                                 } />
+                               </div>
+                             )}
+                             {((selectedTier === "best-seller" ? packageData.madinah_distance : packageData.five_star_madinah_distance) || packageData.madinah_distance) && (
+                               <p className="text-xs text-muted-foreground pl-6">
+                                 📍 {selectedTier === "best-seller" 
+                                   ? packageData.madinah_distance 
+                                   : packageData.five_star_madinah_distance || packageData.madinah_distance}
+                                 {((selectedTier === "best-seller" ? packageData.madinah_duration_walk : packageData.five_star_madinah_duration_walk) || packageData.madinah_duration_walk) && 
+                                   ` • 🚶 ${selectedTier === "best-seller" 
+                                     ? packageData.madinah_duration_walk 
+                                     : packageData.five_star_madinah_duration_walk || packageData.madinah_duration_walk}`
+                                 }
+                               </p>
+                             )}
+                           </div>
+                         )}
                       </div>
                     </div>
 
