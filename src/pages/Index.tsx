@@ -298,7 +298,7 @@ untuk Perjalanan Anda</h1>
                       <SelectValue placeholder="Tipe Penerbangan" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Semua</SelectItem>
+                      <SelectItem value="all">Semua Tipe Penerbangan</SelectItem>
                       <SelectItem value="direct">Direct</SelectItem>
                       <SelectItem value="transit">Transit</SelectItem>
                     </SelectContent>
@@ -312,7 +312,6 @@ untuk Perjalanan Anda</h1>
                       <SelectItem value="all">Semua Durasi</SelectItem>
                       <SelectItem value="9">9 Hari</SelectItem>
                       <SelectItem value="12">12 Hari</SelectItem>
-                      <SelectItem value="13">13 Hari</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
