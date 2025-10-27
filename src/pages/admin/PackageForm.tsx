@@ -683,7 +683,7 @@ const PackageForm = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="none">Tanpa Pilihan</SelectItem>
+                          <SelectItem value="none">Belum dipilih</SelectItem>
                           {madinahHotels.map((hotel) => (
                             <SelectItem key={hotel.id} value={hotel.id}>
                               {hotel.name} ({hotel.star_rating}⭐)
@@ -777,7 +777,7 @@ const PackageForm = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="none">Tanpa Pilihan</SelectItem>
+                          <SelectItem value="none">Belum dipilih</SelectItem>
                           {makkahHotels.map((hotel) => (
                             <SelectItem key={hotel.id} value={hotel.id}>
                               {hotel.name} ({hotel.star_rating}⭐)
@@ -952,7 +952,7 @@ const PackageForm = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="none">Tanpa Pilihan</SelectItem>
+                          <SelectItem value="none">Belum dipilih</SelectItem>
                           {madinahHotels.map((hotel) => (
                             <SelectItem key={hotel.id} value={hotel.id}>
                               {hotel.name} ({hotel.star_rating}⭐)
@@ -1046,7 +1046,7 @@ const PackageForm = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="none">Tanpa Pilihan</SelectItem>
+                          <SelectItem value="none">Belum dipilih</SelectItem>
                           {makkahHotels.map((hotel) => (
                             <SelectItem key={hotel.id} value={hotel.id}>
                               {hotel.name} ({hotel.star_rating}⭐)
