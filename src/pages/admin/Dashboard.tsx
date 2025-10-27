@@ -10,33 +10,6 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, loading, isAdmin } = useAuth();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
-    }
-  }, [user, loading, navigate]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription>Anda tidak memiliki akses admin</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
-
   const { data: packagesCount } = useQuery({
     queryKey: ['packages-count'],
     queryFn: async () => {
@@ -67,6 +40,33 @@ const AdminDashboard = () => {
       return count || 0;
     },
   });
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>Anda tidak memiliki akses admin</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   const stats = [
     {
