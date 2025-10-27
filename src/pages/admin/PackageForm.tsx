@@ -1447,18 +1447,22 @@ const PackageForm = () => {
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate("/admin/packages")}
-            >
-              Batal
-            </Button>
-            <Button type="submit" disabled={loading || uploadingImages}>
-              {uploadingImages ? "Uploading images..." : loading ? "Menyimpan..." : "Simpan Paket"}
-            </Button>
+          <div className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg z-50 p-4">
+            <div className="container mx-auto flex justify-end gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/admin/packages")}
+              >
+                Batal
+              </Button>
+              <Button type="submit" disabled={loading || uploadingImages}>
+                {uploadingImages ? "Uploading images..." : loading ? "Menyimpan..." : "Simpan Paket"}
+              </Button>
+            </div>
           </div>
+          {/* Spacer to prevent content from being hidden behind floating buttons */}
+          <div className="h-20"></div>
         </form>
       </Form>
     </div>
