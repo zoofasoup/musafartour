@@ -597,25 +597,10 @@ const PackageForm = () => {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="Garuda Indonesia">Garuda Indonesia</SelectItem>
-                          <SelectItem value="Lion Air">Lion Air</SelectItem>
-                          <SelectItem value="Batik Air">Batik Air</SelectItem>
-                          <SelectItem value="Citilink">Citilink</SelectItem>
-                          <SelectItem value="Super Air Jet">Super Air Jet</SelectItem>
                           <SelectItem value="Saudia">Saudia</SelectItem>
-                          <SelectItem value="Flynas">Flynas</SelectItem>
-                          <SelectItem value="Flyadeal">Flyadeal</SelectItem>
-                          <SelectItem value="Emirates">Emirates</SelectItem>
-                          <SelectItem value="Etihad Airways">Etihad Airways</SelectItem>
-                          <SelectItem value="Qatar Airways">Qatar Airways</SelectItem>
-                          <SelectItem value="Gulf Air">Gulf Air</SelectItem>
+                          <SelectItem value="Scoot Airlines">Scoot Airlines</SelectItem>
                           <SelectItem value="Oman Air">Oman Air</SelectItem>
-                          <SelectItem value="Kuwait Airways">Kuwait Airways</SelectItem>
-                          <SelectItem value="Royal Jordanian">Royal Jordanian</SelectItem>
-                          <SelectItem value="Turkish Airlines">Turkish Airlines</SelectItem>
-                          <SelectItem value="Malaysia Airlines">Malaysia Airlines</SelectItem>
-                          <SelectItem value="AirAsia X">AirAsia X</SelectItem>
-                          <SelectItem value="Egypt Air">Egypt Air</SelectItem>
-                          <SelectItem value="Pakistan International Airlines">Pakistan International Airlines</SelectItem>
+                          <SelectItem value="Qatar Airways">Qatar Airways</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

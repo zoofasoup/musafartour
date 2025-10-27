@@ -6,6 +6,12 @@ import { TestimonialCard } from "@/components/TestimonialCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plane, MapPin, Hotel, MessageCircle, Heart, Package } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +54,7 @@ const Index = () => {
   const [airline, setAirline] = useState<string>("all");
   const [month, setMonth] = useState<string>("all");
   const [flightType, setFlightType] = useState<string>("all");
+  const [duration, setDuration] = useState<string>("all");
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -96,13 +103,15 @@ const Index = () => {
     const pkgMonth = getMonthFromDate(pkg.departure_date);
     
     const categoryMatch = category === "all" || pkgCategory === category;
-    const airlineMatch = airline === "all" || pkg.flight.toLowerCase().includes(airline);
+    const airlineMatch = airline === "all" || pkg.flight === airline;
     const monthMatch = month === "all" || pkgMonth.includes(month.toLowerCase());
-    const flightTypeMatch = flightType === "all" || 
-      (flightType === "direct" && pkg.flight_type.toLowerCase() === "direct") ||
-      (flightType === "transit" && pkg.flight_type.toLowerCase() === "transit");
+    const flightTypeMatch = flightType === "all" || pkg.flight_type.toLowerCase() === flightType;
+    const durationMatch = duration === "all" || 
+      (duration === "9" && pkg.duration_days === 9) ||
+      (duration === "12" && pkg.duration_days === 12) ||
+      (duration === "13" && pkg.duration_days === 13);
 
-    return categoryMatch && airlineMatch && monthMatch && flightTypeMatch;
+    return categoryMatch && airlineMatch && monthMatch && flightTypeMatch && durationMatch;
   });
 
   const transformedPackages = filteredPackages.map((pkg) => ({
@@ -225,76 +234,105 @@ untuk Perjalanan Anda</h1>
           <p className="text-center text-muted-foreground">Temukan paket yang paling cocok dengan Musafriends!</p>
         </div>
 
-        {/* Filter Bar */}
-        <div className="bg-card p-6 rounded-lg shadow-md mb-12 sticky top-20 z-40 border">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Kategori" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Kategori</SelectItem>
-                <SelectItem value="hemat">Hemat</SelectItem>
-                <SelectItem value="nyaman">Nyaman</SelectItem>
-                <SelectItem value="five-star">Five Star</SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Filter Bar with Accordion */}
+        <div className="bg-card rounded-lg shadow-md mb-12 border">
+          <Accordion type="single" collapsible defaultValue="filters" className="w-full">
+            <AccordionItem value="filters" className="border-none">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  <span className="font-semibold">Filter Paket</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Kategori" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Kategori</SelectItem>
+                      <SelectItem value="hemat">Hemat</SelectItem>
+                      <SelectItem value="nyaman">Nyaman</SelectItem>
+                      <SelectItem value="five-star">Five Star</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-            <Select value={month} onValueChange={setMonth}>
-              <SelectTrigger>
-                <SelectValue placeholder="Bulan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Bulan</SelectItem>
-                <SelectItem value="november">November 2025</SelectItem>
-                <SelectItem value="desember">Desember 2025</SelectItem>
-                <SelectItem value="januari">Januari 2026</SelectItem>
-                <SelectItem value="februari">Februari 2026</SelectItem>
-                <SelectItem value="maret">Maret 2026</SelectItem>
-                <SelectItem value="april">April 2026</SelectItem>
-                <SelectItem value="mei">Mei 2026</SelectItem>
-                <SelectItem value="juni">Juni 2026</SelectItem>
-              </SelectContent>
-            </Select>
+                  <Select value={month} onValueChange={setMonth}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Bulan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Bulan</SelectItem>
+                      <SelectItem value="juni">Juni 2025</SelectItem>
+                      <SelectItem value="juli">Juli 2025</SelectItem>
+                      <SelectItem value="agustus">Agustus 2025</SelectItem>
+                      <SelectItem value="september">September 2025</SelectItem>
+                      <SelectItem value="oktober">Oktober 2025</SelectItem>
+                      <SelectItem value="november">November 2025</SelectItem>
+                      <SelectItem value="desember">Desember 2025</SelectItem>
+                      <SelectItem value="januari">Januari 2026</SelectItem>
+                      <SelectItem value="februari">Februari 2026</SelectItem>
+                      <SelectItem value="maret">Maret 2026</SelectItem>
+                      <SelectItem value="april">April 2026</SelectItem>
+                      <SelectItem value="mei">Mei 2026</SelectItem>
+                      <SelectItem value="juni">Juni 2026</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-            <Select value={airline} onValueChange={setAirline}>
-              <SelectTrigger>
-                <SelectValue placeholder="Maskapai" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Maskapai</SelectItem>
-                <SelectItem value="garuda">Garuda Indonesia</SelectItem>
-                <SelectItem value="saudia">Saudia Airlines</SelectItem>
-                <SelectItem value="qatar">Qatar Airways</SelectItem>
-                <SelectItem value="emirates">Emirates</SelectItem>
-                <SelectItem value="etihad">Etihad Airways</SelectItem>
-                <SelectItem value="turkish">Turkish Airlines</SelectItem>
-                <SelectItem value="malaysia">Malaysia Airlines</SelectItem>
-                <SelectItem value="singapore">Singapore Airlines</SelectItem>
-                <SelectItem value="oman">Oman Air</SelectItem>
-                <SelectItem value="gulf">Gulf Air</SelectItem>
-              </SelectContent>
-            </Select>
+                  <Select value={airline} onValueChange={setAirline}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Maskapai" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Maskapai</SelectItem>
+                      <SelectItem value="Garuda Indonesia">Garuda Indonesia</SelectItem>
+                      <SelectItem value="Saudia">Saudia</SelectItem>
+                      <SelectItem value="Scoot Airlines">Scoot Airlines</SelectItem>
+                      <SelectItem value="Oman Air">Oman Air</SelectItem>
+                      <SelectItem value="Qatar Airways">Qatar Airways</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-            <Select value={flightType} onValueChange={setFlightType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Jenis" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua</SelectItem>
-                <SelectItem value="direct">Direct</SelectItem>
-                <SelectItem value="transit">Transit</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button variant="ghost" className="w-full text-primary hover:text-primary hover:bg-primary/5" onClick={() => {
-          setCategory("all");
-          setAirline("all");
-          setMonth("all");
-          setFlightType("all");
-        }}>
-            Reset Filter
-          </Button>
+                  <Select value={flightType} onValueChange={setFlightType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tipe Penerbangan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua</SelectItem>
+                      <SelectItem value="direct">Direct</SelectItem>
+                      <SelectItem value="transit">Transit</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={duration} onValueChange={setDuration}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Durasi" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Durasi</SelectItem>
+                      <SelectItem value="9">9 Hari</SelectItem>
+                      <SelectItem value="12">12 Hari</SelectItem>
+                      <SelectItem value="13">13 Hari</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  variant="ghost"
+                  className="w-full text-primary hover:text-primary hover:bg-primary/5"
+                  onClick={() => {
+                    setCategory("all");
+                    setAirline("all");
+                    setMonth("all");
+                    setFlightType("all");
+                    setDuration("all");
+                  }}
+                >
+                  Reset Filter
+                </Button>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
 
         {/* Package Grid */}
