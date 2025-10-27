@@ -199,6 +199,13 @@ const PackageForm = () => {
   };
 
   const handleBestSellerMadinahHotelChange = (hotelId: string) => {
+    if (hotelId === "none") {
+      form.setValue("madinah_hotel_name", "");
+      form.setValue("madinah_hotel_star", 0);
+      form.setValue("madinah_distance", "");
+      form.setValue("madinah_duration_walk", "");
+      return;
+    }
     const hotel = madinahHotels.find((h) => h.id === hotelId);
     if (hotel) {
       form.setValue("madinah_hotel_name", hotel.name);
@@ -209,6 +216,13 @@ const PackageForm = () => {
   };
 
   const handleBestSellerMakkahHotelChange = (hotelId: string) => {
+    if (hotelId === "none") {
+      form.setValue("makkah_hotel_name", "");
+      form.setValue("makkah_hotel_star", 0);
+      form.setValue("makkah_distance", "");
+      form.setValue("makkah_duration_walk", "");
+      return;
+    }
     const hotel = makkahHotels.find((h) => h.id === hotelId);
     if (hotel) {
       form.setValue("makkah_hotel_name", hotel.name);
@@ -219,6 +233,13 @@ const PackageForm = () => {
   };
 
   const handleFiveStarMadinahHotelChange = (hotelId: string) => {
+    if (hotelId === "none") {
+      form.setValue("five_star_madinah_hotel_name", "");
+      form.setValue("five_star_madinah_hotel_star", 0);
+      form.setValue("five_star_madinah_distance", "");
+      form.setValue("five_star_madinah_duration_walk", "");
+      return;
+    }
     const hotel = madinahHotels.find((h) => h.id === hotelId);
     if (hotel) {
       form.setValue("five_star_madinah_hotel_name", hotel.name);
@@ -229,6 +250,13 @@ const PackageForm = () => {
   };
 
   const handleFiveStarMakkahHotelChange = (hotelId: string) => {
+    if (hotelId === "none") {
+      form.setValue("five_star_makkah_hotel_name", "");
+      form.setValue("five_star_makkah_hotel_star", 0);
+      form.setValue("five_star_makkah_distance", "");
+      form.setValue("five_star_makkah_duration_walk", "");
+      return;
+    }
     const hotel = makkahHotels.find((h) => h.id === hotelId);
     if (hotel) {
       form.setValue("five_star_makkah_hotel_name", hotel.name);
@@ -647,7 +675,7 @@ const PackageForm = () => {
                       <FormLabel>Nama Hotel</FormLabel>
                       <Select
                         onValueChange={handleBestSellerMadinahHotelChange}
-                        value={madinahHotels.find((h) => h.name === field.value)?.id}
+                        value={madinahHotels.find((h) => h.name === field.value)?.id || "none"}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -655,6 +683,7 @@ const PackageForm = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="none">Tanpa Pilihan</SelectItem>
                           {madinahHotels.map((hotel) => (
                             <SelectItem key={hotel.id} value={hotel.id}>
                               {hotel.name} ({hotel.star_rating}⭐)
@@ -740,7 +769,7 @@ const PackageForm = () => {
                       <FormLabel>Nama Hotel</FormLabel>
                       <Select
                         onValueChange={handleBestSellerMakkahHotelChange}
-                        value={makkahHotels.find((h) => h.name === field.value)?.id}
+                        value={makkahHotels.find((h) => h.name === field.value)?.id || "none"}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -748,6 +777,7 @@ const PackageForm = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="none">Tanpa Pilihan</SelectItem>
                           {makkahHotels.map((hotel) => (
                             <SelectItem key={hotel.id} value={hotel.id}>
                               {hotel.name} ({hotel.star_rating}⭐)
@@ -914,7 +944,7 @@ const PackageForm = () => {
                       <FormLabel>Nama Hotel</FormLabel>
                       <Select
                         onValueChange={handleFiveStarMadinahHotelChange}
-                        value={madinahHotels.find((h) => h.name === field.value)?.id}
+                        value={madinahHotels.find((h) => h.name === field.value)?.id || "none"}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -922,6 +952,7 @@ const PackageForm = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="none">Tanpa Pilihan</SelectItem>
                           {madinahHotels.map((hotel) => (
                             <SelectItem key={hotel.id} value={hotel.id}>
                               {hotel.name} ({hotel.star_rating}⭐)
@@ -1007,7 +1038,7 @@ const PackageForm = () => {
                       <FormLabel>Nama Hotel</FormLabel>
                       <Select
                         onValueChange={handleFiveStarMakkahHotelChange}
-                        value={makkahHotels.find((h) => h.name === field.value)?.id}
+                        value={makkahHotels.find((h) => h.name === field.value)?.id || "none"}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -1015,6 +1046,7 @@ const PackageForm = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="none">Tanpa Pilihan</SelectItem>
                           {makkahHotels.map((hotel) => (
                             <SelectItem key={hotel.id} value={hotel.id}>
                               {hotel.name} ({hotel.star_rating}⭐)
