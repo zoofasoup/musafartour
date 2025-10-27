@@ -15,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft, X, Upload } from "lucide-react";
+import { format } from "date-fns";
 
 const packageSchema = z.object({
   package_name: z.string().min(1, "Nama paket wajib diisi"),
@@ -470,17 +471,42 @@ const PackageForm = () => {
       let slug = values.slug;
       if (values.status === 'published' && !slug) {
         const baseSlug = generateSlug(values.package_name);
+        
+        // Format departure date to DD-MMM-YYYY (e.g., 15-nov-2024)
+        const departureDate = new Date(values.departure_date);
+        const formattedDate = format(departureDate, 'dd-MMM-yyyy').toLowerCase();
+        
+        // Combine slug with date
+        const slugWithDate = `${baseSlug}-${formattedDate}`;
+        
         // Check if slug exists
         const { data: existingPackages } = await supabase
           .from("packages")
           .select("slug")
-          .eq("slug", baseSlug);
+          .eq("slug", slugWithDate);
         
-        // If slug exists, append timestamp
+        // If slug exists (very rare), append counter
         if (existingPackages && existingPackages.length > 0) {
-          slug = `${baseSlug}-${Date.now()}`;
+          let counter = 2;
+          let uniqueSlug = `${slugWithDate}-${counter}`;
+          let exists = true;
+          
+          while (exists) {
+            const { data } = await supabase
+              .from("packages")
+              .select("slug")
+              .eq("slug", uniqueSlug);
+            
+            if (!data || data.length === 0) {
+              exists = false;
+              slug = uniqueSlug;
+            } else {
+              counter++;
+              uniqueSlug = `${slugWithDate}-${counter}`;
+            }
+          }
         } else {
-          slug = baseSlug;
+          slug = slugWithDate;
         }
       }
 
