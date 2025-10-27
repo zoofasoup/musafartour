@@ -18,6 +18,7 @@ import { ArrowLeft, X, Upload } from "lucide-react";
 
 const packageSchema = z.object({
   package_name: z.string().min(1, "Nama paket wajib diisi"),
+  slug: z.string().optional(),
   departure_date: z.string().min(1, "Tanggal keberangkatan wajib diisi"),
   duration_days: z.number().min(1, "Durasi minimal 1 hari"),
   flight: z.string().min(1, "Maskapai wajib diisi"),
@@ -455,8 +456,37 @@ const PackageForm = () => {
       
       setUploadingImages(false);
 
+      // Generate slug from package name
+      const generateSlug = (name: string): string => {
+        return name
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim();
+      };
+
+      // Only generate new slug if status is published and slug doesn't exist yet
+      let slug = values.slug;
+      if (values.status === 'published' && !slug) {
+        const baseSlug = generateSlug(values.package_name);
+        // Check if slug exists
+        const { data: existingPackages } = await supabase
+          .from("packages")
+          .select("slug")
+          .eq("slug", baseSlug);
+        
+        // If slug exists, append timestamp
+        if (existingPackages && existingPackages.length > 0) {
+          slug = `${baseSlug}-${Date.now()}`;
+        } else {
+          slug = baseSlug;
+        }
+      }
+
       const packageData = {
         package_name: values.package_name,
+        slug: slug,
         departure_date: values.departure_date,
         duration_days: values.duration_days,
         flight: values.flight,

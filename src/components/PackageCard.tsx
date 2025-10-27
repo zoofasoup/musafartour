@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 interface PackageCardProps {
   id?: string;
+  slug?: string;
   image: string;
   title: string;
   price: string;
@@ -48,6 +49,7 @@ const StarRating = ({ rating }: { rating: number }) => {
 
 export const PackageCard = ({
   id,
+  slug,
   image,
   title,
   price,
@@ -82,8 +84,9 @@ export const PackageCard = ({
   const displayTransport = selectedTier === "five-star" ? fiveStarTransport : bestSellerTransport;
 
   const handleViewDetails = () => {
-    if (id) {
-      navigate(`/paket-umroh/${id}`);
+    const urlParam = slug || id;
+    if (urlParam) {
+      navigate(`/paket-umroh/${urlParam}`);
     }
   };
 

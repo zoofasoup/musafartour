@@ -20,6 +20,7 @@ import {
 
 interface PackageData {
   id: string;
+  slug?: string;
   package_name: string;
   departure_date: string;
   duration_days: number;
@@ -115,6 +116,7 @@ const PaketUmroh = () => {
 
   const transformedPackages = filteredPackages.map((pkg) => ({
     id: pkg.id,
+    slug: pkg.slug,
     image: pkg.banner_image || "/placeholder.svg",
     title: pkg.package_name,
     price: formatPrice(pkg.package_price.quad),
@@ -335,7 +337,7 @@ const PaketUmroh = () => {
                     </div>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <Link to={`/paket-umroh/${pkg.id}`}>
+                    <Link to={`/paket-umroh/${pkg.slug || pkg.id}`}>
                       <Button variant="outline" className="w-full sm:w-auto">Lihat Detail</Button>
                     </Link>
                     <Button 

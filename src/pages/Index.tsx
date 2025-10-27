@@ -22,6 +22,7 @@ import musafarLogo from "@/assets/musafar-logo.svg";
 
 interface PackageData {
   id: string;
+  slug?: string;
   package_name: string;
   departure_date: string;
   duration_days: number;
@@ -116,6 +117,7 @@ const Index = () => {
 
   const transformedPackages = filteredPackages.map((pkg) => ({
     id: pkg.id,
+    slug: pkg.slug,
     image: pkg.banner_image || "/placeholder.svg",
     title: pkg.package_name,
     price: formatPrice(pkg.package_price.quad),

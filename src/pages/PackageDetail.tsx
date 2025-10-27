@@ -30,6 +30,7 @@ import { id as localeId } from "date-fns/locale";
 
 interface PackageDetail {
   id: string;
+  slug?: string;
   package_name: string;
   banner_image?: string;
   gallery_images?: string[];
@@ -88,24 +89,24 @@ const StarRating = ({ rating }: { rating: number }) => {
 };
 
 const PackageDetail = () => {
-  const { id } = useParams();
+  const { id: slug } = useParams();
   const navigate = useNavigate();
   const [packageData, setPackageData] = useState<PackageDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTier, setSelectedTier] = useState<"best-seller" | "five-star">("best-seller");
 
   useEffect(() => {
-    if (id) {
+    if (slug) {
       fetchPackageDetail();
     }
-  }, [id]);
+  }, [slug]);
 
   const fetchPackageDetail = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("packages")
       .select("*")
-      .eq("id", id)
+      .eq("slug", slug)
       .eq("status", "published")
       .maybeSingle();
 

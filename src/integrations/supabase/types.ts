@@ -140,6 +140,7 @@ export type Database = {
           makkah_hotel_star: number | null
           package_name: string
           package_price: Json
+          slug: string | null
           status: string
           updated_at: string
         }
@@ -178,6 +179,7 @@ export type Database = {
           makkah_hotel_star?: number | null
           package_name: string
           package_price?: Json
+          slug?: string | null
           status?: string
           updated_at?: string
         }
@@ -216,6 +218,7 @@ export type Database = {
           makkah_hotel_star?: number | null
           package_name?: string
           package_price?: Json
+          slug?: string | null
           status?: string
           updated_at?: string
         }
@@ -296,6 +299,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      slugify: { Args: { text_input: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"
