@@ -11,7 +11,7 @@ import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import heroImage from "@/assets/foto umroh rame.webp";
+import heroImage from "@/assets/hero-umroh.webp";
 import musafarLogo from "@/assets/musafar-logo.svg";
 
 interface PackageData {
