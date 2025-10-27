@@ -241,32 +241,43 @@ const PackageDetail = () => {
                     {/* Package Info */}
                     <div className="mb-6 pb-6 border-b">
                       <h1 className="text-2xl md:text-4xl font-bold mb-4 text-foreground leading-tight">{packageData.package_name}</h1>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="flex items-start gap-2">
-                          <Calendar className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium">Keberangkatan</p>
-                            <p className="text-sm font-bold text-foreground">
-                              {format(new Date(packageData.departure_date), "dd MMM yyyy", { locale: localeId })}
-                            </p>
+                      
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="flex items-start gap-2">
+                            <Calendar className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-xs text-muted-foreground font-medium">Keberangkatan</p>
+                              <p className="text-sm font-bold text-foreground">
+                                {format(new Date(packageData.departure_date), "dd MMM yyyy", { locale: localeId })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <Clock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-xs text-muted-foreground font-medium">Durasi</p>
+                              <p className="text-sm font-bold text-foreground">{packageData.duration_days} Hari</p>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-start gap-2">
-                          <Clock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium">Durasi</p>
-                            <p className="text-sm font-bold text-foreground">{packageData.duration_days} Hari</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <Plane className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium">Penerbangan</p>
-                            <p className="text-sm font-bold text-foreground">{packageData.flight}</p>
-                            <Badge variant="outline" className="mt-1 bg-primary/10 text-primary border-primary/20 text-xs">
-                              {packageData.flight_type}
-                            </Badge>
-                          </div>
+
+                        {/* Flight & Transport Info - Horizontal */}
+                        <div className="flex gap-2 flex-wrap items-center">
+                          <Badge variant="outline" className="bg-cyan-50 text-cyan-600 border-cyan-200 rounded-full">
+                            <Plane className="w-3 h-3 mr-1" />
+                            {packageData.flight}
+                          </Badge>
+                          <Badge variant="outline" className="bg-pink-50 text-pink-600 border-pink-200 rounded-full">
+                            {packageData.flight_type}
+                          </Badge>
+                          <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200 rounded-full">
+                            {selectedTier === "five-star" ? <Train className="w-3 h-3 mr-1" /> : <Bus className="w-3 h-3 mr-1" />}
+                            {selectedTier === "five-star" 
+                              ? (packageData.five_star_transport || "Kereta Cepat")
+                              : (packageData.best_seller_transport || "Bus Eksklusif")
+                            }
+                          </Badge>
                         </div>
                       </div>
                     </div>

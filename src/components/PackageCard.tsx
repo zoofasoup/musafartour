@@ -137,8 +137,8 @@ export const PackageCard = ({
             </Select>
           )}
 
-          {/* Airline Badge */}
-          <div className="flex gap-2 flex-wrap">
+          {/* Flight & Transport Info - Horizontal */}
+          <div className="flex gap-2 flex-wrap items-center">
             <Badge variant="outline" className="bg-cyan-50 text-cyan-600 border-cyan-200 rounded-full text-xs">
               <Plane className="w-3 h-3 mr-1" />
               {airline}
@@ -148,10 +148,6 @@ export const PackageCard = ({
                 {transit}
               </Badge>
             )}
-          </div>
-
-          {/* Transport Badge */}
-          <div className="flex gap-2">
             <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200 rounded-full text-xs">
               {selectedTier === "five-star" ? <Train className="w-3 h-3 mr-1" /> : <Bus className="w-3 h-3 mr-1" />}
               {displayTransport}
