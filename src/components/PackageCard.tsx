@@ -88,25 +88,25 @@ export const PackageCard = ({
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col md:flex-row">
+    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col lg:flex-row">
       {/* Banner Image - Left Column */}
-      <div className="relative md:w-2/5 flex-shrink-0">
+      <div className="relative lg:w-2/5 flex-shrink-0 bg-muted">
         {seatAvailable && (
           <Badge className="absolute bottom-3 left-3 z-10 bg-orange-500 text-white border-0 rounded-sm px-3 py-1 text-xs font-bold shadow-lg">
             SEAT TERBATAS
           </Badge>
         )}
-        <div className="aspect-[4/5] md:aspect-auto md:h-full overflow-hidden">
+        <div className="aspect-[4/5] lg:aspect-auto lg:h-full overflow-hidden flex items-center justify-center">
           <img
             src={image}
             alt={title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
           />
         </div>
       </div>
 
       {/* Content Section - Right Column */}
-      <CardContent className="p-4 flex flex-col flex-1 md:w-3/5">
+      <CardContent className="p-4 flex flex-col flex-1 lg:w-3/5">
         <div className="space-y-3 flex-1">
           {/* Title */}
           <h3 className="font-bold text-xl text-foreground leading-tight line-clamp-2">{title}</h3>

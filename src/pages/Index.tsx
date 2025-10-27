@@ -335,7 +335,7 @@ untuk Perjalanan Anda</h1>
 
         {/* Package Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="space-y-4">
                 <Skeleton className="aspect-[4/5] w-full" />
@@ -353,7 +353,7 @@ untuk Perjalanan Anda</h1>
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {transformedPackages.map((pkg) => <PackageCard key={pkg.id} {...pkg} />)}
           </div>
         )}
