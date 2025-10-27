@@ -554,7 +554,7 @@ const PackageDetail = () => {
                 <CardContent className="p-6">
                   <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-primary">
                     <Package className="h-6 w-6" />
-                    Perlengkapan yang Perlu Dibawa
+                    Perlengkapan yang Disediakan
                   </h2>
                   <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {parseListItems(packageData.equipment_list).map((item, idx) => (
