@@ -60,14 +60,6 @@ const Navbar = () => {
               Beranda
             </Link>
             <Link
-              to="/jadwal-umroh"
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                isActive("/jadwal-umroh") ? "text-primary" : "text-foreground"
-              }`}
-            >
-              Jadwal Umroh
-            </Link>
-            <Link
               to="/paket-umroh"
               className={`text-sm font-medium transition-colors hover:text-primary ${
                 isActive("/paket-umroh") ? "text-primary" : "text-foreground"
@@ -142,13 +134,6 @@ const Navbar = () => {
               onClick={() => setIsOpen(false)}
             >
               Beranda
-            </Link>
-            <Link
-              to="/jadwal-umroh"
-              className="block py-2 text-sm font-medium hover:text-primary"
-              onClick={() => setIsOpen(false)}
-            >
-              Jadwal Umroh
             </Link>
             <Link
               to="/paket-umroh"

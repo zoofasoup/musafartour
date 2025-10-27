@@ -1,14 +1,22 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { PackageCard } from "@/components/PackageCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package } from "lucide-react";
+import { Package, Calendar, Plane, Clock, Grid3X3, List } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import { formatWhatsAppUrl } from "@/lib/utils";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface PackageData {
   id: string;
@@ -41,10 +49,12 @@ interface PackageData {
 }
 
 const PaketUmroh = () => {
+  const [viewMode, setViewMode] = useState<"card" | "schedule">("card");
   const [category, setCategory] = useState<string>("all");
   const [airline, setAirline] = useState<string>("all");
   const [month, setMonth] = useState<string>("all");
   const [flightType, setFlightType] = useState<string>("all");
+  const [duration, setDuration] = useState<string>("all");
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -92,13 +102,15 @@ const PaketUmroh = () => {
     const pkgMonth = getMonthFromDate(pkg.departure_date);
     
     const categoryMatch = category === "all" || pkgCategory === category;
-    const airlineMatch = airline === "all" || pkg.flight.toLowerCase().includes(airline);
+    const airlineMatch = airline === "all" || pkg.flight === airline;
     const monthMatch = month === "all" || pkgMonth.includes(month.toLowerCase());
-    const flightTypeMatch = flightType === "all" || 
-      (flightType === "direct" && pkg.flight_type.toLowerCase() === "direct") ||
-      (flightType === "transit" && pkg.flight_type.toLowerCase() === "transit");
+    const flightTypeMatch = flightType === "all" || pkg.flight_type.toLowerCase() === flightType;
+    const durationMatch = duration === "all" || 
+      (duration === "9" && pkg.duration_days === 9) ||
+      (duration === "12" && pkg.duration_days === 12) ||
+      (duration === "13" && pkg.duration_days === 13);
 
-    return categoryMatch && airlineMatch && monthMatch && flightTypeMatch;
+    return categoryMatch && airlineMatch && monthMatch && flightTypeMatch && durationMatch;
   });
 
   const transformedPackages = filteredPackages.map((pkg) => ({
@@ -138,96 +150,164 @@ const PaketUmroh = () => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Pilihan paket Umroh terlengkap mulai dari Budget hingga Premium Bintang 5. Semua dirancang untuk kenyamanan dan keberkahan perjalanan spiritual Anda.
           </p>
+          
+          {/* View Toggle */}
+          <div className="flex justify-center gap-2 mt-6">
+            <Button
+              variant={viewMode === "card" ? "default" : "outline"}
+              onClick={() => setViewMode("card")}
+              className="gap-2"
+            >
+              <Grid3X3 className="h-4 w-4" />
+              Tampilan Kartu
+            </Button>
+            <Button
+              variant={viewMode === "schedule" ? "default" : "outline"}
+              onClick={() => setViewMode("schedule")}
+              className="gap-2"
+            >
+              <List className="h-4 w-4" />
+              Tampilan Jadwal
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Filter & Package Catalog */}
       <section className="py-16 container mx-auto px-4">
-        {/* Filter Bar */}
-        <div className="bg-card p-6 rounded-lg shadow-md mb-12 border">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Kategori" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Kategori</SelectItem>
-                <SelectItem value="hemat">Hemat</SelectItem>
-                <SelectItem value="nyaman">Nyaman</SelectItem>
-                <SelectItem value="five-star">Five Star</SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Filter Bar with Accordion */}
+        <div className="bg-card rounded-lg shadow-md mb-12 border">
+          <Accordion type="single" collapsible defaultValue="filters" className="w-full">
+            <AccordionItem value="filters" className="border-none">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  <span className="font-semibold">Filter Paket</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Kategori" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Kategori</SelectItem>
+                      <SelectItem value="hemat">Hemat</SelectItem>
+                      <SelectItem value="nyaman">Nyaman</SelectItem>
+                      <SelectItem value="five-star">Five Star</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-            <Select value={month} onValueChange={setMonth}>
-              <SelectTrigger>
-                <SelectValue placeholder="Bulan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Bulan</SelectItem>
-                <SelectItem value="november">November 2025</SelectItem>
-                <SelectItem value="desember">Desember 2025</SelectItem>
-                <SelectItem value="januari">Januari 2026</SelectItem>
-                <SelectItem value="februari">Februari 2026</SelectItem>
-                <SelectItem value="maret">Maret 2026</SelectItem>
-                <SelectItem value="april">April 2026</SelectItem>
-                <SelectItem value="mei">Mei 2026</SelectItem>
-                <SelectItem value="juni">Juni 2026</SelectItem>
-              </SelectContent>
-            </Select>
+                  <Select value={month} onValueChange={setMonth}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Bulan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Bulan</SelectItem>
+                      <SelectItem value="juni">Juni 2025</SelectItem>
+                      <SelectItem value="juli">Juli 2025</SelectItem>
+                      <SelectItem value="agustus">Agustus 2025</SelectItem>
+                      <SelectItem value="september">September 2025</SelectItem>
+                      <SelectItem value="oktober">Oktober 2025</SelectItem>
+                      <SelectItem value="november">November 2025</SelectItem>
+                      <SelectItem value="desember">Desember 2025</SelectItem>
+                      <SelectItem value="januari">Januari 2026</SelectItem>
+                      <SelectItem value="februari">Februari 2026</SelectItem>
+                      <SelectItem value="maret">Maret 2026</SelectItem>
+                      <SelectItem value="april">April 2026</SelectItem>
+                      <SelectItem value="mei">Mei 2026</SelectItem>
+                      <SelectItem value="juni">Juni 2026</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-            <Select value={airline} onValueChange={setAirline}>
-              <SelectTrigger>
-                <SelectValue placeholder="Maskapai" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Maskapai</SelectItem>
-                <SelectItem value="garuda">Garuda Indonesia</SelectItem>
-                <SelectItem value="saudia">Saudia Airlines</SelectItem>
-                <SelectItem value="qatar">Qatar Airways</SelectItem>
-                <SelectItem value="emirates">Emirates</SelectItem>
-                <SelectItem value="etihad">Etihad Airways</SelectItem>
-                <SelectItem value="turkish">Turkish Airlines</SelectItem>
-                <SelectItem value="malaysia">Malaysia Airlines</SelectItem>
-                <SelectItem value="singapore">Singapore Airlines</SelectItem>
-                <SelectItem value="oman">Oman Air</SelectItem>
-                <SelectItem value="gulf">Gulf Air</SelectItem>
-              </SelectContent>
-            </Select>
+                  <Select value={airline} onValueChange={setAirline}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Maskapai" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Maskapai</SelectItem>
+                      <SelectItem value="Garuda Indonesia">Garuda Indonesia</SelectItem>
+                      <SelectItem value="Lion Air">Lion Air</SelectItem>
+                      <SelectItem value="Batik Air">Batik Air</SelectItem>
+                      <SelectItem value="Citilink">Citilink</SelectItem>
+                      <SelectItem value="Super Air Jet">Super Air Jet</SelectItem>
+                      <SelectItem value="Saudia">Saudia</SelectItem>
+                      <SelectItem value="Flynas">Flynas</SelectItem>
+                      <SelectItem value="Flyadeal">Flyadeal</SelectItem>
+                      <SelectItem value="Emirates">Emirates</SelectItem>
+                      <SelectItem value="Etihad Airways">Etihad Airways</SelectItem>
+                      <SelectItem value="Qatar Airways">Qatar Airways</SelectItem>
+                      <SelectItem value="Gulf Air">Gulf Air</SelectItem>
+                      <SelectItem value="Oman Air">Oman Air</SelectItem>
+                      <SelectItem value="Kuwait Airways">Kuwait Airways</SelectItem>
+                      <SelectItem value="Royal Jordanian">Royal Jordanian</SelectItem>
+                      <SelectItem value="Turkish Airlines">Turkish Airlines</SelectItem>
+                      <SelectItem value="Malaysia Airlines">Malaysia Airlines</SelectItem>
+                      <SelectItem value="AirAsia X">AirAsia X</SelectItem>
+                      <SelectItem value="Egypt Air">Egypt Air</SelectItem>
+                      <SelectItem value="Pakistan International Airlines">Pakistan International Airlines</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-            <Select value={flightType} onValueChange={setFlightType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Jenis" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua</SelectItem>
-                <SelectItem value="direct">Direct</SelectItem>
-                <SelectItem value="transit">Transit</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button
-            variant="ghost"
-            className="w-full text-primary hover:text-primary hover:bg-primary/5"
-            onClick={() => {
-              setCategory("all");
-              setAirline("all");
-              setMonth("all");
-              setFlightType("all");
-            }}
-          >
-            Reset Filter
-          </Button>
+                  <Select value={flightType} onValueChange={setFlightType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tipe Penerbangan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua</SelectItem>
+                      <SelectItem value="direct">Direct</SelectItem>
+                      <SelectItem value="transit">Transit</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={duration} onValueChange={setDuration}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Durasi" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Durasi</SelectItem>
+                      <SelectItem value="9">9 Hari</SelectItem>
+                      <SelectItem value="12">12 Hari</SelectItem>
+                      <SelectItem value="13">13 Hari</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  variant="ghost"
+                  className="w-full text-primary hover:text-primary hover:bg-primary/5"
+                  onClick={() => {
+                    setCategory("all");
+                    setAirline("all");
+                    setMonth("all");
+                    setFlightType("all");
+                    setDuration("all");
+                  }}
+                >
+                  Reset Filter
+                </Button>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
 
-        {/* Package Grid */}
+        {/* Package Grid / Schedule List */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className={viewMode === "card" ? "grid grid-cols-1 md:grid-cols-2 gap-6" : "space-y-4"}>
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="space-y-4">
-                <Skeleton className="aspect-[4/5] w-full" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
+              viewMode === "card" ? (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="aspect-[4/5] w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              ) : (
+                <div key={i} className="bg-card p-6 rounded-lg border">
+                  <Skeleton className="h-8 w-1/3 mb-4" />
+                  <Skeleton className="h-6 w-2/3 mb-2" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              )
             ))}
           </div>
         ) : transformedPackages.length === 0 ? (
@@ -238,10 +318,56 @@ const PaketUmroh = () => {
               Coba ubah filter atau kembali lagi nanti
             </p>
           </div>
-        ) : (
+        ) : viewMode === "card" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {transformedPackages.map((pkg) => (
               <PackageCard key={pkg.id} {...pkg} />
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredPackages.map((pkg) => (
+              <div key={pkg.id} className="bg-card p-6 rounded-lg shadow-md border hover:shadow-lg transition-shadow">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="h-5 w-5 text-primary" />
+                      <span className="font-bold text-lg">
+                        {format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId })}
+                      </span>
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">{pkg.package_name}</h3>
+                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        {pkg.duration_days} Hari
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Plane className="h-4 w-4" />
+                        {pkg.flight}
+                      </div>
+                      <span className="text-accent font-medium">
+                        {pkg.flight_type === "direct" ? "Direct" : "Transit"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Link to={`/paket-umroh/${pkg.id}`}>
+                      <Button variant="outline" className="w-full sm:w-auto">Lihat Detail</Button>
+                    </Link>
+                    <Button 
+                      className="bg-accent hover:bg-accent/90 w-full sm:w-auto"
+                      onClick={() => {
+                        const message = `Halo Musafar Tour, saya ingin mendaftar untuk ${pkg.package_name} dengan keberangkatan ${format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId })}.`;
+                        const whatsappUrl = formatWhatsAppUrl("081917403797", message);
+                        window.open(whatsappUrl, "_blank");
+                      }}
+                    >
+                      Daftar Sekarang
+                    </Button>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         )}

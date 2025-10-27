@@ -636,8 +636,8 @@ const PackageForm = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Direct">Direct</SelectItem>
-                          <SelectItem value="Transit">Transit</SelectItem>
+                          <SelectItem value="direct">Direct</SelectItem>
+                          <SelectItem value="transit">Transit</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
