@@ -339,7 +339,7 @@ const PaketUmroh = () => {
                       <Button variant="outline" className="w-full sm:w-auto">Lihat Detail</Button>
                     </Link>
                     <Button 
-                      className="bg-accent hover:bg-accent/90 w-full sm:w-auto"
+                      className="bg-[#25D366] hover:bg-[#22c55e] text-white w-full sm:w-auto"
                       onClick={() => {
                         const message = `Halo Musafar Tour, saya ingin mendaftar untuk ${pkg.package_name} dengan keberangkatan ${format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId })}.`;
                         const whatsappUrl = formatWhatsAppUrl("081917403797", message);
