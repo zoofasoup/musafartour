@@ -383,8 +383,8 @@ const PackageDetail = () => {
                     <div className="grid grid-cols-3 gap-3 mb-6">
                       {/* Quad - Emphasized */}
                       <div className="col-span-3 sm:col-span-1 relative">
-                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10">
-                          <Badge className="bg-orange-500 text-white border-0 rounded-sm px-2 py-0.5 text-xs font-bold shadow-lg">
+                        <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 z-10">
+                          <Badge className="bg-orange-500 text-white border-0 rounded-sm px-1.5 py-0 text-[10px] font-bold shadow-lg whitespace-nowrap">
                             PALING POPULER
                           </Badge>
                         </div>
