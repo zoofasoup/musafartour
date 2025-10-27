@@ -1,14 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, FileText, Plane, BarChart } from "lucide-react";
-import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Package, FileText, Plane, BarChart, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, loading, isAdmin } = useAuth();
+  const [migrating, setMigrating] = useState(false);
 
   const { data: packagesCount } = useQuery({
     queryKey: ['packages-count'],
@@ -95,6 +98,24 @@ const AdminDashboard = () => {
     },
   ];
 
+  const handleMigrateSlugs = async () => {
+    setMigrating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('migrate-package-slugs');
+      
+      if (error) throw error;
+      
+      toast.success(`Berhasil! ${data.updated} paket diupdate`, {
+        description: `Total: ${data.total}, Gagal: ${data.failed}`
+      });
+    } catch (error: any) {
+      console.error('Migration error:', error);
+      toast.error('Gagal migrasi slug: ' + (error.message || 'Unknown error'));
+    } finally {
+      setMigrating(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -126,10 +147,22 @@ const AdminDashboard = () => {
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>Akses cepat ke fitur utama</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Gunakan menu sidebar untuk mengelola paket umroh, wisata halal, dan artikel.
-            </p>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Update Slug Paket</h3>
+              <p className="text-sm text-muted-foreground">
+                Migrasi semua slug paket ke format baru (nama-paket-DD-MMM-YYYY)
+              </p>
+              <Button 
+                onClick={handleMigrateSlugs} 
+                disabled={migrating}
+                variant="outline"
+                className="w-full"
+              >
+                <RefreshCw className={`mr-2 h-4 w-4 ${migrating ? 'animate-spin' : ''}`} />
+                {migrating ? 'Memproses...' : 'Migrasi Slug Paket'}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
