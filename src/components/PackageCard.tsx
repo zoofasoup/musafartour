@@ -156,21 +156,27 @@ export const PackageCard = ({
           </div>
 
           {/* Hotels */}
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {displayMakkahHotel && (
-              <div className="flex items-start gap-2">
-                <Hotel className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-foreground truncate">{displayMakkahHotel}</p>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <Hotel className="w-4 h-4 text-green-600" />
+                  <p className="text-xs font-semibold text-muted-foreground">Makkah:</p>
+                </div>
+                <div className="pl-5">
+                  <p className="text-xs font-medium text-foreground line-clamp-1">{displayMakkahHotel}</p>
                   <StarRating rating={displayMakkahRating} />
                 </div>
               </div>
             )}
             {displayMadinahHotel && (
-              <div className="flex items-start gap-2">
-                <Hotel className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-foreground truncate">{displayMadinahHotel}</p>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <Hotel className="w-4 h-4 text-green-600" />
+                  <p className="text-xs font-semibold text-muted-foreground">Madinah:</p>
+                </div>
+                <div className="pl-5">
+                  <p className="text-xs font-medium text-foreground line-clamp-1">{displayMadinahHotel}</p>
                   <StarRating rating={displayMadinahRating} />
                 </div>
               </div>
