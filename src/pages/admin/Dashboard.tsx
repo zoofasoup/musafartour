@@ -3,6 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, FileText, Plane, BarChart } from "lucide-react";
 import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -35,22 +37,53 @@ const AdminDashboard = () => {
     );
   }
 
+  const { data: packagesCount } = useQuery({
+    queryKey: ['packages-count'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('packages')
+        .select('*', { count: 'exact', head: true });
+      return count || 0;
+    },
+  });
+
+  const { data: wisataCount } = useQuery({
+    queryKey: ['wisata-count'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('wisata_halal')
+        .select('*', { count: 'exact', head: true });
+      return count || 0;
+    },
+  });
+
+  const { data: articlesCount } = useQuery({
+    queryKey: ['articles-count'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('articles')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'published');
+      return count || 0;
+    },
+  });
+
   const stats = [
     {
       title: "Total Paket Umroh",
-      value: "0",
+      value: packagesCount?.toString() || "0",
       icon: Package,
       description: "Paket aktif",
     },
     {
       title: "Wisata Halal",
-      value: "0",
+      value: wisataCount?.toString() || "0",
       icon: Plane,
       description: "Destinasi tersedia",
     },
     {
       title: "Artikel",
-      value: "0",
+      value: articlesCount?.toString() || "0",
       icon: FileText,
       description: "Artikel published",
     },
