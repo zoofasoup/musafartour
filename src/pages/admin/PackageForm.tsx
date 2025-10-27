@@ -1447,22 +1447,32 @@ const PackageForm = () => {
             </CardContent>
           </Card>
 
-          <div className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg z-50 p-4">
-            <div className="container mx-auto flex justify-end gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/admin/packages")}
-              >
-                Batal
-              </Button>
-              <Button type="submit" disabled={loading || uploadingImages}>
-                {uploadingImages ? "Uploading images..." : loading ? "Menyimpan..." : "Simpan Paket"}
-              </Button>
-            </div>
+          {/* Floating Action Buttons */}
+          <div className="fixed top-20 right-6 z-50 flex flex-col gap-3">
+            <Button
+              type="submit"
+              disabled={loading || uploadingImages}
+              className="flex items-center gap-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-6"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z" />
+              </svg>
+              <span className="font-medium">
+                {uploadingImages ? "Uploading..." : loading ? "Menyimpan..." : "Simpan"}
+              </span>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate("/admin/packages")}
+              className="flex items-center gap-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-6 bg-background"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              <span className="font-medium">Batal</span>
+            </Button>
           </div>
-          {/* Spacer to prevent content from being hidden behind floating buttons */}
-          <div className="h-20"></div>
         </form>
       </Form>
     </div>
