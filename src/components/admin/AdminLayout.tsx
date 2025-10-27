@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { LogOut, LayoutDashboard, Package, Plane, FileText, Home, Hotel } from "lucide-react";
 import { useEffect } from "react";
-import musafarLogo from "@/assets/musafar-logo.svg";
+import musafarLogo from "@/assets/musafar-logo-dark.svg";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
