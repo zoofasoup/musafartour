@@ -205,11 +205,6 @@ const PaketUmroh = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Semua Bulan</SelectItem>
-                      <SelectItem value="juni">Juni 2025</SelectItem>
-                      <SelectItem value="juli">Juli 2025</SelectItem>
-                      <SelectItem value="agustus">Agustus 2025</SelectItem>
-                      <SelectItem value="september">September 2025</SelectItem>
-                      <SelectItem value="oktober">Oktober 2025</SelectItem>
                       <SelectItem value="november">November 2025</SelectItem>
                       <SelectItem value="desember">Desember 2025</SelectItem>
                       <SelectItem value="januari">Januari 2026</SelectItem>
@@ -218,6 +213,10 @@ const PaketUmroh = () => {
                       <SelectItem value="april">April 2026</SelectItem>
                       <SelectItem value="mei">Mei 2026</SelectItem>
                       <SelectItem value="juni">Juni 2026</SelectItem>
+                      <SelectItem value="juli">Juli 2026</SelectItem>
+                      <SelectItem value="agustus">Agustus 2026</SelectItem>
+                      <SelectItem value="september">September 2026</SelectItem>
+                      <SelectItem value="oktober">Oktober 2026</SelectItem>
                     </SelectContent>
                   </Select>
 
