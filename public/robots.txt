@@ -1,16 +1,17 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
+# Block unwanted URL patterns
+Disallow: /apotek
+Disallow: /kauman
+Disallow: /author/
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /login
+Disallow: /auth
+Disallow: /kemitraan
+Disallow: /kantor
+
+# Allow all other pages
 Allow: /
 
+# Sitemap
 Sitemap: https://musafartour.com/sitemap.xml
