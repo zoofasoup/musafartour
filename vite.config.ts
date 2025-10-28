@@ -19,8 +19,11 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['lucide-react', '@radix-ui/react-accordion', '@radix-ui/react-select'],
+          'react-vendor': ['react', 'react-dom'],
+          'react-router': ['react-router-dom'],
+          'ui-vendor': ['lucide-react'],
+          'radix-ui': ['@radix-ui/react-accordion', '@radix-ui/react-select', '@radix-ui/react-dialog'],
+          'supabase': ['@supabase/supabase-js'],
         },
       },
     },
@@ -32,6 +35,7 @@ export default defineConfig(({ mode }) => ({
         drop_debugger: mode === 'production',
       },
     },
+    chunkSizeWarningLimit: 600,
   },
   // Optimize deps for faster cold start
   optimizeDeps: {
