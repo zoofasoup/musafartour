@@ -71,6 +71,155 @@ export type Database = {
         }
         Relationships: []
       }
+      departure_schedules: {
+        Row: {
+          available_seats: number
+          created_at: string
+          departure_date: string
+          id: string
+          notes: string | null
+          package_id: string | null
+          return_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          available_seats?: number
+          created_at?: string
+          departure_date: string
+          id?: string
+          notes?: string | null
+          package_id?: string | null
+          return_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          available_seats?: number
+          created_at?: string
+          departure_date?: string
+          id?: string
+          notes?: string | null
+          package_id?: string | null
+          return_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departure_schedules_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      faq_items: {
+        Row: {
+          answer: string
+          category: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          question: string
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          category?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          question: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          category?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          question?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gallery_images: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          image_url: string
+          is_active: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          image_url: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      hero_section: {
+        Row: {
+          background_image: string | null
+          created_at: string
+          cta_link: string
+          cta_text: string
+          id: string
+          is_active: boolean
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          background_image?: string | null
+          created_at?: string
+          cta_link?: string
+          cta_text?: string
+          id?: string
+          is_active?: boolean
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          background_image?: string | null
+          created_at?: string
+          cta_link?: string
+          cta_text?: string
+          id?: string
+          is_active?: boolean
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hotels: {
         Row: {
           created_at: string
@@ -224,6 +373,78 @@ export type Database = {
         }
         Relationships: []
       }
+      selling_points: {
+        Row: {
+          created_at: string
+          description: string
+          display_order: number
+          icon: string
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          display_order?: number
+          icon?: string
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          display_order?: number
+          icon?: string
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      testimonials: {
+        Row: {
+          content: string
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string | null
+          is_active: boolean
+          location: string | null
+          name: string
+          rating: number
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          location?: string | null
+          name: string
+          rating?: number
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          location?: string | null
+          name?: string
+          rating?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -239,6 +460,60 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      website_settings: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string
+          facebook_url: string | null
+          google_maps_url: string | null
+          google_review_url: string | null
+          id: string
+          instagram_url: string | null
+          office_hours: string | null
+          phone_number: string
+          site_name: string
+          site_tagline: string | null
+          updated_at: string
+          whatsapp_number: string
+          youtube_url: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string
+          facebook_url?: string | null
+          google_maps_url?: string | null
+          google_review_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          office_hours?: string | null
+          phone_number?: string
+          site_name?: string
+          site_tagline?: string | null
+          updated_at?: string
+          whatsapp_number?: string
+          youtube_url?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string
+          facebook_url?: string | null
+          google_maps_url?: string | null
+          google_review_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          office_hours?: string | null
+          phone_number?: string
+          site_name?: string
+          site_tagline?: string | null
+          updated_at?: string
+          whatsapp_number?: string
+          youtube_url?: string | null
         }
         Relationships: []
       }
