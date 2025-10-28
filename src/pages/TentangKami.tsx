@@ -1,10 +1,26 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 import { Heart, Award, Users, Shield } from "lucide-react";
 
 const TentangKami = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Tentang Kami - Musafar Tour | Travel Umroh & Haji Terpercaya"
+        description="Musafar Tour adalah travel umroh dan haji terpercaya sejak 2015. Berizin resmi PPIU, anggota ASITA, melayani ribuan jamaah dengan profesional dan amanah."
+        keywords="tentang musafar tour, travel umroh terpercaya, ppiu resmi, asita"
+        canonicalUrl="https://musafartour.com/tentang-kami"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          "mainEntity": {
+            "@type": "TravelAgency",
+            "name": "Musafar Tour",
+            "description": "Travel umroh dan haji terpercaya dengan pelayanan terbaik sejak 2015"
+          }
+        }}
+      />
       <Navbar />
       
       {/* Header */}

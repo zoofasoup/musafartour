@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SEO } from "@/components/SEO";
+import { LazyImage } from "@/components/LazyImage";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MapPin, Clock, Users } from "lucide-react";
@@ -51,6 +53,22 @@ const WisataHalal = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Paket Wisata Halal 2025 - Destinasi Islami Terbaik"
+        description="Wisata halal ke Turki, Maroko, Andalusia, dan destinasi Islami lainnya. Ibadah sambil liburan bersama keluarga. Harga terjangkau, fasilitas lengkap."
+        keywords="wisata halal, tour muslim, wisata islami, paket wisata turki, wisata religi"
+        canonicalUrl="https://musafartour.com/wisata-halal"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "serviceType": "Wisata Halal",
+          "provider": {
+            "@type": "TravelAgency",
+            "name": "Musafar Tour"
+          },
+          "description": "Paket wisata halal ke berbagai destinasi Islami dunia"
+        }}
+      />
       <Navbar />
       
       {/* Header */}
@@ -90,9 +108,9 @@ const WisataHalal = () => {
             {destinations.map((destination) => (
               <div key={destination.id} className="bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
                 <div className="relative h-48 overflow-hidden">
-                  <img
+                  <LazyImage
                     src={destination.image_url || "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&h=500&fit=crop"}
-                    alt={destination.title}
+                    alt={`Paket wisata halal ${destination.title} - ${destination.destination}`}
                     className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
                   />
                 </div>

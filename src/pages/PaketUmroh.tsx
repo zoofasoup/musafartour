@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 import { PackageCard } from "@/components/PackageCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -142,6 +143,26 @@ const PaketUmroh = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Paket Umroh 2025 Terlengkap & Terpercaya - Musafar Tour"
+        description="Pilih paket umroh terbaik: 9 hari, 12 hari, plus Turki. Harga mulai 20 juta, hotel bintang 5, keberangkatan fleksibel. Daftar sekarang!"
+        keywords="paket umroh 2025, harga umroh, paket umroh murah, jadwal umroh 2025, umroh hemat"
+        canonicalUrl="https://musafartour.com/paket-umroh"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "serviceType": "Paket Umroh",
+          "provider": {
+            "@type": "TravelAgency",
+            "name": "Musafar Tour"
+          },
+          "areaServed": "ID",
+          "availableChannel": {
+            "@type": "ServiceChannel",
+            "serviceUrl": "https://musafartour.com/paket-umroh"
+          }
+        }}
+      />
       <Navbar />
       
       {/* Header */}

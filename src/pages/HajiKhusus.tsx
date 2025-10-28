@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Plane, Hotel, Users, Calendar, MessageCircle } from "lucide-react";
 import makkahImage from "@/assets/makkah.jpg";
@@ -25,6 +26,27 @@ const HajiKhusus = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Paket Haji Khusus 2025 - Pelayanan Premium | Musafar Tour"
+        description="Haji khusus dengan kuota terbatas. Pelayanan VIP, hotel dekat Masjidil Haram, pendampingan 24/7. Harga mulai 175 juta. Booking sekarang!"
+        keywords="haji khusus, paket haji, haji plus, haji 2025, haji VIP"
+        canonicalUrl="https://musafartour.com/haji-khusus"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "serviceType": "Haji Khusus",
+          "provider": {
+            "@type": "TravelAgency",
+            "name": "Musafar Tour"
+          },
+          "offers": {
+            "@type": "Offer",
+            "price": "175000000",
+            "priceCurrency": "IDR",
+            "availability": "https://schema.org/LimitedAvailability"
+          }
+        }}
+      />
       <Navbar />
       
       {/* Hero Section */}

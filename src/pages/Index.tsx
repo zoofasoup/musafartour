@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/accordion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -197,7 +198,41 @@ const Index = () => {
   const handleWhatsAppClick = () => {
     window.open("https://wa.me/6281917403797?text=Halo%20Musamin,%20saya%20tertarik%20untuk%20mengetahui%20lebih%20lanjut%20tentang%20paket%20Umroh", "_blank");
   };
+
+  // Structured data for homepage
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": ["TravelAgency", "Organization"],
+    "name": "Musafar Tour",
+    "url": "https://musafartour.com",
+    "logo": "https://musafartour.com/logo.png",
+    "description": "Travel umroh dan haji terpercaya dengan pelayanan terbaik sejak 2015",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "ID",
+      "addressLocality": "Jakarta"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+6281917403797",
+      "contactType": "customer service",
+      "availableLanguage": ["id", "ar"]
+    },
+    "sameAs": [
+      "https://www.instagram.com/musafartour",
+      "https://wa.me/6281917403797"
+    ],
+    "priceRange": "Rp 20.000.000 - Rp 60.000.000"
+  };
+  
   return <div className="min-h-screen bg-background">
+      <SEO 
+        title="Musafar Tour - Paket Umroh & Haji Terpercaya 2025"
+        description="Paket umroh mulai 20 jutaan dengan pelayanan terbaik. Hotel bintang 5, katering Indonesia, pembimbing berpengalaman. Daftar sekarang!"
+        keywords="paket umroh, travel umroh terpercaya, umroh 2025, haji khusus, wisata halal"
+        canonicalUrl="https://musafartour.com/"
+        structuredData={structuredData}
+      />
       <Navbar />
       
       {/* Hero Section */}

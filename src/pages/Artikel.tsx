@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SEO } from "@/components/SEO";
+import { LazyImage } from "@/components/LazyImage";
 import { BookOpen, Clock, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
@@ -69,6 +71,22 @@ const Artikel = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Artikel & Tips Umroh - Panduan Lengkap Perjalanan Spiritual"
+        description="Baca artikel dan tips lengkap seputar umroh, haji, persiapan ibadah, dan wisata religi. Panduan praktis untuk jamaah pemula hingga berpengalaman."
+        keywords="artikel umroh, tips umroh, panduan haji, persiapan umroh, tips ibadah"
+        canonicalUrl="https://musafartour.com/artikel"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "Blog",
+          "name": "Artikel & Tips Umroh - Musafar Tour",
+          "description": "Panduan, tips, dan informasi bermanfaat seputar perjalanan Umroh dan Haji",
+          "publisher": {
+            "@type": "Organization",
+            "name": "Musafar Tour"
+          }
+        }}
+      />
       <Navbar />
       
       {/* Header */}
@@ -112,7 +130,7 @@ const Artikel = () => {
                 onClick={() => window.location.href = `/artikel/${article.slug}`}
               >
                 <div className="relative h-48 overflow-hidden">
-                  <img
+                  <LazyImage
                     src={article.featured_image || "https://images.unsplash.com/photo-1591604021695-0c69b7c05981?w=800&h=400&fit=crop"}
                     alt={article.title}
                     className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 import { GoogleMap } from "@/components/GoogleMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,6 +67,30 @@ ${formData.message}`;
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Kontak Kami - Musafar Tour | Hubungi Tim Musamin"
+        description="Hubungi Musafar Tour untuk konsultasi gratis tentang paket umroh, haji khusus, dan wisata halal. WhatsApp: 0819-1740-3797. Kantor di Bekasi, buka Senin-Sabtu."
+        keywords="kontak musafar tour, telepon musafar tour, alamat kantor umroh bekasi"
+        canonicalUrl="https://musafartour.com/kontak"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "ContactPage",
+          "mainEntity": {
+            "@type": "TravelAgency",
+            "name": "Musafar Tour",
+            "telephone": "+6281917403797",
+            "email": "musafartour@gmail.com",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Commercial Park Harapan Indah Ruko Emerald Blok EB1 No. 28",
+              "addressLocality": "Bekasi",
+              "addressRegion": "Jawa Barat",
+              "postalCode": "17131",
+              "addressCountry": "ID"
+            }
+          }
+        }}
+      />
       <Navbar />
       
       {/* Header */}
