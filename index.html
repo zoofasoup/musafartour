@@ -8,14 +8,14 @@
     <meta name="keywords" content="paket umroh, travel umroh terpercaya, umroh 2025, haji khusus, wisata halal">
     <meta name="author" content="Musafar Tour" />
     
-    <!-- Critical resource preloads -->
-    <link rel="preload" as="image" href="/src/assets/hero-umroh-jamaah-group.webp" fetchpriority="high" type="image/webp" />
-    
-    <!-- DNS prefetch for external resources -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <!-- Critical resource hints - establish early connections -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://gmcbpcazyeaulwlmgmot.supabase.co">
+    
+    <!-- Preload critical assets -->
+    <link rel="preload" as="image" href="/src/assets/hero-umroh-jamaah-group.webp" fetchpriority="high" type="image/webp" />
+    <link rel="modulepreload" href="/src/main.tsx" />
 
     
     <!-- Open Graph / Facebook -->
@@ -41,6 +41,6 @@
 
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx" async></script>
   </body>
 </html>
