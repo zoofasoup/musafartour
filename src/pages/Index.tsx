@@ -59,9 +59,19 @@ const Index = () => {
   const [duration, setDuration] = useState<string>("all");
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [heroData, setHeroData] = useState<any>(null);
+  const [sellingPoints, setSellingPoints] = useState<any[]>([]);
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [faqItems, setFaqItems] = useState<any[]>([]);
+  const [websiteSettings, setWebsiteSettings] = useState<any>(null);
 
   useEffect(() => {
     fetchPackages();
+    fetchHeroData();
+    fetchSellingPoints();
+    fetchTestimonials();
+    fetchFaqItems();
+    fetchWebsiteSettings();
   }, []);
 
   const fetchPackages = async () => {
@@ -80,6 +90,82 @@ const Index = () => {
       console.error("Error fetching packages:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchHeroData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("hero_section")
+        .select("*")
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      setHeroData(data);
+    } catch (error) {
+      console.error("Error fetching hero data:", error);
+    }
+  };
+
+  const fetchSellingPoints = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("selling_points")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+
+      if (error) throw error;
+      setSellingPoints(data || []);
+    } catch (error) {
+      console.error("Error fetching selling points:", error);
+    }
+  };
+
+  const fetchTestimonials = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("testimonials")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+
+      if (error) throw error;
+      setTestimonials(data || []);
+    } catch (error) {
+      console.error("Error fetching testimonials:", error);
+    }
+  };
+
+  const fetchFaqItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("faq_items")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+
+      if (error) throw error;
+      setFaqItems(data || []);
+    } catch (error) {
+      console.error("Error fetching FAQ items:", error);
+    }
+  };
+
+  const fetchWebsiteSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("website_settings")
+        .select("*")
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      setWebsiteSettings(data);
+    } catch (error) {
+      console.error("Error fetching website settings:", error);
     }
   };
 
@@ -140,63 +226,29 @@ const Index = () => {
     fiveStarTransport: pkg.five_star_transport || undefined,
     bestSellerTransport: pkg.best_seller_transport || undefined,
   }));
-  const features = [{
-    icon: Plane,
-    title: "Penerbangan & Visa Lengkap",
-    description: "Pengaturan perjalanan lengkap dengan maskapai terpercaya dan proses visa tanpa ribet."
-  }, {
-    icon: MapPin,
-    title: "Bimbingan Ibadah & Mentoring",
-    description: "Pembimbing Musamin berpengalaman mendampingi perjalanan spiritual Anda di setiap langkah."
-  }, {
-    icon: Hotel,
-    title: "Hotel Dekat dengan Haram",
-    description: "Akomodasi nyaman dalam jarak berjalan kaki ke Masjidil Haram dan Masjid Nabawi."
-  }, {
-    icon: Heart,
-    title: "Pelayanan Pribadi yang Ramah",
-    description: "Tim kami yang peduli selalu siap membantu Anda dengan kehangatan dan dedikasi."
-  }];
-  const testimonials = [
-    {
-      name: "Ibu Siti Nurjanah",
-      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Siti",
-      text: "Alhamdulillah, pelayanan Musafar Tour sangat memuaskan. Hotel nyaman, guide ramah dan profesional. Pengalaman umroh yang sangat berkesan!",
-      location: "Jakarta"
-    },
-    {
-      name: "Bapak Ahmad Fauzi",
-      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ahmad",
-      text: "Paket umroh terbaik yang pernah saya ikuti. Tim Musafar sangat membantu dan perhatian terhadap kebutuhan jamaah. Recommended!",
-      location: "Bekasi"
-    },
-    {
-      name: "Ibu Nur Azizah",
-      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Nur",
-      text: "Pelayanan sangat baik dari awal sampai akhir. Semua sudah diatur dengan detail, jadi jamaah tinggal beribadah dengan khusyuk.",
-      location: "Tangerang"
-    },
-    {
-      name: "Bapak Hendra Wijaya",
-      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Hendra",
-      text: "Harga terjangkau dengan kualitas service yang excellent. Tour guide sangat membantu dan knowledgeable. Terima kasih Musafar!",
-      location: "Bogor"
-    },
-    {
-      name: "Ibu Fatimah Zahra",
-      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Fatimah",
-      text: "Umroh bersama Musafar adalah pengalaman spiritual terbaik. Semua fasilitas sangat baik dan tim sangat responsif.",
-      location: "Depok"
-    },
-    {
-      name: "Bapak Usman Abdullah",
-      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Usman",
-      text: "Sangat puas dengan pelayanan Musafar. Dari handling sampai akomodasi semuanya sempurna. Insya Allah akan umroh lagi dengan Musafar!",
-      location: "Cikarang"
-    }
-  ];
+
+  // Icon mapping for selling points
+  const getIconComponent = (iconName: string) => {
+    const iconMap: Record<string, any> = {
+      'plane': Plane,
+      'map-pin': MapPin,
+      'hotel': Hotel,
+      'heart': Heart,
+      'message-circle': MessageCircle,
+      'package': Package,
+    };
+    return iconMap[iconName] || Heart;
+  };
+
+  const features = sellingPoints.map(point => ({
+    icon: getIconComponent(point.icon),
+    title: point.title,
+    description: point.description
+  }));
+
   const handleWhatsAppClick = () => {
-    window.open("https://wa.me/6281917403797?text=Halo%20Musamin,%20saya%20tertarik%20untuk%20mengetahui%20lebih%20lanjut%20tentang%20paket%20Umroh", "_blank");
+    const whatsappNumber = websiteSettings?.whatsapp_number || "6281917403797";
+    window.open(`https://wa.me/${whatsappNumber}?text=Halo%20Musamin,%20saya%20tertarik%20untuk%20mengetahui%20lebih%20lanjut%20tentang%20paket%20Umroh`, "_blank");
   };
 
   // Structured data for homepage
@@ -238,7 +290,7 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
         <img 
-          src={heroImage} 
+          src={heroData?.background_image || heroImage} 
           alt="Musafar Tour Umroh Group at Kaaba" 
           className="absolute inset-0 w-full h-full object-cover"
           fetchPriority="high"
@@ -251,10 +303,11 @@ const Index = () => {
         
         <div className="relative z-10 container mx-auto px-4 text-center text-white">
           <img src={musafarLogo} alt="Musafar Tour" className="h-16 mx-auto mb-8 opacity-90" />
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in">Temukan Paket Umroh Sempurna
-untuk Perjalanan Anda</h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
+            {heroData?.title || "Temukan Paket Umroh Sempurna untuk Perjalanan Anda"}
+          </h1>
           <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-gray-200">
-            Musafar Tour menawarkan pengalaman Umroh yang dirancang dengan penuh perhatian, dari budget hingga bintang lima, semuanya dibimbing dengan penuh kasih sayang.
+            {heroData?.subtitle || "Musafar Tour menawarkan pengalaman Umroh yang dirancang dengan penuh perhatian, dari budget hingga bintang lima, semuanya dibimbing dengan penuh kasih sayang."}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold text-lg px-8" onClick={() => document.getElementById('packages')?.scrollIntoView({
@@ -264,7 +317,7 @@ untuk Perjalanan Anda</h1>
             </Button>
             <Button size="lg" variant="outline" className="bg-white/10 border-white text-white hover:bg-white hover:text-foreground font-semibold text-lg px-8 backdrop-blur-sm" onClick={handleWhatsAppClick}>
               <MessageCircle className="mr-2 h-5 w-5" />
-              Chat dengan Musamin 🤍
+              {heroData?.cta_text || "Chat dengan Musamin 🤍"}
             </Button>
           </div>
         </div>
@@ -410,7 +463,13 @@ untuk Perjalanan Anda</h1>
             <p className="text-muted-foreground">Kami mendampingi Anda dengan hati dan profesionalisme</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, index) => <FeatureCard key={index} {...feature} />)}
+            {features.length > 0 ? (
+              features.map((feature, index) => <FeatureCard key={index} {...feature} />)
+            ) : (
+              <div className="col-span-full text-center text-muted-foreground">
+                Belum ada selling points yang ditambahkan
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -444,9 +503,21 @@ untuk Perjalanan Anda</h1>
             Apa Kata Musafriends di Google
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-12">
-            {testimonials.map((testimonial, index) => (
-              <TestimonialCard key={index} {...testimonial} />
-            ))}
+            {testimonials.length > 0 ? (
+              testimonials.map((testimonial, index) => (
+                <TestimonialCard 
+                  key={testimonial.id} 
+                  name={testimonial.name}
+                  image={testimonial.image_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${testimonial.name}`}
+                  text={testimonial.content}
+                  location={testimonial.location || ""}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center text-muted-foreground">
+                Belum ada testimonial yang ditambahkan
+              </div>
+            )}
           </div>
           <div className="text-center">
             <Button
@@ -477,75 +548,24 @@ untuk Perjalanan Anda</h1>
           </div>
           
           <div className="max-w-3xl mx-auto">
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="text-left">
-                  Apa saja yang termasuk dalam paket umroh?
-                </AccordionTrigger>
-                <AccordionContent>
-                  Paket umroh kami sudah termasuk tiket pesawat PP, visa umroh, akomodasi hotel bintang 3-5 
-                  di Makkah dan Madinah, transportasi AC selama di Arab Saudi, makan 3x sehari, perlengkapan 
-                  umroh, dan bimbingan ibadah oleh pembimbing berpengalaman.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-2">
-                <AccordionTrigger className="text-left">
-                  Berapa lama proses pengurusan visa umroh?
-                </AccordionTrigger>
-                <AccordionContent>
-                  Proses pengurusan visa umroh biasanya memakan waktu 2-3 minggu setelah dokumen lengkap 
-                  diterima. Kami akan membantu dan membimbing Anda dalam melengkapi semua persyaratan 
-                  dokumen yang diperlukan.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-3">
-                <AccordionTrigger className="text-left">
-                  Apakah ada syarat khusus untuk mendaftar umroh?
-                </AccordionTrigger>
-                <AccordionContent>
-                  Persyaratan umum meliputi: paspor minimal berlaku 7 bulan, foto berwarna terbaru, kartu 
-                  keluarga, KTP, buku nikah (untuk peserta yang sudah menikah), dan surat keterangan mahram 
-                  (untuk wanita di bawah 45 tahun). Untuk wanita 45 tahun ke atas dapat berangkat tanpa mahram 
-                  dengan grup minimal 10 orang.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-4">
-                <AccordionTrigger className="text-left">
-                  Bagaimana sistem pembayaran paket umroh?
-                </AccordionTrigger>
-                <AccordionContent>
-                  Kami menyediakan sistem pembayaran yang fleksibel. Anda dapat membayar dengan sistem cicilan 
-                  atau pembayaran penuh. Untuk cicilan, biasanya dimulai dengan DP 30% dari total biaya, 
-                  dan sisanya dapat dicicil hingga 1 bulan sebelum keberangkatan.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-5">
-                <AccordionTrigger className="text-left">
-                  Apakah ada pendampingan selama di Arab Saudi?
-                </AccordionTrigger>
-                <AccordionContent>
-                  Ya, tentu! Setiap grup akan didampingi oleh pembimbing ibadah yang berpengalaman dan berbahasa 
-                  Indonesia. Pembimbing kami akan membantu Anda dalam pelaksanaan ibadah, memberikan tausiyah, 
-                  dan siap membantu Anda 24/7 selama di tanah suci.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-6">
-                <AccordionTrigger className="text-left">
-                  Bagaimana jika saya perlu membatalkan keberangkatan?
-                </AccordionTrigger>
-                <AccordionContent>
-                  Kebijakan pembatalan mengikuti ketentuan yang berlaku. Jika pembatalan dilakukan jauh-jauh 
-                  hari sebelum keberangkatan, sebagian biaya dapat dikembalikan setelah dipotong biaya 
-                  administrasi dan biaya yang sudah dikeluarkan (visa, tiket, dll). Kami sarankan untuk 
-                  mengambil asuransi perjalanan untuk perlindungan lebih baik.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+            {faqItems.length > 0 ? (
+              <Accordion type="single" collapsible className="w-full">
+                {faqItems.map((faq, index) => (
+                  <AccordionItem key={faq.id} value={`item-${index + 1}`}>
+                    <AccordionTrigger className="text-left">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            ) : (
+              <div className="text-center text-muted-foreground">
+                Belum ada FAQ yang ditambahkan
+              </div>
+            )}
           </div>
         </div>
       </section>
