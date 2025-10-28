@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Plane, Hotel, Users, Calendar, MessageCircle } from "lucide-react";
-import makkahImage from "@/assets/makkah.jpg";
+import makkahImage from "@/assets/haji-khusus-makkah-hero.webp";
 
 const HajiKhusus = () => {
   const features = [
