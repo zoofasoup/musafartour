@@ -6,6 +6,8 @@ interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   alt: string;
   className?: string;
   placeholderClassName?: string;
+  fetchPriority?: 'high' | 'low' | 'auto';
+  sizes?: string;
 }
 
 export const LazyImage = ({ 
@@ -13,6 +15,8 @@ export const LazyImage = ({
   alt, 
   className, 
   placeholderClassName,
+  fetchPriority = 'auto',
+  sizes,
   ...props 
 }: LazyImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -29,7 +33,7 @@ export const LazyImage = ({
           observer.disconnect();
         }
       },
-      { rootMargin: '50px' }
+      { rootMargin: '100px' }
     );
 
     observer.observe(imgRef.current);
@@ -56,6 +60,9 @@ export const LazyImage = ({
         )}
         onLoad={() => setIsLoaded(true)}
         loading="lazy"
+        decoding="async"
+        fetchPriority={fetchPriority}
+        sizes={sizes}
         {...props}
       />
     </div>
