@@ -26,6 +26,15 @@ import ArticlesPage from "./pages/admin/Articles";
 import ArticleForm from "./pages/admin/ArticleForm";
 import Hotels from "./pages/admin/Hotels";
 import HotelForm from "./pages/admin/HotelForm";
+import HeroSection from "./pages/admin/HeroSection";
+import SellingPoints from "./pages/admin/SellingPoints";
+import Testimonials from "./pages/admin/Testimonials";
+import GalleryManagement from "./pages/admin/GalleryManagement";
+import PaketHaji from "./pages/admin/PaketHaji";
+import JadwalKeberangkatan from "./pages/admin/JadwalKeberangkatan";
+import FAQAdmin from "./pages/admin/FAQ";
+import WebsiteSettings from "./pages/admin/WebsiteSettings";
+import Team from "./pages/admin/Team";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 
 const queryClient = new QueryClient();
@@ -52,18 +61,35 @@ const App = () => (
           <Route path="/admin/setup" element={<AdminSetup />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
+            
+            {/* Content Management */}
+            <Route path="hero" element={<HeroSection />} />
+            <Route path="selling-points" element={<SellingPoints />} />
+            <Route path="testimonials" element={<Testimonials />} />
+            <Route path="gallery" element={<GalleryManagement />} />
+            
+            {/* Products & Services */}
             <Route path="packages" element={<Packages />} />
             <Route path="packages/new" element={<PackageForm />} />
             <Route path="packages/:id" element={<PackageForm />} />
+            <Route path="haji" element={<PaketHaji />} />
             <Route path="hotels" element={<Hotels />} />
             <Route path="hotels/new" element={<HotelForm />} />
             <Route path="hotels/:id" element={<HotelForm />} />
             <Route path="wisata-halal" element={<WisataHalalPage />} />
             <Route path="wisata-halal/new" element={<WisataHalalForm />} />
             <Route path="wisata-halal/:id" element={<WisataHalalForm />} />
+            <Route path="jadwal" element={<JadwalKeberangkatan />} />
+            
+            {/* Content & Blog */}
             <Route path="articles" element={<ArticlesPage />} />
             <Route path="articles/new" element={<ArticleForm />} />
             <Route path="articles/:id" element={<ArticleForm />} />
+            <Route path="faq" element={<FAQAdmin />} />
+            
+            {/* Settings */}
+            <Route path="settings" element={<WebsiteSettings />} />
+            <Route path="team" element={<Team />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

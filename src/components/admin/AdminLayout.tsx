@@ -1,9 +1,26 @@
-import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Package, Plane, FileText, Home, Hotel } from "lucide-react";
+import { 
+  LogOut, LayoutDashboard, Home, Image, Target, MessageSquare, 
+  Images, Package, Plane, Hotel, Calendar, FileText, HelpCircle,
+  Settings, Users
+} from "lucide-react";
 import { useEffect } from "react";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarHeader,
+  SidebarFooter,
+} from "@/components/ui/sidebar";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
@@ -41,78 +58,127 @@ const AdminLayout = () => {
     );
   }
 
-  const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
-    { icon: Package, label: "Paket Umroh", path: "/admin/packages" },
-    { icon: Hotel, label: "Hotel", path: "/admin/hotels" },
-    { icon: Plane, label: "Wisata Halal", path: "/admin/wisata-halal" },
-    { icon: FileText, label: "Artikel", path: "/admin/articles" },
+  const menuSections = [
+    {
+      items: [
+        { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
+      ]
+    },
+    {
+      label: "CONTENT MANAGEMENT",
+      items: [
+        { icon: Image, label: "Hero Section", path: "/admin/hero" },
+        { icon: Target, label: "Selling Points", path: "/admin/selling-points" },
+        { icon: MessageSquare, label: "Testimonials", path: "/admin/testimonials" },
+        { icon: Images, label: "Gallery", path: "/admin/gallery" },
+      ]
+    },
+    {
+      label: "PRODUCTS & SERVICES",
+      items: [
+        { icon: Package, label: "Paket Umroh", path: "/admin/packages" },
+        { icon: Plane, label: "Paket Haji", path: "/admin/haji" },
+        { icon: Hotel, label: "Hotel", path: "/admin/hotels" },
+        { icon: Plane, label: "Wisata Halal", path: "/admin/wisata-halal" },
+        { icon: Calendar, label: "Jadwal Keberangkatan", path: "/admin/jadwal" },
+      ]
+    },
+    {
+      label: "CONTENT & BLOG",
+      items: [
+        { icon: FileText, label: "Artikel", path: "/admin/articles" },
+        { icon: HelpCircle, label: "FAQ", path: "/admin/faq" },
+      ]
+    },
+    {
+      label: "SETTINGS",
+      items: [
+        { icon: Settings, label: "Website Settings", path: "/admin/settings" },
+        { icon: Users, label: "Team", path: "/admin/team" },
+      ]
+    }
   ];
 
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r bg-card">
-        <div className="flex h-full flex-col">
-          {/* Logo */}
-          <div className="flex h-16 items-center border-b px-6">
-            <img src={musafarLogo} alt="Musafar Tour" className="h-8" />
-          </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <Sidebar collapsible="icon" className="border-r">
+          <SidebarHeader className="border-b p-4">
+            <div className="flex items-center gap-2">
+              <img src={musafarLogo} alt="Musafar Tour" className="h-8" />
+            </div>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2 mt-2"
+              onClick={() => navigate("/")}
+            >
+              <Home className="h-4 w-4" />
+              <span>Back to Website</span>
+            </Button>
+          </SidebarHeader>
 
-          {/* Navigation */}
-          <nav className="flex-1 space-y-1 p-4">
-            <Link to="/">
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-2 mb-4"
-              >
-                <Home className="h-5 w-5" />
-                Back to Website
-              </Button>
-            </Link>
+          <SidebarContent>
+            {menuSections.map((section, idx) => (
+              <SidebarGroup key={idx}>
+                {section.label && (
+                  <SidebarGroupLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                    {section.label}
+                  </SidebarGroupLabel>
+                )}
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {section.items.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.path);
+                      return (
+                        <SidebarMenuItem key={item.path}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={active}
+                            onClick={() => navigate(item.path)}
+                            className="transition-colors"
+                          >
+                            <button className="w-full">
+                              <Icon className="h-4 w-4" />
+                              <span className={active ? "font-semibold" : ""}>
+                                {item.label}
+                              </span>
+                            </button>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            ))}
+          </SidebarContent>
 
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Link key={item.path} to={item.path}>
-                  <Button
-                    variant={isActive ? "secondary" : "ghost"}
-                    className="w-full justify-start gap-2"
-                  >
-                    <Icon className="h-5 w-5" />
-                    {item.label}
-                  </Button>
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* User Info & Logout */}
-          <div className="border-t p-4">
-            <div className="mb-2 px-2">
-              <p className="text-sm font-medium">{user?.email}</p>
+          <SidebarFooter className="border-t p-4">
+            <div className="mb-2">
+              <p className="text-sm font-medium truncate">{user?.email}</p>
               <p className="text-xs text-muted-foreground">Admin</p>
             </div>
             <Button
               variant="ghost"
-              className="w-full justify-start gap-2 text-destructive hover:text-destructive"
+              className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={handleSignOut}
             >
-              <LogOut className="h-5 w-5" />
-              Sign Out
+              <LogOut className="h-4 w-4" />
+              <span>Sign Out</span>
             </Button>
-          </div>
-        </div>
-      </aside>
+          </SidebarFooter>
+        </Sidebar>
 
-      {/* Main Content */}
-      <main className="pl-64">
-        <div className="container mx-auto p-8">
-          <Outlet />
-        </div>
-      </main>
-    </div>
+        <main className="flex-1 overflow-auto">
+          <div className="container mx-auto p-8">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 };
 

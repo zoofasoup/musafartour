@@ -464,6 +464,92 @@ untuk Perjalanan Anda</h1>
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+              Pertanyaan yang Sering Diajukan
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Temukan jawaban atas pertanyaan umum tentang layanan umroh kami
+            </p>
+          </div>
+          
+          <div className="max-w-3xl mx-auto">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1">
+                <AccordionTrigger className="text-left">
+                  Apa saja yang termasuk dalam paket umroh?
+                </AccordionTrigger>
+                <AccordionContent>
+                  Paket umroh kami sudah termasuk tiket pesawat PP, visa umroh, akomodasi hotel bintang 3-5 
+                  di Makkah dan Madinah, transportasi AC selama di Arab Saudi, makan 3x sehari, perlengkapan 
+                  umroh, dan bimbingan ibadah oleh pembimbing berpengalaman.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-2">
+                <AccordionTrigger className="text-left">
+                  Berapa lama proses pengurusan visa umroh?
+                </AccordionTrigger>
+                <AccordionContent>
+                  Proses pengurusan visa umroh biasanya memakan waktu 2-3 minggu setelah dokumen lengkap 
+                  diterima. Kami akan membantu dan membimbing Anda dalam melengkapi semua persyaratan 
+                  dokumen yang diperlukan.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-3">
+                <AccordionTrigger className="text-left">
+                  Apakah ada syarat khusus untuk mendaftar umroh?
+                </AccordionTrigger>
+                <AccordionContent>
+                  Persyaratan umum meliputi: paspor minimal berlaku 7 bulan, foto berwarna terbaru, kartu 
+                  keluarga, KTP, buku nikah (untuk peserta yang sudah menikah), dan surat keterangan mahram 
+                  (untuk wanita di bawah 45 tahun). Untuk wanita 45 tahun ke atas dapat berangkat tanpa mahram 
+                  dengan grup minimal 10 orang.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-4">
+                <AccordionTrigger className="text-left">
+                  Bagaimana sistem pembayaran paket umroh?
+                </AccordionTrigger>
+                <AccordionContent>
+                  Kami menyediakan sistem pembayaran yang fleksibel. Anda dapat membayar dengan sistem cicilan 
+                  atau pembayaran penuh. Untuk cicilan, biasanya dimulai dengan DP 30% dari total biaya, 
+                  dan sisanya dapat dicicil hingga 1 bulan sebelum keberangkatan.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-5">
+                <AccordionTrigger className="text-left">
+                  Apakah ada pendampingan selama di Arab Saudi?
+                </AccordionTrigger>
+                <AccordionContent>
+                  Ya, tentu! Setiap grup akan didampingi oleh pembimbing ibadah yang berpengalaman dan berbahasa 
+                  Indonesia. Pembimbing kami akan membantu Anda dalam pelaksanaan ibadah, memberikan tausiyah, 
+                  dan siap membantu Anda 24/7 selama di tanah suci.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-6">
+                <AccordionTrigger className="text-left">
+                  Bagaimana jika saya perlu membatalkan keberangkatan?
+                </AccordionTrigger>
+                <AccordionContent>
+                  Kebijakan pembatalan mengikuti ketentuan yang berlaku. Jika pembatalan dilakukan jauh-jauh 
+                  hari sebelum keberangkatan, sebagian biaya dapat dikembalikan setelah dipotong biaya 
+                  administrasi dan biaya yang sudah dikeluarkan (visa, tiket, dll). Kami sarankan untuk 
+                  mengambil asuransi perjalanan untuk perlindungan lebih baik.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="py-20 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
