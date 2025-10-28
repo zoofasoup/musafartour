@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Upload, X } from "lucide-react";
+import { compressAndConvertToWebP, generateContextualFileName } from "@/lib/imageUtils";
 
 const wisataSchema = z.object({
   title: z.string().min(1, "Judul wajib diisi"),
@@ -20,6 +21,7 @@ const wisataSchema = z.object({
   departure_city: z.string().min(1, "Kota keberangkatan wajib diisi"),
   airline: z.string().optional(),
   description: z.string().optional(),
+  image_url: z.string().optional(),
 });
 
 type WisataFormValues = z.infer<typeof wisataSchema>;
@@ -29,6 +31,8 @@ const WisataHalalForm = () => {
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(!!id);
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const form = useForm<WisataFormValues>({
     resolver: zodResolver(wisataSchema),
@@ -40,6 +44,7 @@ const WisataHalalForm = () => {
       departure_city: "",
       airline: "",
       description: "",
+      image_url: "",
     },
   });
 
@@ -68,13 +73,61 @@ const WisataHalalForm = () => {
           departure_city: data.departure_city,
           airline: data.airline || "",
           description: data.description || "",
+          image_url: data.image_url || "",
         });
+        if (data.image_url) {
+          setImagePreview(data.image_url);
+        }
       }
     } catch (error: any) {
       toast.error("Gagal memuat data: " + error.message);
     } finally {
       setInitialLoading(false);
     }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("File harus berupa gambar");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Compress & convert to WebP (target: 50KB for wisata banner)
+      const compressedFile = await compressAndConvertToWebP(file, 50, 0.85);
+      
+      // Generate name: "wisata-halal-turki-banner.webp"
+      const destination = form.getValues('destination');
+      const fileName = generateContextualFileName('wisata', { destination }, 'banner');
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("wisata-images")
+        .upload(filePath, compressedFile, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("wisata-images")
+        .getPublicUrl(filePath);
+
+      form.setValue("image_url", publicUrl);
+      setImagePreview(publicUrl);
+      toast.success("Gambar berhasil diupload dan dioptimasi");
+    } catch (error: any) {
+      toast.error("Gagal upload gambar: " + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = () => {
+    form.setValue("image_url", "");
+    setImagePreview(null);
   };
 
   const onSubmit = async (values: WisataFormValues) => {
@@ -219,6 +272,62 @@ const WisataHalalForm = () => {
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="image_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Banner Image</FormLabel>
+                    <FormControl>
+                      <div className="space-y-4">
+                        {imagePreview ? (
+                          <div className="relative">
+                            <img
+                              src={imagePreview}
+                              alt="Preview"
+                              className="w-full h-64 object-cover rounded-lg"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-2 right-2"
+                              onClick={removeImage}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              <Upload className="h-10 w-10 mb-3 text-muted-foreground" />
+                              <p className="mb-2 text-sm text-muted-foreground">
+                                <span className="font-semibold">Click to upload</span> atau drag and drop
+                              </p>
+                              <p className="text-xs text-muted-foreground">PNG, JPG, WEBP (MAX. 5MB)</p>
+                            </div>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              disabled={uploading}
+                            />
+                          </label>
+                        )}
+                        {uploading && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+                            Mengkompress dan mengoptimasi gambar...
+                          </div>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}

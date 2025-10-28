@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { toast } from "sonner";
 import { ArrowLeft, Upload, X } from "lucide-react";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import { compressAndConvertToWebP, generateContextualFileName } from "@/lib/imageUtils";
 
 const articleSchema = z.object({
   title: z.string().min(1, "Judul wajib diisi"),
@@ -110,20 +111,19 @@ const ArticleForm = () => {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Ukuran gambar maksimal 5MB");
-      return;
-    }
-
     setUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      // Compress & convert to WebP (target: 60KB for article featured image)
+      const compressedFile = await compressAndConvertToWebP(file, 60, 0.85);
+      
+      // Generate name: "artikel-tips-memilih-paket-umroh-featured.webp"
+      const articleSlug = form.getValues('slug') || 'artikel-baru';
+      const fileName = generateContextualFileName('article', { slug: articleSlug }, 'featured');
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("article-images")
-        .upload(filePath, file);
+        .upload(filePath, compressedFile, { upsert: true });
 
       if (uploadError) throw uploadError;
 
@@ -133,7 +133,7 @@ const ArticleForm = () => {
 
       form.setValue("featured_image", publicUrl);
       setImagePreview(publicUrl);
-      toast.success("Gambar berhasil diupload");
+      toast.success("Gambar berhasil diupload dan dioptimasi");
     } catch (error: any) {
       toast.error("Gagal upload gambar: " + error.message);
     } finally {
@@ -310,7 +310,10 @@ const ArticleForm = () => {
                           </label>
                         )}
                         {uploading && (
-                          <p className="text-sm text-muted-foreground">Mengupload...</p>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+                            Mengkompress dan mengoptimasi gambar...
+                          </div>
                         )}
                       </div>
                     </FormControl>

@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft, X, Upload } from "lucide-react";
 import { format } from "date-fns";
+import { compressAndConvertToWebP, generateContextualFileName } from "@/lib/imageUtils";
 
 const packageSchema = z.object({
   package_name: z.string().min(1, "Nama paket wajib diisi"),
@@ -403,13 +404,19 @@ const PackageForm = () => {
   const uploadBannerImage = async (): Promise<string | null> => {
     if (!bannerImage) return bannerPreview || null;
 
-    const fileExt = bannerImage.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    // Compress & convert to WebP (target: 80KB max for hero images)
+    const compressedFile = await compressAndConvertToWebP(bannerImage, 80, 0.85);
+    
+    // Generate contextual name: "paket-umroh-9-hari-nov-2024-banner.webp"
+    const packageName = form.getValues('package_name');
+    const fileName = generateContextualFileName('package', { name: packageName }, 'banner');
     const filePath = `banners/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('package-images')
-      .upload(filePath, bannerImage);
+      .upload(filePath, compressedFile, { 
+        upsert: true // Allow overwrite if filename sama
+      });
 
     if (uploadError) throw uploadError;
 
@@ -425,14 +432,19 @@ const PackageForm = () => {
     
     if (galleryImages.length === 0) return existingUrls;
 
-    const uploadPromises = galleryImages.map(async (file) => {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const packageName = form.getValues('package_name');
+    
+    const uploadPromises = galleryImages.map(async (file, index) => {
+      // Compress (target: 40KB for gallery images)
+      const compressedFile = await compressAndConvertToWebP(file, 40, 0.8);
+      
+      // Generate name: "paket-umroh-9-hari-nov-2024-gallery-1.webp"
+      const fileName = generateContextualFileName('package', { name: packageName, index: index + 1 }, 'gallery');
       const filePath = `galleries/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('package-images')
-        .upload(filePath, file);
+        .upload(filePath, compressedFile, { upsert: true });
 
       if (uploadError) throw uploadError;
 
