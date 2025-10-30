@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import {
@@ -29,18 +29,60 @@ interface Package {
   status: string;
 }
 
+type SortField = 'package_name' | 'departure_date' | 'duration_days' | 'flight' | 'package_price' | 'status';
+type SortDirection = 'asc' | 'desc';
+
 const Packages = () => {
   const navigate = useNavigate();
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<SortField>('departure_date');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    return sortDirection === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />;
+  };
+
+  const sortedPackages = [...packages].sort((a, b) => {
+    let aValue: any = a[sortField];
+    let bValue: any = b[sortField];
+
+    if (sortField === 'package_price') {
+      aValue = a.package_price.quad;
+      bValue = b.package_price.quad;
+    }
+
+    if (sortField === 'departure_date') {
+      aValue = new Date(aValue).getTime();
+      bValue = new Date(bValue).getTime();
+    }
+
+    if (typeof aValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   const fetchPackages = async () => {
     try {
       const { data, error } = await supabase
         .from("packages")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*");
 
       if (error) throw error;
       setPackages(data || []);
@@ -103,24 +145,48 @@ const Packages = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nama Paket</TableHead>
-                <TableHead>Tanggal Keberangkatan</TableHead>
-                <TableHead>Durasi</TableHead>
-                <TableHead>Maskapai</TableHead>
-                <TableHead>Harga (Quad)</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => handleSort('package_name')} className="h-auto p-0 font-semibold hover:bg-transparent">
+                    Nama Paket {getSortIcon('package_name')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => handleSort('departure_date')} className="h-auto p-0 font-semibold hover:bg-transparent">
+                    Tanggal Keberangkatan {getSortIcon('departure_date')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => handleSort('duration_days')} className="h-auto p-0 font-semibold hover:bg-transparent">
+                    Durasi {getSortIcon('duration_days')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => handleSort('flight')} className="h-auto p-0 font-semibold hover:bg-transparent">
+                    Maskapai {getSortIcon('flight')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => handleSort('package_price')} className="h-auto p-0 font-semibold hover:bg-transparent">
+                    Harga (Quad) {getSortIcon('package_price')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => handleSort('status')} className="h-auto p-0 font-semibold hover:bg-transparent">
+                    Status {getSortIcon('status')}
+                  </Button>
+                </TableHead>
                 <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {packages.length === 0 ? (
+              {sortedPackages.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground">
                     Belum ada paket umroh
                   </TableCell>
                 </TableRow>
               ) : (
-                packages.map((pkg) => (
+                sortedPackages.map((pkg) => (
                   <TableRow key={pkg.id}>
                     <TableCell className="font-medium">{pkg.package_name}</TableCell>
                     <TableCell>{format(new Date(pkg.departure_date), "dd MMM yyyy")}</TableCell>
