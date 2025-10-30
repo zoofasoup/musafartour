@@ -20,6 +20,7 @@ import {
   SidebarProvider,
   SidebarHeader,
   SidebarFooter,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 const AdminLayout = () => {
@@ -136,13 +137,16 @@ const AdminLayout = () => {
                         <SidebarMenuItem key={item.path}>
                           <SidebarMenuButton
                             asChild
-                            isActive={active}
                             onClick={() => navigate(item.path)}
-                            className="transition-colors"
+                            className={`transition-colors ${
+                              active
+                                ? "bg-red-600 text-white hover:bg-red-700 hover:text-white"
+                                : "hover:bg-accent"
+                            }`}
                           >
                             <button className="w-full">
-                              <Icon className="h-4 w-4" />
-                              <span className={active ? "font-semibold" : ""}>
+                              <Icon className={`h-4 w-4 ${active ? "text-white" : ""}`} />
+                              <span className={active ? "font-semibold text-white" : ""}>
                                 {item.label}
                               </span>
                             </button>
@@ -173,6 +177,11 @@ const AdminLayout = () => {
         </Sidebar>
 
         <main className="flex-1 overflow-auto">
+          <div className="border-b bg-background sticky top-0 z-10">
+            <div className="container mx-auto px-8 py-4 flex items-center">
+              <SidebarTrigger />
+            </div>
+          </div>
           <div className="container mx-auto p-8">
             <Outlet />
           </div>
