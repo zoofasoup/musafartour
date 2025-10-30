@@ -11,10 +11,10 @@ interface RichTextEditorProps {
 
 const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
+  const savedRangeRef = useRef<Range | null>(null);
 
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== value) {
-      // Sanitize content when setting innerHTML
       const sanitized = DOMPurify.sanitize(value, {
         ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'a'],
         ALLOWED_ATTR: ['href', 'target', 'rel']
@@ -29,31 +29,93 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
     }
   };
 
-
-  const executeCommand = (command: string, value?: string) => {
-    if (!editorRef.current) return;
-    
-    editorRef.current.focus();
-    
-    try {
-      document.execCommand(command, false, value);
-    } catch (error) {
-      console.error("Command execution error:", error);
+  const saveSelection = () => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      savedRangeRef.current = selection.getRangeAt(0).cloneRange();
     }
-    
-    handleInput();
   };
 
-  const insertHeading = (level: number) => {
+  const restoreSelection = () => {
+    if (savedRangeRef.current && editorRef.current) {
+      editorRef.current.focus();
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(savedRangeRef.current);
+      }
+    }
+  };
+
+  const wrapSelection = (tagName: string, attributes?: Record<string, string>) => {
     if (!editorRef.current) return;
     
-    editorRef.current.focus();
+    saveSelection();
+    
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+    
+    if (!selectedText.trim()) return;
+    
+    const wrapper = document.createElement(tagName);
+    if (attributes) {
+      Object.entries(attributes).forEach(([key, value]) => {
+        wrapper.setAttribute(key, value);
+      });
+    }
     
     try {
-      // Use formatBlock with h2 or h3
-      document.execCommand('formatBlock', false, `h${level}`);
+      range.deleteContents();
+      wrapper.textContent = selectedText;
+      range.insertNode(wrapper);
+      
+      // Move cursor after the inserted element
+      range.setStartAfter(wrapper);
+      range.setEndAfter(wrapper);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      handleInput();
     } catch (error) {
-      console.error("Heading insertion error:", error);
+      console.error("Wrap selection error:", error);
+    }
+  };
+
+  const formatBlock = (tagName: string) => {
+    if (!editorRef.current) return;
+    
+    saveSelection();
+    
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    let container = range.commonAncestorContainer;
+    
+    // Get the block-level parent
+    while (container && container.nodeType === Node.TEXT_NODE) {
+      container = container.parentNode!;
+    }
+    
+    if (!container || container === editorRef.current) {
+      // No text selected, just insert a new block
+      const newBlock = document.createElement(tagName);
+      newBlock.textContent = '\u200B'; // Zero-width space
+      range.insertNode(newBlock);
+      
+      // Place cursor inside
+      range.setStart(newBlock, 0);
+      range.setEnd(newBlock, 0);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    } else {
+      // Wrap the current block
+      const newBlock = document.createElement(tagName);
+      newBlock.innerHTML = (container as HTMLElement).innerHTML;
+      (container as HTMLElement).replaceWith(newBlock);
     }
     
     handleInput();
@@ -62,28 +124,40 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
   const insertList = (ordered: boolean) => {
     if (!editorRef.current) return;
     
-    editorRef.current.focus();
+    saveSelection();
     
-    const command = ordered ? 'insertOrderedList' : 'insertUnorderedList';
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
     
-    try {
-      document.execCommand(command, false);
-    } catch (error) {
-      console.error("List insertion error:", error);
-    }
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString().trim();
     
-    handleInput();
-  };
-
-  const insertQuote = () => {
-    if (!editorRef.current) return;
+    const listTag = ordered ? 'ol' : 'ul';
+    const list = document.createElement(listTag);
     
-    editorRef.current.focus();
-    
-    try {
-      document.execCommand('formatBlock', false, 'blockquote');
-    } catch (error) {
-      console.error("Quote insertion error:", error);
+    if (selectedText) {
+      // Split by lines and create list items
+      const lines = selectedText.split('\n').filter(line => line.trim());
+      lines.forEach(line => {
+        const li = document.createElement('li');
+        li.textContent = line.trim();
+        list.appendChild(li);
+      });
+      
+      range.deleteContents();
+      range.insertNode(list);
+    } else {
+      // Create a single list item
+      const li = document.createElement('li');
+      li.textContent = '\u200B';
+      list.appendChild(li);
+      range.insertNode(list);
+      
+      // Place cursor inside the list item
+      range.setStart(li, 0);
+      range.setEnd(li, 0);
+      selection.removeAllRanges();
+      selection.addRange(range);
     }
     
     handleInput();
@@ -100,30 +174,23 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
     
     const url = prompt("Masukkan URL:");
     if (url && url.trim()) {
-      editorRef.current.focus();
-      try {
-        let formattedUrl = url.trim();
-        if (!formattedUrl.match(/^https?:\/\//)) {
-          formattedUrl = 'https://' + formattedUrl;
-        }
-        
-        document.execCommand("createLink", false, formattedUrl);
-      } catch (error) {
-        console.error("Link insertion error:", error);
+      let formattedUrl = url.trim();
+      if (!formattedUrl.match(/^https?:\/\//)) {
+        formattedUrl = 'https://' + formattedUrl;
       }
+      
+      wrapSelection('a', { href: formattedUrl, target: '_blank', rel: 'noopener noreferrer' });
     }
-    
-    handleInput();
   };
 
   const toolbarButtons = [
-    { icon: Bold, label: "Bold (Ctrl+B)", action: () => executeCommand("bold") },
-    { icon: Italic, label: "Italic (Ctrl+I)", action: () => executeCommand("italic") },
-    { icon: Heading1, label: "Heading 1", action: () => insertHeading(2) },
-    { icon: Heading2, label: "Heading 2", action: () => insertHeading(3) },
+    { icon: Bold, label: "Bold (Ctrl+B)", action: () => wrapSelection('strong') },
+    { icon: Italic, label: "Italic (Ctrl+I)", action: () => wrapSelection('em') },
+    { icon: Heading1, label: "Heading 2", action: () => formatBlock('h2') },
+    { icon: Heading2, label: "Heading 3", action: () => formatBlock('h3') },
     { icon: List, label: "Bullet List", action: () => insertList(false) },
     { icon: ListOrdered, label: "Numbered List", action: () => insertList(true) },
-    { icon: Quote, label: "Quote", action: insertQuote },
+    { icon: Quote, label: "Quote", action: () => formatBlock('blockquote') },
     { icon: LinkIcon, label: "Insert Link", action: insertLink },
   ];
 
@@ -149,6 +216,9 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
         ref={editorRef}
         contentEditable
         onInput={handleInput}
+        onBlur={saveSelection}
+        onMouseUp={saveSelection}
+        onKeyUp={saveSelection}
         className="min-h-[400px] w-full rounded-b-md border border-t-0 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
           prose prose-sm max-w-none
           prose-headings:font-bold prose-headings:text-foreground
@@ -161,6 +231,7 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
           prose-ol:list-decimal prose-ol:pl-6
           prose-li:text-foreground"
         data-placeholder={placeholder}
+        suppressContentEditableWarning
       />
       <p className="text-xs text-muted-foreground">
         Tip: Pilih teks dan gunakan toolbar untuk format. Tekan Enter dua kali untuk paragraf baru.
