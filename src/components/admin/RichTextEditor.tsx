@@ -11,7 +11,6 @@ interface RichTextEditorProps {
 
 const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
-  const [savedSelection, setSavedSelection] = useState<Range | null>(null);
 
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== value) {
@@ -30,86 +29,40 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
     }
   };
 
-  // Save selection when user interacts with editor
-  const saveSelection = () => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      setSavedSelection(selection.getRangeAt(0));
-    }
-  };
-
-  // Restore selection before executing commands
-  const restoreSelection = () => {
-    if (savedSelection && editorRef.current) {
-      editorRef.current.focus();
-      const selection = window.getSelection();
-      if (selection) {
-        selection.removeAllRanges();
-        selection.addRange(savedSelection);
-      }
-    }
-  };
 
   const executeCommand = (command: string, value?: string) => {
     if (!editorRef.current) return;
     
-    restoreSelection();
+    editorRef.current.focus();
     
     try {
-      const success = document.execCommand(command, false, value);
-      if (!success) {
-        console.warn(`Command ${command} failed`);
-      }
+      document.execCommand(command, false, value);
     } catch (error) {
       console.error("Command execution error:", error);
     }
     
     handleInput();
-    saveSelection();
   };
 
   const insertHeading = (level: number) => {
     if (!editorRef.current) return;
     
-    restoreSelection();
-    
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      // If no selection, create one at cursor position
-      editorRef.current.focus();
-      return;
-    }
+    editorRef.current.focus();
     
     try {
-      // Try different formats for better browser compatibility
-      let success = document.execCommand('formatBlock', false, `h${level}`);
-      if (!success) {
-        success = document.execCommand('formatBlock', false, `<h${level}>`);
-      }
-      if (!success) {
-        // Fallback: wrap selection in heading tag manually
-        const range = selection.getRangeAt(0);
-        const heading = document.createElement(`h${level}`);
-        try {
-          range.surroundContents(heading);
-        } catch (e) {
-          // If surroundContents fails, try extracting and appending
-          heading.appendChild(range.extractContents());
-          range.insertNode(heading);
-        }
-      }
+      // Use formatBlock with h2 or h3
+      document.execCommand('formatBlock', false, `h${level}`);
     } catch (error) {
       console.error("Heading insertion error:", error);
     }
     
     handleInput();
-    saveSelection();
   };
 
   const insertList = (ordered: boolean) => {
     if (!editorRef.current) return;
     
-    restoreSelection();
+    editorRef.current.focus();
     
     const command = ordered ? 'insertOrderedList' : 'insertUnorderedList';
     
@@ -120,46 +73,24 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
     }
     
     handleInput();
-    saveSelection();
   };
 
   const insertQuote = () => {
     if (!editorRef.current) return;
     
-    restoreSelection();
-    
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
+    editorRef.current.focus();
     
     try {
-      // Try formatBlock with blockquote
-      let success = document.execCommand('formatBlock', false, 'blockquote');
-      if (!success) {
-        success = document.execCommand('formatBlock', false, '<blockquote>');
-      }
-      if (!success) {
-        // Manual fallback
-        const range = selection.getRangeAt(0);
-        const blockquote = document.createElement('blockquote');
-        try {
-          range.surroundContents(blockquote);
-        } catch (e) {
-          blockquote.appendChild(range.extractContents());
-          range.insertNode(blockquote);
-        }
-      }
+      document.execCommand('formatBlock', false, 'blockquote');
     } catch (error) {
       console.error("Quote insertion error:", error);
     }
     
     handleInput();
-    saveSelection();
   };
 
   const insertLink = () => {
     if (!editorRef.current) return;
-    
-    restoreSelection();
     
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0 || selection.toString().trim() === '') {
@@ -169,8 +100,8 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
     
     const url = prompt("Masukkan URL:");
     if (url && url.trim()) {
+      editorRef.current.focus();
       try {
-        // Validate and format URL
         let formattedUrl = url.trim();
         if (!formattedUrl.match(/^https?:\/\//)) {
           formattedUrl = 'https://' + formattedUrl;
@@ -183,7 +114,6 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
     }
     
     handleInput();
-    saveSelection();
   };
 
   const toolbarButtons = [
@@ -219,8 +149,6 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
         ref={editorRef}
         contentEditable
         onInput={handleInput}
-        onMouseUp={saveSelection}
-        onKeyUp={saveSelection}
         className="min-h-[400px] w-full rounded-b-md border border-t-0 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
           prose prose-sm max-w-none
           prose-headings:font-bold prose-headings:text-foreground
