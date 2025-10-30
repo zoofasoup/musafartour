@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Edit, Trash2, Save, Star } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { FileUpload } from "@/components/admin/FileUpload";
+import { compressAndConvertToWebP } from "@/lib/imageUtils";
 
 interface Testimonial {
   id: string;
@@ -30,6 +32,7 @@ const Testimonials = () => {
   const { user, loading: authLoading, isAdmin } = useAuth();
   
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Testimonial | null>(null);
@@ -69,6 +72,49 @@ const Testimonials = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      setUploading(true);
+      
+      const compressedFile = await compressAndConvertToWebP(file);
+      const timestamp = Date.now();
+      const fileName = `testimonial-${formData.name.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.webp`;
+      const filePath = `testimonials/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('package-images')
+        .upload(filePath, compressedFile, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('package-images')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, image_url: publicUrl });
+      
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, image_url: "" });
   };
 
   const handleSave = async () => {
@@ -221,13 +267,14 @@ const Testimonials = () => {
                     onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="image_url">Image URL</Label>
-                  <Input
-                    id="image_url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    placeholder="Optional"
+                <div className="col-span-3 space-y-2">
+                  <FileUpload
+                    label="Customer Photo (Optional)"
+                    currentImage={formData.image_url}
+                    onFileSelect={handleImageUpload}
+                    onRemove={handleRemoveImage}
+                    loading={uploading}
+                    maxSizeMB={2}
                   />
                 </div>
               </div>

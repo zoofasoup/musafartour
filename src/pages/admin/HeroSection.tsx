@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Save } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { FileUpload } from "@/components/admin/FileUpload";
+import { compressAndConvertToWebP } from "@/lib/imageUtils";
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -17,6 +19,7 @@ const HeroSection = () => {
   
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [heroData, setHeroData] = useState({
     id: "",
     title: "",
@@ -62,6 +65,55 @@ const HeroSection = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      setUploading(true);
+      
+      // Compress and convert to WebP
+      const compressedFile = await compressAndConvertToWebP(file);
+      
+      // Generate filename
+      const timestamp = Date.now();
+      const fileName = `hero-background-${timestamp}.webp`;
+      const filePath = `hero/${fileName}`;
+      
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('package-images')
+        .upload(filePath, compressedFile, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('package-images')
+        .getPublicUrl(filePath);
+
+      setHeroData({ ...heroData, background_image: publicUrl });
+      
+      toast({
+        title: "Success",
+        description: "Background image uploaded successfully",
+      });
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setHeroData({ ...heroData, background_image: "" });
   };
 
   const handleSave = async () => {
@@ -186,18 +238,14 @@ const HeroSection = () => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="background_image">Background Image URL</Label>
-            <Input
-              id="background_image"
-              value={heroData.background_image || ""}
-              onChange={(e) => setHeroData({ ...heroData, background_image: e.target.value })}
-              placeholder="e.g., /images/hero-bg.jpg"
-            />
-            <p className="text-xs text-muted-foreground">
-              Upload image to storage and paste the URL here
-            </p>
-          </div>
+          <FileUpload
+            label="Background Image"
+            currentImage={heroData.background_image}
+            onFileSelect={handleImageUpload}
+            onRemove={handleRemoveImage}
+            loading={uploading}
+            maxSizeMB={5}
+          />
 
           <Button onClick={handleSave} disabled={saving} className="w-full md:w-auto">
             {saving ? (

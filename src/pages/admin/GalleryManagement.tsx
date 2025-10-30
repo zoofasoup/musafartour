@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Edit, Trash2, Save, Image } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { FileUpload } from "@/components/admin/FileUpload";
+import { compressAndConvertToWebP } from "@/lib/imageUtils";
 
 interface GalleryImage {
   id: string;
@@ -28,6 +30,7 @@ const GalleryManagement = () => {
   const { user, loading: authLoading, isAdmin } = useAuth();
   
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<GalleryImage | null>(null);
@@ -66,6 +69,49 @@ const GalleryManagement = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      setUploading(true);
+      
+      const compressedFile = await compressAndConvertToWebP(file);
+      const timestamp = Date.now();
+      const fileName = `gallery-${formData.category}-${timestamp}.webp`;
+      const filePath = `gallery/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('package-images')
+        .upload(filePath, compressedFile, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('package-images')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, image_url: publicUrl });
+      
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, image_url: "" });
   };
 
   const handleSave = async () => {
