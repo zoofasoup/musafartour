@@ -255,6 +255,7 @@ export type Database = {
       }
       packages: {
         Row: {
+          available_tiers: string[] | null
           banner_image: string | null
           best_seller_transport: string | null
           catalog_link: string | null
@@ -294,6 +295,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          available_tiers?: string[] | null
           banner_image?: string | null
           best_seller_transport?: string | null
           catalog_link?: string | null
@@ -333,6 +335,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          available_tiers?: string[] | null
           banner_image?: string | null
           best_seller_transport?: string | null
           catalog_link?: string | null

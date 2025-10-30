@@ -30,6 +30,7 @@ interface PackageData {
   flight: string;
   flight_type: string;
   banner_image: string | null;
+  available_tiers: string[];
   package_price: {
     quad: number;
     triple: number;
@@ -187,10 +188,10 @@ const Index = () => {
   };
 
   const filteredPackages = packages.filter((pkg) => {
-    const pkgCategory = getCategoryFromPrice(pkg.package_price.quad);
     const pkgMonth = getMonthFromDate(pkg.departure_date);
     
-    const categoryMatch = category === "all" || pkgCategory === category;
+    // Check if package has the selected category tier
+    const categoryMatch = category === "all" || (pkg.available_tiers && pkg.available_tiers.includes(category));
     const airlineMatch = airline === "all" || pkg.flight === airline;
     const monthMatch = month === "all" || pkgMonth.includes(month.toLowerCase());
     const flightTypeMatch = flightType === "all" || pkg.flight_type.toLowerCase() === flightType;
@@ -202,30 +203,35 @@ const Index = () => {
     return categoryMatch && airlineMatch && monthMatch && flightTypeMatch && durationMatch;
   });
 
-  const transformedPackages = filteredPackages.map((pkg) => ({
-    id: pkg.id,
-    slug: pkg.slug,
-    image: pkg.banner_image || "/placeholder.svg",
-    title: pkg.package_name,
-    price: formatPrice(pkg.package_price.quad),
-    date: format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId }),
-    duration: `${pkg.duration_days} Hari`,
-    airline: pkg.flight,
-    transit: pkg.flight_type.toLowerCase() === "direct" ? "Direct" : "Transit",
-    hotelMakkah: pkg.makkah_hotel_name || undefined,
-    hotelMakkahRating: pkg.makkah_hotel_star || undefined,
-    hotelMadinah: pkg.madinah_hotel_name || undefined,
-    hotelMadinahRating: pkg.madinah_hotel_star || undefined,
-    category: getCategoryFromPrice(pkg.package_price.quad),
-    seatAvailable: true,
-    fiveStarPrice: pkg.five_star_package_price?.quad ? formatPrice(pkg.five_star_package_price.quad) : undefined,
-    fiveStarHotelMakkah: pkg.five_star_makkah_hotel_name || undefined,
-    fiveStarHotelMakkahRating: pkg.five_star_makkah_hotel_star || undefined,
-    fiveStarHotelMadinah: pkg.five_star_madinah_hotel_name || undefined,
-    fiveStarHotelMadinahRating: pkg.five_star_madinah_hotel_star || undefined,
-    fiveStarTransport: pkg.five_star_transport || undefined,
-    bestSellerTransport: pkg.best_seller_transport || undefined,
-  }));
+  const transformedPackages = filteredPackages.map((pkg) => {
+    // Determine display category based on selected filter or available tiers
+    const displayCategory = category !== "all" ? category : pkg.available_tiers[0] || "nyaman";
+    
+    return {
+      id: pkg.id,
+      slug: pkg.slug,
+      image: pkg.banner_image || "/placeholder.svg",
+      title: pkg.package_name,
+      price: formatPrice(pkg.package_price.quad),
+      date: format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId }),
+      duration: `${pkg.duration_days} Hari`,
+      airline: pkg.flight,
+      transit: pkg.flight_type.toLowerCase() === "direct" ? "Direct" : "Transit",
+      hotelMakkah: pkg.makkah_hotel_name || undefined,
+      hotelMakkahRating: pkg.makkah_hotel_star || undefined,
+      hotelMadinah: pkg.madinah_hotel_name || undefined,
+      hotelMadinahRating: pkg.madinah_hotel_star || undefined,
+      category: displayCategory,
+      seatAvailable: true,
+      fiveStarPrice: pkg.five_star_package_price?.quad ? formatPrice(pkg.five_star_package_price.quad) : undefined,
+      fiveStarHotelMakkah: pkg.five_star_makkah_hotel_name || undefined,
+      fiveStarHotelMakkahRating: pkg.five_star_makkah_hotel_star || undefined,
+      fiveStarHotelMadinah: pkg.five_star_madinah_hotel_name || undefined,
+      fiveStarHotelMadinahRating: pkg.five_star_madinah_hotel_star || undefined,
+      fiveStarTransport: pkg.five_star_transport || undefined,
+      bestSellerTransport: pkg.best_seller_transport || undefined,
+    };
+  });
 
   // Icon mapping for selling points
   const getIconComponent = (iconName: string) => {
@@ -304,10 +310,10 @@ const Index = () => {
         <div className="relative z-10 container mx-auto px-4 text-center text-white">
           <img src={musafarLogo} alt="Musafar Tour" className="h-16 mx-auto mb-8 opacity-90" />
           <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
-            {heroData?.title || "Temukan Paket Umroh Sempurna untuk Perjalanan Anda"}
+            {heroData?.title || "Edit your hero in the dashboard"}
           </h1>
           <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-gray-200">
-            {heroData?.subtitle || "Musafar Tour menawarkan pengalaman Umroh yang dirancang dengan penuh perhatian, dari budget hingga bintang lima, semuanya dibimbing dengan penuh kasih sayang."}
+            {heroData?.subtitle || "Configure your hero section from the admin dashboard to customize this content."}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-full px-4">
             <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold text-base sm:text-lg px-6 sm:px-8 w-full sm:w-auto" onClick={() => document.getElementById('packages')?.scrollIntoView({

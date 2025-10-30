@@ -25,6 +25,7 @@ const packageSchema = z.object({
   duration_days: z.number().min(1, "Durasi minimal 1 hari"),
   flight: z.string().min(1, "Maskapai wajib diisi"),
   flight_type: z.string().min(1, "Tipe penerbangan wajib diisi"),
+  available_tiers: z.array(z.enum(["hemat", "nyaman", "five-star"])).min(1, "Pilih minimal satu tier"),
   
   // Best Seller Tier
   madinah_hotel_name: z.string().optional(),
@@ -159,6 +160,7 @@ const PackageForm = () => {
       duration_days: 10,
       flight: "",
       flight_type: "Direct",
+      available_tiers: ["nyaman"],
       price_quad: 0,
       price_triple: 0,
       price_double: 0,
@@ -296,6 +298,7 @@ const PackageForm = () => {
           duration_days: data.duration_days,
           flight: data.flight,
           flight_type: data.flight_type,
+          available_tiers: (data.available_tiers as ("hemat" | "nyaman" | "five-star")[]) || ["nyaman"],
           
           madinah_hotel_name: data.madinah_hotel_name || "",
           madinah_hotel_star: data.madinah_hotel_star || 0,
@@ -529,6 +532,7 @@ const PackageForm = () => {
         duration_days: values.duration_days,
         flight: values.flight,
         flight_type: values.flight_type,
+        available_tiers: values.available_tiers,
         
         madinah_hotel_name: values.madinah_hotel_name,
         madinah_hotel_star: values.madinah_hotel_star,
@@ -726,6 +730,47 @@ const PackageForm = () => {
                   )}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Tier Paket</CardTitle>
+              <CardDescription>Pilih tier yang tersedia untuk paket ini</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="available_tiers"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tier yang Tersedia</FormLabel>
+                    <div className="space-y-3">
+                      {[
+                        { value: "hemat", label: "Hemat (< 25 Juta)" },
+                        { value: "nyaman", label: "Nyaman / Best Seller (25-40 Juta)" },
+                        { value: "five-star", label: "Five Star (> 40 Juta)" }
+                      ].map((tier) => (
+                        <div key={tier.value} className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={field.value?.includes(tier.value as any)}
+                            onCheckedChange={(checked) => {
+                              const currentValue = field.value || [];
+                              if (checked) {
+                                field.onChange([...currentValue, tier.value]);
+                              } else {
+                                field.onChange(currentValue.filter((v) => v !== tier.value));
+                              }
+                            }}
+                          />
+                          <Label className="cursor-pointer font-normal">{tier.label}</Label>
+                        </div>
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </CardContent>
           </Card>
 
