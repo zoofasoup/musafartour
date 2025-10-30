@@ -277,7 +277,7 @@ const Index = () => {
     "priceRange": "Rp 20.000.000 - Rp 60.000.000"
   };
   
-  return <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background overflow-x-hidden">
       <SEO 
         title="Musafar Tour - Paket Umroh & Haji Terpercaya 2025"
         description="Paket umroh mulai 20 jutaan dengan pelayanan terbaik. Hotel bintang 5, katering Indonesia, pembimbing berpengalaman. Daftar sekarang!"
@@ -309,15 +309,15 @@ const Index = () => {
           <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-gray-200">
             {heroData?.subtitle || "Musafar Tour menawarkan pengalaman Umroh yang dirancang dengan penuh perhatian, dari budget hingga bintang lima, semuanya dibimbing dengan penuh kasih sayang."}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold text-lg px-8" onClick={() => document.getElementById('packages')?.scrollIntoView({
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-full px-4">
+            <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold text-base sm:text-lg px-6 sm:px-8 w-full sm:w-auto" onClick={() => document.getElementById('packages')?.scrollIntoView({
             behavior: 'smooth'
           })}>
               Lihat Semua Paket
             </Button>
-            <Button size="lg" variant="outline" className="bg-white/10 border-white text-white hover:bg-white hover:text-foreground font-semibold text-lg px-8 backdrop-blur-sm" onClick={handleWhatsAppClick}>
-              <MessageCircle className="mr-2 h-5 w-5" />
-              {heroData?.cta_text || "Chat dengan Musamin 🤍"}
+            <Button size="lg" variant="outline" className="bg-white/10 border-white text-white hover:bg-white hover:text-foreground font-semibold text-base sm:text-lg px-6 sm:px-8 backdrop-blur-sm w-full sm:w-auto" onClick={handleWhatsAppClick}>
+              <MessageCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+              <span className="truncate">{heroData?.cta_text || "Chat dengan Musamin 🤍"}</span>
             </Button>
           </div>
         </div>
