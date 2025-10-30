@@ -21,6 +21,7 @@ import {
   SidebarHeader,
   SidebarFooter,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 const AdminLayout = () => {
@@ -104,21 +105,33 @@ const AdminLayout = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <Sidebar collapsible="icon" className="border-r">
-          <SidebarHeader className="border-b p-4">
-            <div className="flex items-center gap-2">
+      <SidebarLayout menuSections={menuSections} isActive={isActive} user={user} navigate={navigate} handleSignOut={handleSignOut} />
+    </SidebarProvider>
+  );
+};
+
+const SidebarLayout = ({ menuSections, isActive, user, navigate, handleSignOut }: any) => {
+  const { open } = useSidebar();
+
+  return (
+    <div className="min-h-screen flex w-full bg-background">
+      <Sidebar collapsible="icon" className="border-r">
+        <SidebarHeader className="border-b p-4">
+          {open && (
+            <div className="flex items-center gap-2 mb-2">
               <img src={musafarLogo} alt="Musafar Tour" className="h-8" />
             </div>
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-2 mt-2"
-              onClick={() => navigate("/")}
-            >
-              <Home className="h-4 w-4" />
-              <span>Back to Website</span>
-            </Button>
-          </SidebarHeader>
+          )}
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-2"
+            onClick={() => navigate("/")}
+            title="Back to Website"
+          >
+            <Home className="h-4 w-4" />
+            {open && <span>Back to Website</span>}
+          </Button>
+        </SidebarHeader>
 
           <SidebarContent>
             {menuSections.map((section, idx) => (
@@ -143,6 +156,7 @@ const AdminLayout = () => {
                                 ? "bg-red-600 text-white hover:bg-red-700 hover:text-white"
                                 : "hover:bg-accent"
                             }`}
+                            tooltip={item.label}
                           >
                             <button className="w-full">
                               <Icon className={`h-4 w-4 ${active ? "text-white" : ""}`} />
@@ -161,17 +175,20 @@ const AdminLayout = () => {
           </SidebarContent>
 
           <SidebarFooter className="border-t p-4">
-            <div className="mb-2">
-              <p className="text-sm font-medium truncate">{user?.email}</p>
-              <p className="text-xs text-muted-foreground">Admin</p>
-            </div>
+            {open && (
+              <div className="mb-2">
+                <p className="text-sm font-medium truncate">{user?.email}</p>
+                <p className="text-xs text-muted-foreground">Admin</p>
+              </div>
+            )}
             <Button
               variant="ghost"
               className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={handleSignOut}
+              title="Sign Out"
             >
               <LogOut className="h-4 w-4" />
-              <span>Sign Out</span>
+              {open && <span>Sign Out</span>}
             </Button>
           </SidebarFooter>
         </Sidebar>
@@ -187,8 +204,7 @@ const AdminLayout = () => {
           </div>
         </main>
       </div>
-    </SidebarProvider>
-  );
-};
+    );
+  };
 
 export default AdminLayout;
