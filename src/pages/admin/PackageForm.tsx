@@ -774,543 +774,579 @@ const PackageForm = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Akomodasi Madinah</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="madinah_hotel_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nama Hotel</FormLabel>
-                      <Select
-                        onValueChange={handleBestSellerMadinahHotelChange}
-                        value={madinahHotels.find((h) => h.name === field.value)?.id || "none"}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih hotel Madinah" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Belum dipilih</SelectItem>
-                          {madinahHotels.map((hotel) => (
-                            <SelectItem key={hotel.id} value={hotel.id}>
-                              {hotel.name} ({hotel.star_rating}⭐)
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          {form.watch("available_tiers")?.includes("nyaman") && (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tier Nyaman / Best Seller</CardTitle>
+                </CardHeader>
+              </Card>
 
-                <FormField
-                  control={form.control}
-                  name="madinah_hotel_star"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bintang Hotel</FormLabel>
-                      <Select
-                        onValueChange={(val) => field.onChange(parseInt(val))}
-                        value={field.value?.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih bintang" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="3">3 Bintang</SelectItem>
-                          <SelectItem value="4">4 Bintang</SelectItem>
-                          <SelectItem value="5">5 Bintang</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Akomodasi Madinah</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="madinah_hotel_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nama Hotel</FormLabel>
+                          <Select
+                            onValueChange={handleBestSellerMadinahHotelChange}
+                            value={madinahHotels.find((h) => h.name === field.value)?.id || "none"}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih hotel Madinah" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">Belum dipilih</SelectItem>
+                              {madinahHotels.map((hotel) => (
+                                <SelectItem key={hotel.id} value={hotel.id}>
+                                  {hotel.name} ({hotel.star_rating}⭐)
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="madinah_distance"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Jarak ke Masjid Nabawi</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="100 meter" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="madinah_hotel_star"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bintang Hotel</FormLabel>
+                          <Select
+                            onValueChange={(val) => field.onChange(parseInt(val))}
+                            value={field.value?.toString()}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih bintang" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="3">3 Bintang</SelectItem>
+                              <SelectItem value="4">4 Bintang</SelectItem>
+                              <SelectItem value="5">5 Bintang</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                <FormField
-                  control={form.control}
-                  name="madinah_duration_walk"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Durasi Jalan Kaki</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="5 menit" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="madinah_distance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Jarak ke Masjid Nabawi</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="100 meter" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Akomodasi Makkah</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="makkah_hotel_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nama Hotel</FormLabel>
-                      <Select
-                        onValueChange={handleBestSellerMakkahHotelChange}
-                        value={makkahHotels.find((h) => h.name === field.value)?.id || "none"}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih hotel Makkah" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Belum dipilih</SelectItem>
-                          {makkahHotels.map((hotel) => (
-                            <SelectItem key={hotel.id} value={hotel.id}>
-                              {hotel.name} ({hotel.star_rating}⭐)
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="madinah_duration_walk"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Durasi Jalan Kaki</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="5 menit" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-                <FormField
-                  control={form.control}
-                  name="makkah_hotel_star"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bintang Hotel</FormLabel>
-                      <Select
-                        onValueChange={(val) => field.onChange(parseInt(val))}
-                        value={field.value?.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih bintang" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="3">3 Bintang</SelectItem>
-                          <SelectItem value="4">4 Bintang</SelectItem>
-                          <SelectItem value="5">5 Bintang</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Hotel Makkah</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="makkah_hotel_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nama Hotel</FormLabel>
+                          <Select
+                            onValueChange={handleBestSellerMakkahHotelChange}
+                            value={makkahHotels.find((h) => h.name === field.value)?.id || "none"}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih hotel Makkah" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">Belum dipilih</SelectItem>
+                              {makkahHotels.map((hotel) => (
+                                <SelectItem key={hotel.id} value={hotel.id}>
+                                  {hotel.name} ({hotel.star_rating}⭐)
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="makkah_distance"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Jarak ke Masjidil Haram</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="200 meter" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="makkah_hotel_star"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bintang Hotel</FormLabel>
+                          <Select
+                            onValueChange={(val) => field.onChange(parseInt(val))}
+                            value={field.value?.toString()}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih bintang" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="3">3 Bintang</SelectItem>
+                              <SelectItem value="4">4 Bintang</SelectItem>
+                              <SelectItem value="5">5 Bintang</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                <FormField
-                  control={form.control}
-                  name="makkah_duration_walk"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Durasi Jalan Kaki</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="10 menit" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="makkah_distance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Jarak ke Masjidil Haram</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="200 meter" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Tier Best Seller</CardTitle>
-              <CardDescription>Hotel, harga dan transportasi untuk paket Best Seller</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="best_seller_transport"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Transportasi Makkah-Madinah</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Bus Eksklusif" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <FormField
+                      control={form.control}
+                      name="makkah_duration_walk"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Durasi Jalan Kaki</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="10 menit" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="price_quad"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Quad (4 orang)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          placeholder="25000000"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Transportasi & Harga</CardTitle>
+                  <CardDescription>Transportasi dan harga untuk paket Best Seller</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="best_seller_transport"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Transportasi Makkah-Madinah</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih transportasi" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Bus Eksklusif">Bus Eksklusif</SelectItem>
+                            <SelectItem value="Kereta Cepat">Kereta Cepat</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="price_triple"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Triple (3 orang)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          placeholder="27000000"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="price_quad"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Harga Quad (4 orang)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              placeholder="25000000"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name="price_double"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Double (2 orang)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          placeholder="30000000"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
+                    <FormField
+                      control={form.control}
+                      name="price_triple"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Harga Triple (3 orang)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              placeholder="27000000"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Akomodasi Madinah - Five Star</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="five_star_madinah_hotel_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nama Hotel</FormLabel>
-                      <Select
-                        onValueChange={handleFiveStarMadinahHotelChange}
-                        value={madinahHotels.find((h) => h.name === field.value)?.id || "none"}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih hotel Madinah (Five Star)" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Belum dipilih</SelectItem>
-                          {madinahHotels.map((hotel) => (
-                            <SelectItem key={hotel.id} value={hotel.id}>
-                              {hotel.name} ({hotel.star_rating}⭐)
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="price_double"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Harga Double (2 orang)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              placeholder="30000000"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
 
-                <FormField
-                  control={form.control}
-                  name="five_star_madinah_hotel_star"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bintang Hotel</FormLabel>
-                      <Select
-                        onValueChange={(val) => field.onChange(parseInt(val))}
-                        value={field.value?.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih bintang" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="3">3 Bintang</SelectItem>
-                          <SelectItem value="4">4 Bintang</SelectItem>
-                          <SelectItem value="5">5 Bintang</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+          {form.watch("available_tiers")?.includes("five-star") && (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tier Five Star</CardTitle>
+                </CardHeader>
+              </Card>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="five_star_madinah_distance"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Jarak ke Masjid Nabawi</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="100 meter" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Hotel Madinah - Five Star</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="five_star_madinah_hotel_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nama Hotel</FormLabel>
+                          <Select
+                            onValueChange={handleFiveStarMadinahHotelChange}
+                            value={madinahHotels.find((h) => h.name === field.value)?.id || "none"}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih hotel Madinah (Five Star)" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">Belum dipilih</SelectItem>
+                              {madinahHotels.map((hotel) => (
+                                <SelectItem key={hotel.id} value={hotel.id}>
+                                  {hotel.name} ({hotel.star_rating}⭐)
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name="five_star_madinah_duration_walk"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Durasi Jalan Kaki</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="5 menit" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
+                    <FormField
+                      control={form.control}
+                      name="five_star_madinah_hotel_star"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bintang Hotel</FormLabel>
+                          <Select
+                            onValueChange={(val) => field.onChange(parseInt(val))}
+                            value={field.value?.toString()}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih bintang" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="3">3 Bintang</SelectItem>
+                              <SelectItem value="4">4 Bintang</SelectItem>
+                              <SelectItem value="5">5 Bintang</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Akomodasi Makkah - Five Star</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="five_star_makkah_hotel_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nama Hotel</FormLabel>
-                      <Select
-                        onValueChange={handleFiveStarMakkahHotelChange}
-                        value={makkahHotels.find((h) => h.name === field.value)?.id || "none"}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih hotel Makkah (Five Star)" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Belum dipilih</SelectItem>
-                          {makkahHotels.map((hotel) => (
-                            <SelectItem key={hotel.id} value={hotel.id}>
-                              {hotel.name} ({hotel.star_rating}⭐)
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="five_star_madinah_distance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Jarak ke Masjid Nabawi</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="100 meter" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name="five_star_makkah_hotel_star"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bintang Hotel</FormLabel>
-                      <Select
-                        onValueChange={(val) => field.onChange(parseInt(val))}
-                        value={field.value?.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih bintang" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="3">3 Bintang</SelectItem>
-                          <SelectItem value="4">4 Bintang</SelectItem>
-                          <SelectItem value="5">5 Bintang</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                    <FormField
+                      control={form.control}
+                      name="five_star_madinah_duration_walk"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Durasi Jalan Kaki</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="5 menit" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="five_star_makkah_distance"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Jarak ke Masjidil Haram</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="200 meter" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Hotel Makkah - Five Star</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="five_star_makkah_hotel_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nama Hotel</FormLabel>
+                          <Select
+                            onValueChange={handleFiveStarMakkahHotelChange}
+                            value={makkahHotels.find((h) => h.name === field.value)?.id || "none"}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih hotel Makkah (Five Star)" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">Belum dipilih</SelectItem>
+                              {makkahHotels.map((hotel) => (
+                                <SelectItem key={hotel.id} value={hotel.id}>
+                                  {hotel.name} ({hotel.star_rating}⭐)
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name="five_star_makkah_duration_walk"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Durasi Jalan Kaki</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="10 menit" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
+                    <FormField
+                      control={form.control}
+                      name="five_star_makkah_hotel_star"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bintang Hotel</FormLabel>
+                          <Select
+                            onValueChange={(val) => field.onChange(parseInt(val))}
+                            value={field.value?.toString()}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih bintang" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="3">3 Bintang</SelectItem>
+                              <SelectItem value="4">4 Bintang</SelectItem>
+                              <SelectItem value="5">5 Bintang</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Tier Five Star</CardTitle>
-              <CardDescription>Harga dan transportasi untuk paket Five Star</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="five_star_transport"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Transportasi Makkah-Madinah</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Kereta Cepat" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="five_star_makkah_distance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Jarak ke Masjidil Haram</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="200 meter" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="five_star_price_quad"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Quad (4 orang)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          placeholder="35000000"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="five_star_makkah_duration_walk"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Durasi Jalan Kaki</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="10 menit" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-                <FormField
-                  control={form.control}
-                  name="five_star_price_triple"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Triple (3 orang)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          placeholder="37000000"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Transportasi & Harga</CardTitle>
+                  <CardDescription>Transportasi dan harga untuk paket Five Star</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="five_star_transport"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Transportasi Makkah-Madinah</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih transportasi" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Bus Eksklusif">Bus Eksklusif</SelectItem>
+                            <SelectItem value="Kereta Cepat">Kereta Cepat</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="five_star_price_double"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Double (2 orang)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          placeholder="40000000"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="five_star_price_quad"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Harga Quad (4 orang)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              placeholder="45000000"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="five_star_price_triple"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Harga Triple (3 orang)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              placeholder="47000000"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="five_star_price_double"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Harga Double (2 orang)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              placeholder="50000000"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
 
           {/* Banner Image Upload */}
           <Card>
