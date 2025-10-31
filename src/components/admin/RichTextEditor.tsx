@@ -136,8 +136,8 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
   ];
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-1 p-2 border rounded-t-lg bg-muted/30">
+    <div className="space-y-2 relative">
+      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 p-2 border rounded-t-lg bg-muted/95 backdrop-blur-sm shadow-sm">
         {toolbarButtons.map((button, index) => {
           if ('separator' in button && button.separator) {
             return <Separator key={`sep-${index}`} orientation="vertical" className="h-6 mx-1" />;
@@ -160,7 +160,7 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
         })}
       </div>
       
-      <div className="border rounded-b-lg bg-background">
+      <div className="border border-t-0 rounded-b-lg bg-background">
         <EditorContent 
           editor={editor}
           className="
@@ -205,7 +205,7 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
       </div>
       
       <p className="text-xs text-muted-foreground">
-        Select text and use toolbar buttons to format. All formatting options are fully functional.
+        Toolbar remains visible while scrolling. All formatting options work correctly in the editor and published articles.
       </p>
     </div>
   );

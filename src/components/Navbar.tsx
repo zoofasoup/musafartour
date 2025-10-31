@@ -10,11 +10,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DarkModeToggle } from "./DarkModeToggle";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const isHomePage = location.pathname === "/";
 
   useEffect(() => {
     // Check initial dark mode
@@ -32,13 +36,29 @@ const Navbar = () => {
       attributeFilter: ['class'],
     });
 
-    return () => observer.disconnect();
-  }, []);
+    // Handle scroll for floating navbar on homepage
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
+
+    if (isHomePage) {
+      window.addEventListener('scroll', handleScroll);
+    }
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isHomePage]);
 
   const isActive = (path: string) => location.pathname === path;
 
+  const navClasses = isHomePage && isScrolled
+    ? "fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-background/80 backdrop-blur-md border rounded-full shadow-lg max-w-6xl w-[95%] transition-all duration-300"
+    : "sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b";
+
   return (
-    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+    <nav className={navClasses}>
       <div className="container mx-auto px-4">
         <div className="flex justify-center items-center h-16 relative">
           <Link to="/" className="absolute left-0 flex items-center">
@@ -48,6 +68,12 @@ const Navbar = () => {
               className="h-10" 
             />
           </Link>
+
+          {/* Theme Controls */}
+          <div className="absolute right-12 md:right-0 flex items-center gap-2">
+            <LanguageSwitcher />
+            <DarkModeToggle />
+          </div>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-6">

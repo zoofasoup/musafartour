@@ -12,9 +12,20 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
+import { TrustElements } from "@/components/TrustElements";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -65,6 +76,12 @@ const Index = () => {
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [faqItems, setFaqItems] = useState<any[]>([]);
   const [websiteSettings, setWebsiteSettings] = useState<any>(null);
+  const isMobile = useIsMobile();
+  
+  // Scroll animations
+  const packagesAnimation = useScrollAnimation();
+  const featuresAnimation = useScrollAnimation();
+  const testimonialsAnimation = useScrollAnimation();
 
   useEffect(() => {
     fetchPackages();
@@ -82,8 +99,7 @@ const Index = () => {
         .from("packages")
         .select("*")
         .eq("status", "published")
-        .order("departure_date", { ascending: true })
-        .limit(6); // Show only 6 packages on homepage
+        .order("departure_date", { ascending: true });
 
       if (error) throw error;
       setPackages(data as any || []);
@@ -203,7 +219,14 @@ const Index = () => {
     return categoryMatch && airlineMatch && monthMatch && flightTypeMatch && durationMatch;
   });
 
-  const transformedPackages = filteredPackages.map((pkg) => {
+  // Limit to 4 packages on homepage desktop when no filter is active
+  const isFiltered = category !== "all" || airline !== "all" || month !== "all" || 
+                     flightType !== "all" || duration !== "all";
+  const displayPackages = (!isFiltered && !isMobile) 
+    ? filteredPackages.slice(0, 4) 
+    : filteredPackages;
+
+  const transformedPackages = displayPackages.map((pkg) => {
     // Determine display category based on selected filter or available tiers
     const displayCategory = category !== "all" ? category : pkg.available_tiers[0] || "nyaman";
     
@@ -308,14 +331,18 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
         
         <div className="relative z-10 container mx-auto px-4 text-center text-white">
-          <img src={musafarLogo} alt="Musafar Tour" className="h-16 mx-auto mb-8 opacity-90" />
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
+          <img 
+            src={musafarLogo} 
+            alt="Musafar Tour" 
+            className="h-16 mx-auto mb-8 opacity-90 animate-fade-in" 
+          />
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-[fade-in_0.6s_ease-out,float-up_0.6s_ease-out]">
             {heroData?.title || "Edit your hero in the dashboard"}
           </h1>
-          <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-gray-200">
+          <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-gray-200 animate-[fade-in_0.8s_ease-out_0.2s_both,float-up_0.8s_ease-out_0.2s_both]">
             {heroData?.subtitle || "Configure your hero section from the admin dashboard to customize this content."}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-full px-4">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-full px-4 animate-[fade-in_1s_ease-out_0.4s_both,float-up_1s_ease-out_0.4s_both]">
             <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold text-base sm:text-lg px-6 sm:px-8 w-full sm:w-auto" onClick={() => document.getElementById('packages')?.scrollIntoView({
             behavior: 'smooth'
           })}>
@@ -328,6 +355,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Trust Elements */}
+      <TrustElements />
 
       {/* Filter & Package Catalog */}
       <section id="packages" className="py-16 container mx-auto px-4">
@@ -436,29 +466,55 @@ const Index = () => {
         </div>
 
         {/* Package Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="space-y-4">
-                <Skeleton className="aspect-[4/5] w-full" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
+        <div ref={packagesAnimation.ref} className={`transition-all duration-700 ${
+          packagesAnimation.isVisible 
+            ? 'opacity-100 translate-y-0' 
+            : 'opacity-0 translate-y-10'
+        }`}>
+          {loading ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="aspect-[4/5] w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : transformedPackages.length === 0 ? (
+            <div className="text-center py-16">
+              <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-xl font-semibold mb-2">Tidak ada paket tersedia</h3>
+              <p className="text-muted-foreground">
+                Coba ubah filter atau kembali lagi nanti
+              </p>
+            </div>
+          ) : isMobile ? (
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {transformedPackages.map((pkg) => (
+                  <CarouselItem key={pkg.id} className="pl-2 md:pl-4 basis-[85%]">
+                    <PackageCard {...pkg} />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <div className="flex justify-center mt-4 gap-2">
+                <CarouselPrevious className="relative left-0 translate-y-0" />
+                <CarouselNext className="relative right-0 translate-y-0" />
               </div>
-            ))}
-          </div>
-        ) : transformedPackages.length === 0 ? (
-          <div className="text-center py-16">
-            <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2">Tidak ada paket tersedia</h3>
-            <p className="text-muted-foreground">
-              Coba ubah filter atau kembali lagi nanti
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {transformedPackages.map((pkg) => <PackageCard key={pkg.id} {...pkg} />)}
-          </div>
-        )}
+            </Carousel>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {transformedPackages.map((pkg) => <PackageCard key={pkg.id} {...pkg} />)}
+            </div>
+          )}
+        </div>
       </section>
 
       {/* Why Choose Musafar */}
@@ -468,12 +524,49 @@ const Index = () => {
             <h2 className="text-3xl font-bold mb-2 text-foreground">Mengapa Memilih Musafar Tour</h2>
             <p className="text-muted-foreground">Kami mendampingi Anda dengan hati dan profesionalisme</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.length > 0 ? (
-              features.map((feature, index) => <FeatureCard key={index} {...feature} />)
+          <div 
+            ref={featuresAnimation.ref} 
+            className={`transition-all duration-700 ${
+              featuresAnimation.isVisible 
+                ? 'opacity-100 translate-y-0' 
+                : 'opacity-0 translate-y-10'
+            }`}
+          >
+            {isMobile ? (
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-2">
+                  {features.length > 0 ? (
+                    features.map((feature, index) => (
+                      <CarouselItem key={index} className="pl-2 basis-[85%]">
+                        <FeatureCard {...feature} />
+                      </CarouselItem>
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center text-muted-foreground">
+                      Belum ada selling points yang ditambahkan
+                    </div>
+                  )}
+                </CarouselContent>
+                <div className="flex justify-center mt-4 gap-2">
+                  <CarouselPrevious className="relative left-0 translate-y-0" />
+                  <CarouselNext className="relative right-0 translate-y-0" />
+                </div>
+              </Carousel>
             ) : (
-              <div className="col-span-full text-center text-muted-foreground">
-                Belum ada selling points yang ditambahkan
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {features.length > 0 ? (
+                  features.map((feature, index) => <FeatureCard key={index} {...feature} />)
+                ) : (
+                  <div className="col-span-full text-center text-muted-foreground">
+                    Belum ada selling points yang ditambahkan
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -508,19 +601,46 @@ const Index = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-foreground">
             Apa Kata Musafriends di Google
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-12">
+          <div 
+            ref={testimonialsAnimation.ref} 
+            className={`transition-all duration-700 ${
+              testimonialsAnimation.isVisible 
+                ? 'opacity-100 translate-y-0' 
+                : 'opacity-0 translate-y-10'
+            }`}
+          >
             {testimonials.length > 0 ? (
-              testimonials.map((testimonial, index) => (
-                <TestimonialCard 
-                  key={testimonial.id} 
-                  name={testimonial.name}
-                  image={testimonial.image_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${testimonial.name}`}
-                  text={testimonial.content}
-                  location={testimonial.location || ""}
-                />
-              ))
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                plugins={[
+                  Autoplay({
+                    delay: 4000,
+                  }),
+                ]}
+                className="w-full mb-12"
+              >
+                <CarouselContent className="-ml-2 md:-ml-4">
+                  {testimonials.map((testimonial) => (
+                    <CarouselItem key={testimonial.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                      <TestimonialCard 
+                        name={testimonial.name}
+                        image={testimonial.image_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${testimonial.name}`}
+                        text={testimonial.content}
+                        location={testimonial.location || ""}
+                      />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <div className="flex justify-center mt-4 gap-2">
+                  <CarouselPrevious className="relative left-0 translate-y-0" />
+                  <CarouselNext className="relative right-0 translate-y-0" />
+                </div>
+              </Carousel>
             ) : (
-              <div className="col-span-full text-center text-muted-foreground">
+              <div className="col-span-full text-center text-muted-foreground mb-12">
                 Belum ada testimonial yang ditambahkan
               </div>
             )}

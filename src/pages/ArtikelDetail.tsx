@@ -163,17 +163,20 @@ const ArtikelDetail = () => {
           <div 
             className="prose prose-lg max-w-none
               prose-headings:font-bold prose-headings:text-foreground
+              prose-h1:text-3xl prose-h1:mb-4
+              prose-h2:text-2xl prose-h2:mb-3
+              prose-h3:text-xl prose-h3:mb-2
               prose-p:text-foreground prose-p:leading-relaxed prose-p:mb-6
               prose-strong:text-foreground prose-strong:font-semibold
               prose-em:text-foreground
               prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-              prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic
+              prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-muted-foreground
               prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-6
               prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-6
               prose-li:text-foreground prose-li:mb-2
               prose-img:rounded-lg prose-img:my-8"
             dangerouslySetInnerHTML={{ 
-              __html: DOMPurify.sanitize(article.content.replace(/\n/g, '<br />'), {
+              __html: DOMPurify.sanitize(article.content, {
                 ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'a', 'img'],
                 ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'target', 'rel']
               })
