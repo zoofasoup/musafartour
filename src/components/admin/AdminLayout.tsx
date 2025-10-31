@@ -1,4 +1,4 @@
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { 
@@ -6,7 +6,6 @@ import {
   Images, Package, Plane, Hotel, Calendar, FileText, HelpCircle,
   Settings, Users
 } from "lucide-react";
-import { useEffect } from "react";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
 import {
   Sidebar,
@@ -25,20 +24,8 @@ import {
 } from "@/components/ui/sidebar";
 
 const AdminLayout = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const { user, loading, isAdmin, signOut } = useAuth();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
-    }
-  }, [user, loading, navigate]);
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth");
-  };
 
   if (loading) {
     return (
@@ -48,13 +35,19 @@ const AdminLayout = () => {
     );
   }
 
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
   if (!isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
           <p className="text-muted-foreground mb-4">Anda tidak memiliki akses admin</p>
-          <Button onClick={() => navigate("/")}>Kembali ke Home</Button>
+          <Button asChild>
+            <Link to="/">Kembali ke Home</Link>
+          </Button>
         </div>
       </div>
     );
@@ -103,14 +96,18 @@ const AdminLayout = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
     <SidebarProvider>
-      <SidebarLayout menuSections={menuSections} isActive={isActive} user={user} navigate={navigate} handleSignOut={handleSignOut} />
+      <SidebarLayout menuSections={menuSections} isActive={isActive} user={user} handleSignOut={handleSignOut} />
     </SidebarProvider>
   );
 };
 
-const SidebarLayout = ({ menuSections, isActive, user, navigate, handleSignOut }: any) => {
+const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => {
   const { open } = useSidebar();
 
   return (
@@ -124,13 +121,11 @@ const SidebarLayout = ({ menuSections, isActive, user, navigate, handleSignOut }
           )}
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => navigate("/")}
-                tooltip="Back to Website"
-                className="hover:bg-accent"
-              >
-                <Home className="h-4 w-4" />
-                <span>Back to Website</span>
+              <SidebarMenuButton asChild tooltip="Back to Website" className="hover:bg-accent">
+                <Link to="/">
+                  <Home className="h-4 w-4" />
+                  <span>Back to Website</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -153,7 +148,6 @@ const SidebarLayout = ({ menuSections, isActive, user, navigate, handleSignOut }
                         <SidebarMenuItem key={item.path}>
                           <SidebarMenuButton
                             asChild
-                            onClick={() => navigate(item.path)}
                             className={`transition-colors ${
                               active
                                 ? "bg-red-600 text-white hover:bg-red-700 hover:text-white"
@@ -161,12 +155,12 @@ const SidebarLayout = ({ menuSections, isActive, user, navigate, handleSignOut }
                             }`}
                             tooltip={item.label}
                           >
-                            <button className="w-full">
+                            <Link to={item.path}>
                               <Icon className={`h-4 w-4 ${active ? "text-white" : ""}`} />
                               <span className={active ? "font-semibold text-white" : ""}>
                                 {item.label}
                               </span>
-                            </button>
+                            </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                       );

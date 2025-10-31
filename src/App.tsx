@@ -6,8 +6,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 
-// Eager load homepage for best FCP
+// Eager load homepage and admin layout (layout must not be lazy to persist across navigation)
 import Index from "./pages/Index";
+import AdminLayout from "./components/admin/AdminLayout";
 
 // Lazy load all other routes
 const PaketUmroh = lazy(() => import("./pages/PaketUmroh"));
@@ -22,7 +23,6 @@ const Kontak = lazy(() => import("./pages/Kontak"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Auth = lazy(() => import("./pages/Auth"));
 const AdminSetup = lazy(() => import("./pages/AdminSetup"));
-const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const Packages = lazy(() => import("./pages/admin/Packages"));
 const PackageForm = lazy(() => import("./pages/admin/PackageForm"));
@@ -42,7 +42,15 @@ const FAQAdmin = lazy(() => import("./pages/admin/FAQ"));
 const WebsiteSettings = lazy(() => import("./pages/admin/WebsiteSettings"));
 const Team = lazy(() => import("./pages/admin/Team"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60, // 1 minute
+      gcTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -51,7 +59,11 @@ const App = () => (
       <Sonner />
       <FloatingWhatsApp />
       <BrowserRouter>
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+        <Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        }>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/paket-umroh" element={<PaketUmroh />} />
