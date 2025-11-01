@@ -3,11 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Plane, Calendar, Hotel, Star, Train, Bus, ChevronDown } from "lucide-react";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Plane, Calendar, Hotel, Star, Train, Bus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface PackageCardProps {
@@ -77,7 +79,6 @@ export const PackageCard = ({
 }: PackageCardProps) => {
   const navigate = useNavigate();
   const [selectedTier, setSelectedTier] = useState<"best-seller" | "five-star">("best-seller");
-  const [isOpen, setIsOpen] = useState(false);
   
   const hasFiveStarTier = !!fiveStarPrice && !!fiveStarHotelMakkah && !!fiveStarHotelMadinah;
   const hasMultipleTiers = hasFiveStarTier;
@@ -132,56 +133,19 @@ export const PackageCard = ({
 
           {/* Tier Selector */}
           {hasMultipleTiers && (
-            <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-              <CollapsibleTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-between h-9 text-sm"
-                >
-                  <span>
-                    {selectedTier === "five-star" ? "Five Star" : "Best Seller"} - {displayPrice}
-                  </span>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2 space-y-2">
-                <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-                  <div className="grid grid-cols-3 gap-2 text-xs font-semibold border-b pb-2">
-                    <div>Tier</div>
-                    <div>Harga</div>
-                    <div>Hotel</div>
-                  </div>
-                  <button
-                    onClick={() => setSelectedTier("best-seller")}
-                    className={`grid grid-cols-3 gap-2 text-xs p-2 rounded hover:bg-background transition-colors ${
-                      selectedTier === "best-seller" ? "bg-background ring-2 ring-primary" : ""
-                    }`}
-                  >
-                    <div className="font-medium">Best Seller</div>
-                    <div className="font-bold text-primary">{price}</div>
-                    <div className="text-left">
-                      <div className="line-clamp-1">{hotelMakkah}</div>
-                      <StarRating rating={hotelMakkahRating} />
-                    </div>
-                  </button>
-                  {hasFiveStarTier && (
-                    <button
-                      onClick={() => setSelectedTier("five-star")}
-                      className={`grid grid-cols-3 gap-2 text-xs p-2 rounded hover:bg-background transition-colors ${
-                        selectedTier === "five-star" ? "bg-background ring-2 ring-primary" : ""
-                      }`}
-                    >
-                      <div className="font-medium">Five Star</div>
-                      <div className="font-bold text-primary">{fiveStarPrice}</div>
-                      <div className="text-left">
-                        <div className="line-clamp-1">{fiveStarHotelMakkah}</div>
-                        <StarRating rating={fiveStarHotelMakkahRating} />
-                      </div>
-                    </button>
-                  )}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+            <Select value={selectedTier} onValueChange={(value) => setSelectedTier(value as "best-seller" | "five-star")}>
+              <SelectTrigger className="w-full h-9 text-sm">
+                <SelectValue>
+                  {selectedTier === "five-star" ? "Five Star" : "Best Seller"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="best-seller">Best Seller</SelectItem>
+                {hasFiveStarTier && (
+                  <SelectItem value="five-star">Five Star</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
           )}
 
           {/* Flight & Transport Info - Horizontal */}
