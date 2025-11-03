@@ -8,6 +8,8 @@ interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   placeholderClassName?: string;
   fetchPriority?: 'high' | 'low' | 'auto';
   sizes?: string;
+  responsive?: boolean;
+  isHero?: boolean;
 }
 
 export const LazyImage = ({ 
@@ -17,14 +19,16 @@ export const LazyImage = ({
   placeholderClassName,
   fetchPriority = 'auto',
   sizes,
+  responsive = false,
+  isHero = false,
   ...props 
 }: LazyImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isInView, setIsInView] = useState(false);
+  const [isInView, setIsInView] = useState(isHero); // Hero images load immediately
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    if (!imgRef.current) return;
+    if (!imgRef.current || isHero) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -39,7 +43,16 @@ export const LazyImage = ({
     observer.observe(imgRef.current);
 
     return () => observer.disconnect();
-  }, []);
+  }, [isHero]);
+
+  // Generate responsive srcSet if enabled
+  const srcSet = responsive 
+    ? `${src}?width=640 640w, ${src}?width=1024 1024w, ${src}?width=1920 1920w`
+    : undefined;
+  
+  const responsiveSizes = responsive 
+    ? sizes || '(max-width: 640px) 640px, (max-width: 1024px) 1024px, 1920px'
+    : sizes;
 
   return (
     <div className="relative overflow-hidden">
@@ -52,6 +65,7 @@ export const LazyImage = ({
       <img
         ref={imgRef}
         src={isInView ? src : ''}
+        srcSet={isInView ? srcSet : undefined}
         alt={alt}
         className={cn(
           "transition-opacity duration-300",
@@ -59,10 +73,10 @@ export const LazyImage = ({
           className
         )}
         onLoad={() => setIsLoaded(true)}
-        loading="lazy"
+        loading={isHero ? 'eager' : 'lazy'}
         decoding="async"
         fetchPriority={fetchPriority}
-        sizes={sizes}
+        sizes={responsiveSizes}
         {...props}
       />
     </div>

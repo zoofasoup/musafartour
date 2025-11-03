@@ -89,17 +89,30 @@ const calculateDimensions = (
 };
 
 /**
- * Compress and convert image to WebP format
+ * Generate responsive image srcset for different screen sizes
+ * @param baseUrl The base URL of the image
+ * @returns srcset and sizes attributes
+ */
+export const generateResponsiveSrcSet = (baseUrl: string) => {
+  return {
+    srcSet: `${baseUrl}?width=640 640w, ${baseUrl}?width=1024 1024w, ${baseUrl}?width=1920 1920w`,
+    sizes: '(max-width: 640px) 640px, (max-width: 1024px) 1024px, 1920px'
+  };
+};
+
+/**
+ * Compress and convert image to WebP format with aggressive optimization
+ * Targets smaller file sizes for banner images (50-100KB)
  * 
  * @param file - Original image file
- * @param maxSizeKB - Target maximum file size in KB (e.g., 80 for hero, 40 for content)
- * @param initialQuality - Starting quality (0.0 - 1.0), default 0.85
+ * @param maxSizeKB - Target maximum file size in KB (default: 80 for banners, 100 for content)
+ * @param initialQuality - Starting quality (0.0 - 1.0), default 0.8 for better compression
  * @returns Compressed WebP file
  */
 export const compressAndConvertToWebP = async (
   file: File,
   maxSizeKB: number = 80,
-  initialQuality: number = 0.85
+  initialQuality: number = 0.8
 ): Promise<File> => {
   try {
     // Load the image

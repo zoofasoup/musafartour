@@ -17,6 +17,25 @@
     <!-- Preload critical assets -->
     <link rel="preload" as="image" href="/src/assets/hero-umroh-jamaah-group.webp" fetchpriority="high" type="image/webp" />
     <link rel="modulepreload" href="/src/main.tsx" />
+    
+    <!-- Inline critical CSS for fastest paint -->
+    <style>
+      /* Reset & Base */
+      *,*::before,*::after{box-sizing:border-box;border-width:0;border-style:solid}
+      html{-webkit-text-size-adjust:100%;tab-size:4;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;line-height:1.5}
+      body{margin:0;line-height:inherit}
+      #root{min-height:100vh}
+      
+      /* Critical animations for loading states */
+      .animate-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}
+      @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+      
+      /* Hero section skeleton to prevent layout shift */
+      .hero-skeleton{height:60vh;background:#f3f4f6;animation:pulse 2s ease-in-out infinite}
+      
+      /* Smooth scroll behavior */
+      html{scroll-behavior:smooth}
+    </style>
 
     
     <!-- Open Graph / Facebook -->
@@ -46,6 +65,7 @@
 
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx" async></script>
+    <!-- Load main script as module (defer is default for type="module") -->
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
