@@ -4,25 +4,40 @@
   Referrer-Policy: strict-origin-when-cross-origin
   X-XSS-Protection: 1; mode=block
 
-/assets/js/*.js
+/assets/js/*
   Cache-Control: public, max-age=31536000, immutable
 
 /assets/*.css
   Cache-Control: public, max-age=31536000, immutable
 
-/assets/images/*.webp
+/assets/images/*
   Cache-Control: public, max-age=31536000, immutable
 
-/assets/images/*.jpg
+/assets/*.webp
   Cache-Control: public, max-age=31536000, immutable
 
-/assets/images/*.png
+/assets/*.jpg
   Cache-Control: public, max-age=31536000, immutable
 
-/assets/images/*.svg
+/assets/*.png
   Cache-Control: public, max-age=31536000, immutable
 
-/assets/fonts/*.woff2
+/assets/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.svg
   Cache-Control: public, max-age=31536000, immutable
 
 /index.html
