@@ -11,6 +11,25 @@ import { Loader2, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import musafarLogo from "@/assets/musafar-logo.svg";
 import { getSafeErrorMessage } from "@/lib/errorHandler";
+import { z } from "zod";
+
+const authSchema = z.object({
+  email: z.string()
+    .trim()
+    .email({ message: "Email tidak valid" })
+    .max(255, { message: "Email terlalu panjang" }),
+  password: z.string()
+    .min(8, { message: "Password minimal 8 karakter" })
+    .max(100, { message: "Password terlalu panjang" })
+    .regex(/[A-Z]/, { message: "Password harus mengandung huruf besar" })
+    .regex(/[a-z]/, { message: "Password harus mengandung huruf kecil" })
+    .regex(/[0-9]/, { message: "Password harus mengandung angka" })
+});
+
+const emailSchema = z.string()
+  .trim()
+  .email({ message: "Email tidak valid" })
+  .max(255, { message: "Email terlalu panjang" });
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -25,9 +44,12 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Validate input
+      const validatedData = authSchema.parse({ email, password });
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: validatedData.email,
+        password: validatedData.password,
       });
 
       if (error) throw error;
@@ -40,11 +62,19 @@ const Auth = () => {
         navigate("/admin");
       }
     } catch (error: any) {
-      toast({
-        title: "Login gagal",
-        description: getSafeErrorMessage(error),
-        variant: "destructive",
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validasi gagal",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Login gagal",
+          description: getSafeErrorMessage(error),
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -55,11 +85,14 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Validate input
+      const validatedData = authSchema.parse({ email, password });
+      
       const redirectUrl = `${window.location.origin}/admin`;
       
       const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: validatedData.email,
+        password: validatedData.password,
         options: {
           emailRedirectTo: redirectUrl
         }
@@ -72,11 +105,19 @@ const Auth = () => {
         description: "Akun Anda telah dibuat. Silakan login.",
       });
     } catch (error: any) {
-      toast({
-        title: "Registrasi gagal",
-        description: getSafeErrorMessage(error),
-        variant: "destructive",
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validasi gagal",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Registrasi gagal",
+          description: getSafeErrorMessage(error),
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -87,9 +128,12 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Validate email
+      const validatedEmail = emailSchema.parse(email);
+      
       const redirectUrl = `${window.location.origin}/auth`;
       
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(validatedEmail, {
         redirectTo: redirectUrl,
       });
 
@@ -101,11 +145,19 @@ const Auth = () => {
       });
       setShowForgotPassword(false);
     } catch (error: any) {
-      toast({
-        title: "Gagal mengirim email",
-        description: getSafeErrorMessage(error),
-        variant: "destructive",
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validasi gagal",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Gagal mengirim email",
+          description: getSafeErrorMessage(error),
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -116,8 +168,18 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Validate password
+      const passwordSchema = z.string()
+        .min(8, { message: "Password minimal 8 karakter" })
+        .max(100, { message: "Password terlalu panjang" })
+        .regex(/[A-Z]/, { message: "Password harus mengandung huruf besar" })
+        .regex(/[a-z]/, { message: "Password harus mengandung huruf kecil" })
+        .regex(/[0-9]/, { message: "Password harus mengandung angka" });
+      
+      const validatedPassword = passwordSchema.parse(password);
+      
       const { error } = await supabase.auth.updateUser({
-        password: password,
+        password: validatedPassword,
       });
 
       if (error) throw error;
@@ -128,11 +190,19 @@ const Auth = () => {
       });
       navigate("/admin");
     } catch (error: any) {
-      toast({
-        title: "Gagal mengubah password",
-        description: getSafeErrorMessage(error),
-        variant: "destructive",
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validasi gagal",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Gagal mengubah password",
+          description: getSafeErrorMessage(error),
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }

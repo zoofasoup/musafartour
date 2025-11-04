@@ -1,9 +1,21 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const bootstrapSchema = z.object({
+  email: z.string()
+    .trim()
+    .email({ message: "Email tidak valid" })
+    .max(255, { message: "Email terlalu panjang" }),
+  setupCode: z.string()
+    .trim()
+    .min(8, { message: "Kode setup minimal 8 karakter" })
+    .max(100, { message: "Kode setup terlalu panjang" })
+});
 
 interface BootstrapRequest {
   email: string;
@@ -23,18 +35,21 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { email, setupCode }: BootstrapRequest = await req.json();
-
-    console.log('Bootstrap admin request for email:', email);
-
-    // Validate setup code
-    if (setupCode !== adminSetupCode) {
-      console.error('Invalid setup code provided');
+    // Parse and validate request body
+    const requestBody = await req.json();
+    const validationResult = bootstrapSchema.safeParse(requestBody);
+    
+    if (!validationResult.success) {
+      console.warn('Validation failed:', validationResult.error.errors[0].message);
       return new Response(
-        JSON.stringify({ error: 'Kode setup tidak valid' }),
+        JSON.stringify({ error: 'Email atau kode setup tidak valid' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const { email, setupCode } = validationResult.data;
+    
+    console.log('Bootstrap admin request received');
 
     // Find user by email
     const { data: { users }, error: userError } = await supabase.auth.admin.listUsers();
@@ -42,18 +57,23 @@ Deno.serve(async (req) => {
     if (userError) {
       console.error('Error listing users:', userError);
       return new Response(
-        JSON.stringify({ error: 'Gagal mencari user' }),
+        JSON.stringify({ error: 'Gagal memproses permintaan' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const user = users.find(u => u.email === email);
     
-    if (!user) {
-      console.error('User not found:', email);
+    // Use constant-time comparison and generic error to prevent user enumeration
+    const setupCodeValid = setupCode === adminSetupCode;
+    const userExists = !!user;
+    
+    if (!userExists || !setupCodeValid) {
+      console.warn('Authentication failed - invalid credentials');
+      // Always return 401 (never 404) to prevent user enumeration
       return new Response(
-        JSON.stringify({ error: 'User dengan email tersebut tidak ditemukan. Silakan sign up terlebih dahulu.' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Email atau kode setup tidak valid' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -100,7 +120,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Successfully created admin for:', email);
+    console.log('Successfully created admin');
 
     return new Response(
       JSON.stringify({ 
