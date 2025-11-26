@@ -1,10 +1,17 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
+
+// Declare TikTok Pixel type
+declare global {
+  interface Window {
+    ttq: any;
+  }
+}
 
 // Eager load homepage and admin layout (layout must not be lazy to persist across navigation)
 import Index from "./pages/Index";
@@ -52,6 +59,19 @@ const queryClient = new QueryClient({
   },
 });
 
+// TikTok Pixel Route Tracker
+const TikTokPixelTracker = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (window.ttq) {
+      window.ttq.page();
+    }
+  }, [location]);
+
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -59,6 +79,7 @@ const App = () => (
       <Sonner />
       <FloatingWhatsApp />
       <BrowserRouter>
+        <TikTokPixelTracker />
         <Suspense fallback={
           <div className="min-h-screen flex items-center justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
