@@ -253,6 +253,42 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_settings: {
+        Row: {
+          ga4_enabled: boolean
+          ga4_id: string | null
+          id: string
+          meta_pixel_enabled: boolean
+          meta_pixel_id: string | null
+          tiktok_pixel_enabled: boolean
+          tiktok_pixel_id: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          ga4_enabled?: boolean
+          ga4_id?: string | null
+          id?: string
+          meta_pixel_enabled?: boolean
+          meta_pixel_id?: string | null
+          tiktok_pixel_enabled?: boolean
+          tiktok_pixel_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          ga4_enabled?: boolean
+          ga4_id?: string | null
+          id?: string
+          meta_pixel_enabled?: boolean
+          meta_pixel_id?: string | null
+          tiktok_pixel_enabled?: boolean
+          tiktok_pixel_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       packages: {
         Row: {
           available_tiers: string[] | null

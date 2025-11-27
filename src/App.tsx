@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
+import { useMarketingPixels } from "./hooks/useMarketingPixels";
 
 // Declare TikTok Pixel type
 declare global {
@@ -48,6 +49,7 @@ const JadwalKeberangkatan = lazy(() => import("./pages/admin/JadwalKeberangkatan
 const FAQAdmin = lazy(() => import("./pages/admin/FAQ"));
 const WebsiteSettings = lazy(() => import("./pages/admin/WebsiteSettings"));
 const Team = lazy(() => import("./pages/admin/Team"));
+const MarketingSettings = lazy(() => import("./pages/admin/MarketingSettings"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -72,6 +74,12 @@ const TikTokPixelTracker = () => {
   return null;
 };
 
+// Marketing Pixels Loader
+const MarketingPixelsLoader = () => {
+  useMarketingPixels();
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -80,6 +88,7 @@ const App = () => (
       <FloatingWhatsApp />
       <BrowserRouter>
         <TikTokPixelTracker />
+        <MarketingPixelsLoader />
         <Suspense fallback={
           <div className="min-h-screen flex items-center justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -128,6 +137,7 @@ const App = () => (
               
               {/* Settings */}
               <Route path="settings" element={<WebsiteSettings />} />
+              <Route path="settings/marketing" element={<MarketingSettings />} />
               <Route path="team" element={<Team />} />
             </Route>
             <Route path="*" element={<NotFound />} />
