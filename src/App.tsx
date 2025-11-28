@@ -22,8 +22,6 @@ import AdminLayout from "./components/admin/AdminLayout";
 // Lazy load all other routes
 const PaketUmroh = lazy(() => import("./pages/PaketUmroh"));
 const PackageDetail = lazy(() => import("./pages/PackageDetail"));
-const HajiKhusus = lazy(() => import("./pages/HajiKhusus"));
-const WisataHalal = lazy(() => import("./pages/WisataHalal"));
 const TentangKami = lazy(() => import("./pages/TentangKami"));
 const Galeri = lazy(() => import("./pages/Galeri"));
 const Artikel = lazy(() => import("./pages/Artikel"));
@@ -36,8 +34,6 @@ const AdminSetup = lazy(() => import("./pages/AdminSetup"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const Packages = lazy(() => import("./pages/admin/Packages"));
 const PackageForm = lazy(() => import("./pages/admin/PackageForm"));
-const WisataHalalPage = lazy(() => import("./pages/admin/WisataHalal"));
-const WisataHalalForm = lazy(() => import("./pages/admin/WisataHalalForm"));
 const ArticlesPage = lazy(() => import("./pages/admin/Articles"));
 const ArticleForm = lazy(() => import("./pages/admin/ArticleForm"));
 const Hotels = lazy(() => import("./pages/admin/Hotels"));
@@ -46,7 +42,6 @@ const HeroSection = lazy(() => import("./pages/admin/HeroSection"));
 const SellingPoints = lazy(() => import("./pages/admin/SellingPoints"));
 const Testimonials = lazy(() => import("./pages/admin/Testimonials"));
 const GalleryManagement = lazy(() => import("./pages/admin/GalleryManagement"));
-const PaketHaji = lazy(() => import("./pages/admin/PaketHaji"));
 const JadwalKeberangkatan = lazy(() => import("./pages/admin/JadwalKeberangkatan"));
 const FAQAdmin = lazy(() => import("./pages/admin/FAQ"));
 const WebsiteSettings = lazy(() => import("./pages/admin/WebsiteSettings"));
@@ -108,8 +103,6 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/paket-umroh" element={<PaketUmroh />} />
               <Route path="/paket-umroh/:id" element={<PackageDetail />} />
-              <Route path="/haji-khusus" element={<HajiKhusus />} />
-              <Route path="/wisata-halal" element={<WisataHalal />} />
               <Route path="/tentang-kami" element={<TentangKami />} />
               <Route path="/galeri" element={<Galeri />} />
               <Route path="/artikel" element={<Artikel />} />
@@ -131,13 +124,9 @@ const App = () => (
                 <Route path="packages" element={<Packages />} />
                 <Route path="packages/new" element={<PackageForm />} />
                 <Route path="packages/:id" element={<PackageForm />} />
-                <Route path="haji" element={<PaketHaji />} />
                 <Route path="hotels" element={<Hotels />} />
                 <Route path="hotels/new" element={<HotelForm />} />
                 <Route path="hotels/:id" element={<HotelForm />} />
-                <Route path="wisata-halal" element={<WisataHalalPage />} />
-                <Route path="wisata-halal/new" element={<WisataHalalForm />} />
-                <Route path="wisata-halal/:id" element={<WisataHalalForm />} />
                 <Route path="jadwal" element={<JadwalKeberangkatan />} />
 
                 {/* Content & Blog */}

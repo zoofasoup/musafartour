@@ -77,22 +77,6 @@ const Navbar = () => {
             >
               Paket Umroh
             </Link>
-            <Link
-              to="/haji-khusus"
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                isActive("/haji-khusus") ? "text-primary" : "text-foreground"
-              }`}
-            >
-              Haji Khusus
-            </Link>
-            <Link
-              to="/wisata-halal"
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                isActive("/wisata-halal") ? "text-primary" : "text-foreground"
-              }`}
-            >
-              Wisata Halal
-            </Link>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -151,20 +135,6 @@ const Navbar = () => {
               onClick={() => setIsOpen(false)}
             >
               Paket Umroh
-            </Link>
-            <Link
-              to="/haji-khusus"
-              className="block py-2 text-sm font-medium hover:text-primary"
-              onClick={() => setIsOpen(false)}
-            >
-              Haji Khusus
-            </Link>
-            <Link
-              to="/wisata-halal"
-              className="block py-2 text-sm font-medium hover:text-primary"
-              onClick={() => setIsOpen(false)}
-            >
-              Wisata Halal
             </Link>
             <div className="border-t pt-2 mt-2">
               <p className="text-xs font-semibold text-muted-foreground mb-2">Info Lainnya</p>
