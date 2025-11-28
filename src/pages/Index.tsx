@@ -15,6 +15,7 @@ const Index = () => {
     packages,
     packagesLoading,
     heroData,
+    heroLoading,
     sellingPoints,
     testimonials,
     faqItems,
@@ -62,7 +63,7 @@ const Index = () => {
       />
       <Navbar />
 
-      <HeroSection heroData={heroData} websiteSettings={websiteSettings} />
+      <HeroSection heroData={heroData} websiteSettings={websiteSettings} isLoading={heroLoading} />
 
       <TrustElements />
 
