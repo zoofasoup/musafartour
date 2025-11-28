@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import DOMPurify from "dompurify";
 
 interface Article {
@@ -37,12 +38,12 @@ const ArtikelDetail = () => {
 
   const fetchArticle = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+  const { data, error } = await supabase
       .from("articles")
       .select("*")
       .eq("slug", slug)
       .eq("status", "published")
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching article:", error);
@@ -57,17 +58,26 @@ const ArtikelDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container mx-auto px-4 py-16">
+        <div className="container mx-auto px-4 py-12">
           <div className="max-w-3xl mx-auto">
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-muted rounded w-3/4"></div>
-              <div className="h-4 bg-muted rounded w-1/4"></div>
-              <div className="h-64 bg-muted rounded"></div>
-              <div className="space-y-2">
-                <div className="h-4 bg-muted rounded"></div>
-                <div className="h-4 bg-muted rounded"></div>
-                <div className="h-4 bg-muted rounded w-5/6"></div>
-              </div>
+            <Skeleton className="h-8 w-24 mb-6" />
+            <Skeleton className="h-6 w-32 mb-4" />
+            <Skeleton className="h-12 w-full mb-2" />
+            <Skeleton className="h-12 w-3/4 mb-6" />
+            <div className="flex gap-4 mb-8 pb-8 border-b">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            <Skeleton className="h-80 w-full mb-12 rounded-lg" />
+            <div className="space-y-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-4/5" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
             </div>
           </div>
         </div>

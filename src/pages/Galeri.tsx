@@ -1,13 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 import { Camera } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ImageLightbox } from "@/components/ImageLightbox";
+import { supabase } from "@/integrations/supabase/client";
+
+interface GalleryImage {
+  id: string;
+  title: string;
+  image_url: string;
+  category: string;
+  description?: string;
+}
 
 const Galeri = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentImages, setCurrentImages] = useState<string[]>([]);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchGalleryImages();
+  }, []);
+
+  const fetchGalleryImages = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("gallery_images")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching gallery images:", error);
+    } else {
+      setGalleryImages(data || []);
+    }
+    setLoading(false);
+  };
 
   const openLightbox = (images: string[], index: number) => {
     setCurrentImages(images);
@@ -23,38 +56,24 @@ const Galeri = () => {
     setCurrentImageIndex((prev) => Math.min(currentImages.length - 1, prev + 1));
   };
 
-  const galleries = [
-    {
-      title: "Umroh Ramadhan 2024",
-      images: [
-        "https://images.unsplash.com/photo-1564769625905-50e93615e769?w=600&h=400&fit=crop",
-        "https://images.unsplash.com/photo-1591604021695-0c69b7c05981?w=600&h=400&fit=crop",
-        "https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=600&h=400&fit=crop",
-        "https://images.unsplash.com/photo-1591287915932-7d4b7d6b29c2?w=600&h=400&fit=crop",
-      ],
-    },
-    {
-      title: "Umroh Plus Thaif Maret 2024",
-      images: [
-        "https://images.unsplash.com/photo-1564769610726-04fa67d68dbb?w=600&h=400&fit=crop",
-        "https://images.unsplash.com/photo-1580418827493-f2b22c0a76cb?w=600&h=400&fit=crop",
-        "https://images.unsplash.com/photo-1549891216-8a8f79c37a59?w=600&h=400&fit=crop",
-        "https://images.unsplash.com/photo-1583422409516-2895a77efded?w=600&h=400&fit=crop",
-      ],
-    },
-    {
-      title: "Wisata Halal Turki Februari 2024",
-      images: [
-        "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=600&h=400&fit=crop",
-        "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=600&h=400&fit=crop",
-        "https://images.unsplash.com/photo-1527838832700-5059252407fa?w=600&h=400&fit=crop",
-        "https://images.unsplash.com/photo-1512907998043-98e23dc16c4e?w=600&h=400&fit=crop",
-      ],
-    },
-  ];
+  // Group images by category
+  const groupedGalleries = galleryImages.reduce((acc, image) => {
+    const category = image.category || "Umum";
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(image);
+    return acc;
+  }, {} as Record<string, GalleryImage[]>);
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Galeri Jamaah - Dokumentasi Perjalanan Spiritual | Musafar Tour"
+        description="Lihat dokumentasi perjalanan spiritual dan momen berharga jamaah Musafar Tour di Tanah Suci dan destinasi wisata halal lainnya."
+        keywords="galeri umroh, foto jamaah, dokumentasi haji, galeri wisata halal"
+        canonicalUrl="https://musafartour.com/galeri"
+      />
       <Navbar />
       
       {/* Header */}
@@ -70,31 +89,52 @@ const Galeri = () => {
 
       {/* Gallery Sections */}
       <section className="py-16 container mx-auto px-4">
-        <div className="space-y-16">
-          {galleries.map((gallery, index) => (
-            <div key={index}>
-              <h2 className="text-2xl font-bold mb-6 text-center">{gallery.title}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {gallery.images.map((image, imgIndex) => (
-                  <div
-                    key={imgIndex}
-                    className="relative overflow-hidden rounded-lg aspect-[4/3] group cursor-pointer"
-                    onClick={() => openLightbox(gallery.images, imgIndex)}
-                  >
-                    <img
-                      src={image}
-                      alt={`${gallery.title} - ${imgIndex + 1}`}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <Camera className="h-8 w-8 text-white" />
-                    </div>
-                  </div>
-                ))}
+        {loading ? (
+          <div className="space-y-16">
+            {[...Array(3)].map((_, groupIndex) => (
+              <div key={groupIndex}>
+                <Skeleton className="h-8 w-48 mx-auto mb-6" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[...Array(4)].map((_, imgIndex) => (
+                    <Skeleton key={imgIndex} className="aspect-[4/3] rounded-lg" />
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : Object.keys(groupedGalleries).length === 0 ? (
+          <div className="text-center py-12">
+            <Camera className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-xl text-muted-foreground">Belum ada galeri tersedia</p>
+          </div>
+        ) : (
+          <div className="space-y-16">
+            {Object.entries(groupedGalleries).map(([category, images]) => (
+              <div key={category}>
+                <h2 className="text-2xl font-bold mb-6 text-center">{category}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {images.map((image, imgIndex) => (
+                    <div
+                      key={image.id}
+                      className="relative overflow-hidden rounded-lg aspect-[4/3] group cursor-pointer"
+                      onClick={() => openLightbox(images.map(i => i.image_url), imgIndex)}
+                    >
+                      <img
+                        src={image.image_url}
+                        alt={image.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <Camera className="h-8 w-8 text-white" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* CTA */}
