@@ -29,7 +29,7 @@ export const useAuth = () => {
   }, []);
 
   // Use React Query for admin role check with caching
-  const { data: isAdmin = false } = useQuery({
+  const { data: isAdmin = false, isLoading: isAdminLoading } = useQuery({
     queryKey: ['admin-role', user?.id],
     queryFn: async () => {
       if (!user?.id) return false;
@@ -53,6 +53,9 @@ export const useAuth = () => {
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
+  // Combined loading state: auth loading OR admin role loading (when user exists)
+  const isFullyLoaded = !loading && (!user || !isAdminLoading);
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -60,7 +63,7 @@ export const useAuth = () => {
   return {
     user,
     session,
-    loading,
+    loading: !isFullyLoaded, // Return combined loading state
     isAdmin,
     signOut,
   };
