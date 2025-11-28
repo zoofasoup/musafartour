@@ -12,6 +12,15 @@ interface ProcessRequest {
   contextType: 'package' | 'article' | 'wisata';
 }
 
+interface RecordData {
+  id: string;
+  slug?: string;
+  title?: string;
+  package_name?: string;
+  destination?: string;
+  [key: string]: unknown;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -34,16 +43,17 @@ Deno.serve(async (req) => {
 
     if (fetchError) throw fetchError;
 
-    const results = [];
+    const results: Array<{ id: string; old: unknown; new: unknown }> = [];
+    const typedRecords = (records || []) as unknown as RecordData[];
 
-    for (const record of records || []) {
-      const imageUrl = record[imageColumn];
+    for (const record of typedRecords) {
+      const imageUrl = record[imageColumn] as string | string[] | null;
       
       if (!imageUrl || typeof imageUrl !== 'string') continue;
       
       // Handle array of images (gallery)
       const imageUrls = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
-      const processedUrls = [];
+      const processedUrls: string[] = [];
 
       for (let idx = 0; idx < imageUrls.length; idx++) {
         const url = imageUrls[idx];
@@ -92,7 +102,7 @@ Deno.serve(async (req) => {
           
           // For now, just re-upload with new name (WebP conversion happens client-side)
           // In production, you'd use a library like 'sharp' or similar
-          const { data: uploadData, error: uploadError } = await supabase.storage
+          const { error: uploadError } = await supabase.storage
             .from(bucketName)
             .upload(newFileName, blob, {
               contentType: 'image/webp',
@@ -145,10 +155,11 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
