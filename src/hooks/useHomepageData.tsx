@@ -129,6 +129,7 @@ export const useHomepageData = () => {
     packages: packagesQuery.data || [],
     packagesLoading: packagesQuery.isLoading,
     heroData: heroQuery.data,
+    heroLoading: heroQuery.isLoading,
     sellingPoints: sellingPointsQuery.data || [],
     testimonials: testimonialsQuery.data || [],
     faqItems: faqQuery.data || [],
