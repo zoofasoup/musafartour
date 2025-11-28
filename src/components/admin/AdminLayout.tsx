@@ -73,9 +73,7 @@ const AdminLayout = () => {
       label: "PRODUCTS & SERVICES",
       items: [
         { icon: Package, label: "Paket Umroh", path: "/admin/packages" },
-        { icon: Plane, label: "Paket Haji", path: "/admin/haji" },
         { icon: Hotel, label: "Hotel", path: "/admin/hotels" },
-        { icon: Plane, label: "Wisata Halal", path: "/admin/wisata-halal" },
         { icon: Calendar, label: "Jadwal Keberangkatan", path: "/admin/jadwal" },
       ]
     },
