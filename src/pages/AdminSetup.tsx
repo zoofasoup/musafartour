@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ShieldCheck } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo.svg";
+
+// Validation schema matching server-side validation in bootstrap-admin
+const setupSchema = z.object({
+  email: z.string()
+    .trim()
+    .email({ message: "Email tidak valid" })
+    .max(255, { message: "Email terlalu panjang" }),
+  setupCode: z.string()
+    .trim()
+    .min(8, { message: "Kode setup minimal 8 karakter" })
+    .max(100, { message: "Kode setup terlalu panjang" })
+});
 
 const AdminSetup = () => {
   const navigate = useNavigate();
@@ -21,8 +34,21 @@ const AdminSetup = () => {
     setLoading(true);
 
     try {
+      // Validate inputs before sending to server
+      const validationResult = setupSchema.safeParse({ email, setupCode });
+      
+      if (!validationResult.success) {
+        toast({
+          title: "Validasi gagal",
+          description: validationResult.error.errors[0].message,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('bootstrap-admin', {
-        body: { email, setupCode }
+        body: validationResult.data
       });
 
       if (error) throw error;
@@ -77,6 +103,7 @@ const AdminSetup = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                maxLength={255}
               />
               <p className="text-xs text-muted-foreground">
                 Email akun yang sudah terdaftar (sign up dulu di /auth jika belum punya)
@@ -92,9 +119,11 @@ const AdminSetup = () => {
                 value={setupCode}
                 onChange={(e) => setSetupCode(e.target.value)}
                 required
+                minLength={8}
+                maxLength={100}
               />
               <p className="text-xs text-muted-foreground">
-                Kode rahasia yang Anda buat saat setup
+                Kode rahasia yang Anda buat saat setup (minimal 8 karakter)
               </p>
             </div>
 
