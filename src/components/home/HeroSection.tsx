@@ -22,7 +22,16 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
   if (isLoading || !heroData) {
     return (
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden bg-muted">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30 animate-pulse" />
+        <div className="relative z-10 container mx-auto px-4 text-center">
+          <div className="h-16 w-40 mx-auto mb-8 bg-white/10 rounded animate-pulse" />
+          <div className="h-12 md:h-16 w-3/4 max-w-2xl mx-auto mb-4 bg-white/10 rounded animate-pulse" />
+          <div className="h-6 w-2/3 max-w-xl mx-auto mb-8 bg-white/10 rounded animate-pulse" />
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="h-12 w-40 bg-white/10 rounded-md animate-pulse" />
+            <div className="h-12 w-48 bg-white/10 rounded-md animate-pulse" />
+          </div>
+        </div>
       </section>
     );
   }
