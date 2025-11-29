@@ -8,10 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { Loader2, Plus, Edit, Trash2, Save } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
 
 interface FAQItem {
   id: string;
@@ -37,6 +40,8 @@ const FAQ = () => {
     category: "general",
     display_order: 0,
   });
+
+  const { selectedIds, toggleSelect, selectAll, clearSelection, isSelected, allSelected } = useBulkSelection(faqs);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -105,6 +110,64 @@ const FAQ = () => {
     }
   };
 
+  const handleBulkAction = async (actionId: string, ids: string[]) => {
+    try {
+      switch (actionId) {
+        case "delete":
+          const { error: deleteError } = await (supabase as any)
+            .from("faq_items")
+            .delete()
+            .in("id", ids);
+          if (deleteError) throw deleteError;
+          sonnerToast.success(`${ids.length} FAQ berhasil dihapus`);
+          break;
+        case "activate":
+          const { error: activateError } = await (supabase as any)
+            .from("faq_items")
+            .update({ is_active: true })
+            .in("id", ids);
+          if (activateError) throw activateError;
+          sonnerToast.success(`${ids.length} FAQ berhasil diaktifkan`);
+          break;
+        case "deactivate":
+          const { error: deactivateError } = await (supabase as any)
+            .from("faq_items")
+            .update({ is_active: false })
+            .in("id", ids);
+          if (deactivateError) throw deactivateError;
+          sonnerToast.success(`${ids.length} FAQ berhasil dinonaktifkan`);
+          break;
+        case "export":
+          exportToCSV(ids);
+          break;
+      }
+      clearSelection();
+      fetchFAQs();
+    } catch (error: any) {
+      sonnerToast.error("Gagal: " + error.message);
+    }
+  };
+
+  const exportToCSV = (ids: string[]) => {
+    const selectedFaqs = faqs.filter((f) => ids.includes(f.id));
+    const headers = ["Question", "Answer", "Category", "Status", "Display Order"];
+    const rows = selectedFaqs.map((f) => [
+      `"${f.question}"`,
+      `"${f.answer}"`,
+      f.category,
+      f.is_active ? "Active" : "Inactive",
+      f.display_order,
+    ]);
+
+    const csvContent = [headers, ...rows].map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `faq-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    sonnerToast.success(`${ids.length} FAQ berhasil di-export`);
+  };
+
   const openEditDialog = (item: FAQItem) => {
     setEditingItem(item);
     setFormData({
@@ -125,6 +188,13 @@ const FAQ = () => {
       display_order: 0,
     });
   };
+
+  const bulkActions = [
+    commonBulkActions.activate,
+    commonBulkActions.deactivate,
+    commonBulkActions.export,
+    commonBulkActions.delete,
+  ];
 
   if (authLoading || loading) {
     return (
@@ -221,9 +291,19 @@ const FAQ = () => {
           <CardDescription>All frequently asked questions</CardDescription>
         </CardHeader>
         <CardContent>
+          <BulkActions
+            selectedIds={selectedIds}
+            totalCount={faqs.length}
+            onSelectAll={selectAll}
+            allSelected={allSelected}
+            actions={bulkActions}
+            onAction={handleBulkAction}
+          />
+
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12"></TableHead>
                 <TableHead>Order</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Question</TableHead>
@@ -234,7 +314,14 @@ const FAQ = () => {
             </TableHeader>
             <TableBody>
               {faqs.map((item) => (
-                <TableRow key={item.id}>
+                <TableRow key={item.id} className={isSelected(item.id) ? "bg-muted/50" : ""}>
+                  <TableCell>
+                    <Checkbox
+                      checked={isSelected(item.id)}
+                      onCheckedChange={() => toggleSelect(item.id)}
+                      aria-label={`Select ${item.question}`}
+                    />
+                  </TableCell>
                   <TableCell>{item.display_order}</TableCell>
                   <TableCell className="capitalize">{item.category}</TableCell>
                   <TableCell className="font-medium max-w-xs truncate">{item.question}</TableCell>

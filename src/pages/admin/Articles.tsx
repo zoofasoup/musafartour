@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -18,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
 
 interface Article {
   id: string;
@@ -33,6 +35,8 @@ const ArticlesPage = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const { selectedIds, toggleSelect, selectAll, clearSelection, isSelected, allSelected } = useBulkSelection(articles);
 
   const fetchArticles = async () => {
     try {
@@ -73,6 +77,71 @@ const ArticlesPage = () => {
     }
   };
 
+  const handleBulkAction = async (actionId: string, ids: string[]) => {
+    try {
+      switch (actionId) {
+        case "delete":
+          const { error: deleteError } = await supabase
+            .from("articles")
+            .delete()
+            .in("id", ids);
+          if (deleteError) throw deleteError;
+          toast.success(`${ids.length} artikel berhasil dihapus`);
+          break;
+        case "publish":
+          const { error: publishError } = await supabase
+            .from("articles")
+            .update({ status: "published", published_at: new Date().toISOString() })
+            .in("id", ids);
+          if (publishError) throw publishError;
+          toast.success(`${ids.length} artikel berhasil dipublish`);
+          break;
+        case "unpublish":
+          const { error: unpublishError } = await supabase
+            .from("articles")
+            .update({ status: "draft" })
+            .in("id", ids);
+          if (unpublishError) throw unpublishError;
+          toast.success(`${ids.length} artikel berhasil di-unpublish`);
+          break;
+        case "export":
+          exportToCSV(ids);
+          break;
+      }
+      clearSelection();
+      fetchArticles();
+    } catch (error: any) {
+      toast.error("Gagal: " + error.message);
+    }
+  };
+
+  const exportToCSV = (ids: string[]) => {
+    const selectedArticles = articles.filter((article) => ids.includes(article.id));
+    const headers = ["Judul", "Slug", "Kategori", "Status", "Tanggal Dibuat"];
+    const rows = selectedArticles.map((article) => [
+      `"${article.title}"`,
+      article.slug,
+      article.category || "",
+      article.status,
+      article.created_at,
+    ]);
+
+    const csvContent = [headers, ...rows].map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `artikel-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    toast.success(`${ids.length} artikel berhasil di-export`);
+  };
+
+  const bulkActions = [
+    commonBulkActions.publish,
+    commonBulkActions.unpublish,
+    commonBulkActions.export,
+    commonBulkActions.delete,
+  ];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -99,9 +168,19 @@ const ArticlesPage = () => {
           <CardTitle>Daftar Artikel</CardTitle>
         </CardHeader>
         <CardContent>
+          <BulkActions
+            selectedIds={selectedIds}
+            totalCount={articles.length}
+            onSelectAll={selectAll}
+            allSelected={allSelected}
+            actions={bulkActions}
+            onAction={handleBulkAction}
+          />
+
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12"></TableHead>
                 <TableHead>Judul</TableHead>
                 <TableHead>Kategori</TableHead>
                 <TableHead>Status</TableHead>
@@ -112,13 +191,20 @@ const ArticlesPage = () => {
             <TableBody>
               {articles.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center text-muted-foreground">
                     Belum ada artikel
                   </TableCell>
                 </TableRow>
               ) : (
                 articles.map((article) => (
-                  <TableRow key={article.id}>
+                  <TableRow key={article.id} className={isSelected(article.id) ? "bg-muted/50" : ""}>
+                    <TableCell>
+                      <Checkbox
+                        checked={isSelected(article.id)}
+                        onCheckedChange={() => toggleSelect(article.id)}
+                        aria-label={`Select ${article.title}`}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{article.title}</TableCell>
                     <TableCell>{article.category || "-"}</TableCell>
                     <TableCell>

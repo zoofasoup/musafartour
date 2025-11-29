@@ -4,16 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { Loader2, Plus, Edit, Trash2, Save, Star } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { FileUpload } from "@/components/admin/FileUpload";
 import { compressAndConvertToWebP } from "@/lib/imageUtils";
+import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
 
 interface Testimonial {
   id: string;
@@ -46,6 +49,8 @@ const Testimonials = () => {
     display_order: 0,
     gender: "male" as "male" | "female",
   });
+
+  const { selectedIds, toggleSelect, selectAll, clearSelection, isSelected, allSelected } = useBulkSelection(testimonials);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -156,6 +161,65 @@ const Testimonials = () => {
     }
   };
 
+  const handleBulkAction = async (actionId: string, ids: string[]) => {
+    try {
+      switch (actionId) {
+        case "delete":
+          const { error: deleteError } = await (supabase as any)
+            .from("testimonials")
+            .delete()
+            .in("id", ids);
+          if (deleteError) throw deleteError;
+          sonnerToast.success(`${ids.length} testimonial berhasil dihapus`);
+          break;
+        case "activate":
+          const { error: activateError } = await (supabase as any)
+            .from("testimonials")
+            .update({ is_active: true })
+            .in("id", ids);
+          if (activateError) throw activateError;
+          sonnerToast.success(`${ids.length} testimonial berhasil diaktifkan`);
+          break;
+        case "deactivate":
+          const { error: deactivateError } = await (supabase as any)
+            .from("testimonials")
+            .update({ is_active: false })
+            .in("id", ids);
+          if (deactivateError) throw deactivateError;
+          sonnerToast.success(`${ids.length} testimonial berhasil dinonaktifkan`);
+          break;
+        case "export":
+          exportToCSV(ids);
+          break;
+      }
+      clearSelection();
+      fetchTestimonials();
+    } catch (error: any) {
+      sonnerToast.error("Gagal: " + error.message);
+    }
+  };
+
+  const exportToCSV = (ids: string[]) => {
+    const selectedTestimonials = testimonials.filter((t) => ids.includes(t.id));
+    const headers = ["Name", "Location", "Rating", "Content", "Status", "Display Order"];
+    const rows = selectedTestimonials.map((t) => [
+      `"${t.name}"`,
+      t.location || "",
+      t.rating,
+      `"${t.content}"`,
+      t.is_active ? "Active" : "Inactive",
+      t.display_order,
+    ]);
+
+    const csvContent = [headers, ...rows].map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `testimonials-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    sonnerToast.success(`${ids.length} testimonial berhasil di-export`);
+  };
+
   const openEditDialog = (item: Testimonial) => {
     setEditingItem(item);
     setFormData({
@@ -182,6 +246,13 @@ const Testimonials = () => {
       gender: "male",
     });
   };
+
+  const bulkActions = [
+    commonBulkActions.activate,
+    commonBulkActions.deactivate,
+    commonBulkActions.export,
+    commonBulkActions.delete,
+  ];
 
   if (authLoading || loading) {
     return (
@@ -319,9 +390,19 @@ const Testimonials = () => {
           <CardTitle>Testimonials List</CardTitle>
         </CardHeader>
         <CardContent>
+          <BulkActions
+            selectedIds={selectedIds}
+            totalCount={testimonials.length}
+            onSelectAll={selectAll}
+            allSelected={allSelected}
+            actions={bulkActions}
+            onAction={handleBulkAction}
+          />
+
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12"></TableHead>
                 <TableHead>Order</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Location</TableHead>
@@ -333,7 +414,14 @@ const Testimonials = () => {
             </TableHeader>
             <TableBody>
               {testimonials.map((item) => (
-                <TableRow key={item.id}>
+                <TableRow key={item.id} className={isSelected(item.id) ? "bg-muted/50" : ""}>
+                  <TableCell>
+                    <Checkbox
+                      checked={isSelected(item.id)}
+                      onCheckedChange={() => toggleSelect(item.id)}
+                      aria-label={`Select ${item.name}`}
+                    />
+                  </TableCell>
                   <TableCell>{item.display_order}</TableCell>
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.location}</TableCell>

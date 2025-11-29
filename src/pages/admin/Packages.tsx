@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -18,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
 
 interface Package {
   id: string;
@@ -39,6 +41,8 @@ const Packages = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [sortField, setSortField] = useState<SortField>('departure_date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const { selectedIds, toggleSelect, selectAll, clearSelection, isSelected, allSelected } = useBulkSelection(packages);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -116,6 +120,72 @@ const Packages = () => {
     }
   };
 
+  const handleBulkAction = async (actionId: string, ids: string[]) => {
+    try {
+      switch (actionId) {
+        case "delete":
+          const { error: deleteError } = await supabase
+            .from("packages")
+            .delete()
+            .in("id", ids);
+          if (deleteError) throw deleteError;
+          toast.success(`${ids.length} paket berhasil dihapus`);
+          break;
+        case "publish":
+          const { error: publishError } = await supabase
+            .from("packages")
+            .update({ status: "published" })
+            .in("id", ids);
+          if (publishError) throw publishError;
+          toast.success(`${ids.length} paket berhasil dipublish`);
+          break;
+        case "unpublish":
+          const { error: unpublishError } = await supabase
+            .from("packages")
+            .update({ status: "draft" })
+            .in("id", ids);
+          if (unpublishError) throw unpublishError;
+          toast.success(`${ids.length} paket berhasil di-unpublish`);
+          break;
+        case "export":
+          exportToCSV(ids);
+          break;
+      }
+      clearSelection();
+      fetchPackages();
+    } catch (error: any) {
+      toast.error("Gagal: " + error.message);
+    }
+  };
+
+  const exportToCSV = (ids: string[]) => {
+    const selectedPackages = packages.filter((pkg) => ids.includes(pkg.id));
+    const headers = ["Nama Paket", "Tanggal Keberangkatan", "Durasi (Hari)", "Maskapai", "Harga Quad", "Status"];
+    const rows = selectedPackages.map((pkg) => [
+      pkg.package_name,
+      pkg.departure_date,
+      pkg.duration_days,
+      pkg.flight,
+      pkg.package_price.quad,
+      pkg.status,
+    ]);
+
+    const csvContent = [headers, ...rows].map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `paket-umroh-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    toast.success(`${ids.length} paket berhasil di-export`);
+  };
+
+  const bulkActions = [
+    commonBulkActions.publish,
+    commonBulkActions.unpublish,
+    commonBulkActions.export,
+    commonBulkActions.delete,
+  ];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -142,9 +212,19 @@ const Packages = () => {
           <CardTitle>Daftar Paket</CardTitle>
         </CardHeader>
         <CardContent>
+          <BulkActions
+            selectedIds={selectedIds}
+            totalCount={packages.length}
+            onSelectAll={selectAll}
+            allSelected={allSelected}
+            actions={bulkActions}
+            onAction={handleBulkAction}
+          />
+
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12"></TableHead>
                 <TableHead>
                   <Button variant="ghost" onClick={() => handleSort('package_name')} className="h-auto p-0 font-semibold hover:bg-transparent">
                     Nama Paket {getSortIcon('package_name')}
@@ -181,13 +261,20 @@ const Packages = () => {
             <TableBody>
               {sortedPackages.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center text-muted-foreground">
                     Belum ada paket umroh
                   </TableCell>
                 </TableRow>
               ) : (
                 sortedPackages.map((pkg) => (
-                  <TableRow key={pkg.id}>
+                  <TableRow key={pkg.id} className={isSelected(pkg.id) ? "bg-muted/50" : ""}>
+                    <TableCell>
+                      <Checkbox
+                        checked={isSelected(pkg.id)}
+                        onCheckedChange={() => toggleSelect(pkg.id)}
+                        aria-label={`Select ${pkg.package_name}`}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{pkg.package_name}</TableCell>
                     <TableCell>{format(new Date(pkg.departure_date), "dd MMM yyyy")}</TableCell>
                     <TableCell>{pkg.duration_days} hari</TableCell>
