@@ -235,13 +235,29 @@ const Testimonials = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="content">Review Content</Label>
+                <Label htmlFor="content">Review Content (max 200 characters)</Label>
                 <Textarea
                   id="content"
                   value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 200) {
+                      setFormData({ ...formData, content: e.target.value });
+                    }
+                  }}
                   rows={4}
+                  maxLength={200}
                 />
+                <p className="text-xs text-muted-foreground text-right">{formData.content.length}/200</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Photo (Optional)</Label>
+                <FileUpload
+                  onFileSelect={handleImageUpload}
+                  onRemove={handleRemoveImage}
+                  currentImage={formData.image_url}
+                  loading={uploading}
+                />
+                <p className="text-xs text-muted-foreground">If no photo is uploaded, a default avatar based on gender will be used.</p>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
