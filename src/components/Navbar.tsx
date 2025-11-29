@@ -49,7 +49,9 @@ const Navbar = () => {
             <img 
               src={isDarkMode ? musafarLogoLight : musafarLogoDark} 
               alt="Musafar Tour" 
-              className="h-7" 
+              className="h-7"
+              width="140"
+              height="28"
             />
           </Link>
 
