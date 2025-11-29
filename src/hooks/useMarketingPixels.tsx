@@ -74,27 +74,32 @@ export const useMarketingPixels = () => {
     }
   }, [settings?.tiktok_pixel_enabled, settings?.tiktok_pixel_id]);
 
-  // Inject Google Analytics
+  // Inject Google Analytics - deferred after page load
   useEffect(() => {
     if (settings?.ga4_enabled && settings?.ga4_id) {
-      const script1 = document.createElement("script");
-      script1.src = `https://www.googletagmanager.com/gtag/js?id=${settings.ga4_id}`;
-      script1.async = true;
-      document.head.appendChild(script1);
+      // Use requestIdleCallback to defer GA loading
+      const loadGA = () => {
+        const script1 = document.createElement("script");
+        script1.src = `https://www.googletagmanager.com/gtag/js?id=${settings.ga4_id}`;
+        script1.async = true;
+        document.head.appendChild(script1);
 
-      const script2 = document.createElement("script");
-      script2.innerHTML = `
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', '${settings.ga4_id}');
-      `;
-      document.head.appendChild(script2);
-
-      return () => {
-        document.head.removeChild(script1);
-        document.head.removeChild(script2);
+        const script2 = document.createElement("script");
+        script2.innerHTML = `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${settings.ga4_id}');
+        `;
+        document.head.appendChild(script2);
       };
+
+      // Defer loading to not block main thread
+      if ('requestIdleCallback' in window) {
+        (window as Window).requestIdleCallback(loadGA, { timeout: 3000 });
+      } else {
+        setTimeout(loadGA, 2000);
+      }
     }
   }, [settings?.ga4_enabled, settings?.ga4_id]);
 

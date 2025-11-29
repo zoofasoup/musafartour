@@ -11,8 +11,8 @@ export const TrustElements = () => {
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground font-medium">Partner Airlines:</span>
             <div className="flex items-center gap-3">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Garuda_Indonesia_logo_2009.svg/1200px-Garuda_Indonesia_logo_2009.svg.png" alt="Garuda Indonesia" className="h-6 opacity-70 hover:opacity-100 transition-opacity" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Saudia_Logo.svg/1200px-Saudia_Logo.svg.png" alt="Saudia" className="h-6 opacity-70 hover:opacity-100 transition-opacity" />
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Garuda_Indonesia_logo_2009.svg/1200px-Garuda_Indonesia_logo_2009.svg.png" alt="Garuda Indonesia" className="h-6 opacity-70 hover:opacity-100 transition-opacity" width="80" height="24" loading="lazy" decoding="async" />
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Saudia_Logo.svg/1200px-Saudia_Logo.svg.png" alt="Saudia" className="h-6 opacity-70 hover:opacity-100 transition-opacity" width="80" height="24" loading="lazy" decoding="async" />
             </div>
           </div>
 

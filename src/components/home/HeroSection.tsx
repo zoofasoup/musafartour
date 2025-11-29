@@ -21,15 +21,15 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
   // Don't render content until data is loaded to avoid placeholder flash
   if (isLoading || !heroData) {
     return (
-      <section className="relative h-[90vh] flex items-center justify-center overflow-hidden bg-muted">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30 animate-pulse" />
+      <section className="relative h-[90vh] min-h-[600px] flex items-center justify-center overflow-hidden bg-muted">
+        <div className="absolute inset-0 bg-gradient-to-r from-muted-foreground/20 via-muted-foreground/10 to-transparent" />
         <div className="relative z-10 container mx-auto px-4 text-center">
-          <div className="h-16 w-40 mx-auto mb-8 bg-white/10 rounded animate-pulse" />
-          <div className="h-12 md:h-16 w-3/4 max-w-2xl mx-auto mb-4 bg-white/10 rounded animate-pulse" />
-          <div className="h-6 w-2/3 max-w-xl mx-auto mb-8 bg-white/10 rounded animate-pulse" />
+          <div className="h-16 w-40 mx-auto mb-8 bg-muted-foreground/10 rounded animate-pulse" />
+          <div className="h-12 md:h-16 w-3/4 max-w-2xl mx-auto mb-4 bg-muted-foreground/10 rounded animate-pulse" />
+          <div className="h-6 w-2/3 max-w-xl mx-auto mb-8 bg-muted-foreground/10 rounded animate-pulse" />
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <div className="h-12 w-40 bg-white/10 rounded-md animate-pulse" />
-            <div className="h-12 w-48 bg-white/10 rounded-md animate-pulse" />
+            <div className="h-12 w-40 bg-muted-foreground/10 rounded-md animate-pulse" />
+            <div className="h-12 w-48 bg-muted-foreground/10 rounded-md animate-pulse" />
           </div>
         </div>
       </section>
@@ -37,7 +37,7 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
   }
 
   return (
-    <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
+    <section className="relative h-[90vh] min-h-[600px] flex items-center justify-center overflow-hidden">
       {heroData.background_image && (
         <img
           src={heroData.background_image}
@@ -58,6 +58,8 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
           src={musafarLogo}
           alt="Musafar Tour"
           className="h-16 mx-auto mb-8 opacity-90 animate-fade-in"
+          width="320"
+          height="64"
         />
         <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-[fade-in_0.6s_ease-out,float-up_0.6s_ease-out]">
           {heroData.title}
