@@ -1,14 +1,18 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
+import testimonialMale from "@/assets/testimonial-male.png";
+import testimonialFemale from "@/assets/testimonial-female.png";
 
 interface TestimonialCardProps {
   name: string;
-  image: string;
   text: string;
   location: string;
+  gender?: 'male' | 'female';
 }
 
-export const TestimonialCard = ({ name, image, text, location }: TestimonialCardProps) => {
+export const TestimonialCard = ({ name, text, location, gender = 'male' }: TestimonialCardProps) => {
+  const avatarImage = gender === 'female' ? testimonialFemale : testimonialMale;
+
   return (
     <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
       <CardContent className="p-6">
@@ -28,7 +32,7 @@ export const TestimonialCard = ({ name, image, text, location }: TestimonialCard
         <p className="text-muted-foreground italic mb-4">"{text}"</p>
         <div className="flex items-center gap-3">
           <img
-            src={image}
+            src={avatarImage}
             alt={name}
             className="w-12 h-12 rounded-full object-cover"
           />

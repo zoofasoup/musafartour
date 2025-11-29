@@ -48,9 +48,9 @@ export const TestimonialsSection = ({
         }} plugins={[Autoplay({
           delay: 4000
         })]} className="w-full mb-12">
-              <CarouselContent className="-ml-2 md:-ml-4">
+            <CarouselContent className="-ml-2 md:-ml-4">
                 {testimonials.map(testimonial => <CarouselItem key={testimonial.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                    <TestimonialCard name={testimonial.name} image={testimonial.image_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${testimonial.name}`} text={testimonial.content} location={testimonial.location || ""} />
+                    <TestimonialCard name={testimonial.name} text={testimonial.content} location={testimonial.location || ""} gender={(testimonial.gender as 'male' | 'female') || 'male'} />
                   </CarouselItem>)}
               </CarouselContent>
               <div className="flex justify-center mt-4 gap-2">

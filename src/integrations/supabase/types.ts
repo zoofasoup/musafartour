@@ -450,6 +450,7 @@ export type Database = {
           content: string
           created_at: string
           display_order: number
+          gender: string | null
           id: string
           image_url: string | null
           is_active: boolean
@@ -462,6 +463,7 @@ export type Database = {
           content: string
           created_at?: string
           display_order?: number
+          gender?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -474,6 +476,7 @@ export type Database = {
           content?: string
           created_at?: string
           display_order?: number
+          gender?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean

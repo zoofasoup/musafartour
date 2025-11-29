@@ -24,6 +24,7 @@ interface Testimonial {
   image_url: string | null;
   display_order: number;
   is_active: boolean;
+  gender: 'male' | 'female';
 }
 
 const Testimonials = () => {
@@ -43,6 +44,7 @@ const Testimonials = () => {
     content: "",
     image_url: "",
     display_order: 0,
+    gender: "male" as "male" | "female",
   });
 
   useEffect(() => {
@@ -163,6 +165,7 @@ const Testimonials = () => {
       content: item.content,
       image_url: item.image_url || "",
       display_order: item.display_order,
+      gender: item.gender || "male",
     });
     setIsDialogOpen(true);
   };
@@ -176,6 +179,7 @@ const Testimonials = () => {
       content: "",
       image_url: "",
       display_order: 0,
+      gender: "male",
     });
   };
 
@@ -259,22 +263,27 @@ const Testimonials = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="gender">Gender</Label>
+                  <Select
+                    value={formData.gender}
+                    onValueChange={(val) => setFormData({ ...formData, gender: val as "male" | "female" })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Laki-laki</SelectItem>
+                      <SelectItem value="female">Perempuan</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="display_order">Display Order</Label>
                   <Input
                     id="display_order"
                     type="number"
                     value={formData.display_order}
                     onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
-                  />
-                </div>
-                <div className="col-span-3 space-y-2">
-                  <FileUpload
-                    label="Customer Photo (Optional)"
-                    currentImage={formData.image_url}
-                    onFileSelect={handleImageUpload}
-                    onRemove={handleRemoveImage}
-                    loading={uploading}
-                    maxSizeMB={2}
                   />
                 </div>
               </div>
