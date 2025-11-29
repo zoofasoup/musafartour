@@ -9,9 +9,11 @@
     <meta name="author" content="Musafar Tour" />
     
     <!-- Critical resource hints - establish early connections -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Non-render-blocking font loading -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap"></noscript>
     <link rel="preconnect" href="https://gmcbpcazyeaulwlmgmot.supabase.co" crossorigin>
     <link rel="dns-prefetch" href="https://gmcbpcazyeaulwlmgmot.supabase.co">
     <link rel="preconnect" href="https://upload.wikimedia.org" crossorigin>
