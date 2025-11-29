@@ -40,6 +40,7 @@ const Testimonials = () => {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Testimonial | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     location: "",
@@ -51,6 +52,11 @@ const Testimonials = () => {
   });
 
   const { selectedIds, toggleSelect, selectAll, clearSelection, isSelected, allSelected } = useBulkSelection(testimonials);
+
+  const handleExitSelectionMode = () => {
+    setSelectionMode(false);
+    clearSelection();
+  };
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -271,118 +277,129 @@ const Testimonials = () => {
           <h1 className="text-3xl font-bold">Testimonials</h1>
           <p className="text-muted-foreground">Manage customer testimonials</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Testimonial
+        <div className="flex items-center gap-2">
+          {selectionMode ? (
+            <Button variant="outline" onClick={handleExitSelectionMode}>
+              Batal
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{editingItem ? "Edit" : "Add"} Testimonial</DialogTitle>
-              <DialogDescription>
-                {editingItem ? "Update" : "Create"} a customer testimonial
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="e.g., Jakarta"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="content">Review Content (max 200 characters)</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => {
-                    if (e.target.value.length <= 200) {
-                      setFormData({ ...formData, content: e.target.value });
-                    }
-                  }}
-                  rows={4}
-                  maxLength={200}
-                />
-                <p className="text-xs text-muted-foreground text-right">{formData.content.length}/200</p>
-              </div>
-              <div className="space-y-2">
-                <Label>Photo (Optional)</Label>
-                <FileUpload
-                  onFileSelect={handleImageUpload}
-                  onRemove={handleRemoveImage}
-                  currentImage={formData.image_url}
-                  loading={uploading}
-                />
-                <p className="text-xs text-muted-foreground">If no photo is uploaded, a default avatar based on gender will be used.</p>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="rating">Rating</Label>
-                  <Select
-                    value={formData.rating.toString()}
-                    onValueChange={(val) => setFormData({ ...formData, rating: parseInt(val) })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[5, 4, 3, 2, 1].map((r) => (
-                        <SelectItem key={r} value={r.toString()}>
-                          {r} <Star className="inline h-4 w-4" />
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gender">Gender</Label>
-                  <Select
-                    value={formData.gender}
-                    onValueChange={(val) => setFormData({ ...formData, gender: val as "male" | "female" })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Laki-laki</SelectItem>
-                      <SelectItem value="female">Perempuan</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="display_order">Display Order</Label>
-                  <Input
-                    id="display_order"
-                    type="number"
-                    value={formData.display_order}
-                    onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
-                  />
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleSave}>
-                <Save className="mr-2 h-4 w-4" />
-                Save
+          ) : (
+            <Button variant="outline" onClick={() => setSelectionMode(true)}>
+              Pilih
+            </Button>
+          )}
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={resetForm}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Testimonial
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>{editingItem ? "Edit" : "Add"} Testimonial</DialogTitle>
+                <DialogDescription>
+                  {editingItem ? "Update" : "Create"} a customer testimonial
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                      placeholder="e.g., Jakarta"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="content">Review Content (max 200 characters)</Label>
+                  <Textarea
+                    id="content"
+                    value={formData.content}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 200) {
+                        setFormData({ ...formData, content: e.target.value });
+                      }
+                    }}
+                    rows={4}
+                    maxLength={200}
+                  />
+                  <p className="text-xs text-muted-foreground text-right">{formData.content.length}/200</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Photo (Optional)</Label>
+                  <FileUpload
+                    onFileSelect={handleImageUpload}
+                    onRemove={handleRemoveImage}
+                    currentImage={formData.image_url}
+                    loading={uploading}
+                  />
+                  <p className="text-xs text-muted-foreground">If no photo is uploaded, a default avatar based on gender will be used.</p>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="rating">Rating</Label>
+                    <Select
+                      value={formData.rating.toString()}
+                      onValueChange={(val) => setFormData({ ...formData, rating: parseInt(val) })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[5, 4, 3, 2, 1].map((r) => (
+                          <SelectItem key={r} value={r.toString()}>
+                            {r} <Star className="inline h-4 w-4" />
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">Gender</Label>
+                    <Select
+                      value={formData.gender}
+                      onValueChange={(val) => setFormData({ ...formData, gender: val as "male" | "female" })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Laki-laki</SelectItem>
+                        <SelectItem value="female">Perempuan</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="display_order">Display Order</Label>
+                    <Input
+                      id="display_order"
+                      type="number"
+                      value={formData.display_order}
+                      onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
+                    />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={handleSave}>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card>
@@ -390,19 +407,21 @@ const Testimonials = () => {
           <CardTitle>Testimonials List</CardTitle>
         </CardHeader>
         <CardContent>
-          <BulkActions
-            selectedIds={selectedIds}
-            totalCount={testimonials.length}
-            onSelectAll={selectAll}
-            allSelected={allSelected}
-            actions={bulkActions}
-            onAction={handleBulkAction}
-          />
+          {selectionMode && (
+            <BulkActions
+              selectedIds={selectedIds}
+              totalCount={testimonials.length}
+              onSelectAll={selectAll}
+              allSelected={allSelected}
+              actions={bulkActions}
+              onAction={handleBulkAction}
+            />
+          )}
 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-12"></TableHead>
+                {selectionMode && <TableHead className="w-12"></TableHead>}
                 <TableHead>Order</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Location</TableHead>
@@ -415,13 +434,15 @@ const Testimonials = () => {
             <TableBody>
               {testimonials.map((item) => (
                 <TableRow key={item.id} className={isSelected(item.id) ? "bg-muted/50" : ""}>
-                  <TableCell>
-                    <Checkbox
-                      checked={isSelected(item.id)}
-                      onCheckedChange={() => toggleSelect(item.id)}
-                      aria-label={`Select ${item.name}`}
-                    />
-                  </TableCell>
+                  {selectionMode && (
+                    <TableCell>
+                      <Checkbox
+                        checked={isSelected(item.id)}
+                        onCheckedChange={() => toggleSelect(item.id)}
+                        aria-label={`Select ${item.name}`}
+                      />
+                    </TableCell>
+                  )}
                   <TableCell>{item.display_order}</TableCell>
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.location}</TableCell>

@@ -38,6 +38,7 @@ const GalleryManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<GalleryImage | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [selectionMode, setSelectionMode] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -47,6 +48,11 @@ const GalleryManagement = () => {
   });
 
   const { selectedIds, toggleSelect, selectAll, clearSelection, isSelected, allSelected } = useBulkSelection(images);
+
+  const handleExitSelectionMode = () => {
+    setSelectionMode(false);
+    clearSelection();
+  };
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -280,6 +286,15 @@ const GalleryManagement = () => {
               <List className="h-4 w-4" />
             </Button>
           </div>
+          {selectionMode ? (
+            <Button variant="outline" onClick={handleExitSelectionMode}>
+              Batal
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={() => setSelectionMode(true)}>
+              Pilih
+            </Button>
+          )}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={resetForm}>
@@ -361,28 +376,32 @@ const GalleryManagement = () => {
         </div>
       </div>
 
-      <BulkActions
-        selectedIds={selectedIds}
-        totalCount={images.length}
-        onSelectAll={selectAll}
-        allSelected={allSelected}
-        actions={bulkActions}
-        onAction={handleBulkAction}
-      />
+      {selectionMode && (
+        <BulkActions
+          selectedIds={selectedIds}
+          totalCount={images.length}
+          onSelectAll={selectAll}
+          allSelected={allSelected}
+          actions={bulkActions}
+          onAction={handleBulkAction}
+        />
+      )}
 
       {viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {images.map((item) => (
             <Card key={item.id} className={isSelected(item.id) ? "ring-2 ring-primary" : ""}>
               <CardHeader className="p-0 relative">
-                <div className="absolute top-2 left-2 z-10">
-                  <Checkbox
-                    checked={isSelected(item.id)}
-                    onCheckedChange={() => toggleSelect(item.id)}
-                    aria-label={`Select ${item.title}`}
-                    className="bg-white"
-                  />
-                </div>
+                {selectionMode && (
+                  <div className="absolute top-2 left-2 z-10">
+                    <Checkbox
+                      checked={isSelected(item.id)}
+                      onCheckedChange={() => toggleSelect(item.id)}
+                      aria-label={`Select ${item.title}`}
+                      className="bg-white"
+                    />
+                  </div>
+                )}
                 <div className="aspect-video relative overflow-hidden rounded-t-lg">
                   <img
                     src={item.image_url}
@@ -420,7 +439,7 @@ const GalleryManagement = () => {
             <table className="w-full">
               <thead className="border-b">
                 <tr>
-                  <th className="p-4 w-12"></th>
+                  {selectionMode && <th className="p-4 w-12"></th>}
                   <th className="p-4 text-left">Image</th>
                   <th className="p-4 text-left">Title</th>
                   <th className="p-4 text-left">Category</th>
@@ -432,13 +451,15 @@ const GalleryManagement = () => {
               <tbody>
                 {images.map((item) => (
                   <tr key={item.id} className={`border-b ${isSelected(item.id) ? "bg-muted/50" : ""}`}>
-                    <td className="p-4">
-                      <Checkbox
-                        checked={isSelected(item.id)}
-                        onCheckedChange={() => toggleSelect(item.id)}
-                        aria-label={`Select ${item.title}`}
-                      />
-                    </td>
+                    {selectionMode && (
+                      <td className="p-4">
+                        <Checkbox
+                          checked={isSelected(item.id)}
+                          onCheckedChange={() => toggleSelect(item.id)}
+                          aria-label={`Select ${item.title}`}
+                        />
+                      </td>
+                    )}
                     <td className="p-4">
                       <img src={item.image_url} alt={item.title} className="w-16 h-12 object-cover rounded" />
                     </td>
