@@ -41,8 +41,14 @@ const Packages = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [sortField, setSortField] = useState<SortField>('departure_date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [selectionMode, setSelectionMode] = useState(false);
 
   const { selectedIds, toggleSelect, selectAll, clearSelection, isSelected, allSelected } = useBulkSelection(packages);
+
+  const handleExitSelectionMode = () => {
+    setSelectionMode(false);
+    clearSelection();
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -201,10 +207,21 @@ const Packages = () => {
           <h1 className="text-3xl font-bold">Paket Umroh</h1>
           <p className="text-muted-foreground">Kelola paket umroh Anda</p>
         </div>
-        <Button onClick={() => navigate("/admin/packages/new")}>
-          <Plus className="mr-2 h-4 w-4" />
-          Tambah Paket
-        </Button>
+        <div className="flex items-center gap-2">
+          {selectionMode ? (
+            <Button variant="outline" onClick={handleExitSelectionMode}>
+              Batal
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={() => setSelectionMode(true)}>
+              Pilih
+            </Button>
+          )}
+          <Button onClick={() => navigate("/admin/packages/new")}>
+            <Plus className="mr-2 h-4 w-4" />
+            Tambah Paket
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -212,19 +229,21 @@ const Packages = () => {
           <CardTitle>Daftar Paket</CardTitle>
         </CardHeader>
         <CardContent>
-          <BulkActions
-            selectedIds={selectedIds}
-            totalCount={packages.length}
-            onSelectAll={selectAll}
-            allSelected={allSelected}
-            actions={bulkActions}
-            onAction={handleBulkAction}
-          />
+          {selectionMode && (
+            <BulkActions
+              selectedIds={selectedIds}
+              totalCount={packages.length}
+              onSelectAll={selectAll}
+              allSelected={allSelected}
+              actions={bulkActions}
+              onAction={handleBulkAction}
+            />
+          )}
 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-12"></TableHead>
+                {selectionMode && <TableHead className="w-12"></TableHead>}
                 <TableHead>
                   <Button variant="ghost" onClick={() => handleSort('package_name')} className="h-auto p-0 font-semibold hover:bg-transparent">
                     Nama Paket {getSortIcon('package_name')}
@@ -261,20 +280,22 @@ const Packages = () => {
             <TableBody>
               {sortedPackages.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground">
+                  <TableCell colSpan={selectionMode ? 8 : 7} className="text-center text-muted-foreground">
                     Belum ada paket umroh
                   </TableCell>
                 </TableRow>
               ) : (
                 sortedPackages.map((pkg) => (
                   <TableRow key={pkg.id} className={isSelected(pkg.id) ? "bg-muted/50" : ""}>
-                    <TableCell>
-                      <Checkbox
-                        checked={isSelected(pkg.id)}
-                        onCheckedChange={() => toggleSelect(pkg.id)}
-                        aria-label={`Select ${pkg.package_name}`}
-                      />
-                    </TableCell>
+                    {selectionMode && (
+                      <TableCell>
+                        <Checkbox
+                          checked={isSelected(pkg.id)}
+                          onCheckedChange={() => toggleSelect(pkg.id)}
+                          aria-label={`Select ${pkg.package_name}`}
+                        />
+                      </TableCell>
+                    )}
                     <TableCell className="font-medium">{pkg.package_name}</TableCell>
                     <TableCell>{format(new Date(pkg.departure_date), "dd MMM yyyy")}</TableCell>
                     <TableCell>{pkg.duration_days} hari</TableCell>
