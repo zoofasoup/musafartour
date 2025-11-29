@@ -35,8 +35,14 @@ const ArticlesPage = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
 
   const { selectedIds, toggleSelect, selectAll, clearSelection, isSelected, allSelected } = useBulkSelection(articles);
+
+  const handleExitSelectionMode = () => {
+    setSelectionMode(false);
+    clearSelection();
+  };
 
   const fetchArticles = async () => {
     try {
@@ -157,10 +163,21 @@ const ArticlesPage = () => {
           <h1 className="text-3xl font-bold">Artikel</h1>
           <p className="text-muted-foreground">Kelola artikel blog</p>
         </div>
-        <Button onClick={() => navigate("/admin/articles/new")}>
-          <Plus className="mr-2 h-4 w-4" />
-          Tambah Artikel
-        </Button>
+        <div className="flex items-center gap-2">
+          {selectionMode ? (
+            <Button variant="outline" onClick={handleExitSelectionMode}>
+              Batal
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={() => setSelectionMode(true)}>
+              Pilih
+            </Button>
+          )}
+          <Button onClick={() => navigate("/admin/articles/new")}>
+            <Plus className="mr-2 h-4 w-4" />
+            Tambah Artikel
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -168,19 +185,21 @@ const ArticlesPage = () => {
           <CardTitle>Daftar Artikel</CardTitle>
         </CardHeader>
         <CardContent>
-          <BulkActions
-            selectedIds={selectedIds}
-            totalCount={articles.length}
-            onSelectAll={selectAll}
-            allSelected={allSelected}
-            actions={bulkActions}
-            onAction={handleBulkAction}
-          />
+          {selectionMode && (
+            <BulkActions
+              selectedIds={selectedIds}
+              totalCount={articles.length}
+              onSelectAll={selectAll}
+              allSelected={allSelected}
+              actions={bulkActions}
+              onAction={handleBulkAction}
+            />
+          )}
 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-12"></TableHead>
+                {selectionMode && <TableHead className="w-12"></TableHead>}
                 <TableHead>Judul</TableHead>
                 <TableHead>Kategori</TableHead>
                 <TableHead>Status</TableHead>
@@ -191,20 +210,22 @@ const ArticlesPage = () => {
             <TableBody>
               {articles.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
+                  <TableCell colSpan={selectionMode ? 6 : 5} className="text-center text-muted-foreground">
                     Belum ada artikel
                   </TableCell>
                 </TableRow>
               ) : (
                 articles.map((article) => (
                   <TableRow key={article.id} className={isSelected(article.id) ? "bg-muted/50" : ""}>
-                    <TableCell>
-                      <Checkbox
-                        checked={isSelected(article.id)}
-                        onCheckedChange={() => toggleSelect(article.id)}
-                        aria-label={`Select ${article.title}`}
-                      />
-                    </TableCell>
+                    {selectionMode && (
+                      <TableCell>
+                        <Checkbox
+                          checked={isSelected(article.id)}
+                          onCheckedChange={() => toggleSelect(article.id)}
+                          aria-label={`Select ${article.title}`}
+                        />
+                      </TableCell>
+                    )}
                     <TableCell className="font-medium">{article.title}</TableCell>
                     <TableCell>{article.category || "-"}</TableCell>
                     <TableCell>

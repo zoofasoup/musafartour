@@ -34,6 +34,7 @@ const FAQ = () => {
   const [faqs, setFaqs] = useState<FAQItem[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<FAQItem | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
   const [formData, setFormData] = useState({
     question: "",
     answer: "",
@@ -42,6 +43,11 @@ const FAQ = () => {
   });
 
   const { selectedIds, toggleSelect, selectAll, clearSelection, isSelected, allSelected } = useBulkSelection(faqs);
+
+  const handleExitSelectionMode = () => {
+    setSelectionMode(false);
+    clearSelection();
+  };
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -213,76 +219,87 @@ const FAQ = () => {
           <h1 className="text-3xl font-bold">FAQ Management</h1>
           <p className="text-muted-foreground">Manage frequently asked questions</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add FAQ
+        <div className="flex items-center gap-2">
+          {selectionMode ? (
+            <Button variant="outline" onClick={handleExitSelectionMode}>
+              Batal
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{editingItem ? "Edit" : "Add"} FAQ</DialogTitle>
-              <DialogDescription>
-                {editingItem ? "Update" : "Create"} a frequently asked question
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="question">Question</Label>
-                <Input
-                  id="question"
-                  value={formData.question}
-                  onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="answer">Answer</Label>
-                <Textarea
-                  id="answer"
-                  value={formData.answer}
-                  onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
-                  rows={5}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+          ) : (
+            <Button variant="outline" onClick={() => setSelectionMode(true)}>
+              Pilih
+            </Button>
+          )}
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={resetForm}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add FAQ
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>{editingItem ? "Edit" : "Add"} FAQ</DialogTitle>
+                <DialogDescription>
+                  {editingItem ? "Update" : "Create"} a frequently asked question
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(val) => setFormData({ ...formData, category: val })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="general">General</SelectItem>
-                      <SelectItem value="umroh">Umroh</SelectItem>
-                      <SelectItem value="haji">Haji</SelectItem>
-                      <SelectItem value="visa">Visa</SelectItem>
-                      <SelectItem value="payment">Payment</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="display_order">Display Order</Label>
+                  <Label htmlFor="question">Question</Label>
                   <Input
-                    id="display_order"
-                    type="number"
-                    value={formData.display_order}
-                    onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
+                    id="question"
+                    value={formData.question}
+                    onChange={(e) => setFormData({ ...formData, question: e.target.value })}
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="answer">Answer</Label>
+                  <Textarea
+                    id="answer"
+                    value={formData.answer}
+                    onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
+                    rows={5}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Select
+                      value={formData.category}
+                      onValueChange={(val) => setFormData({ ...formData, category: val })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="general">General</SelectItem>
+                        <SelectItem value="umroh">Umroh</SelectItem>
+                        <SelectItem value="haji">Haji</SelectItem>
+                        <SelectItem value="visa">Visa</SelectItem>
+                        <SelectItem value="payment">Payment</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="display_order">Display Order</Label>
+                    <Input
+                      id="display_order"
+                      type="number"
+                      value={formData.display_order}
+                      onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleSave}>
-                <Save className="mr-2 h-4 w-4" />
-                Save
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <Button onClick={handleSave}>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card>
@@ -291,19 +308,21 @@ const FAQ = () => {
           <CardDescription>All frequently asked questions</CardDescription>
         </CardHeader>
         <CardContent>
-          <BulkActions
-            selectedIds={selectedIds}
-            totalCount={faqs.length}
-            onSelectAll={selectAll}
-            allSelected={allSelected}
-            actions={bulkActions}
-            onAction={handleBulkAction}
-          />
+          {selectionMode && (
+            <BulkActions
+              selectedIds={selectedIds}
+              totalCount={faqs.length}
+              onSelectAll={selectAll}
+              allSelected={allSelected}
+              actions={bulkActions}
+              onAction={handleBulkAction}
+            />
+          )}
 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-12"></TableHead>
+                {selectionMode && <TableHead className="w-12"></TableHead>}
                 <TableHead>Order</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Question</TableHead>
@@ -315,13 +334,15 @@ const FAQ = () => {
             <TableBody>
               {faqs.map((item) => (
                 <TableRow key={item.id} className={isSelected(item.id) ? "bg-muted/50" : ""}>
-                  <TableCell>
-                    <Checkbox
-                      checked={isSelected(item.id)}
-                      onCheckedChange={() => toggleSelect(item.id)}
-                      aria-label={`Select ${item.question}`}
-                    />
-                  </TableCell>
+                  {selectionMode && (
+                    <TableCell>
+                      <Checkbox
+                        checked={isSelected(item.id)}
+                        onCheckedChange={() => toggleSelect(item.id)}
+                        aria-label={`Select ${item.question}`}
+                      />
+                    </TableCell>
+                  )}
                   <TableCell>{item.display_order}</TableCell>
                   <TableCell className="capitalize">{item.category}</TableCell>
                   <TableCell className="font-medium max-w-xs truncate">{item.question}</TableCell>
