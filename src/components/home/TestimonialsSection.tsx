@@ -49,8 +49,8 @@ export const TestimonialsSection = ({
           delay: 4000
         })]} className="w-full mb-12">
             <CarouselContent className="-ml-2 md:-ml-4">
-                {testimonials.map(testimonial => <CarouselItem key={testimonial.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                    <TestimonialCard name={testimonial.name} text={testimonial.content} location={testimonial.location || ""} gender={(testimonial.gender as 'male' | 'female') || 'male'} />
+                {testimonials.map(testimonial => <CarouselItem key={testimonial.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3 flex">
+                    <TestimonialCard name={testimonial.name} text={testimonial.content} location={testimonial.location || ""} gender={(testimonial.gender as 'male' | 'female') || 'male'} imageUrl={testimonial.image_url} />
                   </CarouselItem>)}
               </CarouselContent>
               <div className="flex justify-center mt-4 gap-2">

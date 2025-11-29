@@ -8,14 +8,16 @@ interface TestimonialCardProps {
   text: string;
   location: string;
   gender?: 'male' | 'female';
+  imageUrl?: string | null;
 }
 
-export const TestimonialCard = ({ name, text, location, gender = 'male' }: TestimonialCardProps) => {
-  const avatarImage = gender === 'female' ? testimonialFemale : testimonialMale;
+export const TestimonialCard = ({ name, text, location, gender = 'male', imageUrl }: TestimonialCardProps) => {
+  const defaultAvatar = gender === 'female' ? testimonialFemale : testimonialMale;
+  const avatarImage = imageUrl || defaultAvatar;
 
   return (
-    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-      <CardContent className="p-6">
+    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
+      <CardContent className="p-6 flex flex-col h-full">
         <div className="flex items-center justify-between mb-4">
           <div className="flex gap-1">
             {[...Array(5)].map((_, i) => (
@@ -29,16 +31,16 @@ export const TestimonialCard = ({ name, text, location, gender = 'male' }: Testi
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
           </svg>
         </div>
-        <p className="text-muted-foreground italic mb-4">"{text}"</p>
-        <div className="flex items-center gap-3">
+        <p className="text-foreground leading-relaxed mb-4 flex-grow line-clamp-4">"{text}"</p>
+        <div className="flex items-center gap-3 mt-auto pt-4 border-t border-border/50">
           <img
             src={avatarImage}
             alt={name}
-            className="w-12 h-12 rounded-full object-cover"
+            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
           />
-          <div>
-            <p className="font-semibold text-foreground">{name}</p>
-            <p className="text-sm text-muted-foreground">{location}</p>
+          <div className="min-w-0">
+            <p className="font-semibold text-foreground truncate">{name}</p>
+            <p className="text-sm text-muted-foreground truncate">{location}</p>
           </div>
         </div>
       </CardContent>
