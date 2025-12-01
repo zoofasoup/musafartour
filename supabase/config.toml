@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.sitemap]
 verify_jwt = false
+
+[functions.get-hero-preload]
+verify_jwt = false
