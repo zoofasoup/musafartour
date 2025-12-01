@@ -37,8 +37,8 @@
       .animate-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}
       @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
       
-      /* Hero section - reserve exact space to prevent CLS */
-      section:first-of-type{height:90vh;min-height:600px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;contain:layout paint}
+      /* Hero section - dark background during load to prevent white flash */
+      #root>div>section:first-of-type{background:#1e293b}
       
       /* Prevent image layout shifts */
       img{max-width:100%;height:auto}
