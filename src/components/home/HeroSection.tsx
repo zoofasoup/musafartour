@@ -19,17 +19,24 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
   };
 
   // Stable layout skeleton - matches exact structure of loaded state to prevent CLS
+  // The skeleton must have IDENTICAL dimensions and structure to prevent layout shift
   const renderSkeleton = () => (
     <>
-      <div className="absolute inset-0 bg-muted" />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
-      <div className="relative z-10 container mx-auto px-4 text-center">
-        <div className="h-16 w-40 mx-auto mb-8 bg-white/10 rounded animate-pulse" />
-        <div className="h-12 md:h-16 w-3/4 max-w-2xl mx-auto mb-4 bg-white/10 rounded animate-pulse" />
-        <div className="h-6 w-2/3 max-w-xl mx-auto mb-8 bg-white/10 rounded animate-pulse" />
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <div className="h-12 w-40 bg-white/10 rounded-md animate-pulse" />
-          <div className="h-12 w-48 bg-white/10 rounded-md animate-pulse" />
+      {/* Placeholder for image - same dimensions */}
+      <div className="absolute inset-0 w-full h-full bg-muted" aria-hidden="true" />
+      {/* Gradient overlay - identical to loaded state */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" aria-hidden="true" />
+      <div className="relative z-10 container mx-auto px-4 text-center text-white">
+        {/* Logo placeholder - exact same size as actual logo */}
+        <div className="h-16 w-[320px] mx-auto mb-8 bg-white/10 rounded animate-pulse" aria-hidden="true" />
+        {/* Title placeholder */}
+        <div className="h-12 md:h-16 w-3/4 max-w-2xl mx-auto mb-4 bg-white/10 rounded animate-pulse" aria-hidden="true" />
+        {/* Subtitle placeholder */}
+        <div className="h-6 w-2/3 max-w-xl mx-auto mb-8 bg-white/10 rounded animate-pulse" aria-hidden="true" />
+        {/* Buttons placeholder - same padding and gap */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-full px-4">
+          <div className="h-12 w-full sm:w-44 bg-white/10 rounded-md animate-pulse" aria-hidden="true" />
+          <div className="h-12 w-full sm:w-56 bg-white/10 rounded-md animate-pulse" aria-hidden="true" />
         </div>
       </div>
     </>
@@ -42,7 +49,7 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
         renderSkeleton()
       ) : (
         <>
-          {heroData.background_image && (
+          {heroData.background_image ? (
             <img
               src={heroData.background_image}
               alt="Musafar Tour Umroh Group at Kaaba"
@@ -50,12 +57,14 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
               // @ts-expect-error fetchpriority is valid HTML but React types don't support it yet
               fetchpriority="high"
               loading="eager"
-              decoding="async"
+              decoding="sync"
               width="1920"
               height="1080"
             />
+          ) : (
+            <div className="absolute inset-0 w-full h-full bg-muted" aria-hidden="true" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" aria-hidden="true" />
 
           <div className="relative z-10 container mx-auto px-4 text-center text-white">
             <img
