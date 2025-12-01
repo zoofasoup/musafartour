@@ -108,6 +108,11 @@ All colors MUST be HSL.
     content-visibility: auto;
   }
   
+  /* Hero section containment to prevent layout shift */
+  section:first-of-type {
+    contain: layout paint;
+  }
+  
   /* Use GPU acceleration for animations */
   .animate-fade-in {
     animation: fadeIn 0.6s ease-out;

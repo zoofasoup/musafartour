@@ -22,26 +22,26 @@
     <link rel="dns-prefetch" href="https://analytics.tiktok.com">
     
     <!-- Preload critical hero image from Supabase storage -->
-    <link rel="preload" as="image" href="https://gmcbpcazyeaulwlmgmot.supabase.co/storage/v1/object/public/package-images/hero/hero-background-1761825053750.webp" fetchpriority="high" type="image/webp" />
+    <link rel="preload" as="image" href="https://gmcbpcazyeaulwlmgmot.supabase.co/storage/v1/object/public/package-images/hero/hero-background-1764428728293.webp" fetchpriority="high" type="image/webp" imagesrcset="https://gmcbpcazyeaulwlmgmot.supabase.co/storage/v1/object/public/package-images/hero/hero-background-1764428728293.webp 1920w" imagesizes="100vw" />
     <link rel="modulepreload" href="/src/main.tsx" />
     
     <!-- Inline critical CSS for fastest paint -->
     <style>
       /* Reset & Base */
       *,*::before,*::after{box-sizing:border-box;border-width:0;border-style:solid}
-      html{-webkit-text-size-adjust:100%;tab-size:4;font-family:'Onest',ui-sans-serif,system-ui,-apple-system,sans-serif;line-height:1.5}
+      html{-webkit-text-size-adjust:100%;tab-size:4;font-family:'Onest',ui-sans-serif,system-ui,-apple-system,sans-serif;line-height:1.5;scroll-behavior:smooth}
       body{margin:0;line-height:inherit}
-      #root{min-height:100vh}
+      #root{min-height:100vh;contain:layout style}
       
       /* Critical animations for loading states */
       .animate-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}
       @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
       
-      /* Hero section skeleton to prevent layout shift */
-      .hero-skeleton{height:60vh;background:#f3f4f6;animation:pulse 2s ease-in-out infinite}
+      /* Hero section - reserve exact space to prevent CLS */
+      section:first-of-type{height:90vh;min-height:600px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;contain:layout paint}
       
-      /* Smooth scroll behavior */
-      html{scroll-behavior:smooth}
+      /* Prevent image layout shifts */
+      img{max-width:100%;height:auto}
     </style>
 
     
