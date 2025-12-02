@@ -9,6 +9,8 @@ import { SellingPointsSection } from "@/components/home/SellingPointsSection";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { FAQSection } from "@/components/home/FAQSection";
 import { CTASection } from "@/components/home/CTASection";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const {
@@ -21,6 +23,19 @@ const Index = () => {
     faqItems,
     websiteSettings,
   } = useHomepageData();
+
+  // Fetch page-level SEO settings
+  const { data: pageSEO } = useQuery({
+    queryKey: ["page-seo", "/"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("page_seo")
+        .select("*")
+        .eq("page_path", "/")
+        .maybeSingle();
+      return data;
+    },
+  });
 
   // Dynamic structured data from settings
   const structuredData = {
@@ -55,10 +70,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <SEO
-        title="Musafar Tour - Paket Umroh & Haji Terpercaya 2025"
-        description="Paket umroh mulai 20 jutaan dengan pelayanan terbaik. Hotel bintang 5, katering Indonesia, pembimbing berpengalaman. Daftar sekarang!"
-        keywords="paket umroh, travel umroh terpercaya, umroh 2025, haji khusus, wisata halal"
-        canonicalUrl="https://musafartour.com/"
+        title={pageSEO?.meta_title || "Musafar Tour - Paket Umroh & Haji Terpercaya 2025"}
+        description={pageSEO?.meta_description || "Paket umroh mulai 20 jutaan dengan pelayanan terbaik. Hotel bintang 5, katering Indonesia, pembimbing berpengalaman. Daftar sekarang!"}
+        keywords={pageSEO?.focus_keyword || "paket umroh, travel umroh terpercaya, umroh 2025, haji khusus, wisata halal"}
+        canonicalUrl={pageSEO?.canonical_url || "https://musafartour.com/"}
+        ogImage={pageSEO?.og_image}
         structuredData={structuredData}
       />
       <Navbar />

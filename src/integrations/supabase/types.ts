@@ -18,15 +18,20 @@ export type Database = {
         Row: {
           author_id: string | null
           author_name: string | null
+          canonical_url: string | null
           category: string | null
           content: string
           created_at: string
           excerpt: string | null
           featured_image: string | null
+          focus_keyword: string | null
           id: string
           meta_description: string | null
           meta_title: string | null
+          og_image: string | null
           published_at: string | null
+          robots_meta: string | null
+          schema_type: string | null
           slug: string
           status: string | null
           tags: string[] | null
@@ -36,15 +41,20 @@ export type Database = {
         Insert: {
           author_id?: string | null
           author_name?: string | null
+          canonical_url?: string | null
           category?: string | null
           content: string
           created_at?: string
           excerpt?: string | null
           featured_image?: string | null
+          focus_keyword?: string | null
           id?: string
           meta_description?: string | null
           meta_title?: string | null
+          og_image?: string | null
           published_at?: string | null
+          robots_meta?: string | null
+          schema_type?: string | null
           slug: string
           status?: string | null
           tags?: string[] | null
@@ -54,15 +64,20 @@ export type Database = {
         Update: {
           author_id?: string | null
           author_name?: string | null
+          canonical_url?: string | null
           category?: string | null
           content?: string
           created_at?: string
           excerpt?: string | null
           featured_image?: string | null
+          focus_keyword?: string | null
           id?: string
           meta_description?: string | null
           meta_title?: string | null
+          og_image?: string | null
           published_at?: string | null
+          robots_meta?: string | null
+          schema_type?: string | null
           slug?: string
           status?: string | null
           tags?: string[] | null
@@ -294,6 +309,7 @@ export type Database = {
           available_tiers: string[] | null
           banner_image: string | null
           best_seller_transport: string | null
+          canonical_url: string | null
           catalog_link: string | null
           created_at: string
           departure_date: string
@@ -312,6 +328,7 @@ export type Database = {
           five_star_transport: string | null
           flight: string
           flight_type: string
+          focus_keyword: string | null
           gallery_images: string[] | null
           id: string
           included_items: string | null
@@ -324,8 +341,13 @@ export type Database = {
           makkah_duration_walk: string | null
           makkah_hotel_name: string | null
           makkah_hotel_star: number | null
+          meta_description: string | null
+          meta_title: string | null
+          og_image: string | null
           package_name: string
           package_price: Json
+          robots_meta: string | null
+          schema_type: string | null
           slug: string | null
           status: string
           updated_at: string
@@ -334,6 +356,7 @@ export type Database = {
           available_tiers?: string[] | null
           banner_image?: string | null
           best_seller_transport?: string | null
+          canonical_url?: string | null
           catalog_link?: string | null
           created_at?: string
           departure_date: string
@@ -352,6 +375,7 @@ export type Database = {
           five_star_transport?: string | null
           flight: string
           flight_type: string
+          focus_keyword?: string | null
           gallery_images?: string[] | null
           id?: string
           included_items?: string | null
@@ -364,8 +388,13 @@ export type Database = {
           makkah_duration_walk?: string | null
           makkah_hotel_name?: string | null
           makkah_hotel_star?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
+          og_image?: string | null
           package_name: string
           package_price?: Json
+          robots_meta?: string | null
+          schema_type?: string | null
           slug?: string | null
           status?: string
           updated_at?: string
@@ -374,6 +403,7 @@ export type Database = {
           available_tiers?: string[] | null
           banner_image?: string | null
           best_seller_transport?: string | null
+          canonical_url?: string | null
           catalog_link?: string | null
           created_at?: string
           departure_date?: string
@@ -392,6 +422,7 @@ export type Database = {
           five_star_transport?: string | null
           flight?: string
           flight_type?: string
+          focus_keyword?: string | null
           gallery_images?: string[] | null
           id?: string
           included_items?: string | null
@@ -404,10 +435,90 @@ export type Database = {
           makkah_duration_walk?: string | null
           makkah_hotel_name?: string | null
           makkah_hotel_star?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
+          og_image?: string | null
           package_name?: string
           package_price?: Json
+          robots_meta?: string | null
+          schema_type?: string | null
           slug?: string | null
           status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      page_seo: {
+        Row: {
+          canonical_url: string | null
+          created_at: string
+          focus_keyword: string | null
+          id: string
+          meta_description: string | null
+          meta_title: string | null
+          og_image: string | null
+          page_name: string
+          page_path: string
+          robots_meta: string | null
+          schema_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          canonical_url?: string | null
+          created_at?: string
+          focus_keyword?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          og_image?: string | null
+          page_name: string
+          page_path: string
+          robots_meta?: string | null
+          schema_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          canonical_url?: string | null
+          created_at?: string
+          focus_keyword?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          og_image?: string | null
+          page_name?: string
+          page_path?: string
+          robots_meta?: string | null
+          schema_type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      redirects: {
+        Row: {
+          created_at: string
+          from_path: string
+          id: string
+          is_active: boolean | null
+          redirect_type: number | null
+          to_path: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          from_path: string
+          id?: string
+          is_active?: boolean | null
+          redirect_type?: number | null
+          to_path: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          from_path?: string
+          id?: string
+          is_active?: boolean | null
+          redirect_type?: number | null
+          to_path?: string
           updated_at?: string
         }
         Relationships: []
@@ -441,6 +552,45 @@ export type Database = {
           id?: string
           is_active?: boolean
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      seo_settings: {
+        Row: {
+          created_at: string
+          default_keywords: string | null
+          default_og_image: string | null
+          id: string
+          robots_txt: string | null
+          site_description: string | null
+          site_title: string
+          twitter_card_type: string | null
+          twitter_site: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_keywords?: string | null
+          default_og_image?: string | null
+          id?: string
+          robots_txt?: string | null
+          site_description?: string | null
+          site_title?: string
+          twitter_card_type?: string | null
+          twitter_site?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_keywords?: string | null
+          default_og_image?: string | null
+          id?: string
+          robots_txt?: string | null
+          site_description?: string | null
+          site_title?: string
+          twitter_card_type?: string | null
+          twitter_site?: string | null
           updated_at?: string
         }
         Relationships: []
