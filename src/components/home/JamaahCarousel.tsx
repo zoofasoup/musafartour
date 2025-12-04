@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -11,6 +11,68 @@ const fallbackPhotos = [
   { id: "5", image_url: "https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=300&h=300&fit=crop" },
   { id: "6", image_url: "https://images.unsplash.com/photo-1466442929976-97f336a657be?w=300&h=300&fit=crop" },
 ];
+
+interface TiltCardProps {
+  photo: { id: string; image_url: string };
+  index: number;
+}
+
+const TiltCard = ({ photo, index }: TiltCardProps) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [transform, setTransform] = useState("");
+  const [glarePosition, setGlarePosition] = useState({ x: 50, y: 50 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    const rotateX = (y - centerY) / 10;
+    const rotateY = (centerX - x) / 10;
+    
+    setTransform(`perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`);
+    setGlarePosition({ x: (x / rect.width) * 100, y: (y / rect.height) * 100 });
+  };
+
+  const handleMouseLeave = () => {
+    setTransform("");
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      className="relative flex-shrink-0 w-[200px] h-[200px] md:w-[280px] md:h-[280px] lg:w-[320px] lg:h-[320px] overflow-hidden cursor-pointer"
+      style={{
+        transform: transform,
+        transition: transform ? "none" : "transform 0.5s ease-out",
+        transformStyle: "preserve-3d",
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <img
+        src={photo.image_url}
+        alt="Jamaah umroh Musafar Tour"
+        className="w-full h-full object-cover"
+        loading="lazy"
+        width={320}
+        height={320}
+      />
+      {/* Glare effect */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(circle at ${glarePosition.x}% ${glarePosition.y}%, rgba(255,255,255,0.3) 0%, transparent 60%)`,
+          opacity: transform ? 1 : 0,
+        }}
+      />
+    </div>
+  );
+};
 
 export const JamaahCarousel = () => {
   const [isPaused, setIsPaused] = useState(false);
@@ -66,22 +128,7 @@ export const JamaahCarousel = () => {
           }}
         >
           {duplicatedPhotos.map((photo, index) => (
-            <div
-              key={`${photo.id}-${index}`}
-              className="relative flex-shrink-0 w-[200px] h-[200px] md:w-[280px] md:h-[280px] lg:w-[320px] lg:h-[320px] overflow-hidden group cursor-pointer"
-            >
-              <img
-                src={photo.image_url}
-                alt="Jamaah umroh Musafar Tour"
-                className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
-                loading="lazy"
-                width={320}
-                height={320}
-              />
-              {/* Hover overlay with glow */}
-              <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-all duration-500" />
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 shadow-[inset_0_0_30px_rgba(255,255,255,0.3)]" />
-            </div>
+            <TiltCard key={`${photo.id}-${index}`} photo={photo} index={index} />
           ))}
         </div>
       </div>
