@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 // Import airline logos
 import garudaLogo from "@/assets/airlines/garuda-indonesia.png";
@@ -10,20 +10,21 @@ import lionAirLogo from "@/assets/airlines/lion-air.png";
 import scootLogo from "@/assets/airlines/scoot.png";
 
 const airlines = [
-  { name: "Garuda Indonesia", logo: garudaLogo },
-  { name: "Saudia", logo: saudiaLogo },
-  { name: "Qatar Airways", logo: qatarLogo },
-  { name: "Emirates", logo: emiratesLogo },
-  { name: "Oman Air", logo: omanAirLogo },
-  { name: "Lion Air", logo: lionAirLogo },
-  { name: "Scoot", logo: scootLogo },
+  { name: "Garuda Indonesia", logo: garudaLogo, className: "h-12 md:h-14" },
+  { name: "Saudia", logo: saudiaLogo, className: "h-8 md:h-10" },
+  { name: "Qatar Airways", logo: qatarLogo, className: "h-10 md:h-12" },
+  { name: "Emirates", logo: emiratesLogo, className: "h-8 md:h-10" },
+  { name: "Oman Air", logo: omanAirLogo, className: "h-12 md:h-14" },
+  { name: "Lion Air", logo: lionAirLogo, className: "h-8 md:h-10" },
+  { name: "Scoot", logo: scootLogo, className: "h-12 md:h-14" },
 ];
 
 export const AirlinesCarousel = () => {
   const [isPaused, setIsPaused] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Duplicate for seamless infinite loop
-  const duplicatedAirlines = [...airlines, ...airlines];
+  // Clone items for seamless loop
+  const items = [...airlines, ...airlines, ...airlines];
 
   return (
     <section className="py-12 bg-muted/20 overflow-hidden">
@@ -34,50 +35,36 @@ export const AirlinesCarousel = () => {
       </div>
 
       <div
-        className="relative w-full"
+        className="relative w-full overflow-hidden"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
         <div
-          className="flex items-center"
+          ref={scrollRef}
+          className="flex items-center animate-scroll-logos"
           style={{
-            animation: `scrollLogos 30s linear infinite`,
             animationPlayState: isPaused ? "paused" : "running",
-            width: "fit-content",
           }}
         >
-          {duplicatedAirlines.map((airline, index) => (
+          {items.map((airline, index) => (
             <div
               key={`${airline.name}-${index}`}
-              className="flex-shrink-0 px-8 md:px-12"
+              className="flex-shrink-0 flex items-center justify-center px-8 md:px-12 min-w-[140px] md:min-w-[180px]"
             >
               <img
                 src={airline.logo}
                 alt={airline.name}
-                className="h-8 md:h-10 w-auto max-w-[120px] object-contain grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all duration-300"
+                className={`${airline.className} w-auto max-w-[140px] object-contain grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all duration-300`}
                 loading="lazy"
-                width={120}
-                height={40}
               />
             </div>
           ))}
         </div>
 
         {/* Edge fade gradients */}
-        <div className="absolute top-0 left-0 w-16 md:w-32 h-full bg-gradient-to-r from-muted/20 to-transparent pointer-events-none z-10" />
-        <div className="absolute top-0 right-0 w-16 md:w-32 h-full bg-gradient-to-l from-muted/20 to-transparent pointer-events-none z-10" />
+        <div className="absolute top-0 left-0 w-16 md:w-32 h-full bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
+        <div className="absolute top-0 right-0 w-16 md:w-32 h-full bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
       </div>
-
-      <style>{`
-        @keyframes scrollLogos {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-      `}</style>
     </section>
   );
 };

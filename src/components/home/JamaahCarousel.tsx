@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 // Placeholder images - replace with actual jamaah photos from database
 const jamaahPhotos = [
@@ -45,7 +45,6 @@ const jamaahPhotos = [
 ];
 
 export const JamaahCarousel = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
 
   // Duplicate photos for seamless infinite loop
@@ -69,19 +68,14 @@ export const JamaahCarousel = () => {
 
       {/* Infinite Carousel */}
       <div
-        ref={containerRef}
-        className="relative w-full"
+        className="relative w-full overflow-hidden"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
         <div
-          className={`flex gap-4 md:gap-6 ${
-            isPaused ? "animate-pause" : ""
-          }`}
+          className="flex gap-4 md:gap-6 animate-scroll-photos"
           style={{
-            animation: `scroll 40s linear infinite`,
             animationPlayState: isPaused ? "paused" : "running",
-            width: "fit-content",
           }}
         >
           {duplicatedPhotos.map((photo, index) => (
@@ -119,18 +113,6 @@ export const JamaahCarousel = () => {
         <div className="absolute top-0 left-0 w-20 md:w-40 h-full bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
         <div className="absolute top-0 right-0 w-20 md:w-40 h-full bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
       </div>
-
-      {/* CSS for infinite scroll animation */}
-      <style>{`
-        @keyframes scroll {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-      `}</style>
     </section>
   );
 };

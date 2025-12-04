@@ -141,3 +141,32 @@ All colors MUST be HSL.
     }
   }
 }
+
+/* Infinite scroll animations */
+@keyframes scroll-logos {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(calc(-100% / 3), 0, 0);
+  }
+}
+
+@keyframes scroll-photos {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-scroll-logos {
+  animation: scroll-logos 25s linear infinite;
+  will-change: transform;
+}
+
+.animate-scroll-photos {
+  animation: scroll-photos 35s linear infinite;
+  will-change: transform;
+}
