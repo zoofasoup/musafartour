@@ -10,13 +10,13 @@ import lionAirLogo from "@/assets/airlines/lion-air.svg";
 import scootLogo from "@/assets/airlines/scoot.svg";
 
 const airlines = [
-  { name: "Garuda Indonesia", logo: garudaLogo, className: "h-8 md:h-10" },
-  { name: "Saudia", logo: saudiaLogo, className: "h-8 md:h-10" },
-  { name: "Qatar Airways", logo: qatarLogo, className: "h-8 md:h-10" },
-  { name: "Emirates", logo: emiratesLogo, className: "h-10 md:h-12" },
-  { name: "Oman Air", logo: omanAirLogo, className: "h-8 md:h-10" },
-  { name: "Lion Air", logo: lionAirLogo, className: "h-8 md:h-10" },
-  { name: "Scoot", logo: scootLogo, className: "h-10 md:h-12" },
+  { name: "Garuda Indonesia", logo: garudaLogo, className: "h-12 md:h-16" },
+  { name: "Saudia", logo: saudiaLogo, className: "h-10 md:h-14" },
+  { name: "Qatar Airways", logo: qatarLogo, className: "h-10 md:h-14" },
+  { name: "Emirates", logo: emiratesLogo, className: "h-12 md:h-16" },
+  { name: "Oman Air", logo: omanAirLogo, className: "h-12 md:h-16" },
+  { name: "Lion Air", logo: lionAirLogo, className: "h-10 md:h-14" },
+  { name: "Scoot", logo: scootLogo, className: "h-14 md:h-20" },
 ];
 
 export const AirlinesCarousel = () => {
