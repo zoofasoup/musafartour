@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, MessageCircle } from "lucide-react";
 import musafarLogoLight from "@/assets/musafar-logo.svg";
 import musafarLogoDark from "@/assets/musafar-logo-dark.svg";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { DarkModeToggle } from "./DarkModeToggle";
-import { LanguageSwitcher } from "./LanguageSwitcher";
+
+const navLinks = [
+  { href: "/paket-umroh", label: "Paket Umroh" },
+  { href: "/galeri", label: "Galeri" },
+  { href: "/artikel", label: "Artikel" },
+  { href: "/tentang-kami", label: "Tentang Kami" },
+];
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +19,6 @@ const Navbar = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Check initial dark mode
     const checkDarkMode = () => {
       const isDark = document.documentElement.classList.contains('dark');
       setIsDarkMode(isDark);
@@ -27,16 +26,13 @@ const Navbar = () => {
 
     checkDarkMode();
 
-    // Watch for theme changes
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class'],
     });
 
-    return () => {
-      observer.disconnect();
-    };
+    return () => observer.disconnect();
   }, []);
 
   const isActive = (path: string) => location.pathname === path;
@@ -44,8 +40,9 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
       <div className="container mx-auto px-4">
-        <div className="flex justify-center items-center h-16 relative">
-          <Link to="/" className="absolute left-0 flex items-center">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center">
             <img 
               src={isDarkMode ? musafarLogoLight : musafarLogoDark} 
               alt="Musafar Tour" 
@@ -55,123 +52,94 @@ const Navbar = () => {
             />
           </Link>
 
-          {/* Theme Controls */}
-          <div className="absolute right-12 md:right-0 flex items-center gap-2">
-            <LanguageSwitcher />
-            <DarkModeToggle />
+          {/* Desktop Menu */}
+          <div className="hidden md:flex items-center gap-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  isActive(link.href) ? "text-primary" : "text-foreground"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center gap-6">
-            <Link
-              to="/"
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                isActive("/") ? "text-primary" : "text-foreground"
-              }`}
-            >
-              Beranda
+          {/* Desktop Right Side */}
+          <div className="hidden md:flex items-center gap-3">
+            <DarkModeToggle />
+            <Link to="/kontak">
+              <Button 
+                className="relative overflow-hidden group bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 animate-pulse-subtle"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  Konsultasi
+                </span>
+                <span className="absolute inset-0 bg-gradient-to-r from-primary via-primary-foreground/20 to-primary bg-[length:200%_100%] animate-shimmer opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Button>
             </Link>
-            <Link
-              to="/paket-umroh"
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                isActive("/paket-umroh") ? "text-primary" : "text-foreground"
-              }`}
-            >
-              Paket Umroh
-            </Link>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-sm font-medium">
-                  Info Lainnya <ChevronDown className="ml-1 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link to="/tentang-kami" className="w-full cursor-pointer">
-                    Tentang Kami
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/galeri" className="w-full cursor-pointer">
-                    Galeri Jamaah
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/artikel" className="w-full cursor-pointer">
-                    Artikel & Tips
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/kontak" className="w-full cursor-pointer">
-                    Kontak Kami
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            className="md:hidden"
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          <div className="flex md:hidden items-center gap-2">
+            <DarkModeToggle />
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle menu"
+              className="p-2"
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
         {isOpen && (
-          <div className="md:hidden py-4 space-y-2 border-t">
-            <Link
-              to="/"
-              className="block py-2 text-sm font-medium hover:text-primary"
-              onClick={() => setIsOpen(false)}
-            >
-              Beranda
-            </Link>
-            <Link
-              to="/paket-umroh"
-              className="block py-2 text-sm font-medium hover:text-primary"
-              onClick={() => setIsOpen(false)}
-            >
-              Paket Umroh
-            </Link>
-            <div className="border-t pt-2 mt-2">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">Info Lainnya</p>
+          <div className="md:hidden py-4 space-y-1 border-t animate-fade-in">
+            {navLinks.map((link) => (
               <Link
-                to="/tentang-kami"
-                className="block py-2 pl-4 text-sm hover:text-primary"
+                key={link.href}
+                to={link.href}
+                className={`block py-3 text-base font-medium transition-colors hover:text-primary ${
+                  isActive(link.href) ? "text-primary" : "text-foreground"
+                }`}
                 onClick={() => setIsOpen(false)}
               >
-                Tentang Kami
+                {link.label}
               </Link>
-              <Link
-                to="/galeri"
-                className="block py-2 pl-4 text-sm hover:text-primary"
-                onClick={() => setIsOpen(false)}
-              >
-                Galeri Jamaah
-              </Link>
-              <Link
-                to="/artikel"
-                className="block py-2 pl-4 text-sm hover:text-primary"
-                onClick={() => setIsOpen(false)}
-              >
-                Artikel & Tips
-              </Link>
-              <Link
-                to="/kontak"
-                className="block py-2 pl-4 text-sm hover:text-primary"
-                onClick={() => setIsOpen(false)}
-              >
-                Kontak Kami
+            ))}
+            <div className="pt-4 border-t mt-4">
+              <Link to="/kontak" onClick={() => setIsOpen(false)}>
+                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Konsultasi Gratis
+                </Button>
               </Link>
             </div>
           </div>
         )}
       </div>
+
+      {/* Animation styles */}
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s linear infinite;
+        }
+        @keyframes pulse-subtle {
+          0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4); }
+          50% { box-shadow: 0 0 0 8px hsl(var(--primary) / 0); }
+        }
+        .animate-pulse-subtle {
+          animation: pulse-subtle 2s ease-in-out infinite;
+        }
+      `}</style>
     </nav>
   );
 };
