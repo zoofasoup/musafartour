@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -88,6 +88,8 @@ export const PackageCard = ({
 
   const packageId = id || slug || '';
   const isFav = isFavorite(packageId);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const heartRef = useRef<HTMLButtonElement>(null);
 
   const handleClick = () => {
     const urlParam = slug || id;
@@ -98,6 +100,11 @@ export const PackageCard = ({
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // Trigger animation
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 400);
+    
     toggleFavorite({
       id: packageId,
       slug,
@@ -139,16 +146,31 @@ export const PackageCard = ({
         
         {/* Favorite Button */}
         <button
+          ref={heartRef}
           onClick={handleFavoriteClick}
-          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
+          className={`absolute top-3 right-3 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-all ${
+            isAnimating ? 'animate-heart-bounce' : ''
+          }`}
           aria-label={isFav ? "Hapus dari favorit" : "Tambah ke favorit"}
         >
           <Heart 
-            className={`w-5 h-5 transition-colors ${
+            className={`w-5 h-5 transition-all duration-200 ${
               isFav ? 'fill-primary text-primary' : 'text-foreground hover:text-primary'
-            }`} 
+            } ${isAnimating ? 'scale-125' : ''}`} 
           />
         </button>
+        
+        {/* Particle effects on favorite */}
+        {isAnimating && isFav && (
+          <div className="absolute top-3 right-3 z-20 pointer-events-none">
+            <span className="absolute w-1.5 h-1.5 bg-primary rounded-full animate-particle-1" />
+            <span className="absolute w-1.5 h-1.5 bg-primary rounded-full animate-particle-2" />
+            <span className="absolute w-1 h-1 bg-primary/80 rounded-full animate-particle-3" />
+            <span className="absolute w-1 h-1 bg-primary/80 rounded-full animate-particle-4" />
+            <span className="absolute w-1.5 h-1.5 bg-primary rounded-full animate-particle-5" />
+            <span className="absolute w-1 h-1 bg-primary/60 rounded-full animate-particle-6" />
+          </div>
+        )}
 
         {/* Image Carousel */}
         <img
