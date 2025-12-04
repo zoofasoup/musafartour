@@ -9,13 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package } from "lucide-react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Package, SlidersHorizontal, X } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -43,6 +37,7 @@ export const PackageFilterSection = ({
   const [month, setMonth] = useState<string>("all");
   const [flightType, setFlightType] = useState<string>("all");
   const [duration, setDuration] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
 
   const isMobile = useIsMobile();
   const packagesAnimation = useScrollAnimation();
@@ -106,6 +101,8 @@ export const PackageFilterSection = ({
   const displayPackages =
     !isFiltered && !isMobile ? filteredPackages.slice(0, 4) : filteredPackages;
 
+  const activeFilterCount = [category, airline, month, flightType, duration].filter(v => v !== "all").length;
+
   const transformedPackages = displayPackages.map((pkg) => {
     const displayCategory =
       category !== "all" ? category : pkg.available_tiers?.[0] || "nyaman";
@@ -150,106 +147,109 @@ export const PackageFilterSection = ({
 
   return (
     <section id="packages" className="py-16 container mx-auto px-4">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-center mb-2 text-foreground">
+      <div className="mb-10">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-3 text-foreground">
           Paket Umroh Unggulan Kami
         </h2>
-        <p className="text-center text-muted-foreground">
+        <p className="text-center text-muted-foreground text-lg">
           Temukan paket yang paling cocok dengan Musafriends!
         </p>
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-card rounded-lg shadow-md mb-12 border">
-        <Accordion
-          type="single"
-          collapsible
-          defaultValue="filters"
-          className="w-full"
+      {/* Minimal Filter Toggle */}
+      <div className="flex items-center justify-center gap-3 mb-8">
+        <Button
+          variant={showFilters ? "default" : "outline"}
+          size="sm"
+          onClick={() => setShowFilters(!showFilters)}
+          className="gap-2"
         >
-          <AccordionItem value="filters" className="border-none">
-            <AccordionTrigger className="px-6 py-4 hover:no-underline">
-              <div className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                <span className="font-semibold">Filter Paket</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="px-6 pb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Kategori" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Semua Kategori</SelectItem>
-                    <SelectItem value="hemat">Hemat</SelectItem>
-                    <SelectItem value="nyaman">Nyaman</SelectItem>
-                    <SelectItem value="five-star">Five Star</SelectItem>
-                  </SelectContent>
-                </Select>
+          <SlidersHorizontal className="h-4 w-4" />
+          Filter
+          {activeFilterCount > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-primary-foreground text-primary">
+              {activeFilterCount}
+            </span>
+          )}
+        </Button>
+        {isFiltered && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={resetFilters}
+            className="text-muted-foreground hover:text-foreground gap-1"
+          >
+            <X className="h-3 w-3" />
+            Reset
+          </Button>
+        )}
+      </div>
 
-                <Select value={month} onValueChange={setMonth}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Bulan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Semua Bulan</SelectItem>
-                    {monthOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      {/* Filter Panel */}
+      <div className={`overflow-hidden transition-all duration-300 ${showFilters ? "max-h-96 opacity-100 mb-10" : "max-h-0 opacity-0"}`}>
+        <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="w-[140px] h-9 text-sm">
+              <SelectValue placeholder="Kategori" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Kategori</SelectItem>
+              <SelectItem value="hemat">Hemat</SelectItem>
+              <SelectItem value="nyaman">Nyaman</SelectItem>
+              <SelectItem value="five-star">Five Star</SelectItem>
+            </SelectContent>
+          </Select>
 
-                <Select value={airline} onValueChange={setAirline}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Maskapai" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Semua Maskapai</SelectItem>
-                    <SelectItem value="Garuda Indonesia">
-                      Garuda Indonesia
-                    </SelectItem>
-                    <SelectItem value="Saudia">Saudia</SelectItem>
-                    <SelectItem value="Scoot Airlines">Scoot Airlines</SelectItem>
-                    <SelectItem value="Oman Air">Oman Air</SelectItem>
-                    <SelectItem value="Qatar Airways">Qatar Airways</SelectItem>
-                  </SelectContent>
-                </Select>
+          <Select value={month} onValueChange={setMonth}>
+            <SelectTrigger className="w-[160px] h-9 text-sm">
+              <SelectValue placeholder="Bulan" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Bulan</SelectItem>
+              {monthOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-                <Select value={flightType} onValueChange={setFlightType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tipe Penerbangan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Semua Tipe Penerbangan</SelectItem>
-                    <SelectItem value="direct">Direct</SelectItem>
-                    <SelectItem value="transit">Transit</SelectItem>
-                  </SelectContent>
-                </Select>
+          <Select value={airline} onValueChange={setAirline}>
+            <SelectTrigger className="w-[160px] h-9 text-sm">
+              <SelectValue placeholder="Maskapai" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Maskapai</SelectItem>
+              <SelectItem value="Garuda Indonesia">Garuda Indonesia</SelectItem>
+              <SelectItem value="Saudia">Saudia</SelectItem>
+              <SelectItem value="Scoot Airlines">Scoot Airlines</SelectItem>
+              <SelectItem value="Oman Air">Oman Air</SelectItem>
+              <SelectItem value="Qatar Airways">Qatar Airways</SelectItem>
+            </SelectContent>
+          </Select>
 
-                <Select value={duration} onValueChange={setDuration}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Durasi" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Semua Durasi</SelectItem>
-                    <SelectItem value="9">9 Hari</SelectItem>
-                    <SelectItem value="12">12 Hari</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button
-                variant="ghost"
-                className="w-full text-primary hover:text-primary hover:bg-primary/5"
-                onClick={resetFilters}
-              >
-                Reset Filter
-              </Button>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+          <Select value={flightType} onValueChange={setFlightType}>
+            <SelectTrigger className="w-[140px] h-9 text-sm">
+              <SelectValue placeholder="Penerbangan" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Tipe</SelectItem>
+              <SelectItem value="direct">Direct</SelectItem>
+              <SelectItem value="transit">Transit</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={duration} onValueChange={setDuration}>
+            <SelectTrigger className="w-[130px] h-9 text-sm">
+              <SelectValue placeholder="Durasi" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Durasi</SelectItem>
+              <SelectItem value="9">9 Hari</SelectItem>
+              <SelectItem value="12">12 Hari</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Package Grid */}
