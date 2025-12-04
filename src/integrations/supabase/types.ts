@@ -332,6 +332,7 @@ export type Database = {
           gallery_images: string[] | null
           id: string
           included_items: string | null
+          is_sold_out: boolean
           itinerary_link: string | null
           madinah_distance: string | null
           madinah_duration_walk: string | null
@@ -349,8 +350,10 @@ export type Database = {
           robots_meta: string | null
           schema_type: string | null
           slug: string | null
+          sold_out_date: string | null
           status: string
           updated_at: string
+          waitlist_count: number | null
         }
         Insert: {
           available_tiers?: string[] | null
@@ -379,6 +382,7 @@ export type Database = {
           gallery_images?: string[] | null
           id?: string
           included_items?: string | null
+          is_sold_out?: boolean
           itinerary_link?: string | null
           madinah_distance?: string | null
           madinah_duration_walk?: string | null
@@ -396,8 +400,10 @@ export type Database = {
           robots_meta?: string | null
           schema_type?: string | null
           slug?: string | null
+          sold_out_date?: string | null
           status?: string
           updated_at?: string
+          waitlist_count?: number | null
         }
         Update: {
           available_tiers?: string[] | null
@@ -426,6 +432,7 @@ export type Database = {
           gallery_images?: string[] | null
           id?: string
           included_items?: string | null
+          is_sold_out?: boolean
           itinerary_link?: string | null
           madinah_distance?: string | null
           madinah_duration_walk?: string | null
@@ -443,8 +450,10 @@ export type Database = {
           robots_meta?: string | null
           schema_type?: string | null
           slug?: string | null
+          sold_out_date?: string | null
           status?: string
           updated_at?: string
+          waitlist_count?: number | null
         }
         Relationships: []
       }
