@@ -1,27 +1,26 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 
-// Import airline logos
-import garudaLogo from "@/assets/airlines/garuda-indonesia.png";
-import saudiaLogo from "@/assets/airlines/saudia.png";
-import qatarLogo from "@/assets/airlines/qatar-airways.png";
-import emiratesLogo from "@/assets/airlines/emirates.png";
-import omanAirLogo from "@/assets/airlines/oman-air.png";
-import lionAirLogo from "@/assets/airlines/lion-air.png";
-import scootLogo from "@/assets/airlines/scoot.png";
+// Import airline logos (SVG)
+import garudaLogo from "@/assets/airlines/garuda-indonesia.svg";
+import saudiaLogo from "@/assets/airlines/saudia.svg";
+import qatarLogo from "@/assets/airlines/qatar-airways.svg";
+import emiratesLogo from "@/assets/airlines/emirates.svg";
+import omanAirLogo from "@/assets/airlines/oman-air.svg";
+import lionAirLogo from "@/assets/airlines/lion-air.svg";
+import scootLogo from "@/assets/airlines/scoot.svg";
 
 const airlines = [
-  { name: "Garuda Indonesia", logo: garudaLogo, className: "h-12 md:h-14" },
+  { name: "Garuda Indonesia", logo: garudaLogo, className: "h-8 md:h-10" },
   { name: "Saudia", logo: saudiaLogo, className: "h-8 md:h-10" },
-  { name: "Qatar Airways", logo: qatarLogo, className: "h-10 md:h-12" },
-  { name: "Emirates", logo: emiratesLogo, className: "h-8 md:h-10" },
-  { name: "Oman Air", logo: omanAirLogo, className: "h-12 md:h-14" },
+  { name: "Qatar Airways", logo: qatarLogo, className: "h-8 md:h-10" },
+  { name: "Emirates", logo: emiratesLogo, className: "h-10 md:h-12" },
+  { name: "Oman Air", logo: omanAirLogo, className: "h-8 md:h-10" },
   { name: "Lion Air", logo: lionAirLogo, className: "h-8 md:h-10" },
-  { name: "Scoot", logo: scootLogo, className: "h-12 md:h-14" },
+  { name: "Scoot", logo: scootLogo, className: "h-10 md:h-12" },
 ];
 
 export const AirlinesCarousel = () => {
   const [isPaused, setIsPaused] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Clone items for seamless loop
   const items = [...airlines, ...airlines, ...airlines];
@@ -40,7 +39,6 @@ export const AirlinesCarousel = () => {
         onMouseLeave={() => setIsPaused(false)}
       >
         <div
-          ref={scrollRef}
           className="flex items-center animate-scroll-logos"
           style={{
             animationPlayState: isPaused ? "paused" : "running",
