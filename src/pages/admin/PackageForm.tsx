@@ -68,6 +68,10 @@ const packageSchema = z.object({
   catalog_link: z.string().optional(),
   itinerary_link: z.string().optional(),
   status: z.string(),
+  
+  // Sold out fields
+  is_sold_out: z.boolean().default(false),
+  waitlist_count: z.number().min(0).default(0),
 });
 
 type PackageFormValues = z.infer<typeof packageSchema>;
@@ -173,6 +177,8 @@ const PackageForm = () => {
       optional_items: [],
       equipment_type: "lengkap" as const,
       status: "draft",
+      is_sold_out: false,
+      waitlist_count: 0,
     },
   });
 
@@ -343,6 +349,8 @@ const PackageForm = () => {
           catalog_link: data.catalog_link || "",
           itinerary_link: data.itinerary_link || "",
           status: data.status,
+          is_sold_out: data.is_sold_out || false,
+          waitlist_count: data.waitlist_count || 0,
         });
       }
     } catch (error: any) {
@@ -578,6 +586,8 @@ const PackageForm = () => {
         catalog_link: values.catalog_link,
         itinerary_link: values.itinerary_link,
         status: values.status,
+        is_sold_out: values.is_sold_out,
+        waitlist_count: values.waitlist_count,
       };
 
       if (id) {
@@ -1625,6 +1635,58 @@ const PackageForm = () => {
                   </FormItem>
                 )}
               />
+
+              {/* Sold Out Section */}
+              <div className="pt-4 mt-4 border-t space-y-4">
+                <h4 className="font-medium text-sm text-muted-foreground">Status Ketersediaan</h4>
+                
+                <FormField
+                  control={form.control}
+                  name="is_sold_out"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm font-medium">
+                          Paket Sudah Penuh (Sold Out)
+                        </FormLabel>
+                        <p className="text-xs text-muted-foreground">
+                          Centang jika paket ini sudah tidak tersedia
+                        </p>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("is_sold_out") && (
+                  <FormField
+                    control={form.control}
+                    name="waitlist_count"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Jumlah Jamaah Terdaftar</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground">
+                          Ditampilkan sebagai "X jamaah sudah daftar" di kartu paket
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
             </CardContent>
           </Card>
 

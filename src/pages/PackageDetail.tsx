@@ -22,8 +22,11 @@ import {
   ExternalLink,
   ArrowLeft,
   Train,
-  Bus
+  Bus,
+  Bell,
+  AlertTriangle
 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { formatWhatsAppUrl } from "@/lib/utils";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -71,6 +74,9 @@ interface PackageDetail {
   equipment_list?: string;
   catalog_link?: string;
   itinerary_link?: string;
+  is_sold_out?: boolean;
+  sold_out_date?: string;
+  waitlist_count?: number;
 }
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -198,10 +204,31 @@ const PackageDetail = () => {
     );
   }
 
+  const handleNotifyMe = () => {
+    toast({
+      title: "Notifikasi Aktif",
+      description: `Kami akan memberitahu Anda jika ada seat tersedia untuk ${packageData?.package_name}`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
+      {/* Sold Out Banner */}
+      {packageData.is_sold_out && (
+        <div className="bg-red-600 text-white">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-center gap-3 text-center">
+              <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+              <p className="font-semibold">
+                Paket ini sudah penuh untuk keberangkatan {format(new Date(packageData.departure_date), "d MMMM yyyy", { locale: localeId })}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Back Button */}
       <section className="py-4 border-b">
         <div className="container mx-auto px-4">
@@ -465,14 +492,41 @@ const PackageDetail = () => {
                       </div>
                     </div>
                     
-                    <Button 
-                      onClick={handleBooking}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg mb-4"
-                      size="lg"
-                    >
-                      <Users className="mr-2 h-5 w-5" />
-                      Daftar Sekarang
-                    </Button>
+                    {packageData.is_sold_out ? (
+                      <div className="space-y-3 mb-4">
+                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-center">
+                          <p className="text-red-600 font-semibold mb-1">Paket Sudah Penuh</p>
+                          {packageData.waitlist_count && packageData.waitlist_count > 0 && (
+                            <p className="text-sm text-red-500">{packageData.waitlist_count} jamaah sudah terdaftar</p>
+                          )}
+                        </div>
+                        <Button 
+                          onClick={handleNotifyMe}
+                          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-6 text-lg"
+                          size="lg"
+                        >
+                          <Bell className="mr-2 h-5 w-5" />
+                          Notify Me - Keberangkatan Berikutnya
+                        </Button>
+                        <Button 
+                          onClick={() => navigate("/paket-umroh")}
+                          variant="outline"
+                          className="w-full font-semibold py-5"
+                          size="lg"
+                        >
+                          Lihat Paket Serupa
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button 
+                        onClick={handleBooking}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg mb-4"
+                        size="lg"
+                      >
+                        <Users className="mr-2 h-5 w-5" />
+                        Daftar Sekarang
+                      </Button>
+                    )}
 
                     {/* Secondary Buttons */}
                     <div className="grid grid-cols-2 gap-3">

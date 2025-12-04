@@ -134,6 +134,8 @@ export const PackageFilterSection = ({
       fiveStarHotelMadinahRating: pkg.five_star_madinah_hotel_star || undefined,
       fiveStarTransport: pkg.five_star_transport || undefined,
       bestSellerTransport: pkg.best_seller_transport || undefined,
+      isSoldOut: pkg.is_sold_out || false,
+      waitlistCount: pkg.waitlist_count || 0,
     };
   });
 
