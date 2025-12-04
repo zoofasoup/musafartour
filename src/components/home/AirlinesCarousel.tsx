@@ -26,13 +26,7 @@ export const AirlinesCarousel = () => {
   const items = [...airlines, ...airlines, ...airlines];
 
   return (
-    <section className="py-12 bg-muted/20 overflow-hidden">
-      <div className="container mx-auto px-4 mb-8">
-        <h2 className="text-center text-lg md:text-xl font-semibold text-muted-foreground">
-          Maskapai Mitra Kami
-        </h2>
-      </div>
-
+    <section className="py-8 bg-muted/20 overflow-hidden">
       <div
         className="relative w-full overflow-hidden"
         onMouseEnter={() => setIsPaused(true)}

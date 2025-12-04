@@ -11,6 +11,7 @@ import { WhyChooseSection } from "@/components/home/WhyChooseSection";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { FAQSection } from "@/components/home/FAQSection";
 import { CTASection } from "@/components/home/CTASection";
+import { SectionDivider } from "@/components/home/SectionDivider";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -83,22 +84,38 @@ const Index = () => {
 
       <HeroSection heroData={heroData} websiteSettings={websiteSettings} isLoading={heroLoading} />
 
+      <SectionDivider />
+
       <TrustElements />
+
+      <SectionDivider />
 
       <AirlinesCarousel />
 
+      <SectionDivider />
+
       <JamaahCarousel />
+
+      <SectionDivider />
 
       <PackageFilterSection packages={packages} loading={packagesLoading} />
 
+      <SectionDivider />
+
       <WhyChooseSection sellingPoints={sellingPoints} />
+
+      <SectionDivider />
 
       <TestimonialsSection
         testimonials={testimonials}
         websiteSettings={websiteSettings}
       />
 
+      <SectionDivider />
+
       <FAQSection faqItems={faqItems} />
+
+      <SectionDivider />
 
       <CTASection websiteSettings={websiteSettings} />
 
