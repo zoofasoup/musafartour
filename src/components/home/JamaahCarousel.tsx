@@ -73,7 +73,7 @@ export const JamaahCarousel = () => {
         onMouseLeave={() => setIsPaused(false)}
       >
         <div
-          className="flex gap-4 md:gap-6 animate-scroll-photos"
+          className="flex animate-scroll-photos"
           style={{
             animationPlayState: isPaused ? "paused" : "running",
           }}
@@ -81,37 +81,19 @@ export const JamaahCarousel = () => {
           {duplicatedPhotos.map((photo, index) => (
             <div
               key={`${photo.id}-${index}`}
-              className="relative flex-shrink-0 w-[180px] h-[240px] md:w-[240px] md:h-[320px] rounded-2xl overflow-hidden group cursor-pointer"
+              className="relative flex-shrink-0 w-[180px] h-[240px] md:w-[240px] md:h-[320px] overflow-hidden group cursor-pointer transition-transform duration-300 hover:scale-110 hover:z-10"
             >
-              {/* Photo */}
               <img
                 src={photo.image}
-                alt={`Jamaah ${photo.caption}`}
-                className="w-full h-full object-cover transition-all duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105"
+                alt={`Jamaah umroh`}
+                className="w-full h-full object-cover"
                 loading="lazy"
                 width={240}
                 height={320}
               />
-              
-              {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
-              
-              {/* Caption */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                <span className="inline-block px-2 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-medium">
-                  {photo.caption}
-                </span>
-              </div>
-              
-              {/* Hover glow effect */}
-              <div className="absolute inset-0 rounded-2xl ring-2 ring-transparent group-hover:ring-primary/50 transition-all duration-300" />
             </div>
           ))}
         </div>
-
-        {/* Edge fade gradients */}
-        <div className="absolute top-0 left-0 w-20 md:w-40 h-full bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
-        <div className="absolute top-0 right-0 w-20 md:w-40 h-full bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
       </div>
     </section>
   );
