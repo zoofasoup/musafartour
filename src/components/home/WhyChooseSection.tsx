@@ -1,24 +1,17 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import type { SellingPoint } from "@/hooks/useHomepageData";
-import { Plane, MapPin, Hotel, MessageCircle, Heart, Package } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
 interface WhyChooseSectionProps {
   sellingPoints: SellingPoint[];
 }
 
-const iconMap: Record<string, LucideIcon> = {
-  plane: Plane,
-  "map-pin": MapPin,
-  hotel: Hotel,
-  heart: Heart,
-  "message-circle": MessageCircle,
-  package: Package,
-};
-
-const getIconComponent = (iconName: string): LucideIcon => {
-  return iconMap[iconName] || Heart;
-};
+// Placeholder images for jamaah photos
+const placeholderImages = [
+  "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?w=600&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1564769625905-50e93615e769?w=600&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=600&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1519817650390-64a93db51149?w=600&h=400&fit=crop",
+];
 
 export const WhyChooseSection = ({ sellingPoints }: WhyChooseSectionProps) => {
   const animation = useScrollAnimation();
@@ -48,14 +41,14 @@ export const WhyChooseSection = ({ sellingPoints }: WhyChooseSectionProps) => {
         {/* Two Column Layout */}
         <div
           ref={animation.ref}
-          className={`grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch transition-all duration-700 ${
+          className={`grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 transition-all duration-700 ${
             animation.isVisible
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-10"
           }`}
         >
-          {/* Video Section - Unclickable */}
-          <div className="relative w-full aspect-video lg:aspect-auto lg:h-full min-h-[280px] rounded-2xl overflow-hidden shadow-xl bg-card">
+          {/* Video Section - 16:9 aspect ratio (1920x1080) */}
+          <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-xl bg-card">
             <iframe
               src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1`}
               title="Musafar Tour Video"
@@ -69,37 +62,49 @@ export const WhyChooseSection = ({ sellingPoints }: WhyChooseSectionProps) => {
             <div className="absolute inset-0 pointer-events-none ring-1 ring-inset ring-white/10 rounded-2xl z-20" />
           </div>
 
-          {/* Selling Points 2x2 Grid */}
+          {/* Selling Points 2x2 Grid with Photos */}
           <div className="grid grid-cols-2 gap-4">
             {features.length > 0 ? (
-              features.map((feature, index) => {
-                const Icon = getIconComponent(feature.icon);
-                return (
-                  <div
-                    key={index}
-                    className="flex flex-col items-center justify-center p-6 rounded-xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 group"
-                  >
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                      <Icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <h3 className="text-foreground font-semibold text-center text-sm md:text-base">
+              features.map((feature, index) => (
+                <div
+                  key={index}
+                  className="relative rounded-xl overflow-hidden group cursor-pointer aspect-[4/3]"
+                >
+                  {/* Background Image */}
+                  <img
+                    src={placeholderImages[index % placeholderImages.length]}
+                    alt={feature.title}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  
+                  {/* Content */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="text-white font-semibold text-sm md:text-base">
                       {feature.title}
                     </h3>
                   </div>
-                );
-              })
+                </div>
+              ))
             ) : (
               Array.from({ length: 4 }).map((_, index) => (
                 <div
                   key={index}
-                  className="flex flex-col items-center justify-center p-6 rounded-xl bg-card border border-border"
+                  className="relative rounded-xl overflow-hidden group cursor-pointer aspect-[4/3]"
                 >
-                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                    <Heart className="w-6 h-6 text-muted-foreground" />
+                  <img
+                    src={placeholderImages[index]}
+                    alt={`Feature ${index + 1}`}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="text-white font-semibold text-sm">
+                      Fitur {index + 1}
+                    </h3>
                   </div>
-                  <h3 className="text-muted-foreground font-semibold text-center text-sm">
-                    Fitur {index + 1}
-                  </h3>
                 </div>
               ))
             )}
