@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { toast } from '@/hooks/use-toast';
 
 interface FavoritePackage {
   id: string;
@@ -30,10 +31,22 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
 
   const addFavorite = (pkg: FavoritePackage) => {
     setFavorites(prev => [...prev, pkg]);
+    toast({
+      title: "Ditambahkan ke favorit",
+      description: pkg.title,
+    });
   };
 
   const removeFavorite = (id: string) => {
+    const pkg = favorites.find(p => p.id === id);
     setFavorites(prev => prev.filter(p => p.id !== id));
+    if (pkg) {
+      toast({
+        title: "Dihapus dari favorit",
+        description: pkg.title,
+        variant: "destructive",
+      });
+    }
   };
 
   const isFavorite = (id: string) => {
