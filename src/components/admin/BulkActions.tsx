@@ -211,4 +211,16 @@ export const commonBulkActions = {
     label: "Export CSV",
     icon: <Download className="h-4 w-4" />,
   },
+  markSoldOut: {
+    id: "markSoldOut",
+    label: "Tandai Sold Out",
+    icon: <EyeOff className="h-4 w-4" />,
+    confirmMessage: "Tandai {count} paket sebagai sold out?",
+  },
+  markAvailable: {
+    id: "markAvailable",
+    label: "Tandai Tersedia",
+    icon: <Eye className="h-4 w-4" />,
+    confirmMessage: "Tandai {count} paket sebagai tersedia kembali?",
+  },
 };
