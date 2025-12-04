@@ -7,7 +7,7 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { AirlinesCarousel } from "@/components/home/AirlinesCarousel";
 import { JamaahCarousel } from "@/components/home/JamaahCarousel";
 import { PackageFilterSection } from "@/components/home/PackageFilterSection";
-import { SellingPointsSection } from "@/components/home/SellingPointsSection";
+import { WhyChooseSection } from "@/components/home/WhyChooseSection";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { FAQSection } from "@/components/home/FAQSection";
 import { CTASection } from "@/components/home/CTASection";
@@ -91,7 +91,7 @@ const Index = () => {
 
       <PackageFilterSection packages={packages} loading={packagesLoading} />
 
-      <SellingPointsSection sellingPoints={sellingPoints} />
+      <WhyChooseSection sellingPoints={sellingPoints} />
 
       <TestimonialsSection
         testimonials={testimonials}
