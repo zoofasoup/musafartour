@@ -4,6 +4,7 @@ import { SEO } from "@/components/SEO";
 import { TrustElements } from "@/components/TrustElements";
 import { useHomepageData } from "@/hooks/useHomepageData";
 import { HeroSection } from "@/components/home/HeroSection";
+import { JamaahCarousel } from "@/components/home/JamaahCarousel";
 import { PackageFilterSection } from "@/components/home/PackageFilterSection";
 import { SellingPointsSection } from "@/components/home/SellingPointsSection";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
@@ -82,6 +83,8 @@ const Index = () => {
       <HeroSection heroData={heroData} websiteSettings={websiteSettings} isLoading={heroLoading} />
 
       <TrustElements />
+
+      <JamaahCarousel />
 
       <PackageFilterSection packages={packages} loading={packagesLoading} />
 
