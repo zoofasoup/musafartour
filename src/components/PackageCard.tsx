@@ -7,13 +7,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plane, Calendar, Star, MapPin } from "lucide-react";
+import { Star, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useFavorites } from "@/hooks/useFavorites";
 
 interface PackageCardProps {
   id?: string;
   slug?: string;
   image: string;
+  images?: string[];
   title: string;
   price: string;
   date: string;
@@ -48,6 +50,7 @@ export const PackageCard = ({
   id,
   slug,
   image,
+  images = [],
   title,
   price,
   date,
@@ -69,12 +72,22 @@ export const PackageCard = ({
   bestSellerTransport = "Bus Eksklusif",
 }: PackageCardProps) => {
   const navigate = useNavigate();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [selectedTier, setSelectedTier] = useState<"best-seller" | "five-star">("best-seller");
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  // Combine main image with gallery images
+  const allImages = [image, ...images].filter(Boolean);
+  const hasMultipleImages = allImages.length > 1;
   
   const hasFiveStarTier = !!fiveStarPrice && !!fiveStarHotelMakkah && !!fiveStarHotelMadinah;
   
   const displayPrice = selectedTier === "five-star" && fiveStarPrice ? fiveStarPrice : price;
   const displayMakkahRating = selectedTier === "five-star" && fiveStarHotelMakkah ? fiveStarHotelMakkahRating : hotelMakkahRating;
+
+  const packageId = id || slug || '';
+  const isFav = isFavorite(packageId);
 
   const handleClick = () => {
     const urlParam = slug || id;
@@ -83,9 +96,37 @@ export const PackageCard = ({
     }
   };
 
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFavorite({
+      id: packageId,
+      slug,
+      title,
+      image,
+      price: displayPrice,
+    });
+  };
+
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex(prev => prev === 0 ? allImages.length - 1 : prev - 1);
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex(prev => prev === allImages.length - 1 ? 0 : prev + 1);
+  };
+
+  const handleDotClick = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation();
+    setCurrentImageIndex(index);
+  };
+
   return (
     <article 
       onClick={handleClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className="cursor-pointer group"
     >
       {/* Image Container */}
@@ -95,11 +136,64 @@ export const PackageCard = ({
             Seat Terbatas
           </Badge>
         )}
+        
+        {/* Favorite Button */}
+        <button
+          onClick={handleFavoriteClick}
+          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
+          aria-label={isFav ? "Hapus dari favorit" : "Tambah ke favorit"}
+        >
+          <Heart 
+            className={`w-5 h-5 transition-colors ${
+              isFav ? 'fill-primary text-primary' : 'text-foreground hover:text-primary'
+            }`} 
+          />
+        </button>
+
+        {/* Image Carousel */}
         <img
-          src={image}
+          src={allImages[currentImageIndex]}
           alt={title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
+
+        {/* Navigation Arrows */}
+        {hasMultipleImages && isHovered && (
+          <>
+            <button
+              onClick={handlePrevImage}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-background/90 hover:bg-background shadow-md transition-all opacity-0 group-hover:opacity-100"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleNextImage}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-background/90 hover:bg-background shadow-md transition-all opacity-0 group-hover:opacity-100"
+              aria-label="Next image"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </>
+        )}
+
+        {/* Carousel Dots */}
+        {hasMultipleImages && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex gap-1.5">
+            {allImages.slice(0, 5).map((_, index) => (
+              <button
+                key={index}
+                onClick={(e) => handleDotClick(e, index)}
+                className={`w-1.5 h-1.5 rounded-full transition-all ${
+                  currentImageIndex === index 
+                    ? 'bg-background w-2' 
+                    : 'bg-background/60 hover:bg-background/80'
+                }`}
+                aria-label={`Go to image ${index + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Content */}
