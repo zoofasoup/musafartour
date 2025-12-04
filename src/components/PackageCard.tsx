@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -7,9 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Star, Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, Heart, ChevronLeft, ChevronRight, Bell, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFavorites } from "@/hooks/useFavorites";
+import { toast } from "@/hooks/use-toast";
 
 interface PackageCardProps {
   id?: string;
@@ -35,6 +37,8 @@ interface PackageCardProps {
   fiveStarHotelMadinahRating?: number;
   fiveStarTransport?: string;
   bestSellerTransport?: string;
+  isSoldOut?: boolean;
+  waitlistCount?: number;
 }
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -70,6 +74,8 @@ export const PackageCard = ({
   fiveStarHotelMadinahRating = 5,
   fiveStarTransport = "Kereta Cepat",
   bestSellerTransport = "Bus Eksklusif",
+  isSoldOut = false,
+  waitlistCount = 0,
 }: PackageCardProps) => {
   const navigate = useNavigate();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -114,6 +120,14 @@ export const PackageCard = ({
     });
   };
 
+  const handleNotifyMe = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toast({
+      title: "Notifikasi Aktif",
+      description: `Kami akan memberitahu Anda jika ada seat tersedia untuk ${title}`,
+    });
+  };
+
   const handlePrevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     setCurrentImageIndex(prev => prev === 0 ? allImages.length - 1 : prev - 1);
@@ -134,11 +148,21 @@ export const PackageCard = ({
       onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="cursor-pointer group"
+      className={`cursor-pointer group ${isSoldOut ? 'opacity-90' : ''}`}
     >
       {/* Image Container */}
       <div className="relative aspect-square rounded-xl overflow-hidden mb-3">
-        {seatAvailable && (
+        {/* Sold Out Ribbon */}
+        {isSoldOut && (
+          <div className="absolute top-0 left-0 right-0 z-20">
+            <div className="bg-red-600 text-white text-center py-2 font-bold text-sm shadow-lg">
+              PENUH
+            </div>
+          </div>
+        )}
+
+        {/* Seat Available Badge - only show if not sold out */}
+        {!isSoldOut && seatAvailable && (
           <Badge className="absolute top-3 left-3 z-10 bg-background text-foreground border shadow-sm rounded-full px-3 py-1 text-xs font-medium">
             Seat Terbatas
           </Badge>
@@ -148,7 +172,7 @@ export const PackageCard = ({
         <button
           ref={heartRef}
           onClick={handleFavoriteClick}
-          className={`absolute top-3 right-3 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-all ${
+          className={`absolute ${isSoldOut ? 'top-12' : 'top-3'} right-3 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-all ${
             isAnimating ? 'animate-heart-bounce' : ''
           }`}
           aria-label={isFav ? "Hapus dari favorit" : "Tambah ke favorit"}
@@ -162,7 +186,7 @@ export const PackageCard = ({
         
         {/* Particle effects on favorite */}
         {isAnimating && isFav && (
-          <div className="absolute top-3 right-3 z-20 pointer-events-none">
+          <div className={`absolute ${isSoldOut ? 'top-12' : 'top-3'} right-3 z-20 pointer-events-none`}>
             <span className="absolute w-1.5 h-1.5 bg-primary rounded-full animate-particle-1" />
             <span className="absolute w-1.5 h-1.5 bg-primary rounded-full animate-particle-2" />
             <span className="absolute w-1 h-1 bg-primary/80 rounded-full animate-particle-3" />
@@ -176,11 +200,18 @@ export const PackageCard = ({
         <img
           src={allImages[currentImageIndex]}
           alt={title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className={`w-full h-full object-cover transition-all duration-300 ${
+            isSoldOut ? 'grayscale-[60%] brightness-75' : 'group-hover:scale-105'
+          }`}
         />
 
-        {/* Navigation Arrows */}
-        {hasMultipleImages && isHovered && (
+        {/* Sold Out Overlay */}
+        {isSoldOut && (
+          <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+        )}
+
+        {/* Navigation Arrows - only show if not sold out */}
+        {hasMultipleImages && isHovered && !isSoldOut && (
           <>
             <button
               onClick={handlePrevImage}
@@ -200,7 +231,7 @@ export const PackageCard = ({
         )}
 
         {/* Carousel Dots */}
-        {hasMultipleImages && (
+        {hasMultipleImages && !isSoldOut && (
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex gap-1.5">
             {allImages.slice(0, 5).map((_, index) => (
               <button
@@ -216,13 +247,23 @@ export const PackageCard = ({
             ))}
           </div>
         )}
+
+        {/* Waitlist count for sold out */}
+        {isSoldOut && waitlistCount > 0 && (
+          <div className="absolute bottom-3 left-3 z-10">
+            <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm text-xs">
+              <Users className="w-3 h-3 mr-1" />
+              {waitlistCount} jamaah sudah daftar
+            </Badge>
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <div className="space-y-1">
         {/* Title Row with Rating */}
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-[15px] text-foreground leading-tight line-clamp-1">
+          <h3 className={`font-semibold text-[15px] leading-tight line-clamp-1 ${isSoldOut ? 'text-muted-foreground' : 'text-foreground'}`}>
             {title}
           </h3>
           <StarRating rating={displayMakkahRating} />
@@ -238,8 +279,8 @@ export const PackageCard = ({
           {duration} · {date}
         </p>
 
-        {/* Tier Selector */}
-        {hasFiveStarTier && (
+        {/* Tier Selector - hide for sold out */}
+        {!isSoldOut && hasFiveStarTier && (
           <Select value={selectedTier} onValueChange={(value) => setSelectedTier(value as "best-seller" | "five-star")}>
             <SelectTrigger className="w-full h-8 text-xs mt-2" onClick={(e) => e.stopPropagation()}>
               <SelectValue>
@@ -253,11 +294,26 @@ export const PackageCard = ({
           </Select>
         )}
 
-        {/* Price */}
-        <p className="pt-1">
-          <span className="font-semibold text-foreground">{displayPrice}</span>
-          <span className="text-muted-foreground text-sm"> /orang</span>
-        </p>
+        {/* Price or Sold Out Actions */}
+        {isSoldOut ? (
+          <div className="pt-2 space-y-2">
+            <p className="text-sm text-muted-foreground line-through">{displayPrice} /orang</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full gap-2"
+              onClick={handleNotifyMe}
+            >
+              <Bell className="w-4 h-4" />
+              Notify Me
+            </Button>
+          </div>
+        ) : (
+          <p className="pt-1">
+            <span className="font-semibold text-foreground">{displayPrice}</span>
+            <span className="text-muted-foreground text-sm"> /orang</span>
+          </p>
+        )}
       </div>
     </article>
   );
