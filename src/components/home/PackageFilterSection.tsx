@@ -262,12 +262,13 @@ export const PackageFilterSection = ({
         }`}
       >
         {loading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="space-y-4">
-                <Skeleton className="aspect-[4/5] w-full" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="space-y-3">
+                <Skeleton className="aspect-square w-full rounded-xl" />
                 <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-3 w-1/2" />
+                <Skeleton className="h-3 w-2/3" />
               </div>
             ))}
           </div>
@@ -287,7 +288,7 @@ export const PackageFilterSection = ({
               {transformedPackages.map((pkg) => (
                 <CarouselItem
                   key={pkg.id}
-                  className="pl-2 md:pl-4 basis-[85%]"
+                  className="pl-2 md:pl-4 basis-[75%]"
                 >
                   <PackageCard {...pkg} />
                 </CarouselItem>
@@ -299,7 +300,7 @@ export const PackageFilterSection = ({
             </div>
           </Carousel>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {transformedPackages.map((pkg) => (
               <PackageCard key={pkg.id} {...pkg} />
             ))}
