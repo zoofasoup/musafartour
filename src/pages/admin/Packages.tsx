@@ -29,6 +29,7 @@ interface Package {
   flight: string;
   package_price: any;
   status: string;
+  is_sold_out: boolean;
 }
 
 type SortField = 'package_name' | 'departure_date' | 'duration_days' | 'flight' | 'package_price' | 'status';
@@ -156,6 +157,22 @@ const Packages = () => {
         case "export":
           exportToCSV(ids);
           break;
+        case "markSoldOut":
+          const { error: soldOutError } = await supabase
+            .from("packages")
+            .update({ is_sold_out: true, sold_out_date: new Date().toISOString() })
+            .in("id", ids);
+          if (soldOutError) throw soldOutError;
+          toast.success(`${ids.length} paket ditandai sold out`);
+          break;
+        case "markAvailable":
+          const { error: availableError } = await supabase
+            .from("packages")
+            .update({ is_sold_out: false, sold_out_date: null })
+            .in("id", ids);
+          if (availableError) throw availableError;
+          toast.success(`${ids.length} paket ditandai tersedia`);
+          break;
       }
       clearSelection();
       fetchPackages();
@@ -188,6 +205,8 @@ const Packages = () => {
   const bulkActions = [
     commonBulkActions.publish,
     commonBulkActions.unpublish,
+    commonBulkActions.markSoldOut,
+    commonBulkActions.markAvailable,
     commonBulkActions.export,
     commonBulkActions.delete,
   ];
@@ -302,9 +321,14 @@ const Packages = () => {
                     <TableCell>{pkg.flight}</TableCell>
                     <TableCell>Rp {pkg.package_price.quad.toLocaleString("id-ID")}</TableCell>
                     <TableCell>
-                      <Badge variant={pkg.status === "published" ? "default" : "secondary"}>
-                        {pkg.status === "published" ? "Published" : "Draft"}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={pkg.status === "published" ? "default" : "secondary"}>
+                          {pkg.status === "published" ? "Published" : "Draft"}
+                        </Badge>
+                        {pkg.is_sold_out && (
+                          <Badge variant="destructive">Sold Out</Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button
