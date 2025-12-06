@@ -299,7 +299,7 @@ const PaketUmroh = () => {
 
         {/* Package Grid / Schedule List */}
         {loading ? (
-          <div className={viewMode === "card" ? "grid grid-cols-1 lg:grid-cols-2 gap-6" : "space-y-4"}>
+          <div className={viewMode === "card" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}>
             {[...Array(6)].map((_, i) => (
               viewMode === "card" ? (
                 <div key={i} className="space-y-4">
@@ -325,7 +325,7 @@ const PaketUmroh = () => {
             </p>
           </div>
         ) : viewMode === "card" ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {transformedPackages.map((pkg) => (
               <PackageCard key={pkg.id} {...pkg} />
             ))}
