@@ -49,6 +49,7 @@ const WebsiteSettings = lazy(() => import("./pages/admin/WebsiteSettings"));
 const Team = lazy(() => import("./pages/admin/Team"));
 const MarketingSettings = lazy(() => import("./pages/admin/MarketingSettings"));
 const SEO = lazy(() => import("./pages/admin/SEO"));
+const Profile = lazy(() => import("./pages/admin/Profile"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -149,6 +150,7 @@ const App = () => (
                   <Route path="settings" element={<WebsiteSettings />} />
                   <Route path="settings/marketing" element={<MarketingSettings />} />
                   <Route path="seo" element={<SEO />} />
+                  <Route path="profile" element={<Profile />} />
                   <Route path="team" element={<Team />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
