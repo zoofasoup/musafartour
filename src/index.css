@@ -215,3 +215,56 @@ All colors MUST be HSL.
 .animate-particle-4 { animation: particle-4 0.4s ease-out forwards; }
 .animate-particle-5 { animation: particle-5 0.4s ease-out forwards; }
 .animate-particle-6 { animation: particle-6 0.4s ease-out forwards; }
+
+/* Article content styling - explicit styles for rich text content */
+.article-content {
+  @apply text-foreground leading-relaxed;
+}
+
+.article-content h1 {
+  @apply text-3xl font-bold mt-8 mb-4 text-foreground;
+}
+
+.article-content h2 {
+  @apply text-2xl font-bold mt-8 mb-4 text-foreground;
+}
+
+.article-content h3 {
+  @apply text-xl font-bold mt-6 mb-3 text-foreground;
+}
+
+.article-content p {
+  @apply mb-6 leading-relaxed text-foreground;
+}
+
+.article-content strong {
+  @apply font-semibold text-foreground;
+}
+
+.article-content em {
+  @apply italic;
+}
+
+.article-content a {
+  @apply text-primary underline hover:no-underline;
+}
+
+.article-content blockquote {
+  @apply border-l-4 border-primary pl-4 my-6 italic text-muted-foreground;
+}
+
+.article-content ul {
+  @apply list-disc pl-6 my-6 space-y-2;
+}
+
+.article-content ol {
+  @apply list-decimal pl-6 my-6 space-y-2;
+}
+
+.article-content li {
+  @apply text-foreground leading-relaxed;
+}
+
+.article-content img {
+  @apply rounded-lg my-8 max-w-full h-auto;
+}
