@@ -4,11 +4,13 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useEffect } from 'react';
 import { 
   Bold, 
   Italic, 
   List, 
   ListOrdered, 
+  Heading1,
   Heading2, 
   Heading3,
   Link as LinkIcon,
@@ -28,7 +30,7 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
     extensions: [
       StarterKit.configure({
         heading: {
-          levels: [2, 3],
+          levels: [1, 2, 3],
         },
       }),
       Link.configure({
@@ -48,10 +50,17 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[400px] p-4',
+        class: 'prose prose-lg max-w-none focus:outline-none min-h-[400px] p-4',
       },
     },
   });
+
+  // Sync content when value prop changes (e.g., when loading existing article)
+  useEffect(() => {
+    if (editor && value !== editor.getHTML()) {
+      editor.commands.setContent(value, { emitUpdate: false });
+    }
+  }, [value, editor]);
 
   if (!editor) {
     return null;
@@ -82,6 +91,12 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
       isActive: editor.isActive('italic'),
     },
     { separator: true },
+    {
+      icon: Heading1,
+      label: "Heading 1",
+      action: () => editor.chain().focus().toggleHeading({ level: 1 }).run(),
+      isActive: editor.isActive('heading', { level: 1 }),
+    },
     {
       icon: Heading2,
       label: "Heading 2",
@@ -164,21 +179,25 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
         <EditorContent 
           editor={editor}
           className="
-            prose prose-sm max-w-none
+            prose prose-lg max-w-none
             [&_.ProseMirror]:min-h-[400px]
             [&_.ProseMirror]:outline-none
             [&_.ProseMirror]:p-4
+            [&_.ProseMirror_h1]:text-3xl
+            [&_.ProseMirror_h1]:font-bold
+            [&_.ProseMirror_h1]:mt-8
+            [&_.ProseMirror_h1]:mb-4
             [&_.ProseMirror_h2]:text-2xl
             [&_.ProseMirror_h2]:font-bold
             [&_.ProseMirror_h2]:mt-6
-            [&_.ProseMirror_h2]:mb-4
+            [&_.ProseMirror_h2]:mb-3
             [&_.ProseMirror_h3]:text-xl
             [&_.ProseMirror_h3]:font-bold
             [&_.ProseMirror_h3]:mt-5
-            [&_.ProseMirror_h3]:mb-3
+            [&_.ProseMirror_h3]:mb-2
             [&_.ProseMirror_p]:text-foreground
             [&_.ProseMirror_p]:leading-relaxed
-            [&_.ProseMirror_p]:mb-4
+            [&_.ProseMirror_p]:mb-6
             [&_.ProseMirror_strong]:font-semibold
             [&_.ProseMirror_em]:italic
             [&_.ProseMirror_a]:text-primary
@@ -187,14 +206,16 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
             [&_.ProseMirror_blockquote]:border-primary
             [&_.ProseMirror_blockquote]:pl-4
             [&_.ProseMirror_blockquote]:italic
-            [&_.ProseMirror_blockquote]:my-4
+            [&_.ProseMirror_blockquote]:my-6
+            [&_.ProseMirror_blockquote]:text-muted-foreground
             [&_.ProseMirror_ul]:list-disc
             [&_.ProseMirror_ul]:pl-6
-            [&_.ProseMirror_ul]:my-4
+            [&_.ProseMirror_ul]:my-6
             [&_.ProseMirror_ol]:list-decimal
             [&_.ProseMirror_ol]:pl-6
-            [&_.ProseMirror_ol]:my-4
+            [&_.ProseMirror_ol]:my-6
             [&_.ProseMirror_li]:text-foreground
+            [&_.ProseMirror_li]:mb-2
             [&_.ProseMirror_.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]
             [&_.ProseMirror_.is-editor-empty:first-child::before]:text-muted-foreground
             [&_.ProseMirror_.is-editor-empty:first-child::before]:float-left
@@ -205,7 +226,7 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
       </div>
       
       <p className="text-xs text-muted-foreground">
-        Toolbar remains visible while scrolling. All formatting options work correctly in the editor and published articles.
+        What you see in the editor matches the published article output.
       </p>
     </div>
   );
