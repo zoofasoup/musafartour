@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Clock, User, ArrowLeft, Calendar } from "lucide-react";
@@ -28,6 +28,7 @@ const ArtikelDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [article, setArticle] = useState<Article | null>(null);
+  const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,9 +37,15 @@ const ArtikelDetail = () => {
     }
   }, [slug]);
 
+  useEffect(() => {
+    if (article) {
+      fetchRelatedArticles();
+    }
+  }, [article]);
+
   const fetchArticle = async () => {
     setLoading(true);
-  const { data, error } = await supabase
+    const { data, error } = await supabase
       .from("articles")
       .select("*")
       .eq("slug", slug)
@@ -52,6 +59,22 @@ const ArtikelDetail = () => {
       setArticle(data);
     }
     setLoading(false);
+  };
+
+  const fetchRelatedArticles = async () => {
+    if (!article) return;
+    
+    const { data } = await supabase
+      .from("articles")
+      .select("id, title, slug, excerpt, featured_image, category, created_at")
+      .eq("status", "published")
+      .neq("id", article.id)
+      .order("created_at", { ascending: false })
+      .limit(3);
+
+    if (data) {
+      setRelatedArticles(data as Article[]);
+    }
   };
 
   if (loading) {
@@ -181,6 +204,54 @@ const ArtikelDetail = () => {
           />
         </div>
       </article>
+
+      {/* Related Articles */}
+      {relatedArticles.length > 0 && (
+        <section className="border-t bg-muted/30">
+          <div className="container mx-auto px-4 py-16">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">
+                Artikel Lainnya
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {relatedArticles.map((related) => (
+                  <Link 
+                    key={related.id} 
+                    to={`/artikel/${related.slug}`}
+                    className="group bg-card rounded-xl overflow-hidden border hover:shadow-lg transition-all duration-300"
+                  >
+                    {related.featured_image && (
+                      <div className="aspect-video overflow-hidden">
+                        <img
+                          src={related.featured_image}
+                          alt={related.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    )}
+                    <div className="p-4">
+                      {related.category && (
+                        <span className="text-xs font-medium text-primary mb-2 block">
+                          {related.category}
+                        </span>
+                      )}
+                      <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors">
+                        {related.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                        {related.excerpt}
+                      </p>
+                      <span className="text-xs text-muted-foreground mt-3 block">
+                        {format(new Date(related.created_at), "dd MMM yyyy", { locale: localeId })}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       <Footer />
     </div>
