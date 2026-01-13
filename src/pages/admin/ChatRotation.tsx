@@ -14,17 +14,46 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { 
-  fetchCSNumbers,
   getCSStats, 
   getRedirectLogs, 
   resetRotation, 
   clearLogs,
   getCurrentRotationIndex,
-  type CSNumber 
+  getCampaignStats,
+  getSourceStats,
+  type CSNumber,
+  type RedirectLog 
 } from '@/lib/whatsappRotation';
 import { supabase } from '@/integrations/supabase/client';
-import { RefreshCw, Trash2, MessageCircle, Users, Clock, RotateCcw, Plus, Pencil, Phone } from 'lucide-react';
+import SortableCSItem from '@/components/admin/SortableCSItem';
+import { 
+  RefreshCw, 
+  Trash2, 
+  MessageCircle, 
+  Users, 
+  Clock, 
+  RotateCcw, 
+  Plus, 
+  Phone,
+  TrendingUp,
+  Globe
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -32,7 +61,9 @@ import { toast } from 'sonner';
 const ChatRotation = () => {
   const [csNumbers, setCsNumbers] = useState<CSNumber[]>([]);
   const [stats, setStats] = useState<Record<string, number>>({});
-  const [logs, setLogs] = useState<any[]>([]);
+  const [campaignStats, setCampaignStats] = useState<Record<string, number>>({});
+  const [sourceStats, setSourceStats] = useState<Record<string, number>>({});
+  const [logs, setLogs] = useState<RedirectLog[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   
@@ -40,6 +71,18 @@ const ChatRotation = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCS, setEditingCS] = useState<CSNumber | null>(null);
   const [formData, setFormData] = useState({ name: '', phone_number: '', is_active: true });
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const fetchData = async () => {
     setLoading(true);
@@ -51,6 +94,8 @@ const ChatRotation = () => {
     const numbers = (data || []) as CSNumber[];
     setCsNumbers(numbers);
     setStats(getCSStats(numbers.filter(n => n.is_active)));
+    setCampaignStats(getCampaignStats());
+    setSourceStats(getSourceStats());
     setLogs(getRedirectLogs().slice(0, 10));
     setCurrentIndex(getCurrentRotationIndex());
     setLoading(false);
@@ -59,6 +104,34 @@ const ChatRotation = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = csNumbers.findIndex(cs => cs.id === active.id);
+    const newIndex = csNumbers.findIndex(cs => cs.id === over.id);
+    
+    const newOrder = arrayMove(csNumbers, oldIndex, newIndex);
+    setCsNumbers(newOrder);
+
+    // Update display_order in database
+    try {
+      const updates = newOrder.map((cs, index) => 
+        supabase
+          .from('whatsapp_cs')
+          .update({ display_order: index })
+          .eq('id', cs.id)
+      );
+      
+      await Promise.all(updates);
+      toast.success('Urutan CS berhasil diperbarui');
+    } catch (error) {
+      toast.error('Gagal memperbarui urutan');
+      fetchData(); // Revert on error
+    }
+  };
 
   const handleResetRotation = () => {
     resetRotation();
@@ -70,6 +143,8 @@ const ChatRotation = () => {
     clearLogs();
     setLogs([]);
     setStats({});
+    setCampaignStats({});
+    setSourceStats({});
     toast.success('Log redirect berhasil dihapus');
   };
 
@@ -312,14 +387,16 @@ const ChatRotation = () => {
         </Card>
       </div>
 
-      {/* CS Numbers Management */}
+      {/* CS Numbers Management with Drag & Drop */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Phone className="w-5 h-5" />
             Daftar Customer Service
           </CardTitle>
-          <CardDescription>Kelola nomor WhatsApp yang akan dirotasi</CardDescription>
+          <CardDescription>
+            Kelola nomor WhatsApp yang akan dirotasi. Drag untuk mengubah urutan.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {csNumbers.length === 0 ? (
@@ -327,49 +404,112 @@ const ChatRotation = () => {
               Belum ada CS terdaftar. Klik "Tambah CS" untuk menambahkan.
             </p>
           ) : (
-            <div className="space-y-3">
-              {csNumbers.map((cs, index) => (
-                <div 
-                  key={cs.id}
-                  className={`flex items-center justify-between p-4 rounded-lg border ${
-                    cs.is_active ? 'bg-background' : 'bg-muted/50 opacity-60'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{cs.name}</span>
-                        {!cs.is_active && (
-                          <Badge variant="secondary" className="text-xs">Nonaktif</Badge>
-                        )}
-                        {cs.is_active && nextCS?.id === cs.id && (
-                          <Badge variant="default" className="text-xs">Next</Badge>
-                        )}
-                      </div>
-                      <span className="text-sm text-muted-foreground">+{cs.phone_number}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={cs.is_active}
-                      onCheckedChange={() => handleToggleActive(cs)}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={csNumbers.map(cs => cs.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-3">
+                  {csNumbers.map((cs, index) => (
+                    <SortableCSItem
+                      key={cs.id}
+                      cs={cs}
+                      index={index}
+                      isNext={cs.is_active && nextCS?.id === cs.id}
+                      onToggleActive={handleToggleActive}
+                      onEdit={openEditDialog}
+                      onDelete={handleDelete}
                     />
-                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(cs)}>
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(cs)}>
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
           )}
         </CardContent>
       </Card>
+
+      {/* Campaign Attribution Stats */}
+      {Object.keys(campaignStats).length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                Kampanye
+              </CardTitle>
+              <CardDescription>Distribusi redirect per campaign</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Object.entries(campaignStats)
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([campaign, count]) => {
+                    const percentage = totalRedirects > 0 ? (count / totalRedirects) * 100 : 0;
+                    return (
+                      <div key={campaign} className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium capitalize">
+                            {campaign === 'direct' ? '🔗 Direct' : `📣 ${campaign}`}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {count} ({percentage.toFixed(1)}%)
+                          </span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary rounded-full transition-all duration-500"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="w-5 h-5" />
+                Sumber Traffic
+              </CardTitle>
+              <CardDescription>Distribusi redirect per source</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Object.entries(sourceStats)
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([source, count]) => {
+                    const percentage = totalRedirects > 0 ? (count / totalRedirects) * 100 : 0;
+                    return (
+                      <div key={source} className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium capitalize">
+                            {source === 'direct' ? '🔗 Direct' : source}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {count} ({percentage.toFixed(1)}%)
+                          </span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-green-500 rounded-full transition-all duration-500"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* CS Distribution */}
       {activeCSNumbers.length > 0 && (
@@ -416,7 +556,7 @@ const ChatRotation = () => {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Redirect Terakhir</CardTitle>
-            <CardDescription>10 redirect terakhir</CardDescription>
+            <CardDescription>10 redirect terakhir dengan informasi kampanye</CardDescription>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleResetRotation}>
@@ -439,19 +579,31 @@ const ChatRotation = () => {
               {logs.map((log, index) => (
                 <div 
                   key={index}
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                  className="flex flex-col gap-2 p-3 bg-muted/50 rounded-lg"
                 >
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline">{log.csName}</Badge>
-                    {log.message && (
-                      <span className="text-sm text-muted-foreground truncate max-w-[200px]">
-                        "{log.message}"
-                      </span>
-                    )}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline">{log.csName}</Badge>
+                      {log.utm?.utm_campaign && (
+                        <Badge variant="secondary" className="text-xs">
+                          📣 {log.utm.utm_campaign}
+                        </Badge>
+                      )}
+                      {log.utm?.utm_source && (
+                        <Badge variant="secondary" className="text-xs">
+                          {log.utm.utm_source}
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {format(new Date(log.timestamp), "dd MMM, HH:mm:ss", { locale: localeId })}
+                    </span>
                   </div>
-                  <span className="text-sm text-muted-foreground">
-                    {format(new Date(log.timestamp), "dd MMM, HH:mm:ss", { locale: localeId })}
-                  </span>
+                  {log.message && (
+                    <span className="text-sm text-muted-foreground truncate">
+                      "{log.message}"
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -472,6 +624,18 @@ const ChatRotation = () => {
           <div className="p-3 bg-muted rounded-lg">
             <p className="text-sm font-medium mb-1">Dengan Custom Message:</p>
             <code className="text-sm text-primary">musafartour.com/chat?msg=Saya mau tanya paket Ramadhan</code>
+          </div>
+          <div className="p-3 bg-muted rounded-lg">
+            <p className="text-sm font-medium mb-1">Dengan UTM Tracking:</p>
+            <code className="text-sm text-primary break-all">
+              musafartour.com/chat?utm_source=instagram&utm_medium=story&utm_campaign=promo_ramadhan
+            </code>
+          </div>
+          <div className="p-3 bg-muted rounded-lg">
+            <p className="text-sm font-medium mb-1">Kombinasi Lengkap:</p>
+            <code className="text-sm text-primary break-all">
+              musafartour.com/chat?msg=Tanya promo&utm_source=facebook&utm_campaign=ads_mei
+            </code>
           </div>
         </CardContent>
       </Card>

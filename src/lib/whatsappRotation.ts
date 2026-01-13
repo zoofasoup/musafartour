@@ -11,11 +11,21 @@ export interface CSNumber {
   is_active: boolean;
 }
 
-interface RedirectLog {
+export interface UTMParams {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+}
+
+export interface RedirectLog {
   csId: string;
   csName: string;
   timestamp: string;
   message?: string;
+  utm?: UTMParams;
+  referrer?: string;
 }
 
 // Fetch CS numbers from database
@@ -70,13 +80,39 @@ export const buildWhatsAppUrl = (phoneNumber: string, message?: string): string 
   return baseUrl;
 };
 
+// Extract UTM parameters from URLSearchParams
+export const extractUTMParams = (searchParams: URLSearchParams): UTMParams => {
+  const utm: UTMParams = {};
+  
+  const utmSource = searchParams.get('utm_source');
+  const utmMedium = searchParams.get('utm_medium');
+  const utmCampaign = searchParams.get('utm_campaign');
+  const utmTerm = searchParams.get('utm_term');
+  const utmContent = searchParams.get('utm_content');
+  
+  if (utmSource) utm.utm_source = utmSource;
+  if (utmMedium) utm.utm_medium = utmMedium;
+  if (utmCampaign) utm.utm_campaign = utmCampaign;
+  if (utmTerm) utm.utm_term = utmTerm;
+  if (utmContent) utm.utm_content = utmContent;
+  
+  return utm;
+};
+
 // Log redirect for stats
-export const logRedirect = (csId: string, csName: string, message?: string): void => {
+export const logRedirect = (
+  csId: string, 
+  csName: string, 
+  message?: string,
+  utm?: UTMParams
+): void => {
   const log: RedirectLog = {
     csId,
     csName,
     timestamp: new Date().toISOString(),
     message,
+    utm: utm && Object.keys(utm).length > 0 ? utm : undefined,
+    referrer: typeof document !== 'undefined' ? document.referrer || undefined : undefined,
   };
   
   // Get existing logs
@@ -87,7 +123,10 @@ export const logRedirect = (csId: string, csName: string, message?: string): voi
   localStorage.setItem(REDIRECT_LOG_KEY, JSON.stringify(updatedLogs));
   
   // Console log for debugging
-  console.log(`[Musafar CS Redirect] ${csName} | ${log.timestamp}${message ? ` | Message: ${message}` : ''}`);
+  const utmInfo = utm && Object.keys(utm).length > 0 
+    ? ` | Campaign: ${utm.utm_campaign || 'N/A'} | Source: ${utm.utm_source || 'N/A'}` 
+    : '';
+  console.log(`[Musafar CS Redirect] ${csName} | ${log.timestamp}${message ? ` | Message: ${message}` : ''}${utmInfo}`);
   
   // Send to Google Analytics if available
   if (typeof window !== 'undefined' && (window as any).gtag) {
@@ -95,6 +134,11 @@ export const logRedirect = (csId: string, csName: string, message?: string): voi
       cs_id: csId,
       cs_name: csName,
       has_message: !!message,
+      utm_source: utm?.utm_source,
+      utm_medium: utm?.utm_medium,
+      utm_campaign: utm?.utm_campaign,
+      utm_term: utm?.utm_term,
+      utm_content: utm?.utm_content,
     });
   }
 };
@@ -112,6 +156,32 @@ export const getCSStats = (csNumbers: CSNumber[]): Record<string, number> => {
   
   csNumbers.forEach(cs => {
     stats[cs.id] = logs.filter(log => log.csId === cs.id).length;
+  });
+  
+  return stats;
+};
+
+// Get campaign stats
+export const getCampaignStats = (): Record<string, number> => {
+  const logs = getRedirectLogs();
+  const stats: Record<string, number> = {};
+  
+  logs.forEach(log => {
+    const campaign = log.utm?.utm_campaign || 'direct';
+    stats[campaign] = (stats[campaign] || 0) + 1;
+  });
+  
+  return stats;
+};
+
+// Get source stats
+export const getSourceStats = (): Record<string, number> => {
+  const logs = getRedirectLogs();
+  const stats: Record<string, number> = {};
+  
+  logs.forEach(log => {
+    const source = log.utm?.utm_source || 'direct';
+    stats[source] = (stats[source] || 0) + 1;
   });
   
   return stats;
