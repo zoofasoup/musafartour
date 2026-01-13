@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getNextCS, buildWhatsAppUrl, logRedirect, fetchCSNumbers, type CSNumber } from '@/lib/whatsappRotation';
+import { 
+  getNextCS, 
+  buildWhatsAppUrl, 
+  logRedirect, 
+  extractUTMParams,
+  type CSNumber 
+} from '@/lib/whatsappRotation';
 
 const Chat = () => {
   const [searchParams] = useSearchParams();
@@ -16,6 +22,9 @@ const Chat = () => {
       const defaultMessage = 'Halo, saya tertarik dengan paket umroh Musafar Tour';
       const message = customMessage || defaultMessage;
 
+      // Extract UTM parameters for campaign tracking
+      const utmParams = extractUTMParams(searchParams);
+
       // Get next CS in rotation
       const cs = await getNextCS();
       
@@ -27,8 +36,8 @@ const Chat = () => {
       
       setFallbackCS(cs);
       
-      // Log the redirect
-      logRedirect(cs.id, cs.name, message);
+      // Log the redirect with UTM tracking
+      logRedirect(cs.id, cs.name, message, utmParams);
       
       // Build WhatsApp URL
       const whatsappUrl = buildWhatsAppUrl(cs.phone_number, message);
@@ -56,6 +65,8 @@ const Chat = () => {
     if (!cs) return;
     
     const message = searchParams.get('msg') || 'Halo, saya tertarik dengan paket umroh Musafar Tour';
+    const utmParams = extractUTMParams(searchParams);
+    logRedirect(cs.id, cs.name, message, utmParams);
     window.location.href = buildWhatsAppUrl(cs.phone_number, message);
   };
 
