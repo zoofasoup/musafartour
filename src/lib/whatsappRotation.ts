@@ -1,19 +1,38 @@
-// WhatsApp CS Numbers Configuration
-export const CS_NUMBERS = [
-  { id: 1, name: 'CS #1', number: '6281234567890' },
-  { id: 2, name: 'CS #2', number: '6281234567891' },
-  { id: 3, name: 'CS #3', number: '6281234567892' },
-];
+import { supabase } from '@/integrations/supabase/client';
 
 const ROTATION_KEY = 'musafar_cs_rotation';
 const REDIRECT_LOG_KEY = 'musafar_redirect_log';
 
+export interface CSNumber {
+  id: string;
+  name: string;
+  phone_number: string;
+  display_order: number;
+  is_active: boolean;
+}
+
 interface RedirectLog {
-  csId: number;
+  csId: string;
   csName: string;
   timestamp: string;
   message?: string;
 }
+
+// Fetch CS numbers from database
+export const fetchCSNumbers = async (): Promise<CSNumber[]> => {
+  const { data, error } = await supabase
+    .from('whatsapp_cs')
+    .select('*')
+    .eq('is_active', true)
+    .order('display_order', { ascending: true });
+  
+  if (error) {
+    console.error('Error fetching CS numbers:', error);
+    return [];
+  }
+  
+  return data || [];
+};
 
 // Get current rotation index
 export const getCurrentRotationIndex = (): number => {
@@ -21,14 +40,23 @@ export const getCurrentRotationIndex = (): number => {
   return stored ? parseInt(stored, 10) : 0;
 };
 
+// Set rotation index
+export const setRotationIndex = (index: number): void => {
+  localStorage.setItem(ROTATION_KEY, index.toString());
+};
+
 // Get next CS in rotation and update state
-export const getNextCS = () => {
+export const getNextCS = async (): Promise<CSNumber | null> => {
+  const csNumbers = await fetchCSNumbers();
+  if (csNumbers.length === 0) return null;
+  
   const currentIndex = getCurrentRotationIndex();
-  const cs = CS_NUMBERS[currentIndex];
+  const safeIndex = currentIndex % csNumbers.length;
+  const cs = csNumbers[safeIndex];
   
   // Update to next index (round-robin)
-  const nextIndex = (currentIndex + 1) % CS_NUMBERS.length;
-  localStorage.setItem(ROTATION_KEY, nextIndex.toString());
+  const nextIndex = (safeIndex + 1) % csNumbers.length;
+  setRotationIndex(nextIndex);
   
   return cs;
 };
@@ -43,7 +71,7 @@ export const buildWhatsAppUrl = (phoneNumber: string, message?: string): string 
 };
 
 // Log redirect for stats
-export const logRedirect = (csId: number, csName: string, message?: string): void => {
+export const logRedirect = (csId: string, csName: string, message?: string): void => {
   const log: RedirectLog = {
     csId,
     csName,
@@ -78,11 +106,11 @@ export const getRedirectLogs = (): RedirectLog[] => {
 };
 
 // Get stats per CS
-export const getCSStats = (): Record<number, number> => {
+export const getCSStats = (csNumbers: CSNumber[]): Record<string, number> => {
   const logs = getRedirectLogs();
-  const stats: Record<number, number> = {};
+  const stats: Record<string, number> = {};
   
-  CS_NUMBERS.forEach(cs => {
+  csNumbers.forEach(cs => {
     stats[cs.id] = logs.filter(log => log.csId === cs.id).length;
   });
   

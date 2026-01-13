@@ -1,32 +1,44 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getNextCS, buildWhatsAppUrl, logRedirect } from '@/lib/whatsappRotation';
+import { getNextCS, buildWhatsAppUrl, logRedirect, fetchCSNumbers, type CSNumber } from '@/lib/whatsappRotation';
 
 const Chat = () => {
   const [searchParams] = useSearchParams();
   const [redirecting, setRedirecting] = useState(true);
+  const [fallbackCS, setFallbackCS] = useState<CSNumber | null>(null);
 
   useEffect(() => {
     document.title = 'Hubungi Kami - Musafar Tour';
     
-    // Get custom message from URL params
-    const customMessage = searchParams.get('msg') || searchParams.get('message');
-    const defaultMessage = 'Halo, saya tertarik dengan paket umroh Musafar Tour';
-    const message = customMessage || defaultMessage;
+    const doRedirect = async () => {
+      // Get custom message from URL params
+      const customMessage = searchParams.get('msg') || searchParams.get('message');
+      const defaultMessage = 'Halo, saya tertarik dengan paket umroh Musafar Tour';
+      const message = customMessage || defaultMessage;
 
-    // Get next CS in rotation
-    const cs = getNextCS();
-    
-    // Log the redirect
-    logRedirect(cs.id, cs.name, message);
-    
-    // Build WhatsApp URL
-    const whatsappUrl = buildWhatsAppUrl(cs.number, message);
-    
-    // Redirect immediately
-    const redirectTimer = setTimeout(() => {
+      // Get next CS in rotation
+      const cs = await getNextCS();
+      
+      if (!cs) {
+        // No CS numbers configured, show fallback
+        setRedirecting(false);
+        return;
+      }
+      
+      setFallbackCS(cs);
+      
+      // Log the redirect
+      logRedirect(cs.id, cs.name, message);
+      
+      // Build WhatsApp URL
+      const whatsappUrl = buildWhatsAppUrl(cs.phone_number, message);
+      
+      // Redirect immediately
       window.location.href = whatsappUrl;
-    }, 50); // Ultra-fast 50ms delay
+    };
+
+    // Start redirect process
+    const redirectTimer = setTimeout(doRedirect, 50);
 
     // Fallback: If redirect doesn't work after 2s, show manual link
     const fallbackTimer = setTimeout(() => {
@@ -38,6 +50,14 @@ const Chat = () => {
       clearTimeout(fallbackTimer);
     };
   }, [searchParams]);
+
+  const handleManualRedirect = async () => {
+    const cs = fallbackCS || (await getNextCS());
+    if (!cs) return;
+    
+    const message = searchParams.get('msg') || 'Halo, saya tertarik dengan paket umroh Musafar Tour';
+    window.location.href = buildWhatsAppUrl(cs.phone_number, message);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center">
@@ -64,11 +84,7 @@ const Chat = () => {
               Tidak dapat mengalihkan otomatis
             </p>
             <button
-              onClick={() => {
-                const cs = getNextCS();
-                const message = searchParams.get('msg') || 'Halo, saya tertarik dengan paket umroh Musafar Tour';
-                window.location.href = buildWhatsAppUrl(cs.number, message);
-              }}
+              onClick={handleManualRedirect}
               className="bg-white text-primary px-6 py-3 rounded-full font-semibold hover:bg-white/90 transition-colors"
             >
               Klik untuk Chat WhatsApp
