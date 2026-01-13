@@ -50,6 +50,8 @@ const Team = lazy(() => import("./pages/admin/Team"));
 const MarketingSettings = lazy(() => import("./pages/admin/MarketingSettings"));
 const SEO = lazy(() => import("./pages/admin/SEO"));
 const Profile = lazy(() => import("./pages/admin/Profile"));
+const Chat = lazy(() => import("./pages/Chat"));
+const ChatRotation = lazy(() => import("./pages/admin/ChatRotation"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -120,6 +122,7 @@ const App = () => (
                 <Route path="/artikel/:slug" element={<ArtikelDetail />} />
                 <Route path="/kontak" element={<Kontak />} />
                 <Route path="/jadwal-umroh" element={<JadwalUmroh />} />
+                <Route path="/chat" element={<Chat />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/admin/setup" element={<AdminSetup />} />
                 <Route path="/admin" element={<AdminLayout />}>
@@ -152,6 +155,7 @@ const App = () => (
                   <Route path="seo" element={<SEO />} />
                   <Route path="profile" element={<Profile />} />
                   <Route path="team" element={<Team />} />
+                  <Route path="chat-rotation" element={<ChatRotation />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
