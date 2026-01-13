@@ -55,6 +55,7 @@ import {
   Globe
 } from 'lucide-react';
 import { format } from 'date-fns';
+import URLTemplateManager from '@/components/admin/URLTemplateManager';
 import { id as localeId } from 'date-fns/locale';
 import { toast } from 'sonner';
 
@@ -639,6 +640,9 @@ const ChatRotation = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* URL Template Management */}
+      <URLTemplateManager />
     </div>
   );
 };
