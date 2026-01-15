@@ -134,7 +134,7 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
         .maybeSingle();
 
       if (existingAgent) {
-        return { success: false, error: 'Email sudah terdaftar' };
+        return { success: false, error: 'Email sudah terdaftar sebagai agent' };
       }
 
       // Check if phone already exists
@@ -226,6 +226,19 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
         return { success: false, error: 'Login gagal' };
       }
 
+      // Check if user is an admin - admins should use admin portal
+      const { data: adminRole } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (adminRole) {
+        await supabase.auth.signOut();
+        return { success: false, error: 'Akun ini adalah akun Admin. Silakan login di halaman Admin (/auth)' };
+      }
+
       // Check if user has an agent profile
       const { data: agentData, error: agentError } = await supabase
         .from('agents')
@@ -235,7 +248,7 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (agentError || !agentData) {
         await supabase.auth.signOut();
-        return { success: false, error: 'Akun agent tidak ditemukan' };
+        return { success: false, error: 'Akun agent tidak ditemukan. Silakan daftar terlebih dahulu.' };
       }
 
       if (agentData.status === 'pending') {
