@@ -199,8 +199,22 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
 
         <main className="flex-1 overflow-auto">
           <div className="border-b bg-background sticky top-0 z-10">
-            <div className="container mx-auto px-8 py-4 flex items-center">
+            <div className="container mx-auto px-8 py-4 flex items-center justify-between">
               <SidebarTrigger />
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-muted-foreground hidden sm:inline">
+                  {user?.email}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSignOut}
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">Logout</span>
+                </Button>
+              </div>
             </div>
           </div>
           <div className="container mx-auto p-8">
