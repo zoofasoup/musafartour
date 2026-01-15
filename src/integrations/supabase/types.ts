@@ -14,6 +14,260 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_badges: {
+        Row: {
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          points_reward: number
+          requirement_type: string
+          requirement_value: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          icon?: string
+          id?: string
+          name: string
+          points_reward?: number
+          requirement_type: string
+          requirement_value?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          points_reward?: number
+          requirement_type?: string
+          requirement_value?: number
+        }
+        Relationships: []
+      }
+      agent_challenge_progress: {
+        Row: {
+          agent_id: string
+          challenge_id: string
+          completed_at: string | null
+          created_at: string
+          current_progress: number
+          id: string
+        }
+        Insert: {
+          agent_id: string
+          challenge_id: string
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number
+          id?: string
+        }
+        Update: {
+          agent_id?: string
+          challenge_id?: string
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_challenge_progress_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_challenge_progress_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "agent_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_challenges: {
+        Row: {
+          created_at: string
+          description: string
+          end_date: string
+          id: string
+          is_active: boolean
+          reward_type: string
+          reward_value: string
+          start_date: string
+          target_type: string
+          target_value: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          end_date: string
+          id?: string
+          is_active?: boolean
+          reward_type?: string
+          reward_value: string
+          start_date: string
+          target_type?: string
+          target_value?: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          reward_type?: string
+          reward_value?: string
+          start_date?: string
+          target_type?: string
+          target_value?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      agent_earned_badges: {
+        Row: {
+          agent_id: string
+          badge_id: string
+          earned_at: string
+          id: string
+        }
+        Insert: {
+          agent_id: string
+          badge_id: string
+          earned_at?: string
+          id?: string
+        }
+        Update: {
+          agent_id?: string
+          badge_id?: string
+          earned_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_earned_badges_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_earned_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "agent_badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_levels: {
+        Row: {
+          benefits: string[] | null
+          commission_rate_max: number
+          commission_rate_min: number
+          created_at: string
+          level_name: string
+          max_sales: number | null
+          min_sales: number
+        }
+        Insert: {
+          benefits?: string[] | null
+          commission_rate_max?: number
+          commission_rate_min?: number
+          created_at?: string
+          level_name: string
+          max_sales?: number | null
+          min_sales?: number
+        }
+        Update: {
+          benefits?: string[] | null
+          commission_rate_max?: number
+          commission_rate_min?: number
+          created_at?: string
+          level_name?: string
+          max_sales?: number | null
+          min_sales?: number
+        }
+        Relationships: []
+      }
+      agent_points: {
+        Row: {
+          agent_id: string
+          available_points: number | null
+          id: string
+          redeemed_points: number
+          total_points: number
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          available_points?: number | null
+          id?: string
+          redeemed_points?: number
+          total_points?: number
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          available_points?: number | null
+          id?: string
+          redeemed_points?: number
+          total_points?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_points_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: true
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_rewards: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          points_cost: number
+          stock: number | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          points_cost: number
+          stock?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          points_cost?: number
+          stock?: number | null
+        }
+        Relationships: []
+      }
       agent_sales: {
         Row: {
           agent_id: string

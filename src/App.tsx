@@ -65,6 +65,7 @@ const AgentCommission = lazy(() => import("./pages/agent/AgentCommission"));
 const AgentSchedule = lazy(() => import("./pages/agent/AgentSchedule"));
 const AgentMarketingKit = lazy(() => import("./pages/agent/AgentMarketingKit"));
 const AgentProfile = lazy(() => import("./pages/agent/AgentProfile"));
+const AgentLeaderboard = lazy(() => import("./pages/agent/AgentLeaderboard"));
 const AgentProtectedRoute = lazy(() => import("./components/agent/AgentProtectedRoute"));
 const AgentManagement = lazy(() => import("./pages/admin/AgentManagement"));
 
@@ -201,6 +202,16 @@ const App = () => (
                       <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
                         <AgentProtectedRoute>
                           <AgentMarketingKit />
+                        </AgentProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/agent/leaderboard"
+                    element={
+                      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+                        <AgentProtectedRoute>
+                          <AgentLeaderboard />
                         </AgentProtectedRoute>
                       </Suspense>
                     }
