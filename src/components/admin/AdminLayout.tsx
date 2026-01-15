@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { 
   LogOut, LayoutDashboard, Home, Image, Target, MessageSquare, 
   Images, Package, Plane, Hotel, Calendar, FileText, HelpCircle,
-  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore
+  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog
 } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
 import {
@@ -92,6 +92,7 @@ const AdminLayout = () => {
         { icon: MessageCircleMore, label: "Chat Rotation", path: "/admin/chat-rotation" },
         { icon: Search, label: "SEO", path: "/admin/seo" },
         { icon: Users, label: "Team", path: "/admin/team" },
+        { icon: UserCog, label: "Kelola Agent", path: "/admin/agents" },
         { icon: UserCircle, label: "Profil", path: "/admin/profile" },
       ]
     }
