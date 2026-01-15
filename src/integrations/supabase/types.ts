@@ -14,6 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_sales: {
+        Row: {
+          agent_id: string
+          booking_date: string
+          commission_amount: number
+          commission_rate: number
+          created_at: string
+          customer_name: string
+          customer_phone: string
+          departure_date: string | null
+          id: string
+          notes: string | null
+          package_id: string | null
+          package_name: string
+          payment_proof_url: string | null
+          sale_amount: number
+          status: string
+        }
+        Insert: {
+          agent_id: string
+          booking_date?: string
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+          customer_name: string
+          customer_phone: string
+          departure_date?: string | null
+          id?: string
+          notes?: string | null
+          package_id?: string | null
+          package_name: string
+          payment_proof_url?: string | null
+          sale_amount?: number
+          status?: string
+        }
+        Update: {
+          agent_id?: string
+          booking_date?: string
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+          customer_name?: string
+          customer_phone?: string
+          departure_date?: string | null
+          id?: string
+          notes?: string | null
+          package_id?: string | null
+          package_name?: string
+          payment_proof_url?: string | null
+          sale_amount?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_sales_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_sales_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_withdrawals: {
+        Row: {
+          account_name: string
+          admin_notes: string | null
+          agent_id: string
+          amount: number
+          bank_account: string
+          bank_name: string
+          created_at: string
+          id: string
+          processed_at: string | null
+          requested_at: string
+          status: string
+        }
+        Insert: {
+          account_name: string
+          admin_notes?: string | null
+          agent_id: string
+          amount: number
+          bank_account: string
+          bank_name: string
+          created_at?: string
+          id?: string
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+        }
+        Update: {
+          account_name?: string
+          admin_notes?: string | null
+          agent_id?: string
+          amount?: number
+          bank_account?: string
+          bank_name?: string
+          created_at?: string
+          id?: string
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_withdrawals_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agents: {
         Row: {
           account_name: string | null
