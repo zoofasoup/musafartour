@@ -155,7 +155,7 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
         const { data: referrer } = await supabase
           .from('agents')
           .select('id')
-          .eq('referral_code', data.referral_code)
+          .eq('referral_code', data.referral_code.toUpperCase().trim())
           .eq('status', 'active')
           .maybeSingle();
 
@@ -174,6 +174,10 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (authError) {
+        console.error("Auth signup error:", authError);
+        if (authError.message.includes('already registered')) {
+          return { success: false, error: 'Email sudah terdaftar. Silakan login atau gunakan email lain.' };
+        }
         return { success: false, error: authError.message };
       }
 
@@ -184,26 +188,48 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
       // Generate unique referral code
       const referralCode = await generateReferralCode();
 
-      // Create agent profile
-      const { error: agentError } = await supabase
-        .from('agents')
-        .insert({
-          user_id: authData.user.id,
-          email: data.email,
-          phone: data.phone,
-          wa_number: data.wa_number || data.phone,
-          name: data.name,
-          referral_code: referralCode,
-          referred_by_id: referrerId,
-          status: 'pending',
-        });
+      // Wait a moment for auth session to be established
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Create agent profile - retry logic for session propagation
+      let agentError = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { error } = await supabase
+          .from('agents')
+          .insert({
+            user_id: authData.user.id,
+            email: data.email,
+            phone: data.phone,
+            wa_number: data.wa_number || data.phone,
+            name: data.name,
+            referral_code: referralCode,
+            referred_by_id: referrerId,
+            status: 'pending',
+          });
+
+        if (!error) {
+          agentError = null;
+          break;
+        }
+        
+        agentError = error;
+        console.error(`Attempt ${attempt + 1} - Error creating agent profile:`, error);
+        
+        // Wait before retry
+        if (attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
 
       if (agentError) {
-        console.error("Error creating agent profile:", agentError);
-        // If agent creation fails, we should clean up the auth user
-        // But we can't delete auth users from client, so just return error
-        return { success: false, error: 'Gagal membuat profil agent: ' + agentError.message };
+        console.error("Final error creating agent profile:", agentError);
+        // Sign out the user since agent profile creation failed
+        await supabase.auth.signOut();
+        return { success: false, error: 'Gagal membuat profil agent. Silakan coba lagi.' };
       }
+
+      // Sign out after successful registration (user needs admin approval)
+      await supabase.auth.signOut();
 
       return { success: true };
     } catch (error) {
