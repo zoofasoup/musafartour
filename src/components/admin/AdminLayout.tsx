@@ -46,9 +46,15 @@ const AdminLayout = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
           <p className="text-muted-foreground mb-4">Anda tidak memiliki akses admin</p>
-          <Button asChild>
-            <Link to="/">Kembali ke Home</Link>
-          </Button>
+          <div className="flex gap-3 justify-center">
+            <Button asChild variant="outline">
+              <Link to="/">Kembali ke Home</Link>
+            </Button>
+            <Button variant="destructive" onClick={signOut} className="gap-2">
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+          </div>
         </div>
       </div>
     );
