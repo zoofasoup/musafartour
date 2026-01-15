@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      agents: {
+        Row: {
+          account_name: string | null
+          approved_at: string | null
+          available_balance: number
+          bank_account: string | null
+          bank_name: string | null
+          created_at: string
+          email: string
+          id: string
+          level: string
+          name: string
+          phone: string
+          referral_code: string
+          referred_by_id: string | null
+          status: string
+          total_commission: number
+          total_sales: number
+          user_id: string
+          wa_number: string | null
+        }
+        Insert: {
+          account_name?: string | null
+          approved_at?: string | null
+          available_balance?: number
+          bank_account?: string | null
+          bank_name?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          level?: string
+          name: string
+          phone: string
+          referral_code: string
+          referred_by_id?: string | null
+          status?: string
+          total_commission?: number
+          total_sales?: number
+          user_id: string
+          wa_number?: string | null
+        }
+        Update: {
+          account_name?: string | null
+          approved_at?: string | null
+          available_balance?: number
+          bank_account?: string | null
+          bank_name?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          level?: string
+          name?: string
+          phone?: string
+          referral_code?: string
+          referred_by_id?: string | null
+          status?: string
+          total_commission?: number
+          total_sales?: number
+          user_id?: string
+          wa_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agents_referred_by_id_fkey"
+            columns: ["referred_by_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
           author_id: string | null
@@ -311,6 +382,7 @@ export type Database = {
           best_seller_transport: string | null
           canonical_url: string | null
           catalog_link: string | null
+          commission_rate: number | null
           created_at: string
           departure_date: string
           duration_days: number
@@ -349,6 +421,8 @@ export type Database = {
           package_price: Json
           robots_meta: string | null
           schema_type: string | null
+          slots_filled: number | null
+          slots_total: number | null
           slug: string | null
           sold_out_date: string | null
           status: string
@@ -361,6 +435,7 @@ export type Database = {
           best_seller_transport?: string | null
           canonical_url?: string | null
           catalog_link?: string | null
+          commission_rate?: number | null
           created_at?: string
           departure_date: string
           duration_days: number
@@ -399,6 +474,8 @@ export type Database = {
           package_price?: Json
           robots_meta?: string | null
           schema_type?: string | null
+          slots_filled?: number | null
+          slots_total?: number | null
           slug?: string | null
           sold_out_date?: string | null
           status?: string
@@ -411,6 +488,7 @@ export type Database = {
           best_seller_transport?: string | null
           canonical_url?: string | null
           catalog_link?: string | null
+          commission_rate?: number | null
           created_at?: string
           departure_date?: string
           duration_days?: number
@@ -449,6 +527,8 @@ export type Database = {
           package_price?: Json
           robots_meta?: string | null
           schema_type?: string | null
+          slots_filled?: number | null
+          slots_total?: number | null
           slug?: string | null
           sold_out_date?: string | null
           status?: string
@@ -798,6 +878,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

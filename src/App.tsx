@@ -9,6 +9,8 @@ import { useMarketingPixels } from "./hooks/useMarketingPixels";
 import { useRedirects } from "./hooks/useRedirects";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { FavoritesProvider } from "./hooks/useFavorites";
+import { AgentAuthProvider } from "./hooks/useAgentAuth";
+
 // Declare TikTok Pixel type
 declare global {
   interface Window {
@@ -53,6 +55,12 @@ const Profile = lazy(() => import("./pages/admin/Profile"));
 const Chat = lazy(() => import("./pages/Chat"));
 const ChatRotation = lazy(() => import("./pages/admin/ChatRotation"));
 
+// Agent Portal
+const AgentLogin = lazy(() => import("./pages/agent/AgentLogin"));
+const AgentRegister = lazy(() => import("./pages/agent/AgentRegister"));
+const AgentDashboard = lazy(() => import("./pages/agent/AgentDashboard"));
+const AgentProtectedRoute = lazy(() => import("./components/agent/AgentProtectedRoute"));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -92,76 +100,93 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <FavoritesProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <FloatingWhatsApp />
-          <BrowserRouter
-            future={{
-              v7_startTransition: true,
-              v7_relativeSplatPath: true,
-            }}
-          >
-            <TikTokPixelTracker />
-            <MarketingPixelsLoader />
-            <RedirectsHandler />
-            <Suspense
-              fallback={
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              }
+        <AgentAuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <FloatingWhatsApp />
+            <BrowserRouter
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
             >
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/paket-umroh" element={<PaketUmroh />} />
-                <Route path="/paket-umroh/:id" element={<PackageDetail />} />
-                <Route path="/tentang-kami" element={<TentangKami />} />
-                <Route path="/galeri" element={<Galeri />} />
-                <Route path="/artikel" element={<Artikel />} />
-                <Route path="/artikel/:slug" element={<ArtikelDetail />} />
-                <Route path="/kontak" element={<Kontak />} />
-                <Route path="/jadwal-umroh" element={<JadwalUmroh />} />
-                <Route path="/chat" element={<Chat />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/admin/setup" element={<AdminSetup />} />
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route index element={<AdminDashboard />} />
+              <TikTokPixelTracker />
+              <MarketingPixelsLoader />
+              <RedirectsHandler />
+              <Suspense
+                fallback={
+                  <div className="min-h-screen flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                }
+              >
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/paket-umroh" element={<PaketUmroh />} />
+                  <Route path="/paket-umroh/:id" element={<PackageDetail />} />
+                  <Route path="/tentang-kami" element={<TentangKami />} />
+                  <Route path="/galeri" element={<Galeri />} />
+                  <Route path="/artikel" element={<Artikel />} />
+                  <Route path="/artikel/:slug" element={<ArtikelDetail />} />
+                  <Route path="/kontak" element={<Kontak />} />
+                  <Route path="/jadwal-umroh" element={<JadwalUmroh />} />
+                  <Route path="/chat" element={<Chat />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/admin/setup" element={<AdminSetup />} />
+                  
+                  {/* Agent Portal Routes */}
+                  <Route path="/agent/login" element={<AgentLogin />} />
+                  <Route path="/agent/register" element={<AgentRegister />} />
+                  <Route
+                    path="/agent/dashboard"
+                    element={
+                      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+                        <AgentProtectedRoute>
+                          <AgentDashboard />
+                        </AgentProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  
+                  <Route path="/admin" element={<AdminLayout />}>
+                    <Route index element={<AdminDashboard />} />
 
-                  {/* Content Management */}
-                  <Route path="hero" element={<HeroSection />} />
-                  <Route path="selling-points" element={<SellingPoints />} />
-                  <Route path="testimonials" element={<Testimonials />} />
-                  <Route path="gallery" element={<GalleryManagement />} />
+                    {/* Content Management */}
+                    <Route path="hero" element={<HeroSection />} />
+                    <Route path="selling-points" element={<SellingPoints />} />
+                    <Route path="testimonials" element={<Testimonials />} />
+                    <Route path="gallery" element={<GalleryManagement />} />
 
-                  {/* Products & Services */}
-                  <Route path="packages" element={<Packages />} />
-                  <Route path="packages/new" element={<PackageForm />} />
-                  <Route path="packages/:id" element={<PackageForm />} />
-                  <Route path="hotels" element={<Hotels />} />
-                  <Route path="hotels/new" element={<HotelForm />} />
-                  <Route path="hotels/:id" element={<HotelForm />} />
-                  <Route path="jadwal" element={<JadwalKeberangkatan />} />
+                    {/* Products & Services */}
+                    <Route path="packages" element={<Packages />} />
+                    <Route path="packages/new" element={<PackageForm />} />
+                    <Route path="packages/:id" element={<PackageForm />} />
+                    <Route path="hotels" element={<Hotels />} />
+                    <Route path="hotels/new" element={<HotelForm />} />
+                    <Route path="hotels/:id" element={<HotelForm />} />
+                    <Route path="jadwal" element={<JadwalKeberangkatan />} />
 
-                  {/* Content & Blog */}
-                  <Route path="articles" element={<ArticlesPage />} />
-                  <Route path="articles/new" element={<ArticleForm />} />
-                  <Route path="articles/:id" element={<ArticleForm />} />
-                  <Route path="faq" element={<FAQAdmin />} />
+                    {/* Content & Blog */}
+                    <Route path="articles" element={<ArticlesPage />} />
+                    <Route path="articles/new" element={<ArticleForm />} />
+                    <Route path="articles/:id" element={<ArticleForm />} />
+                    <Route path="faq" element={<FAQAdmin />} />
 
-                  {/* Settings */}
-                  <Route path="settings" element={<WebsiteSettings />} />
-                  <Route path="settings/marketing" element={<MarketingSettings />} />
-                  <Route path="seo" element={<SEO />} />
-                  <Route path="profile" element={<Profile />} />
-                  <Route path="team" element={<Team />} />
-                  <Route path="chat-rotation" element={<ChatRotation />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-        </TooltipProvider>
+                    {/* Settings */}
+                    <Route path="settings" element={<WebsiteSettings />} />
+                    <Route path="settings/marketing" element={<MarketingSettings />} />
+                    <Route path="seo" element={<SEO />} />
+                    <Route path="profile" element={<Profile />} />
+                    <Route path="team" element={<Team />} />
+                    <Route path="chat-rotation" element={<ChatRotation />} />
+                  </Route>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AgentAuthProvider>
       </FavoritesProvider>
     </QueryClientProvider>
   </ErrorBoundary>
