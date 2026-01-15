@@ -83,7 +83,42 @@ const Auth = () => {
 
       if (error) throw error;
 
-      if (data.session) {
+      if (data.session && data.user) {
+        // Check if user is an agent - agents should use agent portal
+        const { data: agentData } = await supabase
+          .from('agents')
+          .select('id')
+          .eq('user_id', data.user.id)
+          .maybeSingle();
+
+        if (agentData) {
+          await supabase.auth.signOut();
+          toast({
+            title: "Akun Agent",
+            description: "Ini adalah akun Agent. Silakan login di halaman Agent Portal (/agent/login)",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Check if user has admin role
+        const { data: adminRole } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
+
+        if (!adminRole) {
+          await supabase.auth.signOut();
+          toast({
+            title: "Akses Ditolak",
+            description: "Akun ini tidak memiliki akses admin",
+            variant: "destructive",
+          });
+          return;
+        }
+
         toast({
           title: "Login berhasil!",
           description: "Selamat datang kembali",
