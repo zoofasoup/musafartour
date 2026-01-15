@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck, CheckCircle } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo.svg";
 
 // Validation schema matching server-side validation in bootstrap-admin
@@ -26,8 +26,30 @@ const AdminSetup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [adminExists, setAdminExists] = useState(false);
   const [email, setEmail] = useState("");
   const [setupCode, setSetupCode] = useState("");
+
+  // Check if admin already exists on mount
+  useEffect(() => {
+    const checkAdminExists = async () => {
+      try {
+        const { count } = await supabase
+          .from('user_roles')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', 'admin');
+        
+        setAdminExists((count ?? 0) > 0);
+      } catch (error) {
+        console.error('Error checking admin:', error);
+      } finally {
+        setChecking(false);
+      }
+    };
+
+    checkAdminExists();
+  }, []);
 
   const handleSetup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,6 +100,50 @@ const AdminSetup = () => {
       setLoading(false);
     }
   };
+
+  // Show loading state while checking
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show message if admin already exists
+  if (adminExists) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <img src={musafarLogo} alt="Musafar Tour" className="h-12 mx-auto mb-4" />
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <CheckCircle className="h-6 w-6 text-green-600" />
+              <CardTitle>Admin Sudah Terdaftar</CardTitle>
+            </div>
+            <CardDescription>
+              Setup admin sudah selesai. Silakan gunakan halaman login untuk mengakses admin panel.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button 
+              className="w-full" 
+              onClick={() => navigate("/auth")}
+            >
+              Ke Halaman Login
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full" 
+              onClick={() => navigate("/")}
+            >
+              Kembali ke Beranda
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
