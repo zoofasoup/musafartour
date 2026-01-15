@@ -32,6 +32,7 @@ interface AgentAuthContextType {
   loading: boolean;
   signUp: (data: SignUpData) => Promise<{ success: boolean; error?: string }>;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   refreshAgent: () => void;
 }
@@ -268,6 +269,26 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/agent/login',
+        }
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("Google sign in error:", error);
+      return { success: false, error: 'Terjadi kesalahan saat login dengan Google' };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     queryClient.removeQueries({ queryKey: ['agent-profile'] });
@@ -285,6 +306,7 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
         loading: !isFullyLoaded,
         signUp,
         signIn,
+        signInWithGoogle,
         signOut,
         refreshAgent: () => refreshAgent(),
       }}
