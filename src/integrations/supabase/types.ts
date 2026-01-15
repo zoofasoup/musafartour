@@ -83,6 +83,47 @@ export type Database = {
           },
         ]
       }
+      agent_short_links: {
+        Row: {
+          agent_id: string
+          click_count: number
+          created_at: string
+          id: string
+          original_url: string
+          short_code: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          click_count?: number
+          created_at?: string
+          id?: string
+          original_url: string
+          short_code: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          click_count?: number
+          created_at?: string
+          id?: string
+          original_url?: string
+          short_code?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_short_links_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_withdrawals: {
         Row: {
           account_name: string
@@ -457,6 +498,59 @@ export type Database = {
           walking_duration?: string
         }
         Relationships: []
+      }
+      marketing_materials: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          file_size: string | null
+          file_url: string
+          format: string | null
+          id: string
+          is_active: boolean
+          package_id: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          file_size?: string | null
+          file_url: string
+          format?: string | null
+          id?: string
+          is_active?: boolean
+          package_id?: string | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          file_size?: string | null
+          file_url?: string
+          format?: string | null
+          id?: string
+          is_active?: boolean
+          package_id?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_materials_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       marketing_settings: {
         Row: {
