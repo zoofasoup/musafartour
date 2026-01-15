@@ -5,6 +5,7 @@ import {
   Calendar, 
   Wallet, 
   Palette,
+  Trophy,
   User,
   LogOut,
   Menu,
@@ -43,6 +44,12 @@ const navItems = [
     url: "/agent/commission", 
     icon: Wallet,
     description: "Earnings & withdraw"
+  },
+  { 
+    title: "Leaderboard", 
+    url: "/agent/leaderboard", 
+    icon: Trophy,
+    description: "Rankings & rewards"
   },
   { 
     title: "Marketing", 
