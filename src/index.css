@@ -268,3 +268,8 @@ All colors MUST be HSL.
 .article-content img {
   @apply rounded-lg my-8 max-w-full h-auto;
 }
+
+/* Safe area for bottom nav on iOS */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
