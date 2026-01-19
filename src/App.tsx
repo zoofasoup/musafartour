@@ -69,7 +69,6 @@ const AgentLeaderboard = lazy(() => import("./pages/agent/AgentLeaderboard"));
 const AgentProtectedRoute = lazy(() => import("./components/agent/AgentProtectedRoute"));
 const AgentManagement = lazy(() => import("./pages/admin/AgentManagement"));
 const Gamification = lazy(() => import("./pages/admin/Gamification"));
-const PackageDevelopment = lazy(() => import("./pages/admin/PackageDevelopment"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -262,7 +261,6 @@ const App = () => (
                     <Route path="chat-rotation" element={<ChatRotation />} />
                     <Route path="agents" element={<AgentManagement />} />
                     <Route path="gamification" element={<Gamification />} />
-                    <Route path="package-calculator" element={<PackageDevelopment />} />
                   </Route>
                   <Route path="*" element={<NotFound />} />
                 </Routes>
