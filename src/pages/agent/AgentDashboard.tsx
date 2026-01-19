@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import musafarLogo from "@/assets/musafar-logo.svg";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { formatCurrency } from "@/lib/utils";
 
 const levelColors = {
   bronze: "bg-amber-600",
@@ -93,14 +94,7 @@ const AgentDashboard = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Use formatCurrency from utils - already imported
 
   const handleSignOut = async () => {
     await signOut();

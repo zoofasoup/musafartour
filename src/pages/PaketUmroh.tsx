@@ -11,7 +11,7 @@ import { Package, Calendar, Plane, Clock, Grid3X3, List } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { formatWhatsAppUrl } from "@/lib/utils";
+import { formatWhatsAppUrl, formatPriceJuta } from "@/lib/utils";
 import {
   Accordion,
   AccordionContent,
@@ -82,12 +82,7 @@ const PaketUmroh = () => {
     }
   };
 
-  const formatPrice = (price: number) => {
-    const millions = price / 1000000;
-    return millions % 1 === 0 
-      ? `${millions} Juta` 
-      : `${millions.toFixed(1).replace('.', ',')} Juta`;
-  };
+  const formatPrice = (price: number) => formatPriceJuta(price);
 
   const getCategoryFromPrice = (price: number) => {
     if (price < 25000000) return "hemat";

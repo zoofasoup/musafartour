@@ -34,14 +34,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   'network': Users,
 };
 
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
+import { formatCurrency } from "@/lib/utils";
 
 const levelColors: Record<string, string> = {
   bronze: "bg-amber-600",

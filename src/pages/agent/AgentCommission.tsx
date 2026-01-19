@@ -77,14 +77,7 @@ const BANK_LIST = [
   "Bank Digital BCA"
 ];
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
+import { formatCurrency } from "@/lib/utils";
 
 const AgentCommission = () => {
   const { agent, refreshAgent } = useAgentAuth();

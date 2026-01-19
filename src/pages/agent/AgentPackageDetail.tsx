@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
+import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import PackageShareModal from "@/components/agent/PackageShareModal";
 
@@ -87,14 +88,7 @@ const AgentPackageDetail = () => {
     enabled: !!packageId,
   });
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   const calculateCommission = (price: number, rate: number | null) => {
     const commissionRate = rate || 4.5;

@@ -28,6 +28,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
+import { formatCurrency } from "@/lib/utils";
 import PackageShareModal from "@/components/agent/PackageShareModal";
 
 interface PackagePrice {
@@ -81,14 +82,7 @@ const AgentPackages = () => {
     },
   });
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   const calculateCommission = (price: number, rate: number | null) => {
     const commissionRate = rate || 4.5;
