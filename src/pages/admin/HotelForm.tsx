@@ -194,6 +194,55 @@ const HotelForm = () => {
     }
   };
 
+  const handlePasteImage = async (
+    e: React.ClipboardEvent<HTMLDivElement>,
+    fieldName: "exterior_photo" | "lobby_photo" | "room_photo"
+  ) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) continue;
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error("Ukuran file maksimal 5MB");
+          return;
+        }
+
+        try {
+          setUploadingField(fieldName);
+
+          const fileExt = file.type.split("/")[1] || "png";
+          const fileName = `hotel-${fieldName}-${Date.now()}.${fileExt}`;
+          const filePath = `hotels/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from("package-images")
+            .upload(filePath, file);
+
+          if (uploadError) throw uploadError;
+
+          const { data: publicUrl } = supabase.storage
+            .from("package-images")
+            .getPublicUrl(filePath);
+
+          setValue(fieldName, publicUrl.publicUrl);
+          toast.success("Foto berhasil dipaste");
+        } catch (error) {
+          console.error("Error uploading pasted image:", error);
+          toast.error("Gagal mengupload foto");
+        } finally {
+          setUploadingField(null);
+        }
+        break;
+      }
+    }
+  };
+
   const PhotoUploadCard = ({
     fieldName,
     label,
@@ -226,30 +275,39 @@ const HotelForm = () => {
           </button>
         </div>
       ) : (
-        <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-            {uploadingField === fieldName ? (
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-            ) : (
-              <>
-                <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  Klik untuk upload
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  JPG, PNG (max 5MB)
-                </p>
-              </>
-            )}
-          </div>
-          <input
-            type="file"
-            className="hidden"
-            accept="image/*"
-            onChange={(e) => handleImageUpload(e, fieldName)}
-            disabled={uploadingField !== null}
-          />
-        </label>
+        <div
+          tabIndex={0}
+          onPaste={(e) => handlePasteImage(e, fieldName)}
+          className="relative"
+        >
+          <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 transition-colors">
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              {uploadingField === fieldName ? (
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+              ) : (
+                <>
+                  <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    Klik untuk upload
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    atau <span className="font-medium">Ctrl+V</span> untuk paste
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    JPG, PNG (max 5MB)
+                  </p>
+                </>
+              )}
+            </div>
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={(e) => handleImageUpload(e, fieldName)}
+              disabled={uploadingField !== null}
+            />
+          </label>
+        </div>
       )}
     </div>
   );
