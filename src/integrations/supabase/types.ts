@@ -725,6 +725,7 @@ export type Database = {
           created_at: string
           distance: string
           exterior_photo: string | null
+          google_maps_url: string | null
           id: string
           lobby_photo: string | null
           location: string
@@ -738,6 +739,7 @@ export type Database = {
           created_at?: string
           distance: string
           exterior_photo?: string | null
+          google_maps_url?: string | null
           id?: string
           lobby_photo?: string | null
           location: string
@@ -751,6 +753,7 @@ export type Database = {
           created_at?: string
           distance?: string
           exterior_photo?: string | null
+          google_maps_url?: string | null
           id?: string
           lobby_photo?: string | null
           location?: string

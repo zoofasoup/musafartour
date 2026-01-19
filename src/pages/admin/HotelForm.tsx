@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Upload, X, Image, Building2, DoorOpen, Bed, Clipboard } from "lucide-react";
+import { ArrowLeft, Save, Upload, X, Image, Building2, DoorOpen, Bed, Clipboard, MapPin } from "lucide-react";
 
 const hotelSchema = z.object({
   name: z.string().min(1, "Nama hotel wajib diisi"),
@@ -21,6 +21,7 @@ const hotelSchema = z.object({
   exterior_photo: z.string().nullable().optional(),
   lobby_photo: z.string().nullable().optional(),
   room_photo: z.string().nullable().optional(),
+  google_maps_url: z.string().nullable().optional(),
 });
 
 type HotelFormData = z.infer<typeof hotelSchema>;
@@ -46,6 +47,7 @@ const HotelForm = () => {
       exterior_photo: null,
       lobby_photo: null,
       room_photo: null,
+      google_maps_url: null,
     },
   });
 
@@ -83,6 +85,7 @@ const HotelForm = () => {
         setValue("exterior_photo", data.exterior_photo);
         setValue("lobby_photo", data.lobby_photo);
         setValue("room_photo", data.room_photo);
+        setValue("google_maps_url", data.google_maps_url);
       }
     } catch (error) {
       console.error("Error fetching hotel:", error);
@@ -166,6 +169,7 @@ const HotelForm = () => {
         exterior_photo: data.exterior_photo || null,
         lobby_photo: data.lobby_photo || null,
         room_photo: data.room_photo || null,
+        google_maps_url: data.google_maps_url || null,
       };
 
       if (id) {
@@ -427,6 +431,21 @@ const HotelForm = () => {
                   <p className="text-sm text-destructive">{errors.walking_duration.message}</p>
                 )}
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="google_maps_url" className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Link Google Maps
+              </Label>
+              <Input
+                id="google_maps_url"
+                {...register("google_maps_url")}
+                placeholder="https://maps.google.com/..."
+              />
+              <p className="text-xs text-muted-foreground">
+                Paste link Google Maps hotel untuk memudahkan jamaah menemukan lokasi
+              </p>
             </div>
           </CardContent>
         </Card>
