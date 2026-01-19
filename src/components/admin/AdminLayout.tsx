@@ -128,7 +128,7 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
 
   return (
     <div className="min-h-screen flex w-full bg-background">
-      <Sidebar collapsible="icon" className="border-r">
+      <Sidebar collapsible="icon" className="border-r fixed top-0 left-0 h-screen z-40">
         <SidebarHeader className="border-b">
           {open && (
             <div className="flex items-center gap-2 px-2 py-4">
@@ -209,8 +209,11 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
           </SidebarFooter>
         </Sidebar>
 
-        <main className="flex-1 overflow-auto">
-          <div className="border-b bg-background sticky top-0 z-10">
+        {/* Spacer for fixed sidebar */}
+        <div className={`shrink-0 transition-all duration-200 ${open ? 'w-[--sidebar-width]' : 'w-[--sidebar-width-icon]'}`} />
+
+        <main className="flex-1 overflow-auto min-h-screen">
+          <div className="border-b bg-background sticky top-0 z-30">
             <div className="container mx-auto px-8 py-4 flex items-center justify-between">
               <SidebarTrigger />
               <div className="flex items-center gap-4">
