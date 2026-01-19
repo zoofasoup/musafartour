@@ -10,6 +10,7 @@ import { Loader2, ChevronLeft, ChevronRight, Plane } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, getDay, addMonths, subMonths } from "date-fns";
 import { id } from "date-fns/locale";
+import { formatNumber } from "@/lib/utils";
 
 interface Package {
   id: string;
@@ -279,7 +280,7 @@ const JadwalKeberangkatan = () => {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-primary">
-                        Rp {pkg.package_price?.quad?.toLocaleString("id-ID") || 0}
+                        Rp {formatNumber(pkg.package_price?.quad)}
                       </p>
                       <p className="text-xs text-muted-foreground">per orang (Quad)</p>
                     </div>

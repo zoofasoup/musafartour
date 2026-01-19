@@ -27,7 +27,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { formatWhatsAppUrl } from "@/lib/utils";
+import { formatWhatsAppUrl, formatCurrency, formatPriceJuta } from "@/lib/utils";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 
@@ -144,13 +144,7 @@ const PackageDetail = () => {
     window.open(whatsappUrl, "_blank");
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   const formatPriceShort = (price: number) => {
     const millions = price / 1000000;

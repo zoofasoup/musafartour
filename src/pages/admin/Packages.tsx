@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
+import { formatNumber } from "@/lib/utils";
 
 interface Package {
   id: string;
@@ -319,7 +320,7 @@ const Packages = () => {
                     <TableCell>{format(new Date(pkg.departure_date), "dd MMM yyyy")}</TableCell>
                     <TableCell>{pkg.duration_days} hari</TableCell>
                     <TableCell>{pkg.flight}</TableCell>
-                    <TableCell>Rp {pkg.package_price.quad.toLocaleString("id-ID")}</TableCell>
+                    <TableCell>Rp {formatNumber(pkg.package_price.quad)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Badge variant={pkg.status === "published" ? "default" : "secondary"}>

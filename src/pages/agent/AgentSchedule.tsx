@@ -24,7 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import PackageShareModal from "@/components/agent/PackageShareModal";
 
 interface Package {
@@ -42,14 +42,7 @@ interface Package {
   madinah_hotel_star: number | null;
 }
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
+// formatCurrency imported from utils
 
 const getPackageCategory = (pkg: Package): string => {
   const avgStar = ((pkg.makkah_hotel_star || 0) + (pkg.madinah_hotel_star || 0)) / 2;

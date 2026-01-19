@@ -12,6 +12,7 @@ import { Check, Copy, Facebook, Instagram, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
+import { formatCurrency } from "@/lib/utils";
 
 interface PackagePrice {
   quad: number;
@@ -53,14 +54,7 @@ const PackageShareModal = ({
   const baseUrl = window.location.origin;
   const shareUrl = `${baseUrl}/paket-umroh/${pkg.id}${agentCode ? `?ref=${agentCode}` : ""}`;
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   const generateShareText = () => {
     return `🕌 *${pkg.package_name}*

@@ -22,6 +22,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { format, addMonths } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import type { PackageData } from "@/hooks/useHomepageData";
+import { formatPriceJuta } from "@/lib/utils";
 
 interface PackageFilterSectionProps {
   packages: PackageData[];
@@ -55,12 +56,7 @@ export const PackageFilterSection = ({
     return months;
   }, []);
 
-  const formatPrice = (price: number) => {
-    const millions = price / 1000000;
-    return millions % 1 === 0
-      ? `${millions} Juta`
-      : `${millions.toFixed(1).replace(".", ",")} Juta`;
-  };
+  const formatPrice = (price: number) => formatPriceJuta(price);
 
   const getMonthFromDate = (date: string) => {
     return format(new Date(date), "MMMM yyyy", { locale: localeId }).toLowerCase();

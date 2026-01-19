@@ -54,6 +54,7 @@ import {
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import { formatCurrency } from "@/lib/utils";
 
 const BANK_LIST = [
   "Bank BCA",
@@ -306,14 +307,7 @@ const AgentProfile = () => {
       .slice(0, 2);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Use formatCurrency from utils - already imported
 
   const getStatusBadge = (status: string) => {
     switch (status) {
