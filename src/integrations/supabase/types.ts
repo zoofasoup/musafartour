@@ -724,9 +724,12 @@ export type Database = {
         Row: {
           created_at: string
           distance: string
+          exterior_photo: string | null
           id: string
+          lobby_photo: string | null
           location: string
           name: string
+          room_photo: string | null
           star_rating: number
           updated_at: string
           walking_duration: string
@@ -734,9 +737,12 @@ export type Database = {
         Insert: {
           created_at?: string
           distance: string
+          exterior_photo?: string | null
           id?: string
+          lobby_photo?: string | null
           location: string
           name: string
+          room_photo?: string | null
           star_rating: number
           updated_at?: string
           walking_duration: string
@@ -744,9 +750,12 @@ export type Database = {
         Update: {
           created_at?: string
           distance?: string
+          exterior_photo?: string | null
           id?: string
+          lobby_photo?: string | null
           location?: string
           name?: string
+          room_photo?: string | null
           star_rating?: number
           updated_at?: string
           walking_duration?: string
