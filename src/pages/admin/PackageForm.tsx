@@ -18,6 +18,7 @@ import { ArrowLeft, X, Upload, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { compressAndConvertToWebP, generateContextualFileName } from "@/lib/imageUtils";
 import { AddHotelModal } from "@/components/admin/AddHotelModal";
+import { FloatingPortal } from "@/components/admin/FloatingPortal";
 
 const packageSchema = z.object({
   package_name: z.string().min(1, "Nama paket wajib diisi"),

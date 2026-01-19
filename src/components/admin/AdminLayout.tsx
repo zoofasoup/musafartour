@@ -127,8 +127,8 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
   const { open } = useSidebar();
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
-      <Sidebar collapsible="icon" className="border-r fixed top-0 left-0 h-screen z-40">
+    <div className="h-svh flex w-full bg-background overflow-hidden">
+      <Sidebar collapsible="icon" className="border-r">
         <SidebarHeader className="border-b">
           {open && (
             <div className="flex items-center gap-2 px-2 py-4">
@@ -147,101 +147,97 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
           </SidebarMenu>
         </SidebarHeader>
 
-          <SidebarContent>
-            {menuSections.map((section, idx) => (
-              <SidebarGroup key={idx}>
-                {section.label && (
-                  <SidebarGroupLabel className="text-xs text-muted-foreground uppercase tracking-wider">
-                    {section.label}
-                  </SidebarGroupLabel>
-                )}
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {section.items.map((item) => {
-                      const Icon = item.icon;
-                      const active = isActive(item.path);
-                      return (
-                        <SidebarMenuItem key={item.path}>
-                          <SidebarMenuButton
-                            asChild
-                            className={`transition-colors ${
-                              active
-                                ? "bg-red-600 text-white hover:bg-red-700 hover:text-white"
-                                : "hover:bg-accent"
-                            }`}
-                            tooltip={item.label}
-                          >
-                            <Link to={item.path}>
-                              <Icon className={`h-4 w-4 ${active ? "text-white" : ""}`} />
-                              <span className={active ? "font-semibold text-white" : ""}>
-                                {item.label}
-                              </span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            ))}
-          </SidebarContent>
+        <SidebarContent>
+          {menuSections.map((section, idx) => (
+            <SidebarGroup key={idx}>
+              {section.label && (
+                <SidebarGroupLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                  {section.label}
+                </SidebarGroupLabel>
+              )}
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.path);
+                    return (
+                      <SidebarMenuItem key={item.path}>
+                        <SidebarMenuButton
+                          asChild
+                          className={`transition-colors ${
+                            active
+                              ? "bg-red-600 text-white hover:bg-red-700 hover:text-white"
+                              : "hover:bg-accent"
+                          }`}
+                          tooltip={item.label}
+                        >
+                          <Link to={item.path}>
+                            <Icon className={`h-4 w-4 ${active ? "text-white" : ""}`} />
+                            <span className={active ? "font-semibold text-white" : ""}>{item.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
+        </SidebarContent>
 
-          <SidebarFooter className="border-t">
-            {open && (
-              <div className="px-2 py-2">
-                <p className="text-sm font-medium truncate">{user?.email}</p>
-                <p className="text-xs text-muted-foreground">Admin</p>
-              </div>
-            )}
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={handleSignOut}
-                  tooltip="Sign Out"
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Sign Out</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarFooter>
-        </Sidebar>
+        <SidebarFooter className="border-t">
+          {open && (
+            <div className="px-2 py-2">
+              <p className="text-sm font-medium truncate">{user?.email}</p>
+              <p className="text-xs text-muted-foreground">Admin</p>
+            </div>
+          )}
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={handleSignOut}
+                tooltip="Sign Out"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sign Out</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </Sidebar>
 
-        {/* Spacer for fixed sidebar */}
-        <div className={`shrink-0 transition-all duration-200 ${open ? 'w-[--sidebar-width]' : 'w-[--sidebar-width-icon]'}`} />
-
-        <main className="flex-1 overflow-auto min-h-screen">
-          <div className="border-b bg-background sticky top-0 z-30">
-            <div className="container mx-auto px-8 py-4 flex items-center justify-between">
-              <SidebarTrigger />
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-muted-foreground hidden sm:inline">
-                  {user?.email}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSignOut}
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline">Logout</span>
-                </Button>
-              </div>
+      <main className="flex-1 h-svh overflow-auto">
+        <div className="border-b bg-background sticky top-0 z-30">
+          <div className="container mx-auto px-8 py-4 flex items-center justify-between">
+            <SidebarTrigger />
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground hidden sm:inline">{user?.email}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
             </div>
           </div>
-          <div className="container mx-auto p-8">
-            <Suspense fallback={
+        </div>
+
+        <div className="container mx-auto p-8">
+          <Suspense
+            fallback={
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
-            }>
-              <Outlet />
-            </Suspense>
-          </div>
-        </main>
+            }
+          >
+            <Outlet />
+          </Suspense>
+        </div>
+      </main>
       </div>
     );
   };
