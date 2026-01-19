@@ -14,9 +14,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, X, Upload } from "lucide-react";
+import { ArrowLeft, X, Upload, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { compressAndConvertToWebP, generateContextualFileName } from "@/lib/imageUtils";
+import { AddHotelModal } from "@/components/admin/AddHotelModal";
 
 const packageSchema = z.object({
   package_name: z.string().min(1, "Nama paket wajib diisi"),
@@ -88,6 +89,11 @@ const PackageForm = () => {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [makkahHotels, setMakkahHotels] = useState<any[]>([]);
   const [madinahHotels, setMadinahHotels] = useState<any[]>([]);
+  
+  // Hotel modal states
+  const [hotelModalOpen, setHotelModalOpen] = useState(false);
+  const [hotelModalLocation, setHotelModalLocation] = useState<"makkah" | "madinah">("madinah");
+  const [hotelModalTier, setHotelModalTier] = useState<"best_seller" | "five_star">("best_seller");
 
   // Standard items yang selalu termasuk
   const standardIncludedItems = [
@@ -274,6 +280,48 @@ const PackageForm = () => {
       form.setValue("five_star_makkah_hotel_star", hotel.star_rating);
       form.setValue("five_star_makkah_distance", hotel.distance);
       form.setValue("five_star_makkah_duration_walk", hotel.walking_duration);
+    }
+  };
+
+  const handleAddHotelClick = (location: "makkah" | "madinah", tier: "best_seller" | "five_star") => {
+    setHotelModalLocation(location);
+    setHotelModalTier(tier);
+    setHotelModalOpen(true);
+  };
+
+  const handleHotelAdded = (hotel: any) => {
+    // Refresh hotel list
+    if (hotel.location === "makkah") {
+      setMakkahHotels(prev => [...prev, hotel].sort((a, b) => a.name.localeCompare(b.name)));
+    } else {
+      setMadinahHotels(prev => [...prev, hotel].sort((a, b) => a.name.localeCompare(b.name)));
+    }
+
+    // Auto-select the new hotel based on tier
+    if (hotelModalTier === "best_seller") {
+      if (hotel.location === "madinah") {
+        form.setValue("madinah_hotel_name", hotel.name);
+        form.setValue("madinah_hotel_star", hotel.star_rating);
+        form.setValue("madinah_distance", hotel.distance);
+        form.setValue("madinah_duration_walk", hotel.walking_duration);
+      } else {
+        form.setValue("makkah_hotel_name", hotel.name);
+        form.setValue("makkah_hotel_star", hotel.star_rating);
+        form.setValue("makkah_distance", hotel.distance);
+        form.setValue("makkah_duration_walk", hotel.walking_duration);
+      }
+    } else {
+      if (hotel.location === "madinah") {
+        form.setValue("five_star_madinah_hotel_name", hotel.name);
+        form.setValue("five_star_madinah_hotel_star", hotel.star_rating);
+        form.setValue("five_star_madinah_distance", hotel.distance);
+        form.setValue("five_star_madinah_duration_walk", hotel.walking_duration);
+      } else {
+        form.setValue("five_star_makkah_hotel_name", hotel.name);
+        form.setValue("five_star_makkah_hotel_star", hotel.star_rating);
+        form.setValue("five_star_makkah_distance", hotel.distance);
+        form.setValue("five_star_makkah_duration_walk", hotel.walking_duration);
+      }
     }
   };
 
@@ -804,24 +852,35 @@ const PackageForm = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Nama Hotel</FormLabel>
-                          <Select
-                            onValueChange={handleBestSellerMadinahHotelChange}
-                            value={madinahHotels.find((h) => h.name === field.value)?.id || "none"}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Pilih hotel Madinah" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="none">Belum dipilih</SelectItem>
-                              {madinahHotels.map((hotel) => (
-                                <SelectItem key={hotel.id} value={hotel.id}>
-                                  {hotel.name} ({hotel.star_rating}⭐)
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div className="flex gap-2">
+                            <Select
+                              onValueChange={handleBestSellerMadinahHotelChange}
+                              value={madinahHotels.find((h) => h.name === field.value)?.id || "none"}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="flex-1">
+                                  <SelectValue placeholder="Pilih hotel Madinah" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="none">Belum dipilih</SelectItem>
+                                {madinahHotels.map((hotel) => (
+                                  <SelectItem key={hotel.id} value={hotel.id}>
+                                    {hotel.name} ({hotel.star_rating}⭐)
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleAddHotelClick("madinah", "best_seller")}
+                              title="Tambah Hotel Baru"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -898,24 +957,35 @@ const PackageForm = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Nama Hotel</FormLabel>
-                          <Select
-                            onValueChange={handleBestSellerMakkahHotelChange}
-                            value={makkahHotels.find((h) => h.name === field.value)?.id || "none"}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Pilih hotel Makkah" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="none">Belum dipilih</SelectItem>
-                              {makkahHotels.map((hotel) => (
-                                <SelectItem key={hotel.id} value={hotel.id}>
-                                  {hotel.name} ({hotel.star_rating}⭐)
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div className="flex gap-2">
+                            <Select
+                              onValueChange={handleBestSellerMakkahHotelChange}
+                              value={makkahHotels.find((h) => h.name === field.value)?.id || "none"}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="flex-1">
+                                  <SelectValue placeholder="Pilih hotel Makkah" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="none">Belum dipilih</SelectItem>
+                                {makkahHotels.map((hotel) => (
+                                  <SelectItem key={hotel.id} value={hotel.id}>
+                                    {hotel.name} ({hotel.star_rating}⭐)
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleAddHotelClick("makkah", "best_seller")}
+                              title="Tambah Hotel Baru"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -1091,24 +1161,35 @@ const PackageForm = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Nama Hotel</FormLabel>
-                          <Select
-                            onValueChange={handleFiveStarMadinahHotelChange}
-                            value={madinahHotels.find((h) => h.name === field.value)?.id || "none"}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Pilih hotel Madinah (Five Star)" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="none">Belum dipilih</SelectItem>
-                              {madinahHotels.map((hotel) => (
-                                <SelectItem key={hotel.id} value={hotel.id}>
-                                  {hotel.name} ({hotel.star_rating}⭐)
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div className="flex gap-2">
+                            <Select
+                              onValueChange={handleFiveStarMadinahHotelChange}
+                              value={madinahHotels.find((h) => h.name === field.value)?.id || "none"}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="flex-1">
+                                  <SelectValue placeholder="Pilih hotel Madinah (Five Star)" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="none">Belum dipilih</SelectItem>
+                                {madinahHotels.map((hotel) => (
+                                  <SelectItem key={hotel.id} value={hotel.id}>
+                                    {hotel.name} ({hotel.star_rating}⭐)
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleAddHotelClick("madinah", "five_star")}
+                              title="Tambah Hotel Baru"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -1185,24 +1266,35 @@ const PackageForm = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Nama Hotel</FormLabel>
-                          <Select
-                            onValueChange={handleFiveStarMakkahHotelChange}
-                            value={makkahHotels.find((h) => h.name === field.value)?.id || "none"}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Pilih hotel Makkah (Five Star)" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="none">Belum dipilih</SelectItem>
-                              {makkahHotels.map((hotel) => (
-                                <SelectItem key={hotel.id} value={hotel.id}>
-                                  {hotel.name} ({hotel.star_rating}⭐)
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div className="flex gap-2">
+                            <Select
+                              onValueChange={handleFiveStarMakkahHotelChange}
+                              value={makkahHotels.find((h) => h.name === field.value)?.id || "none"}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="flex-1">
+                                  <SelectValue placeholder="Pilih hotel Makkah (Five Star)" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="none">Belum dipilih</SelectItem>
+                                {makkahHotels.map((hotel) => (
+                                  <SelectItem key={hotel.id} value={hotel.id}>
+                                    {hotel.name} ({hotel.star_rating}⭐)
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleAddHotelClick("makkah", "five_star")}
+                              title="Tambah Hotel Baru"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -1718,6 +1810,14 @@ const PackageForm = () => {
           </div>
         </form>
       </Form>
+
+      {/* Add Hotel Modal */}
+      <AddHotelModal
+        open={hotelModalOpen}
+        onOpenChange={setHotelModalOpen}
+        location={hotelModalLocation}
+        onSuccess={handleHotelAdded}
+      />
     </div>
   );
 };
