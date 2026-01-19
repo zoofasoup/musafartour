@@ -13,7 +13,19 @@ import musafarLogo from "@/assets/musafar-logo.svg";
 import { getSafeErrorMessage } from "@/lib/errorHandler";
 import { z } from "zod";
 
-const authSchema = z.object({
+// Schema untuk login - hanya validasi dasar (tidak enforce aturan password baru)
+const loginSchema = z.object({
+  email: z.string()
+    .trim()
+    .email({ message: "Email tidak valid" })
+    .max(255, { message: "Email terlalu panjang" }),
+  password: z.string()
+    .min(1, { message: "Password tidak boleh kosong" })
+    .max(100, { message: "Password terlalu panjang" })
+});
+
+// Schema untuk signup - enforce aturan password ketat
+const signupSchema = z.object({
   email: z.string()
     .trim()
     .email({ message: "Email tidak valid" })
@@ -74,7 +86,8 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const validatedData = authSchema.parse({ email, password });
+      // Gunakan loginSchema - tidak enforce aturan password baru untuk akun lama
+      const validatedData = loginSchema.parse({ email, password });
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: validatedData.email,
@@ -149,7 +162,8 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const validatedData = authSchema.parse({ email, password });
+      // Gunakan signupSchema - enforce aturan password ketat untuk akun baru
+      const validatedData = signupSchema.parse({ email, password });
       
       const redirectUrl = `${window.location.origin}/admin`;
       
