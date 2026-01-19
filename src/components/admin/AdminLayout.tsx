@@ -127,8 +127,8 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
   const { open } = useSidebar();
 
   return (
-    <div className="h-svh flex w-full bg-background overflow-hidden">
-      <Sidebar collapsible="icon" className="border-r">
+    <div className="h-svh flex w-full bg-background">
+      <Sidebar collapsible="icon" className="border-r h-svh sticky top-0">
         <SidebarHeader className="border-b">
           {open && (
             <div className="flex items-center gap-2 px-2 py-4">
