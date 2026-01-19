@@ -105,6 +105,19 @@ const RedirectsHandler = () => {
   return null;
 };
 
+// Conditional FloatingWhatsApp (hide on admin/agent pages)
+const ConditionalFloatingWhatsApp = () => {
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
+  const isAgentPage = location.pathname.startsWith('/agent');
+  
+  if (isAdminPage || isAgentPage) {
+    return null;
+  }
+  
+  return <FloatingWhatsApp />;
+};
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -113,13 +126,13 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <FloatingWhatsApp />
             <BrowserRouter
               future={{
                 v7_startTransition: true,
                 v7_relativeSplatPath: true,
               }}
             >
+              <ConditionalFloatingWhatsApp />
               <TikTokPixelTracker />
               <MarketingPixelsLoader />
               <RedirectsHandler />
