@@ -100,7 +100,7 @@ const generateShortCode = (length: number = 6): string => {
 
 // Get base URL for short links
 const getShortLinkBaseUrl = (): string => {
-  return 'https://musafar.lovable.app/s/';
+  return 'https://musafartour.com/s/';
 };
 
 const URLShortener = () => {
