@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { 
   LogOut, LayoutDashboard, Home, Image, Target, MessageSquare, 
   Images, Package, Plane, Hotel, Calendar, FileText, HelpCircle,
-  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy
+  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2
 } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
 import {
@@ -103,6 +103,7 @@ const AdminLayout = () => {
         { icon: Settings, label: "Website Settings", path: "/admin/settings" },
         { icon: TrendingUp, label: "Marketing Settings", path: "/admin/settings/marketing" },
         { icon: MessageCircleMore, label: "Chat Rotation", path: "/admin/chat-rotation" },
+        { icon: Link2, label: "URL Shortener", path: "/admin/url-shortener" },
         { icon: Search, label: "SEO", path: "/admin/seo" },
         { icon: Users, label: "Team", path: "/admin/team" },
         { icon: UserCircle, label: "Profil", path: "/admin/profile" },
