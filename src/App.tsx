@@ -54,6 +54,8 @@ const SEO = lazy(() => import("./pages/admin/SEO"));
 const Profile = lazy(() => import("./pages/admin/Profile"));
 const Chat = lazy(() => import("./pages/Chat"));
 const ChatRotation = lazy(() => import("./pages/admin/ChatRotation"));
+const URLShortener = lazy(() => import("./pages/admin/URLShortener"));
+const ShortLinkRedirect = lazy(() => import("./pages/ShortLinkRedirect"));
 
 // Agent Portal
 const AgentLogin = lazy(() => import("./pages/agent/AgentLogin"));
@@ -154,6 +156,7 @@ const App = () => (
                   <Route path="/kontak" element={<Kontak />} />
                   <Route path="/jadwal-umroh" element={<JadwalUmroh />} />
                   <Route path="/chat" element={<Chat />} />
+                  <Route path="/s/:code" element={<ShortLinkRedirect />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/admin/setup" element={<AdminSetup />} />
                   
@@ -272,6 +275,7 @@ const App = () => (
                     <Route path="profile" element={<Profile />} />
                     <Route path="team" element={<Team />} />
                     <Route path="chat-rotation" element={<ChatRotation />} />
+                    <Route path="url-shortener" element={<URLShortener />} />
                     <Route path="agents" element={<AgentManagement />} />
                     <Route path="gamification" element={<Gamification />} />
                   </Route>
