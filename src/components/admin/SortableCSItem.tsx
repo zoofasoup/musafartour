@@ -63,6 +63,9 @@ const SortableCSItem = ({
         <div>
           <div className="flex items-center gap-2">
             <span className="font-medium">{cs.name}</span>
+            <Badge variant="outline" className="text-xs">
+              ×{cs.weight || 1}
+            </Badge>
             {!cs.is_active && (
               <Badge variant="secondary" className="text-xs">Nonaktif</Badge>
             )}
