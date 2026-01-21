@@ -1363,6 +1363,113 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_clicks: {
+        Row: {
+          clicked_at: string
+          cs_id: string | null
+          cs_name: string
+          id: string
+          ip_hash: string | null
+          message: string | null
+          referrer: string | null
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          clicked_at?: string
+          cs_id?: string | null
+          cs_name: string
+          id?: string
+          ip_hash?: string | null
+          message?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          clicked_at?: string
+          cs_id?: string | null
+          cs_name?: string
+          id?: string
+          ip_hash?: string | null
+          message?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_clicks_cs_id_fkey"
+            columns: ["cs_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_cs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_conversions: {
+        Row: {
+          click_id: string | null
+          converted_at: string
+          created_by: string | null
+          cs_id: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          id: string
+          notes: string | null
+          package_name: string | null
+        }
+        Insert: {
+          click_id?: string | null
+          converted_at?: string
+          created_by?: string | null
+          cs_id?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          id?: string
+          notes?: string | null
+          package_name?: string | null
+        }
+        Update: {
+          click_id?: string | null
+          converted_at?: string
+          created_by?: string | null
+          cs_id?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          id?: string
+          notes?: string | null
+          package_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversions_click_id_fkey"
+            columns: ["click_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_clicks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversions_cs_id_fkey"
+            columns: ["cs_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_cs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_cs: {
         Row: {
           created_at: string

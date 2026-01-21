@@ -59,6 +59,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import URLTemplateManager from '@/components/admin/URLTemplateManager';
+import CSAnalyticsDashboard from '@/components/admin/CSAnalyticsDashboard';
 import { id as localeId } from 'date-fns/locale';
 import { toast } from 'sonner';
 
@@ -710,6 +711,9 @@ const ChatRotation = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Analytics Dashboard */}
+      <CSAnalyticsDashboard />
 
       {/* URL Template Management */}
       <URLTemplateManager />
