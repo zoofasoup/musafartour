@@ -37,6 +37,8 @@ import {
   getCurrentRotationIndex,
   getCampaignStats,
   getSourceStats,
+  getTotalWeight,
+  buildWeightedPool,
   type CSNumber,
   type RedirectLog 
 } from '@/lib/whatsappRotation';
@@ -52,7 +54,8 @@ import {
   Plus, 
   Phone,
   TrendingUp,
-  Globe
+  Globe,
+  Scale
 } from 'lucide-react';
 import { format } from 'date-fns';
 import URLTemplateManager from '@/components/admin/URLTemplateManager';
@@ -71,7 +74,7 @@ const ChatRotation = () => {
   // Form state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCS, setEditingCS] = useState<CSNumber | null>(null);
-  const [formData, setFormData] = useState({ name: '', phone_number: '', is_active: true });
+  const [formData, setFormData] = useState({ name: '', phone_number: '', is_active: true, weight: 1 });
 
   // DnD sensors
   const sensors = useSensors(
@@ -151,13 +154,13 @@ const ChatRotation = () => {
 
   const openAddDialog = () => {
     setEditingCS(null);
-    setFormData({ name: '', phone_number: '', is_active: true });
+    setFormData({ name: '', phone_number: '', is_active: true, weight: 1 });
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (cs: CSNumber) => {
     setEditingCS(cs);
-    setFormData({ name: cs.name, phone_number: cs.phone_number, is_active: cs.is_active });
+    setFormData({ name: cs.name, phone_number: cs.phone_number, is_active: cs.is_active, weight: cs.weight || 1 });
     setIsDialogOpen(true);
   };
 
@@ -177,7 +180,8 @@ const ChatRotation = () => {
         .update({ 
           name: formData.name, 
           phone_number: cleanPhone,
-          is_active: formData.is_active 
+          is_active: formData.is_active,
+          weight: formData.weight
         })
         .eq('id', editingCS.id);
 
@@ -197,7 +201,8 @@ const ChatRotation = () => {
           name: formData.name, 
           phone_number: cleanPhone,
           is_active: formData.is_active,
-          display_order: maxOrder + 1
+          display_order: maxOrder + 1,
+          weight: formData.weight
         });
 
       if (error) {
@@ -244,7 +249,9 @@ const ChatRotation = () => {
 
   const activeCSNumbers = csNumbers.filter(c => c.is_active);
   const totalRedirects = Object.values(stats).reduce((a, b) => a + b, 0);
-  const nextCS = activeCSNumbers[currentIndex % activeCSNumbers.length];
+  const totalWeight = getTotalWeight(activeCSNumbers);
+  const weightedPool = buildWeightedPool(activeCSNumbers);
+  const nextCS = weightedPool.length > 0 ? weightedPool[currentIndex % weightedPool.length] : null;
 
   if (loading) {
     return (
@@ -305,6 +312,21 @@ const ChatRotation = () => {
                     Format: kode negara + nomor (contoh: 6281234567890)
                   </p>
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="weight">Weight (Rasio Distribusi)</Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    min={1}
+                    max={10}
+                    placeholder="1"
+                    value={formData.weight}
+                    onChange={(e) => setFormData({ ...formData, weight: Math.max(1, parseInt(e.target.value) || 1) })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Semakin tinggi weight, semakin banyak chat yang diterima. Contoh: weight 3 = dapat 3x lebih banyak dari weight 1
+                  </p>
+                </div>
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="active"
@@ -360,12 +382,12 @@ const ChatRotation = () => {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <RotateCcw className="w-5 h-5 text-blue-500" />
+              <div className="p-2 bg-purple-500/10 rounded-lg">
+                <Scale className="w-5 h-5 text-purple-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{nextCS?.name || '-'}</p>
-                <p className="text-sm text-muted-foreground">Next in Queue</p>
+                <p className="text-2xl font-bold">{totalWeight}</p>
+                <p className="text-sm text-muted-foreground">Total Weight Pool</p>
               </div>
             </div>
           </CardContent>
@@ -387,6 +409,54 @@ const ChatRotation = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Weight Distribution Preview */}
+      {activeCSNumbers.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Scale className="w-5 h-5" />
+              Preview Distribusi Weight
+            </CardTitle>
+            <CardDescription>
+              Persentase chat yang akan diterima berdasarkan weight masing-masing CS
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {activeCSNumbers.map((cs) => {
+                const weight = cs.weight || 1;
+                const percentage = totalWeight > 0 ? (weight / totalWeight) * 100 : 0;
+                
+                return (
+                  <div key={cs.id} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{cs.name}</span>
+                        <Badge variant="outline" className="text-xs">
+                          Weight: {weight}
+                        </Badge>
+                        {nextCS?.id === cs.id && (
+                          <Badge variant="default" className="text-xs">Next</Badge>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium">
+                        {percentage.toFixed(1)}% ({weight} dari {totalWeight})
+                      </span>
+                    </div>
+                    <div className="h-3 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-500"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* CS Numbers Management with Drag & Drop */}
       <Card>

@@ -1372,6 +1372,7 @@ export type Database = {
           name: string
           phone_number: string
           updated_at: string
+          weight: number
         }
         Insert: {
           created_at?: string
@@ -1381,6 +1382,7 @@ export type Database = {
           name: string
           phone_number: string
           updated_at?: string
+          weight?: number
         }
         Update: {
           created_at?: string
@@ -1390,6 +1392,7 @@ export type Database = {
           name?: string
           phone_number?: string
           updated_at?: string
+          weight?: number
         }
         Relationships: []
       }

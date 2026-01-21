@@ -9,6 +9,7 @@ export interface CSNumber {
   phone_number: string;
   display_order: number;
   is_active: boolean;
+  weight: number;
 }
 
 export interface UTMParams {
@@ -55,17 +56,38 @@ export const setRotationIndex = (index: number): void => {
   localStorage.setItem(ROTATION_KEY, index.toString());
 };
 
-// Get next CS in rotation and update state
+// Build weighted pool from CS numbers
+export const buildWeightedPool = (csNumbers: CSNumber[]): CSNumber[] => {
+  const pool: CSNumber[] = [];
+  csNumbers.forEach(cs => {
+    const weight = cs.weight || 1;
+    for (let i = 0; i < weight; i++) {
+      pool.push(cs);
+    }
+  });
+  return pool;
+};
+
+// Get total weight for percentage calculations
+export const getTotalWeight = (csNumbers: CSNumber[]): number => {
+  return csNumbers.reduce((sum, cs) => sum + (cs.weight || 1), 0);
+};
+
+// Get next CS in rotation using weighted distribution
 export const getNextCS = async (): Promise<CSNumber | null> => {
   const csNumbers = await fetchCSNumbers();
   if (csNumbers.length === 0) return null;
   
-  const currentIndex = getCurrentRotationIndex();
-  const safeIndex = currentIndex % csNumbers.length;
-  const cs = csNumbers[safeIndex];
+  // Build weighted pool
+  const weightedPool = buildWeightedPool(csNumbers);
+  if (weightedPool.length === 0) return null;
   
-  // Update to next index (round-robin)
-  const nextIndex = (safeIndex + 1) % csNumbers.length;
+  const currentIndex = getCurrentRotationIndex();
+  const safeIndex = currentIndex % weightedPool.length;
+  const cs = weightedPool[safeIndex];
+  
+  // Update to next index (weighted round-robin)
+  const nextIndex = (safeIndex + 1) % weightedPool.length;
   setRotationIndex(nextIndex);
   
   return cs;
