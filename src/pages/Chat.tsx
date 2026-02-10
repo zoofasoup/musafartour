@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { 
   getNextCS, 
   buildWhatsAppUrl, 
@@ -8,43 +7,7 @@ import {
   extractUTMParams,
   type CSNumber 
 } from '@/lib/whatsappRotation';
-
-// Hash IP for privacy
-const hashIP = async (ip: string): Promise<string> => {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(ip + 'musafar-salt');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
-};
-
-// Save click to database
-const saveClickToDatabase = async (
-  cs: CSNumber,
-  message: string | null,
-  utmParams: ReturnType<typeof extractUTMParams>
-) => {
-  try {
-    // Get simple IP hash (without making external calls)
-    const ipHash = await hashIP(Date.now().toString() + Math.random().toString());
-    
-    await supabase.from('whatsapp_clicks').insert({
-      cs_id: cs.id,
-      cs_name: cs.name,
-      message: message,
-      utm_source: utmParams.utm_source || null,
-      utm_medium: utmParams.utm_medium || null,
-      utm_campaign: utmParams.utm_campaign || null,
-      utm_term: utmParams.utm_term || null,
-      utm_content: utmParams.utm_content || null,
-      referrer: document.referrer || null,
-      user_agent: navigator.userAgent || null,
-      ip_hash: ipHash
-    });
-  } catch (error) {
-    console.error('Failed to save click:', error);
-  }
-};
+import { saveClickToDatabase } from '@/lib/chatRedirect';
 
 const Chat = () => {
   const [searchParams] = useSearchParams();
@@ -55,19 +18,15 @@ const Chat = () => {
     document.title = 'Hubungi Kami - Musafar Tour';
     
     const doRedirect = async () => {
-      // Get custom message from URL params
       const customMessage = searchParams.get('msg') || searchParams.get('message');
       const defaultMessage = 'Halo, saya tertarik dengan paket umroh Musafar Tour';
       const message = customMessage || defaultMessage;
 
-      // Extract UTM parameters for campaign tracking
       const utmParams = extractUTMParams(searchParams);
 
-      // Get next CS in rotation
       const cs = await getNextCS();
       
       if (!cs) {
-        // No CS numbers configured, show fallback
         setRedirecting(false);
         return;
       }
@@ -77,20 +36,14 @@ const Chat = () => {
       // Save to database (async, don't wait)
       saveClickToDatabase(cs, message, utmParams);
       
-      // Log the redirect with UTM tracking (localStorage for quick stats)
+      // Log the redirect with UTM tracking
       logRedirect(cs.id, cs.name, message, utmParams);
       
-      // Build WhatsApp URL
-      const whatsappUrl = buildWhatsAppUrl(cs.phone_number, message);
-      
       // Redirect immediately
-      window.location.href = whatsappUrl;
+      window.location.href = buildWhatsAppUrl(cs.phone_number, message);
     };
 
-    // Start redirect process
     const redirectTimer = setTimeout(doRedirect, 50);
-
-    // Fallback: If redirect doesn't work after 2s, show manual link
     const fallbackTimer = setTimeout(() => {
       setRedirecting(false);
     }, 2000);
@@ -108,7 +61,6 @@ const Chat = () => {
     const message = searchParams.get('msg') || 'Halo, saya tertarik dengan paket umroh Musafar Tour';
     const utmParams = extractUTMParams(searchParams);
     
-    // Save to database
     saveClickToDatabase(cs, message, utmParams);
     logRedirect(cs.id, cs.name, message, utmParams);
     
@@ -120,12 +72,9 @@ const Chat = () => {
       <div className="text-center text-white px-4">
         {redirecting ? (
           <>
-            {/* Spinner */}
             <div className="mb-6">
               <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
             </div>
-            
-            {/* Text */}
             <p className="text-xl font-medium animate-pulse">
               Menghubungkan...
             </p>
@@ -135,7 +84,6 @@ const Chat = () => {
           </>
         ) : (
           <>
-            {/* Fallback manual link */}
             <p className="text-xl font-medium mb-4">
               Tidak dapat mengalihkan otomatis
             </p>

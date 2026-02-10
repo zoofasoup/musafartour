@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -6,52 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Plane, Clock, Package } from "lucide-react";
-import { formatWhatsAppUrl } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { redirectToWhatsApp } from "@/lib/chatRedirect";
+import { usePublishedPackages } from "@/hooks/usePackages";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-
-interface PackageData {
-  id: string;
-  package_name: string;
-  departure_date: string;
-  duration_days: number;
-  flight: string;
-  flight_type: string;
-  package_price: {
-    quad: number;
-  };
-}
 
 const JadwalUmroh = () => {
   const [month, setMonth] = useState<string>("all");
   const [packageType, setPackageType] = useState<string>("all");
   const [airline, setAirline] = useState<string>("all");
   const [flightType, setFlightType] = useState<string>("all");
-  const [packages, setPackages] = useState<PackageData[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchPackages();
-  }, []);
-
-  const fetchPackages = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("packages")
-        .select("*")
-        .eq("status", "published")
-        .order("departure_date", { ascending: true });
-
-      if (error) throw error;
-      setPackages(data as any || []);
-    } catch (error) {
-      console.error("Error fetching packages:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: packages = [], isLoading: loading } = usePublishedPackages();
 
   const getCategoryFromPrice = (price: number) => {
     if (price < 25000000) return "budget";
@@ -219,8 +185,7 @@ const JadwalUmroh = () => {
                       className="bg-accent hover:bg-accent/90"
                       onClick={() => {
                         const message = `Halo Musafar Tour, saya ingin mendaftar untuk ${pkg.package_name} dengan keberangkatan ${format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId })}.`;
-                        const whatsappUrl = formatWhatsAppUrl("081917403797", message);
-                        window.open(whatsappUrl, "_blank");
+                        redirectToWhatsApp(message);
                       }}
                     >
                       Daftar Sekarang

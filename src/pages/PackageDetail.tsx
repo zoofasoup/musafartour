@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -27,57 +26,11 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { formatWhatsAppUrl, formatCurrency, formatPriceJuta } from "@/lib/utils";
+import { formatCurrency, formatPriceJuta } from "@/lib/utils";
+import { redirectToWhatsApp } from "@/lib/chatRedirect";
+import { usePackageBySlug } from "@/hooks/usePackages";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-
-interface PackageDetail {
-  id: string;
-  slug?: string;
-  package_name: string;
-  banner_image?: string;
-  gallery_images?: string[];
-  departure_date: string;
-  duration_days: number;
-  flight: string;
-  flight_type: string;
-  package_price: {
-    quad: number;
-    triple: number;
-    double: number;
-  };
-  five_star_package_price?: {
-    quad: number;
-    triple: number;
-    double: number;
-  };
-  makkah_hotel_name?: string;
-  makkah_hotel_star?: number;
-  makkah_distance?: string;
-  makkah_duration_walk?: string;
-  madinah_hotel_name?: string;
-  madinah_hotel_star?: number;
-  madinah_distance?: string;
-  madinah_duration_walk?: string;
-  five_star_makkah_hotel_name?: string;
-  five_star_makkah_hotel_star?: number;
-  five_star_makkah_distance?: string;
-  five_star_makkah_duration_walk?: string;
-  five_star_madinah_hotel_name?: string;
-  five_star_madinah_hotel_star?: number;
-  five_star_madinah_distance?: string;
-  five_star_madinah_duration_walk?: string;
-  best_seller_transport?: string;
-  five_star_transport?: string;
-  included_items?: string;
-  excluded_items?: string;
-  equipment_list?: string;
-  catalog_link?: string;
-  itinerary_link?: string;
-  is_sold_out?: boolean;
-  sold_out_date?: string;
-  waitlist_count?: number;
-}
 
 const StarRating = ({ rating }: { rating: number }) => {
   return (
@@ -94,54 +47,17 @@ const StarRating = ({ rating }: { rating: number }) => {
   );
 };
 
-const PackageDetail = () => {
+const PackageDetailPage = () => {
   const { id: slug } = useParams();
   const navigate = useNavigate();
-  const [packageData, setPackageData] = useState<PackageDetail | null>(null);
-  const [loading, setLoading] = useState(true);
   const [selectedTier, setSelectedTier] = useState<"best-seller" | "five-star">("best-seller");
 
-  useEffect(() => {
-    if (slug) {
-      fetchPackageDetail();
-    }
-  }, [slug]);
-
-  const fetchPackageDetail = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("packages")
-      .select("*")
-      .eq("slug", slug)
-      .eq("status", "published")
-      .maybeSingle();
-
-    if (error) {
-      console.error("Error fetching package:", error);
-    } else if (data) {
-      // Type cast package_price to expected format
-      setPackageData({
-        ...data,
-        package_price: data.package_price as any as {
-          quad: number;
-          triple: number;
-          double: number;
-        },
-        five_star_package_price: data.five_star_package_price as any as {
-          quad: number;
-          triple: number;
-          double: number;
-        } | undefined
-      });
-    }
-    setLoading(false);
-  };
+  const { data: packageData, isLoading: loading } = usePackageBySlug(slug);
 
   const handleBooking = () => {
     if (!packageData) return;
     const message = `Halo Musafar Tour, saya tertarik dengan paket ${packageData.package_name}. Mohon info lebih lanjut untuk pendaftaran.`;
-    const whatsappUrl = formatWhatsAppUrl("081917403797", message);
-    window.open(whatsappUrl, "_blank");
+    redirectToWhatsApp(message);
   };
 
   const formatPrice = (price: number) => formatCurrency(price);
@@ -151,7 +67,7 @@ const PackageDetail = () => {
     return millions.toFixed(1).replace(".", ",");
   };
 
-  const parseListItems = (items?: string) => {
+  const parseListItems = (items?: string | null) => {
     if (!items) return [];
     return items.split("\n").filter(item => item.trim());
   };
@@ -668,4 +584,4 @@ const PackageDetail = () => {
   );
 };
 
-export default PackageDetail;
+export default PackageDetailPage;
