@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -8,47 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Package, Calendar, Plane, Clock, Grid3X3, List } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { formatWhatsAppUrl, formatPriceJuta } from "@/lib/utils";
+import { formatPriceJuta } from "@/lib/utils";
+import { redirectToWhatsApp } from "@/lib/chatRedirect";
+import { usePublishedPackages } from "@/hooks/usePackages";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-
-interface PackageData {
-  id: string;
-  slug?: string;
-  package_name: string;
-  departure_date: string;
-  duration_days: number;
-  flight: string;
-  flight_type: string;
-  banner_image: string | null;
-  package_price: {
-    quad: number;
-    triple: number;
-    double: number;
-  };
-  five_star_package_price?: {
-    quad: number;
-    triple: number;
-    double: number;
-  };
-  makkah_hotel_name: string | null;
-  makkah_hotel_star: number | null;
-  madinah_hotel_name: string | null;
-  madinah_hotel_star: number | null;
-  five_star_makkah_hotel_name?: string | null;
-  five_star_makkah_hotel_star?: number | null;
-  five_star_madinah_hotel_name?: string | null;
-  five_star_madinah_hotel_star?: number | null;
-  best_seller_transport?: string | null;
-  five_star_transport?: string | null;
-}
 
 const PaketUmroh = () => {
   const [viewMode, setViewMode] = useState<"card" | "schedule">("card");
@@ -57,30 +27,8 @@ const PaketUmroh = () => {
   const [month, setMonth] = useState<string>("all");
   const [flightType, setFlightType] = useState<string>("all");
   const [duration, setDuration] = useState<string>("all");
-  const [packages, setPackages] = useState<PackageData[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchPackages();
-  }, []);
-
-  const fetchPackages = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("packages")
-        .select("*")
-        .eq("status", "published")
-        .order("departure_date", { ascending: true });
-
-      if (error) throw error;
-      setPackages(data as any || []);
-    } catch (error) {
-      console.error("Error fetching packages:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: packages = [], isLoading: loading } = usePublishedPackages();
 
   const formatPrice = (price: number) => formatPriceJuta(price);
 
@@ -126,7 +74,6 @@ const PaketUmroh = () => {
     hotelMadinahRating: pkg.madinah_hotel_star || undefined,
     category: getCategoryFromPrice(pkg.package_price.quad),
     seatAvailable: true,
-    // Five-star tier data
     fiveStarPrice: pkg.five_star_package_price?.quad ? formatPrice(pkg.five_star_package_price.quad) : undefined,
     fiveStarHotelMakkah: pkg.five_star_makkah_hotel_name || undefined,
     fiveStarHotelMakkahRating: pkg.five_star_makkah_hotel_star || undefined,
@@ -360,8 +307,7 @@ const PaketUmroh = () => {
                       className="bg-[#25D366] hover:bg-[#22c55e] text-white w-full sm:w-auto"
                       onClick={() => {
                         const message = `Halo Musafar Tour, saya ingin mendaftar untuk ${pkg.package_name} dengan keberangkatan ${format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId })}.`;
-                        const whatsappUrl = formatWhatsAppUrl("081917403797", message);
-                        window.open(whatsappUrl, "_blank");
+                        redirectToWhatsApp(message);
                       }}
                     >
                       Daftar Sekarang

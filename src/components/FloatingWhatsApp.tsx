@@ -1,12 +1,9 @@
 import { MessageCircle } from "lucide-react";
-import { formatWhatsAppUrl } from "@/lib/utils";
 import { useState } from "react";
+import { redirectToWhatsApp } from "@/lib/chatRedirect";
 
 const FloatingWhatsApp = () => {
   const [isHovered, setIsHovered] = useState(false);
-  
-  const phoneNumber = "6281917403797";
-  const message = "Halo Musafar Tour, saya tertarik dengan paket umroh Anda. Saya tahu dari website.";
   
   const handleClick = () => {
     // Track the click event
@@ -17,7 +14,7 @@ const FloatingWhatsApp = () => {
       });
     }
     
-    window.open(formatWhatsAppUrl(phoneNumber, message), '_blank');
+    redirectToWhatsApp("Halo Musafar Tour, saya tertarik dengan paket umroh Anda. Saya tahu dari website.");
   };
 
   return (
