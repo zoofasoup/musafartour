@@ -102,9 +102,23 @@ function parseDate(val: unknown): string {
     }
   }
   const str = String(val).trim();
+  // Try YYYY-MM-DD format first (avoid UTC timezone shift)
+  const isoMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}-${String(isoMatch[2]).padStart(2, "0")}-${String(isoMatch[3]).padStart(2, "0")}`;
+  }
+  // Try DD/MM/YYYY or DD-MM-YYYY
+  const dmyMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  if (dmyMatch) {
+    return `${dmyMatch[3]}-${String(dmyMatch[2]).padStart(2, "0")}-${String(dmyMatch[1]).padStart(2, "0")}`;
+  }
+  // Fallback: use local date components to avoid UTC -1 day issue
   const d = new Date(str);
   if (!isNaN(d.getTime())) {
-    return d.toISOString().split("T")[0];
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   }
   return "";
 }
@@ -172,23 +186,43 @@ function parseExcelData(worksheet: XLSX.WorkSheet): ParsedPackage[] {
   });
 }
 
-function buildUpsertPayload(row: ParsedPackage) {
-  const priceField = (tier: string) => {
-    switch (tier) {
-      case "hemat": return "hemat_package_price";
-      case "five-star": return "five_star_package_price";
-      case "pelataran-hemat": return "pelataran_package_price";
-      default: return "package_price";
-    }
-  };
+interface HotelRecord {
+  name: string;
+  star_rating: number;
+  distance: string;
+  walking_duration: string;
+  location: string;
+}
 
-  const hotelPrefix = (tier: string) => {
-    switch (tier) {
-      case "hemat": return "hemat_";
-      case "five-star": return "five_star_";
-      case "pelataran-hemat": return "pelataran_";
-      default: return "";
-    }
+function findHotel(hotels: HotelRecord[], name: string, location: string): HotelRecord | undefined {
+  if (!name) return undefined;
+  const normalized = name.toLowerCase().trim();
+  return hotels.find(
+    (h) => h.name.toLowerCase().trim() === normalized && h.location === location
+  ) || hotels.find(
+    (h) => h.name.toLowerCase().trim().includes(normalized) || normalized.includes(h.name.toLowerCase().trim())
+  );
+}
+
+function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[]) {
+  const makkahHotel = findHotel(hotels, row.hotel_makkah, "makkah");
+  const madinahHotel = findHotel(hotels, row.hotel_madinah, "madinah");
+
+  const priceJson = { quad: row.price_quad, triple: row.price_triple, double: row.price_double };
+
+  const hotelFields = (prefix: string, makkah: HotelRecord | undefined, madinah: HotelRecord | undefined) => {
+    const makkahPrefix = prefix ? `${prefix}_makkah` : "makkah";
+    const madinahPrefix = prefix ? `${prefix}_madinah` : "madinah";
+    return {
+      [`${makkahPrefix}_hotel_name`]: row.hotel_makkah || null,
+      [`${makkahPrefix}_hotel_star`]: makkah?.star_rating || null,
+      [`${makkahPrefix}_distance`]: makkah?.distance || null,
+      [`${makkahPrefix}_duration_walk`]: makkah?.walking_duration || null,
+      [`${madinahPrefix}_hotel_name`]: row.hotel_madinah || null,
+      [`${madinahPrefix}_hotel_star`]: madinah?.star_rating || null,
+      [`${madinahPrefix}_distance`]: madinah?.distance || null,
+      [`${madinahPrefix}_duration_walk`]: madinah?.walking_duration || null,
+    };
   };
 
   const transportField = (tier: string) => {
@@ -200,8 +234,23 @@ function buildUpsertPayload(row: ParsedPackage) {
     }
   };
 
-  const prefix = hotelPrefix(row.tier);
-  const priceJson = { quad: row.price_quad, triple: row.price_triple, double: row.price_double };
+  const priceField = (tier: string) => {
+    switch (tier) {
+      case "hemat": return "hemat_package_price";
+      case "five-star": return "five_star_package_price";
+      case "pelataran-hemat": return "pelataran_package_price";
+      default: return "package_price";
+    }
+  };
+
+  const hotelPrefix = (tier: string) => {
+    switch (tier) {
+      case "hemat": return "hemat";
+      case "five-star": return "five_star";
+      case "pelataran-hemat": return "pelataran";
+      default: return "";
+    }
+  };
 
   const payload: Record<string, unknown> = {
     package_name: row.package_name,
@@ -213,12 +262,11 @@ function buildUpsertPayload(row: ParsedPackage) {
     available_tiers: [row.tier],
     slots_total: row.slots_total || null,
     status: "draft",
-    // Default package_price for the "nyaman" tier (required non-null field)
+    // Always set package_price - use actual prices for nyaman, default for others
     package_price: row.tier === "nyaman" ? priceJson : { quad: 0, triple: 0, double: 0 },
     [priceField(row.tier)]: priceJson,
-    [`${prefix}makkah_hotel_name`]: row.hotel_makkah || null,
-    [`${prefix}madinah_hotel_name`]: row.hotel_madinah || null,
     [transportField(row.tier)]: row.start_airport || null,
+    ...hotelFields(hotelPrefix(row.tier), makkahHotel, madinahHotel),
   };
 
   return payload;
@@ -328,12 +376,16 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
     setStep("importing");
     setImportProgress({ done: 0, total: validRows.length, errors: 0 });
 
+    // Fetch hotels from DB for auto-fill
+    const { data: hotelsData } = await supabase.from("hotels").select("name, star_rating, distance, walking_duration, location");
+    const hotels: HotelRecord[] = hotelsData || [];
+
     let successCount = 0;
     let errorCount = 0;
 
     for (const row of validRows) {
       try {
-        const payload = buildUpsertPayload(row);
+        const payload = buildUpsertPayload(row, hotels);
         const { error } = await supabase
           .from("packages")
           .upsert(payload as any, { onConflict: "slug" });
