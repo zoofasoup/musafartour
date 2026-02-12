@@ -33,6 +33,18 @@ const packageSchema = z.object({
   flight_type: z.string().min(1, "Tipe penerbangan wajib diisi"),
   available_tiers: z.array(z.enum(["hemat", "nyaman", "five-star", "pelataran-hemat"])).min(1, "Pilih minimal satu tier"),
   
+  // New fields
+  timeframe: z.string().optional(),
+  start_airport: z.string().optional(),
+  route: z.string().optional(),
+  itinerary: z.string().optional(),
+  nights_makkah: z.number().min(0).optional(),
+  nights_madinah: z.number().min(0).optional(),
+  hotel_extra: z.string().optional(),
+  selling_points: z.string().optional(),
+  max_discount: z.number().min(0).optional(),
+  slots_total: z.number().min(0).optional(),
+
   // Hemat Tier
   hemat_makkah_hotel_name: z.string().optional(),
   hemat_makkah_hotel_star: z.number().optional(),
@@ -89,14 +101,9 @@ const packageSchema = z.object({
   pelataran_price_triple: z.number().min(0, "Harga tidak valid"),
   pelataran_price_double: z.number().min(0, "Harga tidak valid"),
   
-  included_items: z.array(z.string()).optional(),
   optional_items: z.array(z.string()).optional(),
-  excluded_items_list: z.array(z.string()).optional(),
-  equipment_type: z.enum(["lengkap", "minimalis"]),
-  
-  custom_standard_items: z.array(z.string()).optional(),
   custom_optional_items: z.array(z.string()).optional(),
-  custom_excluded_items: z.array(z.string()).optional(),
+  equipment_type: z.enum(["lengkap", "minimalis"]),
   
   catalog_link: z.string().optional(),
   itinerary_link: z.string().optional(),
@@ -107,6 +114,9 @@ const packageSchema = z.object({
 });
 
 type PackageFormValues = z.infer<typeof packageSchema>;
+
+// Shake animation CSS class name
+const SHAKE_CLASS = "animate-shake";
 
 // Reusable image drop zone component
 const ImageDropZone = ({
@@ -215,92 +225,24 @@ const ImageDropZone = ({
   );
 };
 
-// Editable items list component
-const EditableItemsList = ({
-  items,
-  customItems,
-  onCustomItemsChange,
-  label,
-  type = "checkbox",
-  checkedItems,
-  onCheckedChange,
-}: {
-  items: string[];
-  customItems: string[];
-  onCustomItemsChange: (items: string[]) => void;
-  label: string;
-  type?: "checkbox" | "fixed";
-  checkedItems?: string[];
-  onCheckedChange?: (item: string, checked: boolean) => void;
-}) => {
-  const [newItem, setNewItem] = useState("");
-
-  const addItem = () => {
-    const trimmed = newItem.trim();
-    if (trimmed && !items.includes(trimmed) && !customItems.includes(trimmed)) {
-      onCustomItemsChange([...customItems, trimmed]);
-      setNewItem("");
-    }
-  };
-
-  const removeCustomItem = (index: number) => {
-    const item = customItems[index];
-    onCustomItemsChange(customItems.filter((_, i) => i !== index));
-    // If it's a checkbox type, also uncheck it
-    if (type === "checkbox" && onCheckedChange) {
-      onCheckedChange(item, false);
-    }
-  };
-
-  const allItems = [...items, ...customItems];
-
-  return (
-    <div className="space-y-3">
-      <FormLabel className="text-base font-semibold">{label}</FormLabel>
-      <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-lg", type === "fixed" ? "bg-muted/50" : "border")}>
-        {allItems.map((item, idx) => {
-          const isCustom = idx >= items.length;
-          return (
-            <div key={item} className="flex items-center gap-2 group">
-              {type === "checkbox" ? (
-                <>
-                  <Checkbox
-                    checked={checkedItems?.includes(item)}
-                    onCheckedChange={(checked) => onCheckedChange?.(item, !!checked)}
-                  />
-                  <span className="text-sm flex-1">{item}</span>
-                </>
-              ) : (
-                <>
-                  <X className="w-4 h-4 text-destructive flex-shrink-0" />
-                  <span className="text-sm flex-1">{item}</span>
-                </>
-              )}
-              {isCustom && (
-                <Button type="button" variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeCustomItem(idx - items.length)}>
-                  <X className="w-3 h-3 text-destructive" />
-                </Button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      <div className="flex gap-2">
-        <Input
-          value={newItem}
-          onChange={(e) => setNewItem(e.target.value)}
-          placeholder="Tambah item baru..."
-          className="flex-1"
-          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addItem(); } }}
-        />
-        <Button type="button" variant="outline" size="sm" onClick={addItem} disabled={!newItem.trim()}>
-          <Plus className="w-4 h-4 mr-1" />
-          Tambah
-        </Button>
-      </div>
-    </div>
-  );
+// Equipment options
+const equipmentOptions = {
+  lengkap: [
+    "Ransel", "Koper 24 Inch", "Buku Panduan Umroh & Notebook", "Syal",
+    "Kain Ihram", "Baju Koko", "Gamis", "Mukena", "Kaos Ikhwan", "Strap Id Card", "Tumbler"
+  ],
+  minimalis: [
+    "Koper 24 Inch", "Buku Panduan Umroh & Notebook", "Kain Ihram", "Mukena", "Baju Koko", "Gamis"
+  ]
 };
+
+interface PackageItemRecord {
+  id: string;
+  name: string;
+  type: "include" | "exclude";
+  is_essential: boolean;
+  display_order: number;
+}
 
 const PackageForm = () => {
   const navigate = useNavigate();
@@ -315,63 +257,15 @@ const PackageForm = () => {
   const [makkahHotels, setMakkahHotels] = useState<any[]>([]);
   const [madinahHotels, setMadinahHotels] = useState<any[]>([]);
   
+  // DB-driven items
+  const [dbStandardItems, setDbStandardItems] = useState<PackageItemRecord[]>([]);
+  const [dbOptionalItems, setDbOptionalItems] = useState<PackageItemRecord[]>([]);
+  const [dbExcludeItems, setDbExcludeItems] = useState<PackageItemRecord[]>([]);
+  
   // Hotel modal states
   const [hotelModalOpen, setHotelModalOpen] = useState(false);
   const [hotelModalLocation, setHotelModalLocation] = useState<"makkah" | "madinah">("madinah");
   const [hotelModalTier, setHotelModalTier] = useState<"best_seller" | "five_star">("best_seller");
-
-  // Standard items yang selalu termasuk
-  const standardIncludedItems = [
-    "Tiket dan Visa",
-    "Hotel Fullboard",
-    "Makan 3x Sehari",
-    "Handling",
-    "Manasik",
-    "City Tour",
-    "Transportasi",
-    "Tour Leader",
-    "Muthowwif",
-    "Perlengkapan",
-    "Transmitter",
-    "Al Baik"
-  ];
-
-  // Optional items yang bisa dipilih
-  const optionalIncludedItems = [
-    "Free Hotel Transit",
-    "Al Romansiah",
-    "Museum Al Wahyu",
-    "Museum As Safiyyah",
-    "Tour Badar",
-    "Tour Thaif",
-    "Tour Al Ula",
-    "City Tour Singapore",
-    "City Tour Doha",
-    "Kereta Cepat",
-    "Transport GMC",
-    "Al Ula Bus VIP 12"
-  ];
-
-  // Items yang tidak termasuk
-  const defaultExcludedItems = [
-    "Pembuatan Paspor",
-    "Vaksin Meningitis",
-    "Tiket PP Daerah",
-    "Biaya Kelebihan Bagasi",
-    "Pengeluaran Pribadi",
-    "Biaya Kirim Perlengkapan"
-  ];
-
-  // Equipment options
-  const equipmentOptions = {
-    lengkap: [
-      "Ransel", "Koper 24 Inch", "Buku Panduan Umroh & Notebook", "Syal",
-      "Kain Ihram", "Baju Koko", "Gamis", "Mukena", "Kaos Ikhwan", "Strap Id Card", "Tumbler"
-    ],
-    minimalis: [
-      "Koper 24 Inch", "Buku Panduan Umroh & Notebook", "Kain Ihram", "Mukena", "Baju Koko", "Gamis"
-    ]
-  };
 
   const form = useForm<PackageFormValues>({
     resolver: zodResolver(packageSchema),
@@ -382,6 +276,16 @@ const PackageForm = () => {
       flight: "",
       flight_type: "Direct",
       available_tiers: ["nyaman"],
+      timeframe: "",
+      start_airport: "",
+      route: "",
+      itinerary: "",
+      nights_makkah: 0,
+      nights_madinah: 0,
+      hotel_extra: "",
+      selling_points: "",
+      max_discount: 0,
+      slots_total: 40,
       // Hemat
       hemat_price_quad: 0, hemat_price_triple: 0, hemat_price_double: 0,
       hemat_transport: "Bus Eksklusif",
@@ -395,13 +299,9 @@ const PackageForm = () => {
       pelataran_price_quad: 0, pelataran_price_triple: 0, pelataran_price_double: 0,
       pelataran_transport: "Bus Eksklusif",
       
-      included_items: standardIncludedItems,
       optional_items: [],
-      excluded_items_list: [],
-      equipment_type: "lengkap" as const,
-      custom_standard_items: [],
       custom_optional_items: [],
-      custom_excluded_items: [],
+      equipment_type: "lengkap" as const,
       status: "draft",
       is_sold_out: false,
       waitlist_count: 0,
@@ -410,10 +310,24 @@ const PackageForm = () => {
 
   useEffect(() => {
     fetchHotels();
+    fetchPackageItems();
     if (id) {
       fetchPackage();
     }
   }, [id]);
+
+  const fetchPackageItems = async () => {
+    const { data, error } = await supabase
+      .from("package_items")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order");
+    if (error) { console.error(error); return; }
+    const items = (data || []) as PackageItemRecord[];
+    setDbStandardItems(items.filter(i => i.type === "include" && i.is_essential));
+    setDbOptionalItems(items.filter(i => i.type === "include" && !i.is_essential));
+    setDbExcludeItems(items.filter(i => i.type === "exclude"));
+  };
 
   const fetchHotels = async () => {
     try {
@@ -471,7 +385,6 @@ const PackageForm = () => {
     } else {
       setMadinahHotels(prev => [...prev, hotel].sort((a, b) => a.name.localeCompare(b.name)));
     }
-    // Auto-select the newly added hotel isn't needed here since modal closes
   };
 
   const fetchPackage = async () => {
@@ -490,27 +403,18 @@ const PackageForm = () => {
 
         const priceData = data.package_price as any;
         const fiveStarPriceData = data.five_star_package_price as any;
+        const d = data as any;
         
-        // Parse included items to separate standard vs optional
+        // Parse optional items from included_items string
         let optionalItems: string[] = [];
-        let customStandard: string[] = [];
         let customOptional: string[] = [];
         if (typeof data.included_items === 'string') {
-          const items = data.included_items.split(",").map((item: string) => item.trim());
-          optionalItems = items.filter((item: string) => 
-            !standardIncludedItems.includes(item) && optionalIncludedItems.includes(item)
-          );
-          // Items that are not in either default list are custom
-          const allDefaults = [...standardIncludedItems, ...optionalIncludedItems];
-          const unknownItems = items.filter((item: string) => !allDefaults.includes(item) && item);
-          customOptional = unknownItems;
-        }
-
-        // Parse excluded items
-        let customExcluded: string[] = [];
-        if (typeof data.excluded_items === 'string') {
-          const items = data.excluded_items.split(",").map((item: string) => item.trim());
-          customExcluded = items.filter((item: string) => !defaultExcludedItems.includes(item) && item);
+          const items = data.included_items.split(",").map((item: string) => item.trim()).filter(Boolean);
+          // We'll match against DB items once they load
+          optionalItems = items.filter((item: string) => {
+            const isStandard = dbStandardItems.some(s => s.name === item);
+            return !isStandard;
+          });
         }
 
         form.reset({
@@ -521,19 +425,30 @@ const PackageForm = () => {
           flight_type: data.flight_type,
           available_tiers: (data.available_tiers as any[]) || ["nyaman"],
           
+          timeframe: d.timeframe || "",
+          start_airport: d.start_airport || "",
+          route: d.route || "",
+          itinerary: d.itinerary || "",
+          nights_makkah: d.nights_makkah || 0,
+          nights_madinah: d.nights_madinah || 0,
+          hotel_extra: d.hotel_extra || "",
+          selling_points: d.selling_points || "",
+          max_discount: d.max_discount || 0,
+          slots_total: data.slots_total || 40,
+
           // Hemat
-          hemat_makkah_hotel_name: (data as any).hemat_makkah_hotel_name || "",
-          hemat_makkah_hotel_star: (data as any).hemat_makkah_hotel_star || 0,
-          hemat_makkah_distance: (data as any).hemat_makkah_distance || "",
-          hemat_makkah_duration_walk: (data as any).hemat_makkah_duration_walk || "",
-          hemat_madinah_hotel_name: (data as any).hemat_madinah_hotel_name || "",
-          hemat_madinah_hotel_star: (data as any).hemat_madinah_hotel_star || 0,
-          hemat_madinah_distance: (data as any).hemat_madinah_distance || "",
-          hemat_madinah_duration_walk: (data as any).hemat_madinah_duration_walk || "",
-          hemat_transport: (data as any).hemat_transport || "Bus Eksklusif",
-          hemat_price_quad: ((data as any).hemat_package_price as any)?.quad || 0,
-          hemat_price_triple: ((data as any).hemat_package_price as any)?.triple || 0,
-          hemat_price_double: ((data as any).hemat_package_price as any)?.double || 0,
+          hemat_makkah_hotel_name: d.hemat_makkah_hotel_name || "",
+          hemat_makkah_hotel_star: d.hemat_makkah_hotel_star || 0,
+          hemat_makkah_distance: d.hemat_makkah_distance || "",
+          hemat_makkah_duration_walk: d.hemat_makkah_duration_walk || "",
+          hemat_madinah_hotel_name: d.hemat_madinah_hotel_name || "",
+          hemat_madinah_hotel_star: d.hemat_madinah_hotel_star || 0,
+          hemat_madinah_distance: d.hemat_madinah_distance || "",
+          hemat_madinah_duration_walk: d.hemat_madinah_duration_walk || "",
+          hemat_transport: d.hemat_transport || "Bus Eksklusif",
+          hemat_price_quad: (d.hemat_package_price as any)?.quad || 0,
+          hemat_price_triple: (d.hemat_package_price as any)?.triple || 0,
+          hemat_price_double: (d.hemat_package_price as any)?.double || 0,
 
           // Nyaman
           makkah_hotel_name: data.makkah_hotel_name || "",
@@ -564,27 +479,22 @@ const PackageForm = () => {
           five_star_transport: data.five_star_transport || "Kereta Cepat",
 
           // Pelataran Hemat
-          pelataran_makkah_hotel_name: (data as any).pelataran_makkah_hotel_name || "",
-          pelataran_makkah_hotel_star: (data as any).pelataran_makkah_hotel_star || 0,
-          pelataran_makkah_distance: (data as any).pelataran_makkah_distance || "",
-          pelataran_makkah_duration_walk: (data as any).pelataran_makkah_duration_walk || "",
-          pelataran_madinah_hotel_name: (data as any).pelataran_madinah_hotel_name || "",
-          pelataran_madinah_hotel_star: (data as any).pelataran_madinah_hotel_star || 0,
-          pelataran_madinah_distance: (data as any).pelataran_madinah_distance || "",
-          pelataran_madinah_duration_walk: (data as any).pelataran_madinah_duration_walk || "",
-          pelataran_transport: (data as any).pelataran_transport || "Bus Eksklusif",
-          pelataran_price_quad: ((data as any).pelataran_package_price as any)?.quad || 0,
-          pelataran_price_triple: ((data as any).pelataran_package_price as any)?.triple || 0,
-          pelataran_price_double: ((data as any).pelataran_package_price as any)?.double || 0,
+          pelataran_makkah_hotel_name: d.pelataran_makkah_hotel_name || "",
+          pelataran_makkah_hotel_star: d.pelataran_makkah_hotel_star || 0,
+          pelataran_makkah_distance: d.pelataran_makkah_distance || "",
+          pelataran_makkah_duration_walk: d.pelataran_makkah_duration_walk || "",
+          pelataran_madinah_hotel_name: d.pelataran_madinah_hotel_name || "",
+          pelataran_madinah_hotel_star: d.pelataran_madinah_hotel_star || 0,
+          pelataran_madinah_distance: d.pelataran_madinah_distance || "",
+          pelataran_madinah_duration_walk: d.pelataran_madinah_duration_walk || "",
+          pelataran_transport: d.pelataran_transport || "Bus Eksklusif",
+          pelataran_price_quad: (d.pelataran_package_price as any)?.quad || 0,
+          pelataran_price_triple: (d.pelataran_package_price as any)?.triple || 0,
+          pelataran_price_double: (d.pelataran_package_price as any)?.double || 0,
           
-          included_items: standardIncludedItems,
           optional_items: optionalItems,
-          excluded_items_list: [],
-          equipment_type: (data.equipment_list?.includes("Ransel") ? "lengkap" : "minimalis") as "lengkap" | "minimalis",
-          
-          custom_standard_items: customStandard,
           custom_optional_items: customOptional,
-          custom_excluded_items: customExcluded,
+          equipment_type: (data.equipment_list?.includes("Ransel") ? "lengkap" : "minimalis") as "lengkap" | "minimalis",
           
           catalog_link: data.catalog_link || "",
           itinerary_link: data.itinerary_link || "",
@@ -682,6 +592,22 @@ const PackageForm = () => {
     return [...existingUrls, ...newUrls];
   };
 
+  // Shake + scroll to first error
+  const handleValidationError = () => {
+    // Find first error element
+    const errorEl = document.querySelector('[data-field-error="true"]') || document.querySelector('.text-destructive');
+    if (errorEl) {
+      errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Add shake to parent card
+      const card = errorEl.closest('[data-form-section]');
+      if (card) {
+        card.classList.add(SHAKE_CLASS);
+        setTimeout(() => card.classList.remove(SHAKE_CLASS), 600);
+      }
+    }
+    toast.error("Mohon lengkapi semua field yang wajib diisi");
+  };
+
   const onSubmit = async (values: PackageFormValues) => {
     setLoading(true);
     setUploadingImages(true);
@@ -721,19 +647,15 @@ const PackageForm = () => {
         }
       }
 
-      // Combine all included items
+      // Combine all included items from DB
       const allIncluded = [
-        ...standardIncludedItems,
-        ...(values.custom_standard_items || []),
+        ...dbStandardItems.map(i => i.name),
         ...(values.optional_items || []),
         ...(values.custom_optional_items || []),
       ];
 
-      // Combine all excluded items
-      const allExcluded = [
-        ...defaultExcludedItems,
-        ...(values.custom_excluded_items || []),
-      ];
+      // All excluded items from DB
+      const allExcluded = dbExcludeItems.map(i => i.name);
 
       const packageData: any = {
         package_name: values.package_name,
@@ -744,6 +666,18 @@ const PackageForm = () => {
         flight_type: values.flight_type,
         available_tiers: values.available_tiers,
         
+        // New fields
+        timeframe: values.timeframe || null,
+        start_airport: values.start_airport || null,
+        route: values.route || null,
+        itinerary: values.itinerary || null,
+        nights_makkah: values.nights_makkah || null,
+        nights_madinah: values.nights_madinah || null,
+        hotel_extra: values.hotel_extra || null,
+        selling_points: values.selling_points || null,
+        max_discount: values.max_discount || 0,
+        slots_total: values.slots_total || null,
+
         // Hemat
         hemat_makkah_hotel_name: values.hemat_makkah_hotel_name,
         hemat_makkah_hotel_star: values.hemat_makkah_hotel_star,
@@ -870,7 +804,7 @@ const PackageForm = () => {
         </Card>
 
         {/* 1. Akomodasi Makkah */}
-        <Card>
+        <Card data-form-section>
           <CardHeader><CardTitle>Akomodasi Makkah - {tierLabel}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -921,7 +855,7 @@ const PackageForm = () => {
         </Card>
 
         {/* 2. Akomodasi Madinah */}
-        <Card>
+        <Card data-form-section>
           <CardHeader><CardTitle>Akomodasi Madinah - {tierLabel}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -972,7 +906,7 @@ const PackageForm = () => {
         </Card>
 
         {/* 3. Transportasi */}
-        <Card>
+        <Card data-form-section>
           <CardHeader><CardTitle>Transportasi - {tierLabel}</CardTitle></CardHeader>
           <CardContent>
             <FormField control={form.control} name={transportFormField} render={({ field }) => (
@@ -992,7 +926,7 @@ const PackageForm = () => {
         </Card>
 
         {/* 4. Harga */}
-        <Card>
+        <Card data-form-section>
           <CardHeader><CardTitle>Harga - {tierLabel}</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1031,17 +965,28 @@ const PackageForm = () => {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit, handleValidationError)} className="space-y-6">
           {/* Package Info */}
-          <Card>
+          <Card data-form-section>
             <CardHeader>
               <CardTitle>Informasi Paket</CardTitle>
               <CardDescription>Detail dasar paket umroh</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField control={form.control} name="package_name" render={({ field }) => (
-                <FormItem><FormLabel>Nama Paket</FormLabel><FormControl><Input {...field} placeholder="Umroh 10 Hari Reguler" /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Nama Paket *</FormLabel><FormControl><Input {...field} placeholder="Umroh 10 Hari Reguler" /></FormControl><FormMessage /></FormItem>
               )} />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField control={form.control} name="timeframe" render={({ field }) => (
+                  <FormItem><FormLabel>Timeframe</FormLabel><FormControl><Input {...field} placeholder="Bulan Juli" /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="slots_total" render={({ field }) => (
+                  <FormItem><FormLabel>Seat (Kuota)</FormLabel><FormControl>
+                    <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="40" />
+                  </FormControl><FormMessage /></FormItem>
+                )} />
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Pretty Calendar Date Picker */}
@@ -1050,7 +995,7 @@ const PackageForm = () => {
                   name="departure_date"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Tanggal Keberangkatan</FormLabel>
+                      <FormLabel>Tanggal Keberangkatan *</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -1089,16 +1034,19 @@ const PackageForm = () => {
                 />
 
                 <FormField control={form.control} name="duration_days" render={({ field }) => (
-                  <FormItem><FormLabel>Durasi (Hari)</FormLabel><FormControl>
+                  <FormItem><FormLabel>Durasi (Hari) *</FormLabel><FormControl>
                     <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
                   </FormControl><FormMessage /></FormItem>
                 )} />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField control={form.control} name="start_airport" render={({ field }) => (
+                  <FormItem><FormLabel>Start (Bandara)</FormLabel><FormControl><Input {...field} placeholder="CGK" /></FormControl><FormMessage /></FormItem>
+                )} />
                 <FormField control={form.control} name="flight" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Maskapai</FormLabel>
+                    <FormLabel>Maskapai *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Pilih maskapai" /></SelectTrigger></FormControl>
                       <SelectContent>
@@ -1112,10 +1060,12 @@ const PackageForm = () => {
                     <FormMessage />
                   </FormItem>
                 )} />
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="flight_type" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tipe Penerbangan</FormLabel>
+                    <FormLabel>Tipe Penerbangan *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Pilih tipe" /></SelectTrigger></FormControl>
                       <SelectContent>
@@ -1126,12 +1076,47 @@ const PackageForm = () => {
                     <FormMessage />
                   </FormItem>
                 )} />
+                <FormField control={form.control} name="route" render={({ field }) => (
+                  <FormItem><FormLabel>Rute</FormLabel><FormControl><Input {...field} placeholder="JED-MED" /></FormControl><FormMessage /></FormItem>
+                )} />
               </div>
+
+              <FormField control={form.control} name="itinerary" render={({ field }) => (
+                <FormItem><FormLabel>Itinerary</FormLabel><FormControl><Input {...field} placeholder="Makkah - Madinah" /></FormControl><FormMessage /></FormItem>
+              )} />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField control={form.control} name="nights_makkah" render={({ field }) => (
+                  <FormItem><FormLabel>Malam Makkah</FormLabel><FormControl>
+                    <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="7" />
+                  </FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="nights_madinah" render={({ field }) => (
+                  <FormItem><FormLabel>Malam Madinah</FormLabel><FormControl>
+                    <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="3" />
+                  </FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="hotel_extra" render={({ field }) => (
+                  <FormItem><FormLabel>Hotel Kota +</FormLabel><FormControl><Input {...field} placeholder="Hotel transit" /></FormControl><FormMessage /></FormItem>
+                )} />
+              </div>
+
+              <FormField control={form.control} name="selling_points" render={({ field }) => (
+                <FormItem><FormLabel>Selling Points</FormLabel><FormControl>
+                  <Textarea {...field} placeholder="Thaif + Romansiah, Fotografer" rows={2} />
+                </FormControl><FormMessage /></FormItem>
+              )} />
+
+              <FormField control={form.control} name="max_discount" render={({ field }) => (
+                <FormItem><FormLabel>Maks Diskon (Rp)</FormLabel><FormControl>
+                  <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="1000000" />
+                </FormControl><FormMessage /></FormItem>
+              )} />
             </CardContent>
           </Card>
 
           {/* Tier Selection */}
-          <Card>
+          <Card data-form-section>
             <CardHeader>
               <CardTitle>Tier Paket</CardTitle>
               <CardDescription>Pilih tier yang tersedia untuk paket ini</CardDescription>
@@ -1142,7 +1127,7 @@ const PackageForm = () => {
                 name="available_tiers"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tier yang Tersedia</FormLabel>
+                    <FormLabel>Tier yang Tersedia *</FormLabel>
                     <div className="space-y-3">
                       {[
                         { value: "hemat" as const, label: "Hemat" },
@@ -1173,7 +1158,7 @@ const PackageForm = () => {
             </CardContent>
           </Card>
 
-          {/* Tier Sections - each renders: Makkah → Madinah → Transport → Price */}
+          {/* Tier Sections */}
           {hasHemat && renderTierSection("Hemat", "hemat_makkah", "hemat_madinah", "hemat_price", "hemat_transport")}
           {hasNyaman && renderTierSection("Nyaman", "makkah", "madinah", "price", "best_seller_transport")}
           {hasFiveStar && renderTierSection("Five Star", "five_star_makkah", "five_star_madinah", "five_star_price", "five_star_transport")}
@@ -1218,52 +1203,101 @@ const PackageForm = () => {
           </Card>
 
           {/* Fasilitas & Perlengkapan */}
-          <Card>
+          <Card data-form-section>
             <CardHeader>
               <CardTitle>Fasilitas & Perlengkapan</CardTitle>
-              <CardDescription>Kelola fasilitas yang termasuk dan tidak termasuk</CardDescription>
+              <CardDescription>Fasilitas dikelola di halaman <a href="/admin/package-items" className="text-primary underline" target="_blank">Fasilitas Paket</a></CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Standard Included Items - editable */}
-              <EditableItemsList
-                items={standardIncludedItems}
-                customItems={form.watch("custom_standard_items") || []}
-                onCustomItemsChange={(items) => form.setValue("custom_standard_items", items)}
-                label="Termasuk (Standard)"
-                type="fixed"
-              />
+              {/* Standard Included Items - read-only from DB */}
+              <div className="space-y-3">
+                <FormLabel className="text-base font-semibold">Termasuk (Standard)</FormLabel>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-lg bg-muted/50">
+                  {dbStandardItems.map((item) => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <span className="text-sm">✓ {item.name}</span>
+                    </div>
+                  ))}
+                  {dbStandardItems.length === 0 && (
+                    <p className="text-sm text-muted-foreground col-span-2">Belum ada item standard. Tambah di halaman Fasilitas Paket.</p>
+                  )}
+                </div>
+              </div>
 
-              {/* Optional Included Items - editable */}
+              {/* Optional Included Items - checkboxes + can add new */}
               <FormField
                 control={form.control}
                 name="optional_items"
                 render={({ field }) => (
                   <FormItem>
-                    <EditableItemsList
-                      items={optionalIncludedItems}
-                      customItems={form.watch("custom_optional_items") || []}
-                      onCustomItemsChange={(items) => form.setValue("custom_optional_items", items)}
-                      label="Termasuk (Opsional)"
-                      type="checkbox"
-                      checkedItems={field.value || []}
-                      onCheckedChange={(item, checked) => {
-                        if (checked) field.onChange([...(field.value || []), item]);
-                        else field.onChange(field.value?.filter((v) => v !== item));
-                      }}
-                    />
+                    <div className="space-y-3">
+                      <FormLabel className="text-base font-semibold">Termasuk (Opsional)</FormLabel>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-lg border">
+                        {dbOptionalItems.map((item) => (
+                          <div key={item.id} className="flex items-center gap-2">
+                            <Checkbox
+                              checked={field.value?.includes(item.name)}
+                              onCheckedChange={(checked) => {
+                                if (checked) field.onChange([...(field.value || []), item.name]);
+                                else field.onChange(field.value?.filter((v) => v !== item.name));
+                              }}
+                            />
+                            <span className="text-sm">{item.name}</span>
+                          </div>
+                        ))}
+                        {/* Custom optional items */}
+                        {(form.watch("custom_optional_items") || []).map((item, idx) => (
+                          <div key={`custom-${idx}`} className="flex items-center gap-2 group">
+                            <Checkbox
+                              checked={field.value?.includes(item)}
+                              onCheckedChange={(checked) => {
+                                if (checked) field.onChange([...(field.value || []), item]);
+                                else field.onChange(field.value?.filter((v) => v !== item));
+                              }}
+                            />
+                            <span className="text-sm flex-1">{item}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => {
+                                const customs = form.getValues("custom_optional_items") || [];
+                                form.setValue("custom_optional_items", customs.filter((_, i) => i !== idx));
+                                field.onChange(field.value?.filter((v) => v !== item));
+                              }}
+                            >
+                              <X className="w-3 h-3 text-destructive" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Add new optional item */}
+                      <AddItemInput onAdd={(name) => {
+                        const customs = form.getValues("custom_optional_items") || [];
+                        form.setValue("custom_optional_items", [...customs, name]);
+                      }} />
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Excluded Items - editable */}
-              <EditableItemsList
-                items={defaultExcludedItems}
-                customItems={form.watch("custom_excluded_items") || []}
-                onCustomItemsChange={(items) => form.setValue("custom_excluded_items", items)}
-                label="Tidak Termasuk"
-                type="fixed"
-              />
+              {/* Excluded Items - read-only from DB */}
+              <div className="space-y-3">
+                <FormLabel className="text-base font-semibold">Tidak Termasuk</FormLabel>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-lg bg-muted/50">
+                  {dbExcludeItems.map((item) => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <X className="w-4 h-4 text-destructive flex-shrink-0" />
+                      <span className="text-sm">{item.name}</span>
+                    </div>
+                  ))}
+                  {dbExcludeItems.length === 0 && (
+                    <p className="text-sm text-muted-foreground col-span-2">Belum ada item. Tambah di halaman Fasilitas Paket.</p>
+                  )}
+                </div>
+              </div>
 
               {/* Equipment Type Selection */}
               <FormField
@@ -1298,7 +1332,7 @@ const PackageForm = () => {
           </Card>
 
           {/* Link & Status */}
-          <Card>
+          <Card data-form-section>
             <CardHeader><CardTitle>Link & Status</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1392,6 +1426,29 @@ const PackageForm = () => {
         location={hotelModalLocation}
         onSuccess={handleHotelAdded}
       />
+    </div>
+  );
+};
+
+// Small helper component for adding new optional items
+const AddItemInput = ({ onAdd }: { onAdd: (name: string) => void }) => {
+  const [value, setValue] = useState("");
+  const add = () => {
+    const trimmed = value.trim();
+    if (trimmed) { onAdd(trimmed); setValue(""); }
+  };
+  return (
+    <div className="flex gap-2">
+      <Input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="Tambah item opsional baru..."
+        className="flex-1"
+        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
+      />
+      <Button type="button" variant="outline" size="sm" onClick={add} disabled={!value.trim()}>
+        <Plus className="w-4 h-4 mr-1" /> Tambah
+      </Button>
     </div>
   );
 };

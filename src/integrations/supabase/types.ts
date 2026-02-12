@@ -854,6 +854,39 @@ export type Database = {
         }
         Relationships: []
       }
+      package_items: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          is_essential: boolean
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_essential?: boolean
+          name: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_essential?: boolean
+          name?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       packages: {
         Row: {
           available_tiers: string[] | null
@@ -891,9 +924,11 @@ export type Database = {
           hemat_makkah_hotel_star: number | null
           hemat_package_price: Json | null
           hemat_transport: string | null
+          hotel_extra: string | null
           id: string
           included_items: string | null
           is_sold_out: boolean
+          itinerary: string | null
           itinerary_link: string | null
           madinah_distance: string | null
           madinah_duration_walk: string | null
@@ -903,8 +938,11 @@ export type Database = {
           makkah_duration_walk: string | null
           makkah_hotel_name: string | null
           makkah_hotel_star: number | null
+          max_discount: number | null
           meta_description: string | null
           meta_title: string | null
+          nights_madinah: number | null
+          nights_makkah: number | null
           og_image: string | null
           package_name: string
           package_price: Json
@@ -919,12 +957,16 @@ export type Database = {
           pelataran_package_price: Json | null
           pelataran_transport: string | null
           robots_meta: string | null
+          route: string | null
           schema_type: string | null
+          selling_points: string | null
           slots_filled: number | null
           slots_total: number | null
           slug: string
           sold_out_date: string | null
+          start_airport: string | null
           status: string
+          timeframe: string | null
           updated_at: string
           waitlist_count: number | null
         }
@@ -964,9 +1006,11 @@ export type Database = {
           hemat_makkah_hotel_star?: number | null
           hemat_package_price?: Json | null
           hemat_transport?: string | null
+          hotel_extra?: string | null
           id?: string
           included_items?: string | null
           is_sold_out?: boolean
+          itinerary?: string | null
           itinerary_link?: string | null
           madinah_distance?: string | null
           madinah_duration_walk?: string | null
@@ -976,8 +1020,11 @@ export type Database = {
           makkah_duration_walk?: string | null
           makkah_hotel_name?: string | null
           makkah_hotel_star?: number | null
+          max_discount?: number | null
           meta_description?: string | null
           meta_title?: string | null
+          nights_madinah?: number | null
+          nights_makkah?: number | null
           og_image?: string | null
           package_name: string
           package_price?: Json
@@ -992,12 +1039,16 @@ export type Database = {
           pelataran_package_price?: Json | null
           pelataran_transport?: string | null
           robots_meta?: string | null
+          route?: string | null
           schema_type?: string | null
+          selling_points?: string | null
           slots_filled?: number | null
           slots_total?: number | null
           slug?: string
           sold_out_date?: string | null
+          start_airport?: string | null
           status?: string
+          timeframe?: string | null
           updated_at?: string
           waitlist_count?: number | null
         }
@@ -1037,9 +1088,11 @@ export type Database = {
           hemat_makkah_hotel_star?: number | null
           hemat_package_price?: Json | null
           hemat_transport?: string | null
+          hotel_extra?: string | null
           id?: string
           included_items?: string | null
           is_sold_out?: boolean
+          itinerary?: string | null
           itinerary_link?: string | null
           madinah_distance?: string | null
           madinah_duration_walk?: string | null
@@ -1049,8 +1102,11 @@ export type Database = {
           makkah_duration_walk?: string | null
           makkah_hotel_name?: string | null
           makkah_hotel_star?: number | null
+          max_discount?: number | null
           meta_description?: string | null
           meta_title?: string | null
+          nights_madinah?: number | null
+          nights_makkah?: number | null
           og_image?: string | null
           package_name?: string
           package_price?: Json
@@ -1065,12 +1121,16 @@ export type Database = {
           pelataran_package_price?: Json | null
           pelataran_transport?: string | null
           robots_meta?: string | null
+          route?: string | null
           schema_type?: string | null
+          selling_points?: string | null
           slots_filled?: number | null
           slots_total?: number | null
           slug?: string
           sold_out_date?: string | null
+          start_airport?: string | null
           status?: string
+          timeframe?: string | null
           updated_at?: string
           waitlist_count?: number | null
         }
