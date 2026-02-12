@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo.svg";
 import type { HeroData, WebsiteSettings } from "@/hooks/useHomepageData";
+import { redirectToWhatsApp } from "@/lib/chatRedirect";
 
 interface HeroSectionProps {
   heroData: HeroData | null | undefined;
@@ -11,11 +12,7 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectionProps) => {
   const handleWhatsAppClick = () => {
-    const whatsappNumber = websiteSettings?.whatsapp_number || "6281917403797";
-    window.open(
-      `https://wa.me/${whatsappNumber}?text=Halo%20Musamin,%20saya%20tertarik%20untuk%20mengetahui%20lebih%20lanjut%20tentang%20paket%20Umroh`,
-      "_blank"
-    );
+    redirectToWhatsApp("Halo Musamin, saya tertarik untuk mengetahui lebih lanjut tentang paket Umroh");
   };
 
   // Stable layout skeleton - matches exact structure of loaded state to prevent CLS

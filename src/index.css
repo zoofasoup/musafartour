@@ -101,6 +101,22 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Tight premium typography for large screens (tablets/desktops) */
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
+
+  @media (min-width: 768px) {
+    h1 { letter-spacing: -0.035em; line-height: 1.1; }
+    h2 { letter-spacing: -0.03em; line-height: 1.12; }
+    h3 { letter-spacing: -0.02em; line-height: 1.15; }
+    p, li, span { letter-spacing: -0.01em; }
   }
   
   /* Performance optimizations */
