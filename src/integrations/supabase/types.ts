@@ -922,7 +922,7 @@ export type Database = {
           schema_type: string | null
           slots_filled: number | null
           slots_total: number | null
-          slug: string | null
+          slug: string
           sold_out_date: string | null
           status: string
           updated_at: string
@@ -995,7 +995,7 @@ export type Database = {
           schema_type?: string | null
           slots_filled?: number | null
           slots_total?: number | null
-          slug?: string | null
+          slug?: string
           sold_out_date?: string | null
           status?: string
           updated_at?: string
@@ -1068,7 +1068,7 @@ export type Database = {
           schema_type?: string | null
           slots_filled?: number | null
           slots_total?: number | null
-          slug?: string | null
+          slug?: string
           sold_out_date?: string | null
           status?: string
           updated_at?: string
