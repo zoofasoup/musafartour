@@ -881,6 +881,16 @@ export type Database = {
           flight_type: string
           focus_keyword: string | null
           gallery_images: string[] | null
+          hemat_madinah_distance: string | null
+          hemat_madinah_duration_walk: string | null
+          hemat_madinah_hotel_name: string | null
+          hemat_madinah_hotel_star: number | null
+          hemat_makkah_distance: string | null
+          hemat_makkah_duration_walk: string | null
+          hemat_makkah_hotel_name: string | null
+          hemat_makkah_hotel_star: number | null
+          hemat_package_price: Json | null
+          hemat_transport: string | null
           id: string
           included_items: string | null
           is_sold_out: boolean
@@ -898,6 +908,16 @@ export type Database = {
           og_image: string | null
           package_name: string
           package_price: Json
+          pelataran_madinah_distance: string | null
+          pelataran_madinah_duration_walk: string | null
+          pelataran_madinah_hotel_name: string | null
+          pelataran_madinah_hotel_star: number | null
+          pelataran_makkah_distance: string | null
+          pelataran_makkah_duration_walk: string | null
+          pelataran_makkah_hotel_name: string | null
+          pelataran_makkah_hotel_star: number | null
+          pelataran_package_price: Json | null
+          pelataran_transport: string | null
           robots_meta: string | null
           schema_type: string | null
           slots_filled: number | null
@@ -934,6 +954,16 @@ export type Database = {
           flight_type: string
           focus_keyword?: string | null
           gallery_images?: string[] | null
+          hemat_madinah_distance?: string | null
+          hemat_madinah_duration_walk?: string | null
+          hemat_madinah_hotel_name?: string | null
+          hemat_madinah_hotel_star?: number | null
+          hemat_makkah_distance?: string | null
+          hemat_makkah_duration_walk?: string | null
+          hemat_makkah_hotel_name?: string | null
+          hemat_makkah_hotel_star?: number | null
+          hemat_package_price?: Json | null
+          hemat_transport?: string | null
           id?: string
           included_items?: string | null
           is_sold_out?: boolean
@@ -951,6 +981,16 @@ export type Database = {
           og_image?: string | null
           package_name: string
           package_price?: Json
+          pelataran_madinah_distance?: string | null
+          pelataran_madinah_duration_walk?: string | null
+          pelataran_madinah_hotel_name?: string | null
+          pelataran_madinah_hotel_star?: number | null
+          pelataran_makkah_distance?: string | null
+          pelataran_makkah_duration_walk?: string | null
+          pelataran_makkah_hotel_name?: string | null
+          pelataran_makkah_hotel_star?: number | null
+          pelataran_package_price?: Json | null
+          pelataran_transport?: string | null
           robots_meta?: string | null
           schema_type?: string | null
           slots_filled?: number | null
@@ -987,6 +1027,16 @@ export type Database = {
           flight_type?: string
           focus_keyword?: string | null
           gallery_images?: string[] | null
+          hemat_madinah_distance?: string | null
+          hemat_madinah_duration_walk?: string | null
+          hemat_madinah_hotel_name?: string | null
+          hemat_madinah_hotel_star?: number | null
+          hemat_makkah_distance?: string | null
+          hemat_makkah_duration_walk?: string | null
+          hemat_makkah_hotel_name?: string | null
+          hemat_makkah_hotel_star?: number | null
+          hemat_package_price?: Json | null
+          hemat_transport?: string | null
           id?: string
           included_items?: string | null
           is_sold_out?: boolean
@@ -1004,6 +1054,16 @@ export type Database = {
           og_image?: string | null
           package_name?: string
           package_price?: Json
+          pelataran_madinah_distance?: string | null
+          pelataran_madinah_duration_walk?: string | null
+          pelataran_madinah_hotel_name?: string | null
+          pelataran_madinah_hotel_star?: number | null
+          pelataran_makkah_distance?: string | null
+          pelataran_makkah_duration_walk?: string | null
+          pelataran_makkah_hotel_name?: string | null
+          pelataran_makkah_hotel_star?: number | null
+          pelataran_package_price?: Json | null
+          pelataran_transport?: string | null
           robots_meta?: string | null
           schema_type?: string | null
           slots_filled?: number | null

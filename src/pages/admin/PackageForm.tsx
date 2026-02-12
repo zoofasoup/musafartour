@@ -33,46 +33,67 @@ const packageSchema = z.object({
   flight_type: z.string().min(1, "Tipe penerbangan wajib diisi"),
   available_tiers: z.array(z.enum(["hemat", "nyaman", "five-star", "pelataran-hemat"])).min(1, "Pilih minimal satu tier"),
   
-  // Nyaman Tier (formerly best seller)
-  madinah_hotel_name: z.string().optional(),
-  madinah_hotel_star: z.number().optional(),
-  madinah_distance: z.string().optional(),
-  madinah_duration_walk: z.string().optional(),
-  
+  // Hemat Tier
+  hemat_makkah_hotel_name: z.string().optional(),
+  hemat_makkah_hotel_star: z.number().optional(),
+  hemat_makkah_distance: z.string().optional(),
+  hemat_makkah_duration_walk: z.string().optional(),
+  hemat_madinah_hotel_name: z.string().optional(),
+  hemat_madinah_hotel_star: z.number().optional(),
+  hemat_madinah_distance: z.string().optional(),
+  hemat_madinah_duration_walk: z.string().optional(),
+  hemat_transport: z.string().optional(),
+  hemat_price_quad: z.number().min(0, "Harga tidak valid"),
+  hemat_price_triple: z.number().min(0, "Harga tidak valid"),
+  hemat_price_double: z.number().min(0, "Harga tidak valid"),
+
+  // Nyaman Tier
   makkah_hotel_name: z.string().optional(),
   makkah_hotel_star: z.number().optional(),
   makkah_distance: z.string().optional(),
   makkah_duration_walk: z.string().optional(),
-  
+  madinah_hotel_name: z.string().optional(),
+  madinah_hotel_star: z.number().optional(),
+  madinah_distance: z.string().optional(),
+  madinah_duration_walk: z.string().optional(),
+  best_seller_transport: z.string().optional(),
   price_quad: z.number().min(0, "Harga tidak valid"),
   price_triple: z.number().min(0, "Harga tidak valid"),
   price_double: z.number().min(0, "Harga tidak valid"),
   
-  best_seller_transport: z.string().optional(),
-  
   // Five-Star Tier
-  five_star_madinah_hotel_name: z.string().optional(),
-  five_star_madinah_hotel_star: z.number().optional(),
-  five_star_madinah_distance: z.string().optional(),
-  five_star_madinah_duration_walk: z.string().optional(),
-  
   five_star_makkah_hotel_name: z.string().optional(),
   five_star_makkah_hotel_star: z.number().optional(),
   five_star_makkah_distance: z.string().optional(),
   five_star_makkah_duration_walk: z.string().optional(),
-  
+  five_star_madinah_hotel_name: z.string().optional(),
+  five_star_madinah_hotel_star: z.number().optional(),
+  five_star_madinah_distance: z.string().optional(),
+  five_star_madinah_duration_walk: z.string().optional(),
+  five_star_transport: z.string().optional(),
   five_star_price_quad: z.number().min(0, "Harga tidak valid"),
   five_star_price_triple: z.number().min(0, "Harga tidak valid"),
   five_star_price_double: z.number().min(0, "Harga tidak valid"),
-  
-  five_star_transport: z.string().optional(),
+
+  // Pelataran Hemat Tier
+  pelataran_makkah_hotel_name: z.string().optional(),
+  pelataran_makkah_hotel_star: z.number().optional(),
+  pelataran_makkah_distance: z.string().optional(),
+  pelataran_makkah_duration_walk: z.string().optional(),
+  pelataran_madinah_hotel_name: z.string().optional(),
+  pelataran_madinah_hotel_star: z.number().optional(),
+  pelataran_madinah_distance: z.string().optional(),
+  pelataran_madinah_duration_walk: z.string().optional(),
+  pelataran_transport: z.string().optional(),
+  pelataran_price_quad: z.number().min(0, "Harga tidak valid"),
+  pelataran_price_triple: z.number().min(0, "Harga tidak valid"),
+  pelataran_price_double: z.number().min(0, "Harga tidak valid"),
   
   included_items: z.array(z.string()).optional(),
   optional_items: z.array(z.string()).optional(),
   excluded_items_list: z.array(z.string()).optional(),
   equipment_type: z.enum(["lengkap", "minimalis"]),
   
-  // Custom items added by user
   custom_standard_items: z.array(z.string()).optional(),
   custom_optional_items: z.array(z.string()).optional(),
   custom_excluded_items: z.array(z.string()).optional(),
@@ -81,7 +102,6 @@ const packageSchema = z.object({
   itinerary_link: z.string().optional(),
   status: z.string(),
   
-  // Sold out fields
   is_sold_out: z.boolean().default(false),
   waitlist_count: z.number().min(0).default(0),
 });
@@ -362,14 +382,19 @@ const PackageForm = () => {
       flight: "",
       flight_type: "Direct",
       available_tiers: ["nyaman"],
-      price_quad: 0,
-      price_triple: 0,
-      price_double: 0,
+      // Hemat
+      hemat_price_quad: 0, hemat_price_triple: 0, hemat_price_double: 0,
+      hemat_transport: "Bus Eksklusif",
+      // Nyaman
+      price_quad: 0, price_triple: 0, price_double: 0,
       best_seller_transport: "Bus Eksklusif",
-      five_star_price_quad: 0,
-      five_star_price_triple: 0,
-      five_star_price_double: 0,
+      // Five Star
+      five_star_price_quad: 0, five_star_price_triple: 0, five_star_price_double: 0,
       five_star_transport: "Kereta Cepat",
+      // Pelataran Hemat
+      pelataran_price_quad: 0, pelataran_price_triple: 0, pelataran_price_double: 0,
+      pelataran_transport: "Bus Eksklusif",
+      
       included_items: standardIncludedItems,
       optional_items: [],
       excluded_items_list: [],
@@ -410,71 +435,27 @@ const PackageForm = () => {
     }
   };
 
-  const handleBestSellerMadinahHotelChange = (hotelId: string) => {
-    if (hotelId === "none") {
-      form.setValue("madinah_hotel_name", "");
-      form.setValue("madinah_hotel_star", 0);
-      form.setValue("madinah_distance", "");
-      form.setValue("madinah_duration_walk", "");
-      return;
-    }
-    const hotel = madinahHotels.find((h) => h.id === hotelId);
-    if (hotel) {
-      form.setValue("madinah_hotel_name", hotel.name);
-      form.setValue("madinah_hotel_star", hotel.star_rating);
-      form.setValue("madinah_distance", hotel.distance);
-      form.setValue("madinah_duration_walk", hotel.walking_duration);
-    }
-  };
+  // Generic hotel change handler for any tier
+  const handleHotelChange = (hotelId: string, location: "makkah" | "madinah", prefix: string) => {
+    const hotels = location === "makkah" ? makkahHotels : madinahHotels;
+    const hotelNameField = `${prefix}_hotel_name` as any;
+    const hotelStarField = `${prefix}_hotel_star` as any;
+    const distField = `${prefix}_distance` as any;
+    const walkField = `${prefix}_duration_walk` as any;
 
-  const handleBestSellerMakkahHotelChange = (hotelId: string) => {
     if (hotelId === "none") {
-      form.setValue("makkah_hotel_name", "");
-      form.setValue("makkah_hotel_star", 0);
-      form.setValue("makkah_distance", "");
-      form.setValue("makkah_duration_walk", "");
+      form.setValue(hotelNameField, "");
+      form.setValue(hotelStarField, 0);
+      form.setValue(distField, "");
+      form.setValue(walkField, "");
       return;
     }
-    const hotel = makkahHotels.find((h) => h.id === hotelId);
+    const hotel = hotels.find((h) => h.id === hotelId);
     if (hotel) {
-      form.setValue("makkah_hotel_name", hotel.name);
-      form.setValue("makkah_hotel_star", hotel.star_rating);
-      form.setValue("makkah_distance", hotel.distance);
-      form.setValue("makkah_duration_walk", hotel.walking_duration);
-    }
-  };
-
-  const handleFiveStarMadinahHotelChange = (hotelId: string) => {
-    if (hotelId === "none") {
-      form.setValue("five_star_madinah_hotel_name", "");
-      form.setValue("five_star_madinah_hotel_star", 0);
-      form.setValue("five_star_madinah_distance", "");
-      form.setValue("five_star_madinah_duration_walk", "");
-      return;
-    }
-    const hotel = madinahHotels.find((h) => h.id === hotelId);
-    if (hotel) {
-      form.setValue("five_star_madinah_hotel_name", hotel.name);
-      form.setValue("five_star_madinah_hotel_star", hotel.star_rating);
-      form.setValue("five_star_madinah_distance", hotel.distance);
-      form.setValue("five_star_madinah_duration_walk", hotel.walking_duration);
-    }
-  };
-
-  const handleFiveStarMakkahHotelChange = (hotelId: string) => {
-    if (hotelId === "none") {
-      form.setValue("five_star_makkah_hotel_name", "");
-      form.setValue("five_star_makkah_hotel_star", 0);
-      form.setValue("five_star_makkah_distance", "");
-      form.setValue("five_star_makkah_duration_walk", "");
-      return;
-    }
-    const hotel = makkahHotels.find((h) => h.id === hotelId);
-    if (hotel) {
-      form.setValue("five_star_makkah_hotel_name", hotel.name);
-      form.setValue("five_star_makkah_hotel_star", hotel.star_rating);
-      form.setValue("five_star_makkah_distance", hotel.distance);
-      form.setValue("five_star_makkah_duration_walk", hotel.walking_duration);
+      form.setValue(hotelNameField, hotel.name);
+      form.setValue(hotelStarField, hotel.star_rating);
+      form.setValue(distField, hotel.distance);
+      form.setValue(walkField, hotel.walking_duration);
     }
   };
 
@@ -490,32 +471,7 @@ const PackageForm = () => {
     } else {
       setMadinahHotels(prev => [...prev, hotel].sort((a, b) => a.name.localeCompare(b.name)));
     }
-
-    if (hotelModalTier === "best_seller") {
-      if (hotel.location === "madinah") {
-        form.setValue("madinah_hotel_name", hotel.name);
-        form.setValue("madinah_hotel_star", hotel.star_rating);
-        form.setValue("madinah_distance", hotel.distance);
-        form.setValue("madinah_duration_walk", hotel.walking_duration);
-      } else {
-        form.setValue("makkah_hotel_name", hotel.name);
-        form.setValue("makkah_hotel_star", hotel.star_rating);
-        form.setValue("makkah_distance", hotel.distance);
-        form.setValue("makkah_duration_walk", hotel.walking_duration);
-      }
-    } else {
-      if (hotel.location === "madinah") {
-        form.setValue("five_star_madinah_hotel_name", hotel.name);
-        form.setValue("five_star_madinah_hotel_star", hotel.star_rating);
-        form.setValue("five_star_madinah_distance", hotel.distance);
-        form.setValue("five_star_madinah_duration_walk", hotel.walking_duration);
-      } else {
-        form.setValue("five_star_makkah_hotel_name", hotel.name);
-        form.setValue("five_star_makkah_hotel_star", hotel.star_rating);
-        form.setValue("five_star_makkah_distance", hotel.distance);
-        form.setValue("five_star_makkah_duration_walk", hotel.walking_duration);
-      }
-    }
+    // Auto-select the newly added hotel isn't needed here since modal closes
   };
 
   const fetchPackage = async () => {
@@ -565,35 +521,61 @@ const PackageForm = () => {
           flight_type: data.flight_type,
           available_tiers: (data.available_tiers as any[]) || ["nyaman"],
           
-          madinah_hotel_name: data.madinah_hotel_name || "",
-          madinah_hotel_star: data.madinah_hotel_star || 0,
-          madinah_distance: data.madinah_distance || "",
-          madinah_duration_walk: data.madinah_duration_walk || "",
-          
+          // Hemat
+          hemat_makkah_hotel_name: (data as any).hemat_makkah_hotel_name || "",
+          hemat_makkah_hotel_star: (data as any).hemat_makkah_hotel_star || 0,
+          hemat_makkah_distance: (data as any).hemat_makkah_distance || "",
+          hemat_makkah_duration_walk: (data as any).hemat_makkah_duration_walk || "",
+          hemat_madinah_hotel_name: (data as any).hemat_madinah_hotel_name || "",
+          hemat_madinah_hotel_star: (data as any).hemat_madinah_hotel_star || 0,
+          hemat_madinah_distance: (data as any).hemat_madinah_distance || "",
+          hemat_madinah_duration_walk: (data as any).hemat_madinah_duration_walk || "",
+          hemat_transport: (data as any).hemat_transport || "Bus Eksklusif",
+          hemat_price_quad: ((data as any).hemat_package_price as any)?.quad || 0,
+          hemat_price_triple: ((data as any).hemat_package_price as any)?.triple || 0,
+          hemat_price_double: ((data as any).hemat_package_price as any)?.double || 0,
+
+          // Nyaman
           makkah_hotel_name: data.makkah_hotel_name || "",
           makkah_hotel_star: data.makkah_hotel_star || 0,
           makkah_distance: data.makkah_distance || "",
           makkah_duration_walk: data.makkah_duration_walk || "",
-          
+          madinah_hotel_name: data.madinah_hotel_name || "",
+          madinah_hotel_star: data.madinah_hotel_star || 0,
+          madinah_distance: data.madinah_distance || "",
+          madinah_duration_walk: data.madinah_duration_walk || "",
           price_quad: priceData?.quad || 0,
           price_triple: priceData?.triple || 0,
           price_double: priceData?.double || 0,
           best_seller_transport: data.best_seller_transport || "Bus Eksklusif",
           
-          five_star_madinah_hotel_name: data.five_star_madinah_hotel_name || "",
-          five_star_madinah_hotel_star: data.five_star_madinah_hotel_star || 0,
-          five_star_madinah_distance: data.five_star_madinah_distance || "",
-          five_star_madinah_duration_walk: data.five_star_madinah_duration_walk || "",
-          
+          // Five Star
           five_star_makkah_hotel_name: data.five_star_makkah_hotel_name || "",
           five_star_makkah_hotel_star: data.five_star_makkah_hotel_star || 0,
           five_star_makkah_distance: data.five_star_makkah_distance || "",
           five_star_makkah_duration_walk: data.five_star_makkah_duration_walk || "",
-          
+          five_star_madinah_hotel_name: data.five_star_madinah_hotel_name || "",
+          five_star_madinah_hotel_star: data.five_star_madinah_hotel_star || 0,
+          five_star_madinah_distance: data.five_star_madinah_distance || "",
+          five_star_madinah_duration_walk: data.five_star_madinah_duration_walk || "",
           five_star_price_quad: fiveStarPriceData?.quad || 0,
           five_star_price_triple: fiveStarPriceData?.triple || 0,
           five_star_price_double: fiveStarPriceData?.double || 0,
           five_star_transport: data.five_star_transport || "Kereta Cepat",
+
+          // Pelataran Hemat
+          pelataran_makkah_hotel_name: (data as any).pelataran_makkah_hotel_name || "",
+          pelataran_makkah_hotel_star: (data as any).pelataran_makkah_hotel_star || 0,
+          pelataran_makkah_distance: (data as any).pelataran_makkah_distance || "",
+          pelataran_makkah_duration_walk: (data as any).pelataran_makkah_duration_walk || "",
+          pelataran_madinah_hotel_name: (data as any).pelataran_madinah_hotel_name || "",
+          pelataran_madinah_hotel_star: (data as any).pelataran_madinah_hotel_star || 0,
+          pelataran_madinah_distance: (data as any).pelataran_madinah_distance || "",
+          pelataran_madinah_duration_walk: (data as any).pelataran_madinah_duration_walk || "",
+          pelataran_transport: (data as any).pelataran_transport || "Bus Eksklusif",
+          pelataran_price_quad: ((data as any).pelataran_package_price as any)?.quad || 0,
+          pelataran_price_triple: ((data as any).pelataran_package_price as any)?.triple || 0,
+          pelataran_price_double: ((data as any).pelataran_package_price as any)?.double || 0,
           
           included_items: standardIncludedItems,
           optional_items: optionalItems,
@@ -753,7 +735,7 @@ const PackageForm = () => {
         ...(values.custom_excluded_items || []),
       ];
 
-      const packageData = {
+      const packageData: any = {
         package_name: values.package_name,
         slug: slug,
         departure_date: values.departure_date,
@@ -762,39 +744,53 @@ const PackageForm = () => {
         flight_type: values.flight_type,
         available_tiers: values.available_tiers,
         
-        madinah_hotel_name: values.madinah_hotel_name,
-        madinah_hotel_star: values.madinah_hotel_star,
-        madinah_distance: values.madinah_distance,
-        madinah_duration_walk: values.madinah_duration_walk,
-        
+        // Hemat
+        hemat_makkah_hotel_name: values.hemat_makkah_hotel_name,
+        hemat_makkah_hotel_star: values.hemat_makkah_hotel_star,
+        hemat_makkah_distance: values.hemat_makkah_distance,
+        hemat_makkah_duration_walk: values.hemat_makkah_duration_walk,
+        hemat_madinah_hotel_name: values.hemat_madinah_hotel_name,
+        hemat_madinah_hotel_star: values.hemat_madinah_hotel_star,
+        hemat_madinah_distance: values.hemat_madinah_distance,
+        hemat_madinah_duration_walk: values.hemat_madinah_duration_walk,
+        hemat_transport: values.hemat_transport,
+        hemat_package_price: { quad: values.hemat_price_quad, triple: values.hemat_price_triple, double: values.hemat_price_double },
+
+        // Nyaman
         makkah_hotel_name: values.makkah_hotel_name,
         makkah_hotel_star: values.makkah_hotel_star,
         makkah_distance: values.makkah_distance,
         makkah_duration_walk: values.makkah_duration_walk,
-        
-        package_price: {
-          quad: values.price_quad,
-          triple: values.price_triple,
-          double: values.price_double,
-        },
+        madinah_hotel_name: values.madinah_hotel_name,
+        madinah_hotel_star: values.madinah_hotel_star,
+        madinah_distance: values.madinah_distance,
+        madinah_duration_walk: values.madinah_duration_walk,
+        package_price: { quad: values.price_quad, triple: values.price_triple, double: values.price_double },
         best_seller_transport: values.best_seller_transport,
         
-        five_star_madinah_hotel_name: values.five_star_madinah_hotel_name,
-        five_star_madinah_hotel_star: values.five_star_madinah_hotel_star,
-        five_star_madinah_distance: values.five_star_madinah_distance,
-        five_star_madinah_duration_walk: values.five_star_madinah_duration_walk,
-        
+        // Five Star
         five_star_makkah_hotel_name: values.five_star_makkah_hotel_name,
         five_star_makkah_hotel_star: values.five_star_makkah_hotel_star,
         five_star_makkah_distance: values.five_star_makkah_distance,
         five_star_makkah_duration_walk: values.five_star_makkah_duration_walk,
-        
-        five_star_package_price: {
-          quad: values.five_star_price_quad,
-          triple: values.five_star_price_triple,
-          double: values.five_star_price_double,
-        },
+        five_star_madinah_hotel_name: values.five_star_madinah_hotel_name,
+        five_star_madinah_hotel_star: values.five_star_madinah_hotel_star,
+        five_star_madinah_distance: values.five_star_madinah_distance,
+        five_star_madinah_duration_walk: values.five_star_madinah_duration_walk,
+        five_star_package_price: { quad: values.five_star_price_quad, triple: values.five_star_price_triple, double: values.five_star_price_double },
         five_star_transport: values.five_star_transport,
+
+        // Pelataran Hemat
+        pelataran_makkah_hotel_name: values.pelataran_makkah_hotel_name,
+        pelataran_makkah_hotel_star: values.pelataran_makkah_hotel_star,
+        pelataran_makkah_distance: values.pelataran_makkah_distance,
+        pelataran_makkah_duration_walk: values.pelataran_makkah_duration_walk,
+        pelataran_madinah_hotel_name: values.pelataran_madinah_hotel_name,
+        pelataran_madinah_hotel_star: values.pelataran_madinah_hotel_star,
+        pelataran_madinah_distance: values.pelataran_madinah_distance,
+        pelataran_madinah_duration_walk: values.pelataran_madinah_duration_walk,
+        pelataran_transport: values.pelataran_transport,
+        pelataran_package_price: { quad: values.pelataran_price_quad, triple: values.pelataran_price_triple, double: values.pelataran_price_double },
         
         banner_image: bannerUrl,
         gallery_images: galleryUrls,
@@ -843,91 +839,37 @@ const PackageForm = () => {
   const hasFiveStar = watchedTiers.includes("five-star");
   const hasPelataranHemat = watchedTiers.includes("pelataran-hemat");
 
-  // Helper to render hotel+price section for a tier
+  // Helper to render full tier section: Makkah → Madinah → Transport → Price
   const renderTierSection = (
     tierLabel: string,
-    tierKey: "nyaman" | "five_star",
-    madinahPrefix: string,
     makkahPrefix: string,
+    madinahPrefix: string,
     pricePrefix: string,
-    transportField: "best_seller_transport" | "five_star_transport",
-    hotelTier: "best_seller" | "five_star",
+    transportField: string,
   ) => {
-    const madinahHotelField = `${madinahPrefix}_hotel_name` as any;
-    const madinahStarField = `${madinahPrefix}_hotel_star` as any;
-    const madinahDistField = `${madinahPrefix}_distance` as any;
-    const madinahWalkField = `${madinahPrefix}_duration_walk` as any;
     const makkahHotelField = `${makkahPrefix}_hotel_name` as any;
     const makkahStarField = `${makkahPrefix}_hotel_star` as any;
     const makkahDistField = `${makkahPrefix}_distance` as any;
     const makkahWalkField = `${makkahPrefix}_duration_walk` as any;
+    const madinahHotelField = `${madinahPrefix}_hotel_name` as any;
+    const madinahStarField = `${madinahPrefix}_hotel_star` as any;
+    const madinahDistField = `${madinahPrefix}_distance` as any;
+    const madinahWalkField = `${madinahPrefix}_duration_walk` as any;
     const priceQuad = `${pricePrefix}_quad` as any;
     const priceTriple = `${pricePrefix}_triple` as any;
     const priceDouble = `${pricePrefix}_double` as any;
-
-    const handleMadinahChange = tierKey === "nyaman" ? handleBestSellerMadinahHotelChange : handleFiveStarMadinahHotelChange;
-    const handleMakkahChange = tierKey === "nyaman" ? handleBestSellerMakkahHotelChange : handleFiveStarMakkahHotelChange;
+    const transportFormField = transportField as any;
 
     return (
       <>
+        {/* Tier Header */}
         <Card>
           <CardHeader>
             <CardTitle className="text-primary">{tierLabel}</CardTitle>
           </CardHeader>
         </Card>
 
-        {/* Madinah Hotel */}
-        <Card>
-          <CardHeader><CardTitle>Akomodasi Madinah - {tierLabel}</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField control={form.control} name={madinahHotelField} render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nama Hotel</FormLabel>
-                  <div className="flex gap-2">
-                    <Select onValueChange={handleMadinahChange} value={madinahHotels.find((h) => h.name === field.value)?.id || "none"}>
-                      <FormControl><SelectTrigger className="flex-1"><SelectValue placeholder="Pilih hotel Madinah" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">Belum dipilih</SelectItem>
-                        {madinahHotels.map((hotel) => (
-                          <SelectItem key={hotel.id} value={hotel.id}>{hotel.name} ({hotel.star_rating}⭐)</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button type="button" variant="outline" size="icon" onClick={() => handleAddHotelClick("madinah", hotelTier)} title="Tambah Hotel Baru">
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <FormField control={form.control} name={madinahStarField} render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bintang Hotel</FormLabel>
-                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
-                    <FormControl><SelectTrigger><SelectValue placeholder="Pilih bintang" /></SelectTrigger></FormControl>
-                    <SelectContent>
-                      <SelectItem value="3">3 Bintang</SelectItem>
-                      <SelectItem value="4">4 Bintang</SelectItem>
-                      <SelectItem value="5">5 Bintang</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField control={form.control} name={madinahDistField} render={({ field }) => (
-                <FormItem><FormLabel>Jarak ke Masjid Nabawi</FormLabel><FormControl><Input {...field} placeholder="100 meter" /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name={madinahWalkField} render={({ field }) => (
-                <FormItem><FormLabel>Durasi Jalan Kaki</FormLabel><FormControl><Input {...field} placeholder="5 menit" /></FormControl><FormMessage /></FormItem>
-              )} />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Makkah Hotel */}
+        {/* 1. Akomodasi Makkah */}
         <Card>
           <CardHeader><CardTitle>Akomodasi Makkah - {tierLabel}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
@@ -936,7 +878,7 @@ const PackageForm = () => {
                 <FormItem>
                   <FormLabel>Nama Hotel</FormLabel>
                   <div className="flex gap-2">
-                    <Select onValueChange={handleMakkahChange} value={makkahHotels.find((h) => h.name === field.value)?.id || "none"}>
+                    <Select onValueChange={(id) => handleHotelChange(id, "makkah", makkahPrefix)} value={makkahHotels.find((h) => h.name === field.value)?.id || "none"}>
                       <FormControl><SelectTrigger className="flex-1"><SelectValue placeholder="Pilih hotel Makkah" /></SelectTrigger></FormControl>
                       <SelectContent>
                         <SelectItem value="none">Belum dipilih</SelectItem>
@@ -945,7 +887,7 @@ const PackageForm = () => {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Button type="button" variant="outline" size="icon" onClick={() => handleAddHotelClick("makkah", hotelTier)} title="Tambah Hotel Baru">
+                    <Button type="button" variant="outline" size="icon" onClick={() => handleAddHotelClick("makkah", "best_seller")} title="Tambah Hotel Baru">
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
@@ -978,13 +920,62 @@ const PackageForm = () => {
           </CardContent>
         </Card>
 
-        {/* Transport & Price */}
+        {/* 2. Akomodasi Madinah */}
         <Card>
-          <CardHeader>
-            <CardTitle>Transportasi & Harga - {tierLabel}</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Akomodasi Madinah - {tierLabel}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <FormField control={form.control} name={transportField} render={({ field }) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField control={form.control} name={madinahHotelField} render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nama Hotel</FormLabel>
+                  <div className="flex gap-2">
+                    <Select onValueChange={(id) => handleHotelChange(id, "madinah", madinahPrefix)} value={madinahHotels.find((h) => h.name === field.value)?.id || "none"}>
+                      <FormControl><SelectTrigger className="flex-1"><SelectValue placeholder="Pilih hotel Madinah" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">Belum dipilih</SelectItem>
+                        {madinahHotels.map((hotel) => (
+                          <SelectItem key={hotel.id} value={hotel.id}>{hotel.name} ({hotel.star_rating}⭐)</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button type="button" variant="outline" size="icon" onClick={() => handleAddHotelClick("madinah", "best_seller")} title="Tambah Hotel Baru">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name={madinahStarField} render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bintang Hotel</FormLabel>
+                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Pilih bintang" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="3">3 Bintang</SelectItem>
+                      <SelectItem value="4">4 Bintang</SelectItem>
+                      <SelectItem value="5">5 Bintang</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField control={form.control} name={madinahDistField} render={({ field }) => (
+                <FormItem><FormLabel>Jarak ke Masjid Nabawi</FormLabel><FormControl><Input {...field} placeholder="100 meter" /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name={madinahWalkField} render={({ field }) => (
+                <FormItem><FormLabel>Durasi Jalan Kaki</FormLabel><FormControl><Input {...field} placeholder="5 menit" /></FormControl><FormMessage /></FormItem>
+              )} />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 3. Transportasi */}
+        <Card>
+          <CardHeader><CardTitle>Transportasi - {tierLabel}</CardTitle></CardHeader>
+          <CardContent>
+            <FormField control={form.control} name={transportFormField} render={({ field }) => (
               <FormItem>
                 <FormLabel>Transportasi Makkah-Madinah</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
@@ -997,6 +988,13 @@ const PackageForm = () => {
                 <FormMessage />
               </FormItem>
             )} />
+          </CardContent>
+        </Card>
+
+        {/* 4. Harga */}
+        <Card>
+          <CardHeader><CardTitle>Harga - {tierLabel}</CardTitle></CardHeader>
+          <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField control={form.control} name={priceQuad} render={({ field }) => (
                 <FormItem><FormLabel>Harga Quad (4 orang)</FormLabel><FormControl>
@@ -1175,59 +1173,11 @@ const PackageForm = () => {
             </CardContent>
           </Card>
 
-          {/* Hemat & Pelataran Hemat share the same pricing fields as Nyaman for now */}
-          {/* They use the main price fields (price_quad, etc.) */}
-          {(hasHemat || hasPelataranHemat) && !hasNyaman && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-primary">
-                  {hasHemat && hasPelataranHemat ? "Hemat / Pelataran Hemat" : hasHemat ? "Hemat" : "Pelataran Hemat"}
-                </CardTitle>
-                <CardDescription>Harga dasar untuk tier ini (hotel & transport sama dengan paket utama)</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormField control={form.control} name="price_quad" render={({ field }) => (
-                    <FormItem><FormLabel>Harga Quad (4 orang)</FormLabel><FormControl>
-                      <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="20000000" />
-                    </FormControl><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="price_triple" render={({ field }) => (
-                    <FormItem><FormLabel>Harga Triple (3 orang)</FormLabel><FormControl>
-                      <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="22000000" />
-                    </FormControl><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="price_double" render={({ field }) => (
-                    <FormItem><FormLabel>Harga Double (2 orang)</FormLabel><FormControl>
-                      <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="25000000" />
-                    </FormControl><FormMessage /></FormItem>
-                  )} />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Nyaman Tier (uses main price fields + hotel fields) */}
-          {hasNyaman && renderTierSection(
-            "Nyaman",
-            "nyaman",
-            "madinah",
-            "makkah",
-            "price",
-            "best_seller_transport",
-            "best_seller",
-          )}
-
-          {/* Five Star Tier */}
-          {hasFiveStar && renderTierSection(
-            "Five Star",
-            "five_star",
-            "five_star_madinah",
-            "five_star_makkah",
-            "five_star_price",
-            "five_star_transport",
-            "five_star",
-          )}
+          {/* Tier Sections - each renders: Makkah → Madinah → Transport → Price */}
+          {hasHemat && renderTierSection("Hemat", "hemat_makkah", "hemat_madinah", "hemat_price", "hemat_transport")}
+          {hasNyaman && renderTierSection("Nyaman", "makkah", "madinah", "price", "best_seller_transport")}
+          {hasFiveStar && renderTierSection("Five Star", "five_star_makkah", "five_star_madinah", "five_star_price", "five_star_transport")}
+          {hasPelataranHemat && renderTierSection("Pelataran Hemat", "pelataran_makkah", "pelataran_madinah", "pelataran_price", "pelataran_transport")}
 
           {/* Banner Image */}
           <Card>
