@@ -10,6 +10,7 @@ import { useRedirects } from "./hooks/useRedirects";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { FavoritesProvider } from "./hooks/useFavorites";
 import { AgentAuthProvider } from "./hooks/useAgentAuth";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Declare TikTok Pixel type
 declare global {
@@ -134,6 +135,7 @@ const App = () => (
                 v7_relativeSplatPath: true,
               }}
             >
+              <ScrollToTop />
               <ConditionalFloatingWhatsApp />
               <TikTokPixelTracker />
               <MarketingPixelsLoader />
