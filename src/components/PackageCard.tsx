@@ -200,6 +200,10 @@ export const PackageCard = ({
         <img
           src={allImages[currentImageIndex]}
           alt={title}
+          loading="lazy"
+          decoding="async"
+          width="600"
+          height="600"
           className={`w-full h-full object-cover transition-all duration-300 ${
             isSoldOut ? 'grayscale-[60%] brightness-75' : 'group-hover:scale-105'
           }`}
