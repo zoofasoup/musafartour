@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import {
@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
+import { BulkPackageUpload } from "@/components/admin/BulkPackageUpload";
 import { formatNumber } from "@/lib/utils";
 
 interface Package {
@@ -44,6 +45,7 @@ const Packages = () => {
   const [sortField, setSortField] = useState<SortField>('departure_date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [selectionMode, setSelectionMode] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const { selectedIds, toggleSelect, selectAll, clearSelection, isSelected, allSelected } = useBulkSelection(packages);
 
@@ -237,6 +239,10 @@ const Packages = () => {
               Pilih
             </Button>
           )}
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Import Excel
+          </Button>
           <Button onClick={() => navigate("/admin/packages/new")}>
             <Plus className="mr-2 h-4 w-4" />
             Tambah Paket
@@ -369,6 +375,12 @@ const Packages = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <BulkPackageUpload
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onSuccess={fetchPackages}
+      />
     </div>
   );
 };
