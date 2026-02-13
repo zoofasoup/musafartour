@@ -805,8 +805,8 @@ const PackageForm = () => {
 
   const safeNavigate = (path: string) => {
     if (hasUnsavedChanges) {
-      toast.error("Ada perubahan yang belum disimpan! Simpan terlebih dahulu.");
-      return;
+      const confirmed = window.confirm("Ada perubahan yang belum disimpan. Yakin ingin keluar?");
+      if (!confirmed) return;
     }
     navigate(path);
   };
