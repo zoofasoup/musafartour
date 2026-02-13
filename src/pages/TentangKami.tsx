@@ -1,154 +1,560 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
-import { Heart, Award, Users, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Heart,
+  Shield,
+  Baby,
+  BookOpen,
+  Tag,
+  Handshake,
+  Train,
+  Building2,
+  Star,
+  Plane,
+  Hotel,
+  CheckCircle2,
+  MapPin,
+  Calendar,
+  Landmark,
+  CreditCard,
+  MessageCircle,
+  ChevronRight,
+  ExternalLink,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { redirectToWhatsApp } from "@/lib/chatRedirect";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
+};
+
+const stagger = {
+  visible: { transition: { staggerChildren: 0.12 } },
+};
 
 const TentangKami = () => {
+  const handleWhatsApp = () => {
+    redirectToWhatsApp("Assalamu'alaikum, saya ingin konsultasi tentang paket umroh Musafar Tour");
+  };
+
+  const handleWhatsAppPaket = (paket: string) => {
+    redirectToWhatsApp(`Halo, saya tertarik dengan ${paket}. Bisa info lebih lanjut?`);
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <SEO 
+      <SEO
         title="Tentang Kami - Musafar Tour | Travel Umroh & Haji Terpercaya"
-        description="Musafar Tour adalah travel umroh dan haji terpercaya sejak 2015. Berizin resmi PPIU, anggota ASITA, melayani ribuan jamaah dengan profesional dan amanah."
-        keywords="tentang musafar tour, travel umroh terpercaya, ppiu resmi, asita"
+        description="Musafar Tour adalah travel umroh dan haji terpercaya. Berizin resmi PPIU Kemenag, melayani 2000+ jamaah dengan profesional, amanah, dan ramah keluarga."
+        keywords="tentang musafar tour, travel umroh terpercaya, ppiu resmi, umroh keluarga"
         canonicalUrl="https://musafartour.com/tentang-kami"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "AboutPage",
-          "mainEntity": {
+          mainEntity: {
             "@type": "TravelAgency",
-            "name": "Musafar Tour",
-            "description": "Travel umroh dan haji terpercaya dengan pelayanan terbaik sejak 2015"
-          }
+            name: "Musafar Tour",
+            description: "Travel umroh dan haji terpercaya dengan pelayanan terbaik",
+          },
         }}
       />
       <Navbar />
-      
-      {/* Header */}
-      <section className="py-16 bg-card border-b">
-        <div className="container mx-auto px-4 text-center">
-          <Heart className="h-16 w-16 mx-auto mb-4 text-primary" />
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Tentang Musafar Tour</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Mitra terpercaya Anda dalam perjalanan spiritual ke Tanah Suci
+
+      {/* ══════════════════════════════════════════════════════════
+          SECTION 1: HERO — The Hook
+      ══════════════════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden bg-foreground text-background">
+        {/* Decorative pattern */}
+        <div className="absolute inset-0 opacity-[0.04]" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
+        <div className="relative z-10 container mx-auto px-4 py-24 md:py-32 text-center max-w-4xl">
+          <motion.div initial="hidden" animate="visible" variants={stagger}>
+            <motion.p variants={fadeUp} className="text-accent font-semibold text-sm tracking-widest uppercase mb-6">
+              Bukan Safar Biasa
+            </motion.p>
+            <motion.h1 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter leading-[1.1] mb-6">
+              Lebih Dari Sekadar Perjalanan,{" "}
+              <span className="text-accent">Ini Adalah Jalan Pulang</span>{" "}
+              Menuju Baitullah.
+            </motion.h1>
+            <motion.p variants={fadeUp} className="text-base md:text-lg text-background/80 max-w-2xl mx-auto mb-10 tracking-tight leading-relaxed">
+              Rasakan pengalaman umrah yang Khusyuk, Sesuai Sunnah, dan Ramah Keluarga. Bersama Musafar, jadikan setiap langkah Anda bermakna.
+            </motion.p>
+            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="lg"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base px-8"
+                onClick={handleWhatsApp}
+              >
+                Wujudkan Rindu Baitullah Sekarang
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-background/30 text-background hover:bg-background/10 font-semibold text-base px-8"
+                onClick={() => window.location.href = "/jadwal-umroh"}
+              >
+                Lihat Jadwal Keberangkatan
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Button>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          SECTION 2: PROBLEM & SOLUTION — Emotional Connection
+      ══════════════════════════════════════════════════════════ */}
+      <section className="py-20 md:py-28">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={stagger}
+            className="max-w-3xl mx-auto text-center mb-16"
+          >
+            <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tighter mb-6 text-foreground">
+              Kami Paham, Membawa Orang Tercinta ke Tanah Suci{" "}
+              <span className="text-primary">Bukan Hal Sederhana.</span>
+            </motion.h2>
+            <motion.p variants={fadeUp} className="text-muted-foreground text-base md:text-lg leading-relaxed tracking-tight">
+              Mungkin Anda cemas membawa orang tua yang sudah sepuh, atau ragu membawa si kecil menempuh perjalanan jauh. Rasa khawatir akan kenyamanan dan keamanan seringkali memecah fokus ibadah Anda.
+            </motion.p>
+            <motion.p variants={fadeUp} className="text-foreground font-semibold text-base md:text-lg mt-4 tracking-tight">
+              Di Musafar Tour & Travel, kami tidak hanya mengurus tiket dan hotel.{" "}
+              <span className="text-primary">Kami mengurus Ketenangan Hati Anda.</span>
+            </motion.p>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={stagger}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto"
+          >
+            {[
+              {
+                icon: Heart,
+                title: "Ramah Lansia",
+                desc: "Dilengkapi kursi roda dan GPS Tracker untuk keamanan orang tua Anda.",
+                color: "text-primary",
+                bg: "bg-primary/10",
+              },
+              {
+                icon: Baby,
+                title: "Ramah Anak",
+                desc: "Tersedia Children Kit, Stroller, dan rencana perjalanan yang tidak melelahkan.",
+                color: "text-accent",
+                bg: "bg-accent/10",
+              },
+              {
+                icon: BookOpen,
+                title: "Sesuai Sunnah",
+                desc: "Manasik yang membimbing ibadah sesuai tuntunan Rasulullah ﷺ.",
+                color: "text-primary",
+                bg: "bg-primary/10",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                variants={fadeUp}
+                className="group relative bg-card rounded-2xl p-8 border shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className={`${item.bg} w-14 h-14 rounded-xl flex items-center justify-center mb-5`}>
+                  <item.icon className={`h-7 w-7 ${item.color}`} />
+                </div>
+                <h3 className="font-bold text-lg tracking-tight mb-2 text-foreground">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          SECTION 3: WHY US — Value Proposition
+      ══════════════════════════════════════════════════════════ */}
+      <section className="py-20 md:py-28 bg-muted/40">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={stagger}
+            className="text-center mb-16"
+          >
+            <motion.p variants={fadeUp} className="text-primary font-semibold text-sm tracking-widest uppercase mb-3">
+              Kepercayaan Jamaah
+            </motion.p>
+            <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tighter text-foreground">
+              Mengapa 2.000+ Jamaah Mempercayakan
+              <br className="hidden md:block" /> Ibadahnya Kepada Kami?
+            </motion.h2>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+            variants={stagger}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto"
+          >
+            {[
+              {
+                icon: Tag,
+                emoji: "🏷️",
+                title: "Transparansi Tanpa Tapi",
+                desc: "Biaya yang Anda bayar adalah fasilitas yang Anda dapatkan. Tiket confirmed di awal, tanpa biaya tersembunyi.",
+              },
+              {
+                icon: Handshake,
+                emoji: "🤝",
+                title: "Amanah & Legalitas Terjamin",
+                desc: "Ibadah tenang dengan izin resmi PPIU Kemenag No. 17102200953750002. Rekening resmi a.n PT Musa Amanah Wisata, bukan perorangan.",
+              },
+              {
+                icon: Train,
+                emoji: "🚄",
+                title: "Fasilitas Modern & Cepat",
+                desc: "Hemat waktu dan tenaga dengan Kereta Cepat Haramain (Madinah-Makkah) dan akses Lounge Eksklusif Bandara Soekarno-Hatta.",
+              },
+              {
+                icon: Building2,
+                emoji: "🏠",
+                title: "Akomodasi Dekat Masjid",
+                desc: "Hotel bintang 5 dan setaraf yang dipilih khusus agar langkah Anda menuju Masjid Nabawi dan Masjidil Haram terasa ringan.",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                variants={fadeUp}
+                className="flex gap-5 bg-card rounded-2xl p-7 border shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl">
+                  {item.emoji}
+                </div>
+                <div>
+                  <h3 className="font-bold text-base tracking-tight mb-1.5 text-foreground">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          SECTION 4: SOCIAL PROOF — Trust
+      ══════════════════════════════════════════════════════════ */}
+      <section className="py-20 md:py-28">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={stagger}
+            className="text-center max-w-3xl mx-auto"
+          >
+            <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tighter mb-4 text-foreground">
+              Kepuasan Jamaah adalah Prioritas Kami
+            </motion.h2>
+            <motion.div variants={fadeUp} className="flex items-center justify-center gap-1 mb-6">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="h-6 w-6 fill-accent text-accent" />
+              ))}
+              <span className="ml-2 font-bold text-foreground">5.0 / 5.0</span>
+              <span className="text-muted-foreground text-sm ml-1">di Google Review</span>
+            </motion.div>
+            <motion.blockquote variants={fadeUp} className="relative bg-card rounded-2xl p-8 md:p-10 border shadow-sm">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold">
+                "
+              </div>
+              <p className="text-foreground text-base md:text-lg leading-relaxed tracking-tight italic mb-6">
+                Pelayanan maksimal namun harga terjangkau sehingga siapapun bisa berangkat umrah. Kekeluargaan, kebersamaan, dan keharmonisan adalah kunci pelayanan kami.
+              </p>
+              <p className="text-sm text-muted-foreground font-medium">— Filosofi Musafar</p>
+            </motion.blockquote>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          SECTION 5: PRODUCT SHOWCASE — Packages
+      ══════════════════════════════════════════════════════════ */}
+      <section className="py-20 md:py-28 bg-muted/40">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={stagger}
+            className="text-center mb-16"
+          >
+            <motion.p variants={fadeUp} className="text-primary font-semibold text-sm tracking-widest uppercase mb-3">
+              Paket Umroh
+            </motion.p>
+            <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tighter text-foreground">
+              Pilih Paket Terbaik untuk Kenyamanan Ibadah Anda
+            </motion.h2>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+            variants={stagger}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto"
+          >
+            {[
+              {
+                tier: "HEMAT",
+                tagline: "Untuk Anda yang mengutamakan budget tanpa mengurangi esensi ibadah.",
+                hotelMadinah: "Manazil Falah / Emaar Taiba (Setaraf)",
+                hotelMakkah: "Nada Ajyad / Olayan Golden (Setaraf)",
+                extra: "✈️ Direct Flight",
+                price: "Rp 27,9 Juta",
+                accent: false,
+              },
+              {
+                tier: "NYAMAN & PELATARAN",
+                tagline: "Keseimbangan sempurna antara fasilitas premium dan jarak ke masjid.",
+                hotelMadinah: "Rua International (Setaraf)",
+                hotelMakkah: "Maysan Al Maqom / Movenpick (Setaraf)",
+                extra: "🚄 Include: Kereta Cepat Haramain",
+                price: null,
+                accent: true,
+              },
+              {
+                tier: "FIVESTAR (VIP)",
+                tagline: "Kenyamanan maksimal untuk pengalaman ibadah yang tak terlupakan.",
+                hotelMadinah: "Worth Peninsula (Setaraf)",
+                hotelMakkah: "Movenpick (Setaraf - Pelataran Masjid)",
+                extra: "🌟 VIP Handling & Lounge",
+                price: null,
+                accent: false,
+              },
+            ].map((pkg, i) => (
+              <motion.div
+                key={i}
+                variants={fadeUp}
+                className={`relative rounded-2xl p-7 border shadow-sm flex flex-col ${
+                  pkg.accent
+                    ? "bg-foreground text-background border-foreground ring-2 ring-accent"
+                    : "bg-card"
+                }`}
+              >
+                {pkg.accent && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-xs font-bold px-4 py-1 rounded-full tracking-wide">
+                    POPULER
+                  </div>
+                )}
+                <h3 className={`font-bold text-lg tracking-tight mb-2 ${pkg.accent ? "text-accent" : "text-foreground"}`}>
+                  Paket {pkg.tier}
+                </h3>
+                <p className={`text-sm mb-5 leading-relaxed ${pkg.accent ? "text-background/70" : "text-muted-foreground"}`}>
+                  {pkg.tagline}
+                </p>
+                <div className="space-y-3 mb-6 flex-1">
+                  <div className="flex items-start gap-2 text-sm">
+                    <Hotel className={`h-4 w-4 mt-0.5 flex-shrink-0 ${pkg.accent ? "text-accent" : "text-primary"}`} />
+                    <span className={pkg.accent ? "text-background/90" : "text-foreground"}>
+                      <span className="font-medium">Madinah:</span> {pkg.hotelMadinah}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2 text-sm">
+                    <Hotel className={`h-4 w-4 mt-0.5 flex-shrink-0 ${pkg.accent ? "text-accent" : "text-primary"}`} />
+                    <span className={pkg.accent ? "text-background/90" : "text-foreground"}>
+                      <span className="font-medium">Makkah:</span> {pkg.hotelMakkah}
+                    </span>
+                  </div>
+                  <div className={`text-sm font-medium ${pkg.accent ? "text-background/80" : "text-muted-foreground"}`}>
+                    {pkg.extra}
+                  </div>
+                </div>
+                {pkg.price && (
+                  <p className="text-2xl font-bold tracking-tighter text-primary mb-4">
+                    {pkg.price}
+                  </p>
+                )}
+                <Button
+                  className={`w-full font-semibold ${
+                    pkg.accent
+                      ? "bg-accent text-accent-foreground hover:bg-accent/90"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  }`}
+                  onClick={() => handleWhatsAppPaket(`Paket Umrah ${pkg.tier}`)}
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  Tanya Detail Paket Ini
+                </Button>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          SECTION 6: THE EXPERIENCE — 9 Days Journey
+      ══════════════════════════════════════════════════════════ */}
+      <section className="py-20 md:py-28">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={stagger}
+            className="text-center mb-16"
+          >
+            <motion.p variants={fadeUp} className="text-primary font-semibold text-sm tracking-widest uppercase mb-3">
+              Perjalanan Hati
+            </motion.p>
+            <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tighter text-foreground">
+              Gambaran Perjalanan Hati Anda (9 Hari)
+            </motion.h2>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+            variants={stagger}
+            className="max-w-3xl mx-auto relative"
+          >
+            {/* Vertical line */}
+            <div className="absolute left-6 md:left-8 top-0 bottom-0 w-px bg-border" />
+
+            {[
+              { day: "1", icon: Plane, text: "Terbang langsung ke Madinah (Tanpa Transit), proses check-in yang dibantu tim handling." },
+              { day: "2-3", icon: Landmark, text: "Menyejukkan hati di Raudhah, ziarah ke Masjid Quba & Jabal Uhud." },
+              { day: "4", icon: Train, text: "Menuju Makkah dengan kenyamanan Kereta Cepat Haramain (Tanpa lelah di jalan)." },
+              { day: "5-7", icon: Star, text: "Puncak ibadah Umrah, City Tour Kota Makkah, hingga wisata sejarah ke Thaif." },
+              { day: "8-9", icon: Heart, text: "Tawaf Wada dan kembali ke Tanah Air dengan membawa predikat Mabrur, InsyaAllah." },
+            ].map((item, i) => (
+              <motion.div key={i} variants={fadeUp} className="relative flex gap-5 md:gap-7 mb-8 last:mb-0">
+                <div className="relative z-10 flex-shrink-0 w-12 h-12 md:w-16 md:h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md">
+                  <item.icon className="h-5 w-5 md:h-6 md:w-6" />
+                </div>
+                <div className="pt-2 md:pt-4">
+                  <p className="text-xs font-bold text-primary tracking-widest uppercase mb-1">Hari {item.day}</p>
+                  <p className="text-sm md:text-base text-foreground leading-relaxed tracking-tight">{item.text}</p>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          SECTION 7: TRANSPARENCY & FOOTER
+      ══════════════════════════════════════════════════════════ */}
+      <section className="py-20 md:py-28 bg-muted/40">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={stagger}
+            className="text-center mb-16"
+          >
+            <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tighter text-foreground mb-3">
+              Siapkan Niat, Kami Siapkan Sisanya.
+            </motion.h2>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+            variants={stagger}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto"
+          >
+            {/* Persyaratan */}
+            <motion.div variants={fadeUp} className="bg-card rounded-2xl p-7 border shadow-sm">
+              <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
+                <CheckCircle2 className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-bold text-base tracking-tight mb-4 text-foreground">Persyaratan Mudah</h3>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                  Paspor (Min. 2 suku kata)
+                </li>
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                  Deposit Awal hanya <strong className="text-foreground">Rp 5.000.000/pax</strong>
+                </li>
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                  Pelunasan aman H-45 keberangkatan
+                </li>
+              </ul>
+            </motion.div>
+
+            {/* Pembayaran */}
+            <motion.div variants={fadeUp} className="bg-card rounded-2xl p-7 border shadow-sm">
+              <div className="bg-accent/10 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
+                <CreditCard className="h-6 w-6 text-accent" />
+              </div>
+              <h3 className="font-bold text-base tracking-tight mb-4 text-foreground">Pembayaran Resmi & Aman</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Transfer hanya ke rekening a.n{" "}
+                <strong className="text-foreground">PT Musa Amanah Wisata</strong>
+              </p>
+              <div className="space-y-2">
+                {["BCA", "BSI", "BNI"].map((bank) => (
+                  <div key={bank} className="flex items-center gap-2 text-sm">
+                    <Landmark className="h-4 w-4 text-primary" />
+                    <span className="font-medium text-foreground">🏦 {bank}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Alamat */}
+            <motion.div variants={fadeUp} className="bg-card rounded-2xl p-7 border shadow-sm">
+              <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
+                <MapPin className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-bold text-base tracking-tight mb-4 text-foreground">Kantor Kami</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Commercial Park Harapan Indah, Ruko Emerald Blok EB 1 No.28, Medan Satria, Kota Bekasi, Jawa Barat 17131
+              </p>
+              <div className="mt-4 space-y-1 text-sm text-muted-foreground">
+                <p>📞 021-38312137</p>
+                <p>💬 0819-1740-3797</p>
+                <p>✉️ musafartour@gmail.com</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          STICKY BOTTOM BAR
+      ══════════════════════════════════════════════════════════ */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t shadow-[0_-4px_20px_-4px_hsl(var(--foreground)/0.1)] py-3 px-4">
+        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 max-w-5xl">
+          <p className="text-sm text-muted-foreground tracking-tight text-center sm:text-left">
+            Masih ada pertanyaan tentang jadwal atau fasilitas?
           </p>
+          <Button
+            className="bg-[#25D366] hover:bg-[#22c55e] text-white font-semibold px-6 shrink-0"
+            onClick={handleWhatsApp}
+          >
+            <MessageCircle className="mr-2 h-4 w-4" />
+            Konsultasi Gratis via WhatsApp
+          </Button>
         </div>
-      </section>
+      </div>
 
-      {/* Story Section */}
-      <section className="py-16 container mx-auto px-4">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold mb-6 text-center">Cerita Kami</h2>
-          <div className="space-y-4 text-muted-foreground">
-            <p>
-              Musafar Tour didirikan dengan visi untuk menjadikan perjalanan Umroh dan Haji sebagai pengalaman spiritual yang berkesan dan penuh keberkahan. Sejak berdiri, kami telah melayani ribuan jamaah dengan penuh dedikasi dan profesionalisme.
-            </p>
-            <p>
-              Nama "Musafar" diambil dari bahasa Arab yang berarti "perjalanan" atau "musafir". Kami percaya bahwa setiap perjalanan ke Tanah Suci adalah amanah yang harus dijalankan dengan penuh tanggung jawab, kehati-hatian, dan keikhlasan.
-            </p>
-            <p>
-              Tim kami terdiri dari profesional berpengalaman yang memahami kebutuhan jamaah Indonesia. Dengan jaringan mitra terpercaya di Arab Saudi dan destinasi wisata halal lainnya, kami berkomitmen memberikan pelayanan terbaik untuk setiap jamaah.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Values */}
-      <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Nilai-Nilai Kami</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
-            <div className="text-center">
-              <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Heart className="h-10 w-10 text-primary" />
-              </div>
-              <h3 className="font-semibold mb-2 text-lg">Melayani dengan Hati</h3>
-              <p className="text-sm text-muted-foreground">
-                Setiap jamaah adalah keluarga kami yang kami layani dengan sepenuh hati
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="h-10 w-10 text-primary" />
-              </div>
-              <h3 className="font-semibold mb-2 text-lg">Profesional</h3>
-              <p className="text-sm text-muted-foreground">
-                Berizin resmi dan berstandar internasional dalam setiap layanan
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-10 w-10 text-primary" />
-              </div>
-              <h3 className="font-semibold mb-2 text-lg">Kebersamaan</h3>
-              <p className="text-sm text-muted-foreground">
-                Membangun ukhuwah Islamiyah melalui setiap perjalanan bersama
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-10 w-10 text-primary" />
-              </div>
-              <h3 className="font-semibold mb-2 text-lg">Amanah</h3>
-              <p className="text-sm text-muted-foreground">
-                Menjaga kepercayaan jamaah dengan transparansi dan integritas
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Legalitas */}
-      <section className="py-16 container mx-auto px-4">
-        <div className="max-w-3xl mx-auto bg-card p-8 rounded-lg shadow-md border">
-          <h2 className="text-3xl font-bold mb-6 text-center">Legalitas & Sertifikasi</h2>
-          <div className="space-y-4">
-            <div className="flex items-start gap-4">
-              <Shield className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
-              <div>
-                <p className="font-semibold">Izin PPIU (Penyelenggara Perjalanan Ibadah Umroh)</p>
-                <p className="text-sm text-muted-foreground">No. 17102200953750002 - Kementerian Agama RI</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <Shield className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
-              <div>
-                <p className="font-semibold">Terdaftar di ASITA (Association of The Indonesian Tours and Travel Agencies)</p>
-                <p className="text-sm text-muted-foreground">Anggota resmi asosiasi travel Indonesia</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <Shield className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
-              <div>
-                <p className="font-semibold">Sertifikat ISO 9001:2015</p>
-                <p className="text-sm text-muted-foreground">Standar manajemen mutu internasional</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Info */}
-      <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Kantor Kami</h2>
-          <div className="max-w-2xl mx-auto bg-card p-8 rounded-lg shadow-md text-center">
-            <h3 className="font-semibold text-xl mb-4">PT. Musafar Tour Indonesia</h3>
-            <p className="text-muted-foreground mb-2">
-              Commercial Park Harapan Indah Ruko Emerald Blok EB1 No. 28<br />
-              Medan Satria, Kota Bekasi, Jawa Barat 17131
-            </p>
-            <p className="text-muted-foreground mb-4">
-              Telepon: 021-38312137<br />
-              WhatsApp: 0819-1740-3797<br />
-              Email: musafartour@gmail.com
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Senin - Jumat: 09.00 - 17.00 WIB<br />
-              Sabtu: 09.00 - 14.00 WIB
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* Spacer for sticky bar */}
+      <div className="h-16" />
 
       <Footer />
     </div>
