@@ -104,7 +104,7 @@ const PaketUmroh = () => {
       <Navbar />
       
       {/* Header */}
-      <section className="py-16 bg-muted/50">
+      <section className="py-16 bg-card border-b">
         <div className="container mx-auto px-4 text-center">
           <Package className="h-16 w-16 mx-auto mb-4 text-primary" />
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Paket Umroh Musafar Tour</h1>
