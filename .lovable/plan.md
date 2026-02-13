@@ -1,51 +1,77 @@
 
-# Fix: Hotel Data Not Showing in Admin Form
 
-## Root Cause
-The sync is actually **working correctly** -- hotel names are stored in the `packages` table. The problem is a **name mismatch** between:
-- Google Sheets names: `"Mövenpick Hotel"`, `"Maysan Al Maqom"`, `"Al Olayan Golden"`, `"Anjum"`
-- Hotels table names: `"Movenpick"`, `"Maysan Al Maqam"` (or missing entirely)
+# Fix Dark Mode Contrast + Speed Up Package Images
 
-The admin form uses `makkahHotels.find((h) => h.name === field.value)` for exact matching, which fails on these differences. Result: "Belum dipilih".
+## Problem 1: Dark Mode Text Still Unreadable
+The h1 heading in page headers relies on CSS inheritance for its color, which can fail in some rendering contexts. Adding explicit `text-foreground` to all headings and descriptions in the header sections will guarantee readability.
 
-## Solution
+**Files to update** (6 pages -- same pattern):
+- `src/pages/PaketUmroh.tsx`
+- `src/pages/Artikel.tsx`
+- `src/pages/JadwalUmroh.tsx`
+- `src/pages/Kontak.tsx`
+- `src/pages/Galeri.tsx`
+- `src/pages/TentangKami.tsx`
 
-### 1. Fuzzy Hotel Matching in Sync Function
-Update `supabase/functions/sync-google-sheets/index.ts` to:
-- After extracting hotel name from the sheet, query the `hotels` table for the closest match
-- Use a normalized comparison (lowercase, strip accents/diacritics, trim suffixes like "Hotel")
-- If a match is found, use the **exact name from the hotels table** instead of the raw sheet value
-- If no match exists, auto-create the hotel in the `hotels` table with the sheet name, correct location, and null star rating
+Change: Add `text-foreground` to h1 tags in the header section.
 
-### 2. Auto-Create Missing Hotels
-For hotel names from Google Sheets that have no match in the `hotels` table at all (e.g., "Al Olayan Golden", "Anjum"), the sync function will:
-- Insert them into the `hotels` table with the correct `location` (makkah/madinah)
-- Set `star_rating` to null (can be filled in manually later)
-- This ensures the form dropdown always has a matching entry
+## Problem 2: Images Loading Extremely Slow
+All package banner images are currently served from Google Drive indirect URLs (`lh3.googleusercontent.com/d/...`). Google Drive is not designed as a CDN and adds significant latency (redirects, no edge caching, throttling).
 
-### 3. Normalize Existing Mismatches
-Add a normalization helper function that strips diacritics (o with umlaut becomes o), removes common suffixes ("Hotel", "Makkah"), and lowercases for comparison:
-```
-"Mövenpick Hotel" -> "movenpick"
-"Movenpick" -> "movenpick"  -- MATCH
-"Maysan Al Maqom" -> "maysan al maqom"
-"Maysan Al Maqam" -> "maysan al maqam"  -- close but not exact
-```
-For near-misses, use a simple similarity check (e.g., string starts-with or contains).
+### Solution: Migrate Images to Lovable Cloud Storage
+Create a backend function that:
+1. Downloads each image from the Google Drive URL
+2. Compresses and converts it to WebP
+3. Uploads it to a `package-images` storage bucket
+4. Updates the `banner_image` field in the database with the new fast CDN URL
+
+After migration, all future syncs from Google Sheets will also auto-upload Drive links to storage instead of storing them directly.
+
+### Implementation Steps
+
+1. **Create storage bucket** via SQL migration:
+   - `package-images` bucket (public, for banner images)
+
+2. **Create edge function** `migrate-drive-images`:
+   - Fetches all packages with Google Drive banner URLs
+   - Downloads each image
+   - Uploads to `package-images` bucket as WebP
+   - Updates the database record with the new storage URL
+   - Returns a summary of migrated images
+
+3. **Update `sync-google-sheets`** edge function:
+   - When a new Google Drive link is detected during sync, automatically download and upload to storage instead of storing the Drive URL directly
+
+4. **Add image loading optimization to `PackageCard`**:
+   - Add a blurhash/skeleton placeholder while loading
+   - Use `fetchpriority="high"` for first 4 visible cards
 
 ## Technical Details
 
-### File: `supabase/functions/sync-google-sheets/index.ts`
+### Storage Bucket Migration SQL
+```sql
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('package-images', 'package-images', true);
 
-1. Before the main row processing loop, fetch all hotels from the `hotels` table
-2. Create a `resolveHotel(name, location)` function that:
-   - Normalizes both the input name and all hotel table names
-   - Finds the best match
-   - If no match, inserts a new hotel record
-   - Returns the exact hotel name from the database
-3. Use this resolved name when setting `makkahHotel` and `madinahHotel` values
+-- Allow public read access
+CREATE POLICY "Public read access" ON storage.objects
+  FOR SELECT USING (bucket_id = 'package-images');
 
-### Changes Summary
-- **1 file modified**: `supabase/functions/sync-google-sheets/index.ts`
-- **No schema changes needed** -- all columns already exist
-- After deploying, re-running sync will fix all hotel references
+-- Allow service role to upload
+CREATE POLICY "Service role upload" ON storage.objects
+  FOR INSERT WITH CHECK (bucket_id = 'package-images');
+```
+
+### Edge Function: `migrate-drive-images`
+- Fetches packages where `banner_image LIKE '%googleusercontent%' OR banner_image LIKE '%drive.google%'`
+- Downloads image via fetch
+- Uploads to storage as `{package-slug}-banner.webp`
+- Updates `packages.banner_image` with the public storage URL
+
+### Sync Function Update
+- In the existing `sync-google-sheets` function, after converting a Drive link, also upload to storage before saving
+
+### PackageCard Optimization
+- First 4 cards rendered with `loading="eager"` and `fetchpriority="high"`
+- Remaining cards keep `loading="lazy"`
+
