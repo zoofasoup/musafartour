@@ -15,6 +15,7 @@ export interface PublishedPackage {
   banner_image: string | null;
   package_price: PackagePrice;
   five_star_package_price: PackagePrice | undefined;
+  available_tiers: string[] | null;
   makkah_hotel_name: string | null;
   makkah_hotel_star: number | null;
   makkah_distance: string | null;

@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package, SlidersHorizontal, X } from "lucide-react";
+import { Package, SlidersHorizontal, X, MessageCircle } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -19,10 +19,11 @@ import {
 } from "@/components/ui/carousel";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { format, addMonths } from "date-fns";
+import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import type { PackageData } from "@/hooks/useHomepageData";
 import { formatPriceJuta } from "@/lib/utils";
+import { redirectToWhatsApp } from "@/lib/chatRedirect";
 
 interface PackageFilterSectionProps {
   packages: PackageData[];
@@ -43,18 +44,25 @@ export const PackageFilterSection = ({
   const isMobile = useIsMobile();
   const packagesAnimation = useScrollAnimation();
 
-  // Generate dynamic months (next 12 months from current date)
-  const monthOptions = useMemo(() => {
-    const months = [];
-    const now = new Date();
-    for (let i = 0; i < 12; i++) {
-      const date = addMonths(now, i);
-      const monthName = format(date, "MMMM", { locale: localeId }).toLowerCase();
-      const label = format(date, "MMMM yyyy", { locale: localeId });
-      months.push({ value: monthName, label });
-    }
-    return months;
-  }, []);
+  // Dynamic filter options from actual data
+  const filterOptions = useMemo(() => {
+    const airlines = [...new Set(packages.map(p => p.flight).filter(Boolean))].sort();
+    const durations = [...new Set(packages.map(p => p.duration_days))].sort((a, b) => a - b);
+    const months = [...new Set(packages.map(p => {
+      const d = new Date(p.departure_date);
+      return format(d, "yyyy-MM");
+    }))].sort().map(ym => {
+      const d = new Date(ym + "-01");
+      return { value: format(d, "MMMM", { locale: localeId }).toLowerCase(), label: format(d, "MMMM yyyy", { locale: localeId }) };
+    });
+    const uniqueMonths = months.filter((m, i, arr) => arr.findIndex(x => x.value === m.value) === i);
+
+    const tiers = [...new Set(packages.flatMap(p => (p as any).available_tiers || []))].filter(Boolean);
+    const tierMap: Record<string, string> = { hemat: "Hemat", nyaman: "Nyaman", best_seller: "Nyaman", "five-star": "Five Star", five_star: "Five Star", pelataran: "Pelataran Hemat", "pelataran-hemat": "Pelataran Hemat" };
+    const categories = [...new Set(tiers.map(t => JSON.stringify({ value: t, label: tierMap[t] || t })))].map(s => JSON.parse(s));
+
+    return { airlines, durations, months: uniqueMonths, categories };
+  }, [packages]);
 
   const formatPrice = (price: number) => formatPriceJuta(price);
 
@@ -64,44 +72,23 @@ export const PackageFilterSection = ({
 
   const filteredPackages = packages.filter((pkg) => {
     const pkgMonth = getMonthFromDate(pkg.departure_date);
+    const pkgTiers = (pkg as any).available_tiers || [];
 
-    const categoryMatch =
-      category === "all" ||
-      (pkg.available_tiers && pkg.available_tiers.includes(category));
+    const categoryMatch = category === "all" || pkgTiers.includes(category);
     const airlineMatch = airline === "all" || pkg.flight === airline;
-    const monthMatch =
-      month === "all" || pkgMonth.includes(month.toLowerCase());
-    const flightTypeMatch =
-      flightType === "all" || pkg.flight_type.toLowerCase() === flightType;
-    const durationMatch =
-      duration === "all" ||
-      (duration === "9" && pkg.duration_days === 9) ||
-      (duration === "12" && pkg.duration_days === 12) ||
-      (duration === "13" && pkg.duration_days === 13);
+    const monthMatch = month === "all" || pkgMonth.includes(month.toLowerCase());
+    const flightTypeMatch = flightType === "all" || pkg.flight_type.toLowerCase() === flightType;
+    const durationMatch = duration === "all" || pkg.duration_days === parseInt(duration);
 
-    return (
-      categoryMatch &&
-      airlineMatch &&
-      monthMatch &&
-      flightTypeMatch &&
-      durationMatch
-    );
+    return categoryMatch && airlineMatch && monthMatch && flightTypeMatch && durationMatch;
   });
 
-  const isFiltered =
-    category !== "all" ||
-    airline !== "all" ||
-    month !== "all" ||
-    flightType !== "all" ||
-    duration !== "all";
-  const displayPackages =
-    !isFiltered && !isMobile ? filteredPackages.slice(0, 4) : filteredPackages;
-
+  const isFiltered = category !== "all" || airline !== "all" || month !== "all" || flightType !== "all" || duration !== "all";
+  const displayPackages = !isFiltered && !isMobile ? filteredPackages.slice(0, 4) : filteredPackages;
   const activeFilterCount = [category, airline, month, flightType, duration].filter(v => v !== "all").length;
 
   const transformedPackages = displayPackages.map((pkg) => {
-    const displayCategory =
-      category !== "all" ? category : pkg.available_tiers?.[0] || "nyaman";
+    const displayCategory = category !== "all" ? category : (pkg as any).available_tiers?.[0] || "nyaman";
 
     return {
       id: pkg.id,
@@ -109,9 +96,7 @@ export const PackageFilterSection = ({
       image: pkg.banner_image || "/placeholder.svg",
       title: pkg.package_name,
       price: formatPrice(pkg.package_price.quad),
-      date: format(new Date(pkg.departure_date), "d MMMM yyyy", {
-        locale: localeId,
-      }),
+      date: format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId }),
       duration: `${pkg.duration_days} Hari`,
       airline: pkg.flight,
       transit: pkg.flight_type.toLowerCase() === "direct" ? "Direct" : "Transit",
@@ -120,10 +105,8 @@ export const PackageFilterSection = ({
       hotelMadinah: pkg.madinah_hotel_name || undefined,
       hotelMadinahRating: pkg.madinah_hotel_star || undefined,
       category: displayCategory,
-      seatAvailable: true,
-      fiveStarPrice: pkg.five_star_package_price?.quad
-        ? formatPrice(pkg.five_star_package_price.quad)
-        : undefined,
+      seatAvailable: !pkg.is_sold_out,
+      fiveStarPrice: pkg.five_star_package_price?.quad ? formatPrice(pkg.five_star_package_price.quad) : undefined,
       fiveStarHotelMakkah: pkg.five_star_makkah_hotel_name || undefined,
       fiveStarHotelMakkahRating: pkg.five_star_makkah_hotel_star || undefined,
       fiveStarHotelMadinah: pkg.five_star_madinah_hotel_name || undefined,
@@ -154,7 +137,7 @@ export const PackageFilterSection = ({
         </p>
       </div>
 
-      {/* Minimal Filter Toggle */}
+      {/* Filter Toggle */}
       <div className="flex items-center justify-center gap-3 mb-8">
         <Button
           variant={showFilters ? "default" : "outline"}
@@ -171,14 +154,8 @@ export const PackageFilterSection = ({
           )}
         </Button>
         {isFiltered && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={resetFilters}
-            className="text-muted-foreground hover:text-foreground gap-1"
-          >
-            <X className="h-3 w-3" />
-            Reset
+          <Button variant="ghost" size="sm" onClick={resetFilters} className="text-muted-foreground hover:text-foreground gap-1">
+            <X className="h-3 w-3" /> Reset
           </Button>
         )}
       </div>
@@ -187,49 +164,37 @@ export const PackageFilterSection = ({
       <div className={`overflow-hidden transition-all duration-300 ${showFilters ? "max-h-96 opacity-100 mb-10" : "max-h-0 opacity-0"}`}>
         <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-[140px] h-9 text-sm">
-              <SelectValue placeholder="Kategori" />
-            </SelectTrigger>
+            <SelectTrigger className="w-[140px] h-9 text-sm"><SelectValue placeholder="Kategori" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Kategori</SelectItem>
-              <SelectItem value="hemat">Hemat</SelectItem>
-              <SelectItem value="nyaman">Nyaman</SelectItem>
-              <SelectItem value="five-star">Five Star</SelectItem>
+              {filterOptions.categories.map((c) => (
+                <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
           <Select value={month} onValueChange={setMonth}>
-            <SelectTrigger className="w-[160px] h-9 text-sm">
-              <SelectValue placeholder="Bulan" />
-            </SelectTrigger>
+            <SelectTrigger className="w-[160px] h-9 text-sm"><SelectValue placeholder="Bulan" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Bulan</SelectItem>
-              {monthOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
+              {filterOptions.months.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
 
           <Select value={airline} onValueChange={setAirline}>
-            <SelectTrigger className="w-[160px] h-9 text-sm">
-              <SelectValue placeholder="Maskapai" />
-            </SelectTrigger>
+            <SelectTrigger className="w-[160px] h-9 text-sm"><SelectValue placeholder="Maskapai" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Maskapai</SelectItem>
-              <SelectItem value="Garuda Indonesia">Garuda Indonesia</SelectItem>
-              <SelectItem value="Saudia">Saudia</SelectItem>
-              <SelectItem value="Scoot Airlines">Scoot Airlines</SelectItem>
-              <SelectItem value="Oman Air">Oman Air</SelectItem>
-              <SelectItem value="Qatar Airways">Qatar Airways</SelectItem>
+              {filterOptions.airlines.map((a) => (
+                <SelectItem key={a} value={a}>{a}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
           <Select value={flightType} onValueChange={setFlightType}>
-            <SelectTrigger className="w-[140px] h-9 text-sm">
-              <SelectValue placeholder="Penerbangan" />
-            </SelectTrigger>
+            <SelectTrigger className="w-[140px] h-9 text-sm"><SelectValue placeholder="Penerbangan" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Tipe</SelectItem>
               <SelectItem value="direct">Direct</SelectItem>
@@ -238,13 +203,12 @@ export const PackageFilterSection = ({
           </Select>
 
           <Select value={duration} onValueChange={setDuration}>
-            <SelectTrigger className="w-[130px] h-9 text-sm">
-              <SelectValue placeholder="Durasi" />
-            </SelectTrigger>
+            <SelectTrigger className="w-[130px] h-9 text-sm"><SelectValue placeholder="Durasi" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Durasi</SelectItem>
-              <SelectItem value="9">9 Hari</SelectItem>
-              <SelectItem value="12">12 Hari</SelectItem>
+              {filterOptions.durations.map((d) => (
+                <SelectItem key={d} value={String(d)}>{d} Hari</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -253,11 +217,7 @@ export const PackageFilterSection = ({
       {/* Package Grid */}
       <div
         ref={packagesAnimation.ref}
-        className={`transition-all duration-700 ${
-          packagesAnimation.isVisible
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10"
-        }`}
+        className={`transition-all duration-700 ${packagesAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
       >
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -266,28 +226,30 @@ export const PackageFilterSection = ({
                 <Skeleton className="aspect-square w-full rounded-xl" />
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-3 w-1/2" />
-                <Skeleton className="h-3 w-2/3" />
               </div>
             ))}
           </div>
         ) : transformedPackages.length === 0 ? (
           <div className="text-center py-16">
             <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2">
-              Tidak ada paket tersedia
-            </h3>
-            <p className="text-muted-foreground">
-              Coba ubah filter atau kembali lagi nanti
+            <h3 className="text-xl font-semibold mb-2">Paket tidak ditemukan</h3>
+            <p className="text-muted-foreground mb-4">
+              Maaf, paket dengan kriteria tersebut belum tersedia. Silakan hubungi kami melalui WhatsApp.
             </p>
+            <Button
+              size="sm"
+              className="gap-2"
+              onClick={() => redirectToWhatsApp("Halo Musafar Tour, saya mencari paket umroh yang belum tersedia di website. Bisa dibantu?")}
+            >
+              <MessageCircle className="h-4 w-4" />
+              Hubungi via WhatsApp
+            </Button>
           </div>
         ) : isMobile ? (
           <Carousel opts={{ align: "start", loop: true }} className="w-full">
             <CarouselContent className="-ml-2 md:-ml-4">
               {transformedPackages.map((pkg) => (
-                <CarouselItem
-                  key={pkg.id}
-                  className="pl-2 md:pl-4 basis-[75%]"
-                >
+                <CarouselItem key={pkg.id} className="pl-2 md:pl-4 basis-[75%]">
                   <PackageCard {...pkg} />
                 </CarouselItem>
               ))}
