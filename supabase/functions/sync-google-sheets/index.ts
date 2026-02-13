@@ -42,13 +42,9 @@ const HEADER_MAP: Record<string, string> = {
   // Hotels - use specific column header names from spreadsheet
   'hotel makkah': '_hotel_makkah',
   'hotel mekkah': '_hotel_makkah',
-  'bintang makkah': '_star_makkah',
-  'star makkah': '_star_makkah',
-  'bintang hotel makkah': '_star_makkah',
   'hotel madinah': '_hotel_madinah',
-  'bintang madinah': '_star_madinah',
-  'star madinah': '_star_madinah',
-  'bintang hotel madinah': '_star_madinah',
+  'hotel kota +': '_hotel_extra',
+  'hotel kota': '_hotel_extra',
   // Nights
   'malam makkah': 'nights_makkah',
   'nights makkah': 'nights_makkah',
@@ -147,7 +143,7 @@ function parseDate(v: string): string | null {
 }
 
 function matchHeader(header: string): string | null {
-  const normalized = header.trim().toLowerCase()
+  const normalized = header.trim().toLowerCase().replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ')
   if (!normalized) return null
   if (HEADER_MAP[normalized]) return HEADER_MAP[normalized]
   for (const [alias, field] of Object.entries(HEADER_MAP)) {
@@ -270,8 +266,9 @@ Deno.serve(async (req) => {
       // Hotels - these are hotel NAMES, not star ratings
       const makkahHotel = getVal(row, '_hotel_makkah') || null
       const madinahHotel = getVal(row, '_hotel_madinah') || null
-      const makkahStar = parseInt(getVal(row, '_star_makkah')) || null
-      const madinahStar = parseInt(getVal(row, '_star_madinah')) || null
+      const hotelExtra = getVal(row, '_hotel_extra') || null
+      const makkahStar: number | null = null
+      const madinahStar: number | null = null
       
       // Nights
       const nightsMakkah = parseInt(getVal(row, 'nights_makkah')) || null
@@ -333,6 +330,7 @@ Deno.serve(async (req) => {
         nights_makkah: nightsMakkah,
         nights_madinah: nightsMadinah,
         nights_extra: nightsExtra,
+        hotel_extra: hotelExtra,
         slug: slug,
         status: isPublished ? 'published' : 'draft',
         updated_at: new Date().toISOString(),
