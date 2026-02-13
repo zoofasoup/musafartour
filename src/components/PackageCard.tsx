@@ -1,13 +1,6 @@
 import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Star, Heart, ChevronLeft, ChevronRight, Bell, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -30,13 +23,6 @@ interface PackageCardProps {
   hotelMadinahRating?: number;
   category: string;
   seatAvailable?: boolean;
-  fiveStarPrice?: string;
-  fiveStarHotelMakkah?: string;
-  fiveStarHotelMakkahRating?: number;
-  fiveStarHotelMadinah?: string;
-  fiveStarHotelMadinahRating?: number;
-  fiveStarTransport?: string;
-  bestSellerTransport?: string;
   isSoldOut?: boolean;
   waitlistCount?: number;
   index?: number;
@@ -62,37 +48,20 @@ export const PackageCard = ({
   duration,
   airline,
   transit,
-  hotelMakkah,
   hotelMakkahRating = 4,
-  hotelMadinah,
-  hotelMadinahRating = 4,
   category,
   seatAvailable = true,
-  fiveStarPrice,
-  fiveStarHotelMakkah,
-  fiveStarHotelMakkahRating = 5,
-  fiveStarHotelMadinah,
-  fiveStarHotelMadinahRating = 5,
-  fiveStarTransport = "Kereta Cepat",
-  bestSellerTransport = "Bus Eksklusif",
   isSoldOut = false,
   waitlistCount = 0,
   index = 0,
 }: PackageCardProps) => {
   const navigate = useNavigate();
   const { isFavorite, toggleFavorite } = useFavorites();
-  const [selectedTier, setSelectedTier] = useState<"best-seller" | "five-star">("best-seller");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   
-  // Combine main image with gallery images
   const allImages = [image, ...images].filter(Boolean);
   const hasMultipleImages = allImages.length > 1;
-  
-  const hasFiveStarTier = !!fiveStarPrice && !!fiveStarHotelMakkah && !!fiveStarHotelMadinah;
-  
-  const displayPrice = selectedTier === "five-star" && fiveStarPrice ? fiveStarPrice : price;
-  const displayMakkahRating = selectedTier === "five-star" && fiveStarHotelMakkah ? fiveStarHotelMakkahRating : hotelMakkahRating;
 
   const packageId = id || slug || '';
   const isFav = isFavorite(packageId);
@@ -108,17 +77,14 @@ export const PackageCard = ({
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    // Trigger animation
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 400);
-    
     toggleFavorite({
       id: packageId,
       slug,
       title,
       image,
-      price: displayPrice,
+      price,
     });
   };
 
@@ -140,9 +106,9 @@ export const PackageCard = ({
     setCurrentImageIndex(prev => prev === allImages.length - 1 ? 0 : prev + 1);
   };
 
-  const handleDotClick = (e: React.MouseEvent, index: number) => {
+  const handleDotClick = (e: React.MouseEvent, idx: number) => {
     e.stopPropagation();
-    setCurrentImageIndex(index);
+    setCurrentImageIndex(idx);
   };
 
   return (
@@ -154,23 +120,20 @@ export const PackageCard = ({
     >
       {/* Image Container */}
       <div className="relative aspect-square rounded-xl overflow-hidden mb-3">
-        {/* Sold Out Ribbon */}
         {isSoldOut && (
           <div className="absolute top-0 left-0 right-0 z-20">
-            <div className="bg-red-600 text-white text-center py-2 font-bold text-sm shadow-lg">
+            <div className="bg-destructive text-destructive-foreground text-center py-2 font-bold text-sm shadow-lg">
               PENUH
             </div>
           </div>
         )}
 
-        {/* Seat Available Badge - only show if not sold out */}
         {!isSoldOut && seatAvailable && (
           <Badge className="absolute top-3 left-3 z-10 bg-background text-foreground border shadow-sm rounded-full px-3 py-1 text-xs font-medium">
             Seat Terbatas
           </Badge>
         )}
         
-        {/* Favorite Button */}
         <button
           ref={heartRef}
           onClick={handleFavoriteClick}
@@ -186,7 +149,6 @@ export const PackageCard = ({
           />
         </button>
         
-        {/* Particle effects on favorite */}
         {isAnimating && isFav && (
           <div className={`absolute ${isSoldOut ? 'top-12' : 'top-3'} right-3 z-20 pointer-events-none`}>
             <span className="absolute w-1.5 h-1.5 bg-primary rounded-full animate-particle-1" />
@@ -198,7 +160,6 @@ export const PackageCard = ({
           </div>
         )}
 
-      {/* Image Carousel */}
         <img
           src={allImages[currentImageIndex] || '/placeholder.svg'}
           alt={title}
@@ -218,12 +179,10 @@ export const PackageCard = ({
           }}
         />
 
-        {/* Sold Out Overlay */}
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/20 pointer-events-none" />
         )}
 
-        {/* Navigation Arrows - only show if not sold out */}
         {hasMultipleImages && isHovered && !isSoldOut && (
           <>
             <button
@@ -243,25 +202,23 @@ export const PackageCard = ({
           </>
         )}
 
-        {/* Carousel Dots */}
         {hasMultipleImages && !isSoldOut && (
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex gap-1.5">
-            {allImages.slice(0, 5).map((_, index) => (
+            {allImages.slice(0, 5).map((_, idx) => (
               <button
-                key={index}
-                onClick={(e) => handleDotClick(e, index)}
+                key={idx}
+                onClick={(e) => handleDotClick(e, idx)}
                 className={`w-1.5 h-1.5 rounded-full transition-all ${
-                  currentImageIndex === index 
+                  currentImageIndex === idx 
                     ? 'bg-background w-2' 
                     : 'bg-background/60 hover:bg-background/80'
                 }`}
-                aria-label={`Go to image ${index + 1}`}
+                aria-label={`Go to image ${idx + 1}`}
               />
             ))}
           </div>
         )}
 
-        {/* Waitlist count for sold out */}
         {isSoldOut && waitlistCount > 0 && (
           <div className="absolute bottom-3 left-3 z-10">
             <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm text-xs">
@@ -274,43 +231,24 @@ export const PackageCard = ({
 
       {/* Content */}
       <div className="space-y-1">
-        {/* Title Row with Rating */}
         <div className="flex items-start justify-between gap-2">
           <h3 className={`font-semibold text-[15px] leading-tight line-clamp-1 ${isSoldOut ? 'text-muted-foreground' : 'text-foreground'}`}>
             {title}
           </h3>
-          <StarRating rating={displayMakkahRating} />
+          <StarRating rating={hotelMakkahRating} />
         </div>
 
-        {/* Airline & Transit */}
         <p className="text-sm text-muted-foreground line-clamp-1">
           {airline}{transit ? ` · ${transit}` : ''}
         </p>
 
-        {/* Duration & Date */}
         <p className="text-sm text-muted-foreground">
           {duration} · {date}
         </p>
 
-        {/* Tier Selector - hide for sold out */}
-        {!isSoldOut && hasFiveStarTier && (
-          <Select value={selectedTier} onValueChange={(value) => setSelectedTier(value as "best-seller" | "five-star")}>
-            <SelectTrigger className="w-full h-8 text-xs mt-2" onClick={(e) => e.stopPropagation()}>
-              <SelectValue>
-                {selectedTier === "five-star" ? "Five Star" : "Best Seller"}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="best-seller">Best Seller</SelectItem>
-              <SelectItem value="five-star">Five Star</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
-
-        {/* Price or Sold Out Actions */}
         {isSoldOut ? (
           <div className="pt-2 space-y-2">
-            <p className="text-sm text-muted-foreground line-through">{displayPrice} /orang</p>
+            <p className="text-sm text-muted-foreground line-through">{price} /orang</p>
             <Button 
               variant="outline" 
               size="sm" 
@@ -323,7 +261,7 @@ export const PackageCard = ({
           </div>
         ) : (
           <p className="pt-1">
-            <span className="font-semibold text-foreground">{displayPrice}</span>
+            <span className="font-semibold text-foreground">{price}</span>
             <span className="text-muted-foreground text-sm"> /orang</span>
           </p>
         )}

@@ -7,7 +7,7 @@ import { PackageCard } from "@/components/PackageCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package, Calendar, Plane, Clock, Grid3X3, List, SlidersHorizontal, X, MessageCircle } from "lucide-react";
+import { Package, Calendar, Plane, Clock, Grid3X3, List, X, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { formatPriceJuta } from "@/lib/utils";
@@ -37,7 +37,6 @@ const PaketUmroh = () => {
       const d = new Date(ym + "-01");
       return { value: format(d, "MMMM", { locale: localeId }).toLowerCase(), label: format(d, "MMMM yyyy", { locale: localeId }) };
     });
-    // Deduplicate months by value
     const uniqueMonths = months.filter((m, i, arr) => arr.findIndex(x => x.value === m.value) === i);
 
     const tiers = [...new Set(packages.flatMap(p => (p as any).available_tiers || []))].filter(Boolean);
@@ -65,7 +64,6 @@ const PaketUmroh = () => {
   });
 
   const isFiltered = category !== "all" || airline !== "all" || month !== "all" || flightType !== "all" || duration !== "all";
-  const activeFilterCount = [category, airline, month, flightType, duration].filter(v => v !== "all").length;
 
   const resetFilters = () => {
     setCategory("all");
@@ -93,13 +91,6 @@ const PaketUmroh = () => {
     seatAvailable: !pkg.is_sold_out,
     isSoldOut: pkg.is_sold_out || false,
     waitlistCount: pkg.waitlist_count || 0,
-    fiveStarPrice: pkg.five_star_package_price?.quad ? formatPrice(pkg.five_star_package_price.quad) : undefined,
-    fiveStarHotelMakkah: pkg.five_star_makkah_hotel_name || undefined,
-    fiveStarHotelMakkahRating: pkg.five_star_makkah_hotel_star || undefined,
-    fiveStarHotelMadinah: pkg.five_star_madinah_hotel_name || undefined,
-    fiveStarHotelMadinahRating: pkg.five_star_madinah_hotel_star || undefined,
-    fiveStarTransport: pkg.five_star_transport || undefined,
-    bestSellerTransport: pkg.best_seller_transport || undefined,
   }));
 
   return (
@@ -141,7 +132,7 @@ const PaketUmroh = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Kategori</SelectItem>
-              {filterOptions.categories.map((c) => (
+              {filterOptions.categories.map((c: any) => (
                 <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
               ))}
             </SelectContent>
@@ -215,7 +206,7 @@ const PaketUmroh = () => {
         ) : transformedPackages.length === 0 ? (
           <div className="text-center py-16">
             <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2">Paket tidak ditemukan</h3>
+            <h3 className="text-xl font-semibold mb-2 text-foreground">Paket tidak ditemukan</h3>
             <p className="text-muted-foreground mb-4">
               Maaf, paket dengan kriteria tersebut belum tersedia.
             </p>
@@ -243,15 +234,15 @@ const PaketUmroh = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <Calendar className="h-5 w-5 text-primary" />
-                      <span className="font-bold text-lg">
+                      <span className="font-bold text-lg text-foreground">
                         {format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId })}
                       </span>
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">{pkg.package_name}</h3>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground">{pkg.package_name}</h3>
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1"><Clock className="h-4 w-4" />{pkg.duration_days} Hari</div>
                       <div className="flex items-center gap-1"><Plane className="h-4 w-4" />{pkg.flight}</div>
-                      <span className="text-accent font-medium">{pkg.flight_type === "direct" ? "Direct" : "Transit"}</span>
+                      <span className="text-primary font-medium">{pkg.flight_type === "direct" ? "Direct" : "Transit"}</span>
                     </div>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2">
@@ -259,7 +250,7 @@ const PaketUmroh = () => {
                       <Button variant="outline" className="w-full sm:w-auto">Lihat Detail</Button>
                     </Link>
                     <Button
-                      className="bg-[#25D366] hover:bg-[#22c55e] text-white w-full sm:w-auto"
+                      className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
                       onClick={() => {
                         const message = `Halo Musafar Tour, saya ingin mendaftar untuk ${pkg.package_name} dengan keberangkatan ${format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId })}.`;
                         redirectToWhatsApp(message);

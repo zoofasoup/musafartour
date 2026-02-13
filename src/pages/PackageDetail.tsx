@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -6,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Calendar, 
   Plane, 
@@ -20,7 +18,6 @@ import {
   Package,
   ExternalLink,
   ArrowLeft,
-  Train,
   Bus,
   Bell,
   AlertTriangle
@@ -39,7 +36,7 @@ const StarRating = ({ rating }: { rating: number }) => {
         <Star
           key={i}
           className={`w-4 h-4 ${
-            i < rating ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"
+            i < rating ? "fill-accent text-accent" : "fill-muted text-muted"
           }`}
         />
       ))}
@@ -50,7 +47,6 @@ const StarRating = ({ rating }: { rating: number }) => {
 const PackageDetailPage = () => {
   const { id: slug } = useParams();
   const navigate = useNavigate();
-  const [selectedTier, setSelectedTier] = useState<"best-seller" | "five-star">("best-seller");
 
   const { data: packageData, isLoading: loading } = usePackageBySlug(slug);
 
@@ -59,8 +55,6 @@ const PackageDetailPage = () => {
     const message = `Halo Musafar Tour, saya tertarik dengan paket ${packageData.package_name}. Mohon info lebih lanjut untuk pendaftaran.`;
     redirectToWhatsApp(message);
   };
-
-  const formatPrice = (price: number) => formatCurrency(price);
 
   const formatPriceShort = (price: number) => {
     const millions = price / 1000000;
@@ -100,7 +94,7 @@ const PackageDetailPage = () => {
         <Navbar />
         <div className="container mx-auto px-4 py-16 text-center">
           <Package className="h-24 w-24 mx-auto mb-6 text-muted-foreground" />
-          <h1 className="text-3xl font-bold mb-4">Paket tidak ditemukan</h1>
+          <h1 className="text-3xl font-bold mb-4 text-foreground">Paket tidak ditemukan</h1>
           <p className="text-muted-foreground mb-8">
             Paket yang Anda cari tidak tersedia atau sudah tidak aktif.
           </p>
@@ -127,7 +121,7 @@ const PackageDetailPage = () => {
       
       {/* Sold Out Banner */}
       {packageData.is_sold_out && (
-        <div className="bg-red-600 text-white">
+        <div className="bg-destructive text-destructive-foreground">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-center gap-3 text-center">
               <AlertTriangle className="h-5 w-5 flex-shrink-0" />
@@ -140,12 +134,12 @@ const PackageDetailPage = () => {
       )}
 
       {/* Back Button */}
-      <section className="py-4 border-b">
+      <section className="py-4 border-b bg-background">
         <div className="container mx-auto px-4">
           <Button 
             variant="ghost" 
             onClick={() => navigate(-1)}
-            className="mb-2"
+            className="text-foreground"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Kembali
@@ -155,23 +149,27 @@ const PackageDetailPage = () => {
 
       {/* Hero Section */}
       {packageData.banner_image && (
-        <section className="py-6 md:py-8 bg-gradient-to-b from-muted/30 to-background">
+        <section className="py-6 md:py-8 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-              {/* Flyer Image - 50% on desktop */}
+              {/* Flyer Image */}
               <div>
-                <div className="relative bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className="relative bg-card rounded-xl shadow-lg overflow-hidden">
                   <div className="aspect-[1080/1350] relative">
                     <img
                       src={packageData.banner_image}
                       alt={packageData.package_name}
                       className="w-full h-full object-contain"
+                      loading="eager"
+                      fetchPriority="high"
+                      width="1080"
+                      height="1350"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Price & CTA Panel - 50% on desktop */}
+              {/* Price & CTA Panel */}
               <div>
                 <Card className="lg:sticky lg:top-24 shadow-xl border-2">
                   <CardContent className="p-6">
@@ -199,128 +197,68 @@ const PackageDetailPage = () => {
                           </div>
                         </div>
 
-                        {/* Flight & Transport Info - Horizontal */}
+                        {/* Flight & Transport Info */}
                         <div className="flex gap-2 flex-wrap items-center">
-                          <Badge variant="outline" className="bg-cyan-50 text-cyan-600 border-cyan-200 rounded-full">
+                          <Badge variant="outline" className="rounded-full text-foreground">
                             <Plane className="w-3 h-3 mr-1" />
                             {packageData.flight}
                           </Badge>
-                          <Badge variant="outline" className="bg-pink-50 text-pink-600 border-pink-200 rounded-full">
+                          <Badge variant="outline" className="rounded-full text-foreground">
                             {packageData.flight_type}
                           </Badge>
-                          <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200 rounded-full">
-                            {selectedTier === "five-star" ? <Train className="w-3 h-3 mr-1" /> : <Bus className="w-3 h-3 mr-1" />}
-                            {selectedTier === "five-star" 
-                              ? (packageData.five_star_transport || "Kereta Cepat")
-                              : (packageData.best_seller_transport || "Bus Eksklusif")
-                            }
+                          <Badge variant="outline" className="rounded-full text-foreground">
+                            <Bus className="w-3 h-3 mr-1" />
+                            {packageData.best_seller_transport || "Bus Eksklusif"}
                           </Badge>
                         </div>
                       </div>
                     </div>
 
                     <h2 className="text-xl font-bold mb-4 text-foreground">Harga Paket</h2>
-                    
-                    {/* Tier Selector */}
-                    {packageData.five_star_package_price && 
-                     (packageData.five_star_package_price.quad > 0 || 
-                      packageData.five_star_package_price.triple > 0 || 
-                      packageData.five_star_package_price.double > 0) && (
-                      <div className="mb-6">
-                        <label className="text-sm font-medium mb-2 block">Pilih Tier</label>
-                        <Select value={selectedTier} onValueChange={(value: "best-seller" | "five-star") => setSelectedTier(value)}>
-                          <SelectTrigger className="w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="best-seller">
-                              <div className="flex items-center gap-2">
-                                <Bus className="w-4 h-4" />
-                                <span>Best Seller - {packageData.best_seller_transport || "Bus Eksklusif"}</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="five-star">
-                              <div className="flex items-center gap-2">
-                                <Train className="w-4 h-4" />
-                                <span>Five Star - {packageData.five_star_transport || "Kereta Cepat"}</span>
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
 
                     {/* Hotel Information */}
                     <div className="mb-6 p-4 bg-muted/30 rounded-lg border">
-                      <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
+                      <h3 className="text-sm font-bold mb-3 flex items-center gap-2 text-foreground">
                         <Hotel className="h-4 w-4 text-primary" />
                         Informasi Hotel
                       </h3>
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         {(selectedTier === "best-seller" ? packageData.makkah_hotel_name : packageData.five_star_makkah_hotel_name || packageData.makkah_hotel_name) && (
+                         {packageData.makkah_hotel_name && (
                            <div className="space-y-1">
                              <div className="flex items-center gap-2">
-                               <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
-                               <span className="font-semibold text-sm">Makkah</span>
+                               <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                               <span className="font-semibold text-sm text-foreground">Makkah</span>
                              </div>
-                             <p className="text-sm pl-6">
-                               {selectedTier === "best-seller" 
-                                 ? packageData.makkah_hotel_name 
-                                 : packageData.five_star_makkah_hotel_name || packageData.makkah_hotel_name}
-                             </p>
-                             {((selectedTier === "best-seller" ? packageData.makkah_hotel_star : packageData.five_star_makkah_hotel_star) || packageData.makkah_hotel_star) && (
+                             <p className="text-sm pl-6 text-foreground">{packageData.makkah_hotel_name}</p>
+                             {packageData.makkah_hotel_star && (
                                <div className="pl-6">
-                                 <StarRating rating={
-                                   selectedTier === "best-seller" 
-                                     ? packageData.makkah_hotel_star || 0
-                                     : packageData.five_star_makkah_hotel_star || packageData.makkah_hotel_star || 0
-                                 } />
+                                 <StarRating rating={packageData.makkah_hotel_star} />
                                </div>
                              )}
-                             {((selectedTier === "best-seller" ? packageData.makkah_distance : packageData.five_star_makkah_distance) || packageData.makkah_distance) && (
+                             {packageData.makkah_distance && (
                                <p className="text-xs text-muted-foreground pl-6">
-                                 📍 {selectedTier === "best-seller" 
-                                   ? packageData.makkah_distance 
-                                   : packageData.five_star_makkah_distance || packageData.makkah_distance}
-                                 {((selectedTier === "best-seller" ? packageData.makkah_duration_walk : packageData.five_star_makkah_duration_walk) || packageData.makkah_duration_walk) && 
-                                   ` • 🚶 ${selectedTier === "best-seller" 
-                                     ? packageData.makkah_duration_walk 
-                                     : packageData.five_star_makkah_duration_walk || packageData.makkah_duration_walk}`
-                                 }
+                                 📍 {packageData.makkah_distance}
+                                 {packageData.makkah_duration_walk && ` • 🚶 ${packageData.makkah_duration_walk}`}
                                </p>
                              )}
                            </div>
                          )}
-                         {(selectedTier === "best-seller" ? packageData.madinah_hotel_name : packageData.five_star_madinah_hotel_name || packageData.madinah_hotel_name) && (
+                         {packageData.madinah_hotel_name && (
                            <div className="space-y-1">
                              <div className="flex items-center gap-2">
-                               <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
-                               <span className="font-semibold text-sm">Madinah</span>
+                               <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                               <span className="font-semibold text-sm text-foreground">Madinah</span>
                              </div>
-                             <p className="text-sm pl-6">
-                               {selectedTier === "best-seller" 
-                                 ? packageData.madinah_hotel_name 
-                                 : packageData.five_star_madinah_hotel_name || packageData.madinah_hotel_name}
-                             </p>
-                             {((selectedTier === "best-seller" ? packageData.madinah_hotel_star : packageData.five_star_madinah_hotel_star) || packageData.madinah_hotel_star) && (
+                             <p className="text-sm pl-6 text-foreground">{packageData.madinah_hotel_name}</p>
+                             {packageData.madinah_hotel_star && (
                                <div className="pl-6">
-                                 <StarRating rating={
-                                   selectedTier === "best-seller" 
-                                     ? packageData.madinah_hotel_star || 0
-                                     : packageData.five_star_madinah_hotel_star || packageData.madinah_hotel_star || 0
-                                 } />
+                                 <StarRating rating={packageData.madinah_hotel_star} />
                                </div>
                              )}
-                             {((selectedTier === "best-seller" ? packageData.madinah_distance : packageData.five_star_madinah_distance) || packageData.madinah_distance) && (
+                             {packageData.madinah_distance && (
                                <p className="text-xs text-muted-foreground pl-6">
-                                 📍 {selectedTier === "best-seller" 
-                                   ? packageData.madinah_distance 
-                                   : packageData.five_star_madinah_distance || packageData.madinah_distance}
-                                 {((selectedTier === "best-seller" ? packageData.madinah_duration_walk : packageData.five_star_madinah_duration_walk) || packageData.madinah_duration_walk) && 
-                                   ` • 🚶 ${selectedTier === "best-seller" 
-                                     ? packageData.madinah_duration_walk 
-                                     : packageData.five_star_madinah_duration_walk || packageData.madinah_duration_walk}`
-                                 }
+                                 📍 {packageData.madinah_distance}
+                                 {packageData.madinah_duration_walk && ` • 🚶 ${packageData.madinah_duration_walk}`}
                                </p>
                              )}
                            </div>
@@ -328,30 +266,26 @@ const PackageDetailPage = () => {
                       </div>
                     </div>
 
-                    {/* Price Cards - Tier Style */}
+                    {/* Price Cards */}
                     <div className="grid grid-cols-3 gap-3 mb-6">
-                      {/* Quad - Emphasized */}
+                      {/* Quad */}
                       <div className="col-span-3 sm:col-span-1 relative">
                         <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 z-10">
-                          <Badge className="bg-orange-500 text-white border-0 rounded-sm px-1.5 py-0 text-[10px] font-bold shadow-lg whitespace-nowrap">
+                          <Badge className="bg-primary text-primary-foreground border-0 rounded-sm px-1.5 py-0 text-[10px] font-bold shadow-lg whitespace-nowrap">
                             PALING POPULER
                           </Badge>
                         </div>
-                        <Card className="border-2 border-orange-500 bg-orange-50 shadow-lg">
+                        <Card className="border-2 border-primary bg-primary/5 shadow-lg">
                           <CardContent className="p-4 text-center">
                             <div className="mb-2">
-                              <p className="text-sm font-bold text-orange-700 uppercase">Quad</p>
-                              <p className="text-xs text-orange-600">(4 orang/kamar)</p>
+                              <p className="text-sm font-bold text-primary uppercase">Quad</p>
+                              <p className="text-xs text-muted-foreground">(4 orang/kamar)</p>
                             </div>
                             <div className="mb-1">
-                              <p className="text-4xl font-bold text-orange-600">
-                                {formatPriceShort(
-                                  selectedTier === "five-star" && packageData.five_star_package_price
-                                    ? packageData.five_star_package_price.quad
-                                    : packageData.package_price.quad
-                                )}
+                              <p className="text-4xl font-bold text-primary">
+                                {formatPriceShort(packageData.package_price.quad)}
                               </p>
-                              <p className="text-xs text-orange-600 font-medium">juta</p>
+                              <p className="text-xs text-muted-foreground font-medium">juta</p>
                             </div>
                           </CardContent>
                         </Card>
@@ -359,21 +293,17 @@ const PackageDetailPage = () => {
 
                       {/* Triple */}
                       <div className="col-span-3 sm:col-span-1">
-                        <Card className="border bg-yellow-50 mt-6 sm:mt-0">
+                        <Card className="border bg-accent/5 mt-6 sm:mt-0">
                           <CardContent className="p-4 text-center">
                             <div className="mb-2">
-                              <p className="text-sm font-bold text-yellow-700 uppercase">Triple</p>
-                              <p className="text-xs text-yellow-600">(3 orang/kamar)</p>
+                              <p className="text-sm font-bold text-accent-foreground uppercase">Triple</p>
+                              <p className="text-xs text-muted-foreground">(3 orang/kamar)</p>
                             </div>
                             <div className="mb-1">
-                              <p className="text-3xl font-bold text-yellow-600">
-                                {formatPriceShort(
-                                  selectedTier === "five-star" && packageData.five_star_package_price
-                                    ? packageData.five_star_package_price.triple
-                                    : packageData.package_price.triple
-                                )}
+                              <p className="text-3xl font-bold text-accent-foreground">
+                                {formatPriceShort(packageData.package_price.triple)}
                               </p>
-                              <p className="text-xs text-yellow-600 font-medium">juta</p>
+                              <p className="text-xs text-muted-foreground font-medium">juta</p>
                             </div>
                           </CardContent>
                         </Card>
@@ -381,21 +311,17 @@ const PackageDetailPage = () => {
 
                       {/* Double */}
                       <div className="col-span-3 sm:col-span-1">
-                        <Card className="border bg-gray-50 mt-6 sm:mt-0">
+                        <Card className="border bg-muted/30 mt-6 sm:mt-0">
                           <CardContent className="p-4 text-center">
                             <div className="mb-2">
-                              <p className="text-sm font-bold text-gray-700 uppercase">Double</p>
-                              <p className="text-xs text-gray-600">(2 orang/kamar)</p>
+                              <p className="text-sm font-bold text-foreground uppercase">Double</p>
+                              <p className="text-xs text-muted-foreground">(2 orang/kamar)</p>
                             </div>
                             <div className="mb-1">
-                              <p className="text-3xl font-bold text-gray-600">
-                                {formatPriceShort(
-                                  selectedTier === "five-star" && packageData.five_star_package_price
-                                    ? packageData.five_star_package_price.double
-                                    : packageData.package_price.double
-                                )}
+                              <p className="text-3xl font-bold text-foreground">
+                                {formatPriceShort(packageData.package_price.double)}
                               </p>
-                              <p className="text-xs text-gray-600 font-medium">juta</p>
+                              <p className="text-xs text-muted-foreground font-medium">juta</p>
                             </div>
                           </CardContent>
                         </Card>
@@ -404,10 +330,10 @@ const PackageDetailPage = () => {
                     
                     {packageData.is_sold_out ? (
                       <div className="space-y-3 mb-4">
-                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-center">
-                          <p className="text-red-600 font-semibold mb-1">Paket Sudah Penuh</p>
+                        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-center">
+                          <p className="text-destructive font-semibold mb-1">Paket Sudah Penuh</p>
                           {packageData.waitlist_count && packageData.waitlist_count > 0 && (
-                            <p className="text-sm text-red-500">{packageData.waitlist_count} jamaah sudah terdaftar</p>
+                            <p className="text-sm text-destructive/80">{packageData.waitlist_count} jamaah sudah terdaftar</p>
                           )}
                         </div>
                         <Button 
@@ -441,12 +367,7 @@ const PackageDetailPage = () => {
                     {/* Secondary Buttons */}
                     <div className="grid grid-cols-2 gap-3">
                       {packageData.catalog_link && (
-                        <a
-                          href={packageData.catalog_link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full"
-                        >
+                        <a href={packageData.catalog_link} target="_blank" rel="noopener noreferrer" className="w-full">
                           <Button variant="outline" className="w-full text-xs md:text-sm">
                             <ExternalLink className="mr-1 h-4 w-4" />
                             Katalog
@@ -454,12 +375,7 @@ const PackageDetailPage = () => {
                         </a>
                       )}
                       {packageData.itinerary_link && (
-                        <a
-                          href={packageData.itinerary_link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full"
-                        >
+                        <a href={packageData.itinerary_link} target="_blank" rel="noopener noreferrer" className="w-full">
                           <Button variant="outline" className="w-full text-xs md:text-sm">
                             <ExternalLink className="mr-1 h-4 w-4" />
                             Itinerary
@@ -496,7 +412,7 @@ const PackageDetailPage = () => {
                     {parseListItems(packageData.included_items).map((item, idx) => (
                       <li key={idx} className="flex items-start gap-3">
                         <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{item}</span>
+                        <span className="text-sm text-foreground">{item}</span>
                       </li>
                     ))}
                   </ul>
@@ -516,7 +432,7 @@ const PackageDetailPage = () => {
                     {parseListItems(packageData.excluded_items).map((item, idx) => (
                       <li key={idx} className="flex items-start gap-3">
                         <XCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{item}</span>
+                        <span className="text-sm text-foreground">{item}</span>
                       </li>
                     ))}
                   </ul>
@@ -536,7 +452,7 @@ const PackageDetailPage = () => {
                     {parseListItems(packageData.equipment_list).map((item, idx) => (
                       <li key={idx} className="flex items-start gap-3">
                         <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{item}</span>
+                        <span className="text-sm text-foreground">{item}</span>
                       </li>
                     ))}
                   </ul>
@@ -548,7 +464,7 @@ const PackageDetailPage = () => {
             {packageData.gallery_images && packageData.gallery_images.length > 0 && (
               <Card className="shadow-md">
                 <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold mb-6">Galeri Foto</h2>
+                  <h2 className="text-2xl font-bold mb-6 text-foreground">Galeri Foto</h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {packageData.gallery_images.map((image, idx) => (
                       <div key={idx} className="relative aspect-square overflow-hidden rounded-lg shadow-sm">
@@ -556,6 +472,7 @@ const PackageDetailPage = () => {
                           src={image}
                           alt={`Gallery ${idx + 1}`}
                           className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                          loading="lazy"
                         />
                       </div>
                     ))}
