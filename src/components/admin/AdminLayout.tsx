@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { 
   LogOut, LayoutDashboard, Home, Image, Target, MessageSquare, 
   Images, Package, Plane, Hotel, Calendar, FileText, HelpCircle,
-  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2, ListChecks
+  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator
 } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
 import {
@@ -82,6 +82,7 @@ const AdminLayout = () => {
         { icon: Hotel, label: "Hotel", path: "/admin/hotels" },
         { icon: ListChecks, label: "Fasilitas Paket", path: "/admin/package-items" },
         { icon: Calendar, label: "Jadwal Keberangkatan", path: "/admin/jadwal" },
+        { icon: Calculator, label: "Kalkulator Harga", path: "/admin/calculator" },
       ]
     },
     {
