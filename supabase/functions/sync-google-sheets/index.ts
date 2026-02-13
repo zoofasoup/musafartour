@@ -142,6 +142,47 @@ function parseDate(v: string): string | null {
   return null
 }
 
+// Convert Google Drive sharing links to direct viewable image URLs
+function convertDriveLink(url: string): string | null {
+  if (!url || !url.trim()) return null
+  const trimmed = url.trim()
+  
+  // Extract file ID from various Google Drive URL formats
+  let fileId: string | null = null
+  
+  // Format: https://drive.google.com/open?id=FILE_ID
+  const openMatch = trimmed.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/)
+  if (openMatch) fileId = openMatch[1]
+  
+  // Format: https://drive.google.com/file/d/FILE_ID/view
+  if (!fileId) {
+    const fileMatch = trimmed.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/)
+    if (fileMatch) fileId = fileMatch[1]
+  }
+  
+  // Format: https://drive.google.com/uc?id=FILE_ID
+  if (!fileId) {
+    const ucMatch = trimmed.match(/drive\.google\.com\/uc\?.*id=([a-zA-Z0-9_-]+)/)
+    if (ucMatch) fileId = ucMatch[1]
+  }
+
+  if (fileId) {
+    // Use lh3.googleusercontent.com for reliable image embedding
+    return `https://lh3.googleusercontent.com/d/${fileId}`
+  }
+  
+  // If it's a valid URL (not a Drive link), return as-is
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed
+  
+  // Raw filename without URL - not usable, return null
+  if (!trimmed.includes('/')) {
+    console.warn(`⚠️ Banner image is just a filename, skipping: "${trimmed}"`)
+    return null
+  }
+  
+  return trimmed
+}
+
 // Strip diacritics and normalize for fuzzy comparison
 function normalizeForMatch(s: string): string {
   return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -416,8 +457,9 @@ Deno.serve(async (req) => {
       // Set slots if available
       if (seatCount) upsertData.slots_total = seatCount
 
-      // Set media links if available
-      if (flyerLink) upsertData.banner_image = flyerLink
+      // Set media links if available (convert Google Drive links to direct URLs)
+      const convertedFlyer = convertDriveLink(flyerLink || '')
+      if (convertedFlyer) upsertData.banner_image = convertedFlyer
       if (katalogLink) upsertData.catalog_link = katalogLink
       if (itineraryLink) upsertData.itinerary_link = itineraryLink
 

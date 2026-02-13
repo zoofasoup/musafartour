@@ -196,9 +196,9 @@ export const PackageCard = ({
           </div>
         )}
 
-        {/* Image Carousel */}
+      {/* Image Carousel */}
         <img
-          src={allImages[currentImageIndex]}
+          src={allImages[currentImageIndex] || '/placeholder.svg'}
           alt={title}
           loading="lazy"
           decoding="async"
@@ -207,6 +207,12 @@ export const PackageCard = ({
           className={`w-full h-full object-cover transition-all duration-300 ${
             isSoldOut ? 'grayscale-[60%] brightness-75' : 'group-hover:scale-105'
           }`}
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (target.src !== window.location.origin + '/placeholder.svg') {
+              target.src = '/placeholder.svg';
+            }
+          }}
         />
 
         {/* Sold Out Overlay */}
