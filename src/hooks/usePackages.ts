@@ -16,7 +16,10 @@ export interface PublishedPackage {
   banner_image: string | null;
   package_price: PackagePrice;
   five_star_package_price: PackagePrice | undefined;
+  hemat_package_price: PackagePrice | undefined;
+  pelataran_package_price: PackagePrice | undefined;
   available_tiers: string[] | null;
+  // Nyaman / Best Seller hotels
   makkah_hotel_name: string | null;
   makkah_hotel_star: number | null;
   makkah_distance: string | null;
@@ -25,6 +28,7 @@ export interface PublishedPackage {
   madinah_hotel_star: number | null;
   madinah_distance: string | null;
   madinah_duration_walk: string | null;
+  // Five Star hotels
   five_star_makkah_hotel_name: string | null;
   five_star_makkah_hotel_star: number | null;
   five_star_makkah_distance: string | null;
@@ -33,14 +37,48 @@ export interface PublishedPackage {
   five_star_madinah_hotel_star: number | null;
   five_star_madinah_distance: string | null;
   five_star_madinah_duration_walk: string | null;
+  // Hemat hotels
+  hemat_makkah_hotel_name: string | null;
+  hemat_makkah_hotel_star: number | null;
+  hemat_makkah_distance: string | null;
+  hemat_makkah_duration_walk: string | null;
+  hemat_madinah_hotel_name: string | null;
+  hemat_madinah_hotel_star: number | null;
+  hemat_madinah_distance: string | null;
+  hemat_madinah_duration_walk: string | null;
+  // Pelataran hotels
+  pelataran_makkah_hotel_name: string | null;
+  pelataran_makkah_hotel_star: number | null;
+  pelataran_makkah_distance: string | null;
+  pelataran_makkah_duration_walk: string | null;
+  pelataran_madinah_hotel_name: string | null;
+  pelataran_madinah_hotel_star: number | null;
+  pelataran_madinah_distance: string | null;
+  pelataran_madinah_duration_walk: string | null;
+  // Transport
   best_seller_transport: string | null;
   five_star_transport: string | null;
+  hemat_transport: string | null;
+  pelataran_transport: string | null;
+  // Content
+  selling_points: string | null;
   included_items: string | null;
   excluded_items: string | null;
   equipment_list: string | null;
   catalog_link: string | null;
   itinerary_link: string | null;
+  itinerary: string | null;
   gallery_images: string[] | null;
+  // Metadata
+  start_airport: string | null;
+  route: string | null;
+  timeframe: string | null;
+  slots_total: number | null;
+  slots_filled: number | null;
+  nights_makkah: number | null;
+  nights_madinah: number | null;
+  nights_extra: number | null;
+  hotel_extra: string | null;
   is_sold_out: boolean;
   sold_out_date: string | null;
   waitlist_count: number | null;
@@ -51,6 +89,12 @@ const transformPackage = (row: any): PublishedPackage => ({
   package_price: parsePackagePrice(row.package_price),
   five_star_package_price: row.five_star_package_price
     ? parsePackagePrice(row.five_star_package_price)
+    : undefined,
+  hemat_package_price: row.hemat_package_price
+    ? parsePackagePrice(row.hemat_package_price)
+    : undefined,
+  pelataran_package_price: row.pelataran_package_price
+    ? parsePackagePrice(row.pelataran_package_price)
     : undefined,
 });
 
