@@ -71,6 +71,7 @@ const AgentMarketingKit = lazy(() => import("./pages/agent/AgentMarketingKit"));
 const AgentProfile = lazy(() => import("./pages/agent/AgentProfile"));
 const AgentLeaderboard = lazy(() => import("./pages/agent/AgentLeaderboard"));
 const SalesCalculator = lazy(() => import("./pages/admin/SalesCalculator"));
+const PackageBrochure = lazy(() => import("./pages/admin/PackageBrochure"));
 const AgentProtectedRoute = lazy(() => import("./components/agent/AgentProtectedRoute"));
 const AgentManagement = lazy(() => import("./pages/admin/AgentManagement"));
 const Gamification = lazy(() => import("./pages/admin/Gamification"));
@@ -288,6 +289,7 @@ const App = () => (
                     <Route path="agents" element={<AgentManagement />} />
                     <Route path="gamification" element={<Gamification />} />
                     <Route path="calculator" element={<SalesCalculator />} />
+                    <Route path="brochure/:slug" element={<PackageBrochure />} />
                   </Route>
                   <Route path="*" element={<NotFound />} />
                 </Routes>
