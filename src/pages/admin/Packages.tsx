@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet } from "lucide-react";
+import { Plus, Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import {
@@ -66,6 +66,7 @@ const Packages = () => {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [selectionMode, setSelectionMode] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const lastSelectedIndex = useRef<number | null>(null);
 
   const { selectedIds, toggleSelect, selectAll, clearSelection, isSelected, allSelected, setSelectedIds } = useBulkSelection(packages);
@@ -284,6 +285,29 @@ const Packages = () => {
           <Button variant="outline" onClick={() => setImportOpen(true)}>
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             Import Excel
+          </Button>
+          <Button
+            variant="outline"
+            disabled={syncing}
+            onClick={async () => {
+              setSyncing(true);
+              try {
+                const { data, error } = await supabase.functions.invoke('sync-google-sheets');
+                if (error) throw error;
+                toast.success(data?.message || 'Sync selesai');
+                if (data?.details?.length) {
+                  console.log('Sync details:', data.details);
+                }
+                fetchPackages();
+              } catch (e: any) {
+                toast.error('Sync gagal: ' + e.message);
+              } finally {
+                setSyncing(false);
+              }
+            }}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Syncing...' : 'Sync Google Sheets'}
           </Button>
           <Button onClick={() => navigate("/admin/packages/new")}>
             <Plus className="mr-2 h-4 w-4" />
