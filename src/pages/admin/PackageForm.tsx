@@ -103,7 +103,6 @@ const packageSchema = z.object({
   
   optional_items: z.array(z.string()).optional(),
   custom_optional_items: z.array(z.string()).optional(),
-  equipment_type: z.enum(["lengkap", "minimalis"]),
   
   catalog_link: z.string().optional(),
   itinerary_link: z.string().optional(),
@@ -225,17 +224,6 @@ const ImageDropZone = ({
   );
 };
 
-// Equipment options
-const equipmentOptions = {
-  lengkap: [
-    "Ransel", "Koper 24 Inch", "Buku Panduan Umroh & Notebook", "Syal",
-    "Kain Ihram", "Baju Koko", "Gamis", "Mukena", "Kaos Ikhwan", "Strap Id Card", "Tumbler"
-  ],
-  minimalis: [
-    "Koper 24 Inch", "Buku Panduan Umroh & Notebook", "Kain Ihram", "Mukena", "Baju Koko", "Gamis"
-  ]
-};
-
 interface PackageItemRecord {
   id: string;
   name: string;
@@ -267,6 +255,11 @@ const PackageForm = () => {
   const [hotelModalLocation, setHotelModalLocation] = useState<"makkah" | "madinah">("madinah");
   const [hotelModalTier, setHotelModalTier] = useState<"best_seller" | "five_star">("best_seller");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Default transport based on tier
+  const getDefaultTransport = (tier: string) => {
+    return tier === "five-star" ? "Kereta Cepat" : "Bus Eksklusif";
+  };
 
   const form = useForm<PackageFormValues>({
     resolver: zodResolver(packageSchema),
@@ -302,7 +295,6 @@ const PackageForm = () => {
       
       optional_items: [],
       custom_optional_items: [],
-      equipment_type: "lengkap" as const,
       status: "draft",
       is_sold_out: false,
       waitlist_count: 0,
@@ -431,7 +423,6 @@ const PackageForm = () => {
         let customOptional: string[] = [];
         if (typeof data.included_items === 'string') {
           const items = data.included_items.split(",").map((item: string) => item.trim()).filter(Boolean);
-          // We'll match against DB items once they load
           optionalItems = items.filter((item: string) => {
             const isStandard = dbStandardItems.some(s => s.name === item);
             return !isStandard;
@@ -515,7 +506,6 @@ const PackageForm = () => {
           
           optional_items: optionalItems,
           custom_optional_items: customOptional,
-          equipment_type: (data.equipment_list?.includes("Ransel") ? "lengkap" : "minimalis") as "lengkap" | "minimalis",
           
           catalog_link: data.catalog_link || "",
           itinerary_link: data.itinerary_link || "",
@@ -615,11 +605,9 @@ const PackageForm = () => {
 
   // Shake + scroll to first error
   const handleValidationError = () => {
-    // Find first error element
     const errorEl = document.querySelector('[data-field-error="true"]') || document.querySelector('.text-destructive');
     if (errorEl) {
       errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // Add shake to parent card
       const card = errorEl.closest('[data-form-section]');
       if (card) {
         card.classList.add(SHAKE_CLASS);
@@ -687,7 +675,6 @@ const PackageForm = () => {
         flight_type: values.flight_type,
         available_tiers: values.available_tiers,
         
-        // New fields
         timeframe: values.timeframe || null,
         start_airport: values.start_airport || null,
         route: values.route || null,
@@ -752,7 +739,7 @@ const PackageForm = () => {
         
         included_items: allIncluded.join(", "),
         excluded_items: allExcluded.join(", "),
-        equipment_list: equipmentOptions[values.equipment_type].join(", "),
+        equipment_list: "Perlengkapan Lengkap",
         
         catalog_link: values.catalog_link,
         itinerary_link: values.itinerary_link,
@@ -785,7 +772,6 @@ const PackageForm = () => {
   const safeNavigate = (path: string) => {
     if (hasUnsavedChanges) {
       toast.error("Ada perubahan yang belum disimpan! Simpan terlebih dahulu.");
-      // Shake the save button
       const saveBtn = document.querySelector('[data-save-btn]');
       if (saveBtn) {
         saveBtn.classList.add('animate-shake');
@@ -810,7 +796,7 @@ const PackageForm = () => {
   const hasFiveStar = watchedTiers.includes("five-star");
   const hasPelataranHemat = watchedTiers.includes("pelataran-hemat");
 
-  // Helper to render full tier section: Makkah → Madinah → Transport → Price
+  // Helper to render full tier section: Hotel Makkah → Hotel Madinah → Hotel Kota + → Transport → Price
   const renderTierSection = (
     tierLabel: string,
     makkahPrefix: string,
@@ -840,9 +826,9 @@ const PackageForm = () => {
           </CardHeader>
         </Card>
 
-        {/* 1. Akomodasi Makkah */}
+        {/* 1. Hotel Makkah */}
         <Card data-form-section>
-          <CardHeader><CardTitle>Akomodasi Makkah - {tierLabel}</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Hotel Makkah - {tierLabel}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField control={form.control} name={makkahHotelField} render={({ field }) => (
@@ -891,9 +877,9 @@ const PackageForm = () => {
           </CardContent>
         </Card>
 
-        {/* 2. Akomodasi Madinah */}
+        {/* 2. Hotel Madinah */}
         <Card data-form-section>
-          <CardHeader><CardTitle>Akomodasi Madinah - {tierLabel}</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Hotel Madinah - {tierLabel}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField control={form.control} name={madinahHotelField} render={({ field }) => (
@@ -942,7 +928,17 @@ const PackageForm = () => {
           </CardContent>
         </Card>
 
-        {/* 3. Transportasi */}
+        {/* 3. Hotel Kota + (below Madinah) */}
+        <Card data-form-section>
+          <CardHeader><CardTitle>Hotel Kota + - {tierLabel}</CardTitle></CardHeader>
+          <CardContent>
+            <FormField control={form.control} name="hotel_extra" render={({ field }) => (
+              <FormItem><FormLabel>Hotel Kota Tambahan</FormLabel><FormControl><Input {...field} placeholder="Hotel transit / kota tambahan" /></FormControl><FormMessage /></FormItem>
+            )} />
+          </CardContent>
+        </Card>
+
+        {/* 4. Transportasi */}
         <Card data-form-section>
           <CardHeader><CardTitle>Transportasi - {tierLabel}</CardTitle></CardHeader>
           <CardContent>
@@ -962,7 +958,7 @@ const PackageForm = () => {
           </CardContent>
         </Card>
 
-        {/* 4. Harga */}
+        {/* 5. Harga */}
         <Card data-form-section>
           <CardHeader><CardTitle>Harga - {tierLabel}</CardTitle></CardHeader>
           <CardContent>
@@ -1026,54 +1022,62 @@ const PackageForm = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Pretty Calendar Date Picker */}
+                {/* Pretty Calendar Date Picker - synced to selected date */}
                 <FormField
                   control={form.control}
                   name="departure_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tanggal Keberangkatan *</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(new Date(field.value), "dd MMMM yyyy", { locale: idLocale })
-                              ) : (
-                                <span>Pilih tanggal</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value ? new Date(field.value) : undefined}
-                            onSelect={(date) => {
-                              if (date) field.onChange(format(date, "yyyy-MM-dd"));
-                            }}
-                            disabled={(date) => date < new Date("2024-01-01")}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const selectedDate = field.value ? new Date(field.value) : undefined;
+                    return (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Tanggal Keberangkatan *</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full pl-3 text-left font-normal h-10",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(new Date(field.value), "dd MMMM yyyy", { locale: idLocale })
+                                ) : (
+                                  <span>Pilih tanggal</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={selectedDate}
+                              defaultMonth={selectedDate || new Date()}
+                              onSelect={(date) => {
+                                if (date) field.onChange(format(date, "yyyy-MM-dd"));
+                              }}
+                              disabled={(date) => date < new Date("2024-01-01")}
+                              initialFocus
+                              className="p-3 pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField control={form.control} name="duration_days" render={({ field }) => (
-                  <FormItem><FormLabel>Durasi (Hari) *</FormLabel><FormControl>
-                    <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
-                  </FormControl><FormMessage /></FormItem>
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Durasi (Hari) *</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} className="h-10" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )} />
               </div>
 
@@ -1122,7 +1126,7 @@ const PackageForm = () => {
                 <FormItem><FormLabel>Itinerary</FormLabel><FormControl><Input {...field} placeholder="Makkah - Madinah" /></FormControl><FormMessage /></FormItem>
               )} />
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="nights_makkah" render={({ field }) => (
                   <FormItem><FormLabel>Malam Makkah</FormLabel><FormControl>
                     <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="7" />
@@ -1132,9 +1136,6 @@ const PackageForm = () => {
                   <FormItem><FormLabel>Malam Madinah</FormLabel><FormControl>
                     <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="3" />
                   </FormControl><FormMessage /></FormItem>
-                )} />
-                <FormField control={form.control} name="hotel_extra" render={({ field }) => (
-                  <FormItem><FormLabel>Hotel Kota +</FormLabel><FormControl><Input {...field} placeholder="Hotel transit" /></FormControl><FormMessage /></FormItem>
                 )} />
               </div>
 
@@ -1238,10 +1239,10 @@ const PackageForm = () => {
             </CardContent>
           </Card>
 
-          {/* Fasilitas & Perlengkapan */}
+          {/* Fasilitas */}
           <Card data-form-section>
             <CardHeader>
-              <CardTitle>Fasilitas & Perlengkapan</CardTitle>
+              <CardTitle>Fasilitas Paket</CardTitle>
               <CardDescription>Fasilitas dikelola di halaman <a href="/admin/package-items" className="text-primary underline" target="_blank">Fasilitas Paket</a></CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -1334,36 +1335,6 @@ const PackageForm = () => {
                   )}
                 </div>
               </div>
-
-              {/* Equipment Type Selection */}
-              <FormField
-                control={form.control}
-                name="equipment_type"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel className="text-base font-semibold">Pilihan Perlengkapan</FormLabel>
-                    <FormControl>
-                      <RadioGroup onValueChange={field.onChange} value={field.value} className="space-y-4">
-                        <div className="flex items-start space-x-3 space-y-0 rounded-lg border p-4 hover:bg-accent/50 transition-colors">
-                          <RadioGroupItem value="lengkap" id="lengkap" />
-                          <div className="space-y-2 flex-1">
-                            <Label htmlFor="lengkap" className="font-semibold cursor-pointer">Perlengkapan Lengkap</Label>
-                            <p className="text-sm text-muted-foreground">{equipmentOptions.lengkap.join(", ")}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start space-x-3 space-y-0 rounded-lg border p-4 hover:bg-accent/50 transition-colors">
-                          <RadioGroupItem value="minimalis" id="minimalis" />
-                          <div className="space-y-2 flex-1">
-                            <Label htmlFor="minimalis" className="font-semibold cursor-pointer">Perlengkapan Minimalis</Label>
-                            <p className="text-sm text-muted-foreground">{equipmentOptions.minimalis.join(", ")}</p>
-                          </div>
-                        </div>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </CardContent>
           </Card>
 
@@ -1393,36 +1364,6 @@ const PackageForm = () => {
                   <FormMessage />
                 </FormItem>
               )} />
-
-              {/* Sold Out Section */}
-              <div className="pt-4 mt-4 border-t space-y-4">
-                <h4 className="font-medium text-sm text-muted-foreground">Status Ketersediaan</h4>
-                
-                <FormField control={form.control} name="is_sold_out" render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="text-sm font-medium">Paket Sudah Penuh (Sold Out)</FormLabel>
-                      <p className="text-xs text-muted-foreground">Centang jika paket ini sudah tidak tersedia</p>
-                    </div>
-                  </FormItem>
-                )} />
-
-                {form.watch("is_sold_out") && (
-                  <FormField control={form.control} name="waitlist_count" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Jumlah Jamaah Terdaftar</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
-                      </FormControl>
-                      <p className="text-xs text-muted-foreground">Ditampilkan sebagai "X jamaah sudah daftar" di kartu paket</p>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                )}
-              </div>
             </CardContent>
           </Card>
 
