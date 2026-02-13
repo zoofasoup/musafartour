@@ -1,8 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { parsePackagePrice, type PackagePrice } from '@/lib/packageSchema';
 
 const STALE_TIME = 5 * 60 * 1000; // 5 minutes
+const LONG_CACHE_TIME = 10 * 60 * 1000; // 10 minutes
 
 export interface PublishedPackage {
   id: string;
@@ -70,7 +71,10 @@ export const usePublishedPackages = () => {
   });
 };
 
-export const usePackageBySlug = (slug: string | undefined) => {
+export const usePackageBySlug = (
+  slug: string | undefined,
+  options?: Partial<UseQueryOptions<PublishedPackage | null, Error>>
+) => {
   return useQuery({
     queryKey: ['package-detail', slug],
     queryFn: async (): Promise<PublishedPackage | null> => {
@@ -84,7 +88,9 @@ export const usePackageBySlug = (slug: string | undefined) => {
       if (error) throw error;
       return data ? transformPackage(data) : null;
     },
-    staleTime: STALE_TIME,
+    staleTime: LONG_CACHE_TIME,
     enabled: !!slug,
+    refetchOnWindowFocus: false,
+    ...options,
   });
 };
