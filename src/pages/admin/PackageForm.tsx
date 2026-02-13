@@ -166,51 +166,68 @@ const ImageDropZone = ({
     handleFiles(Array.from(e.dataTransfer.files));
   }, [handleFiles]);
 
+  // If single image and preview exists, show full preview with X button only
+  const hasSinglePreview = !multiple && previews.length > 0;
+
   return (
     <div className="space-y-2" onPaste={handlePaste}>
-      {previews.length > 0 && (
-        <div className={cn("grid gap-4", multiple ? "grid-cols-3" : "flex justify-center")}>
-          {previews.map((preview, index) => (
-            <div key={index} className={cn("relative", !multiple && "w-full max-w-[180px]")}>
-              <div className={cn("overflow-hidden rounded-lg border", multiple ? "aspect-square" : "aspect-[1080/1350]")}>
-                <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
-              </div>
-              <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 w-6 h-6" onClick={() => onRemove(index)}>
-                <X className="w-3 h-3" />
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div
-        onDrop={handleDrop}
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-        onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
-        onClick={() => inputRef.current?.click()}
-        className={cn(
-          "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors",
-          isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50",
-          disabled && "opacity-50 cursor-not-allowed"
-        )}
-      >
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          multiple={multiple}
-          onChange={(e) => e.target.files && handleFiles(Array.from(e.target.files))}
-          className="hidden"
-          disabled={disabled}
-        />
-        <div className="flex flex-col items-center gap-1.5">
-          <div className="p-2 bg-muted rounded-full">
-            <Upload className="h-5 w-5 text-muted-foreground" />
+      {hasSinglePreview ? (
+        <div className="relative w-full">
+          <div className="overflow-hidden rounded-lg border aspect-[4/5]">
+            <img src={previews[0]} alt="Preview" className="w-full h-full object-cover" />
           </div>
-          <p className="text-xs font-medium">Klik atau drag & drop</p>
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 w-7 h-7 shadow-md" onClick={() => onRemove(0)}>
+            <X className="w-4 h-4" />
+          </Button>
         </div>
-      </div>
+      ) : (
+        <>
+          {multiple && previews.length > 0 && (
+            <div className="grid grid-cols-3 gap-4">
+              {previews.map((preview, index) => (
+                <div key={index} className="relative">
+                  <div className="overflow-hidden rounded-lg border aspect-square">
+                    <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                  </div>
+                  <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 w-6 h-6" onClick={() => onRemove(index)}>
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div
+            onDrop={handleDrop}
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+            onClick={() => inputRef.current?.click()}
+            className={cn(
+              "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors",
+              isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50",
+              disabled && "opacity-50 cursor-not-allowed",
+              !multiple && "aspect-[4/5] flex items-center justify-center"
+            )}
+          >
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              multiple={multiple}
+              onChange={(e) => e.target.files && handleFiles(Array.from(e.target.files))}
+              className="hidden"
+              disabled={disabled}
+            />
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="p-2 bg-muted rounded-full">
+                <Upload className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="text-xs font-medium">Klik atau drag & drop</p>
+              <p className="text-xs text-muted-foreground">{description}</p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
@@ -225,36 +242,47 @@ const DocDropZone = ({
   onFile: (f: File) => void;
   onRemove: () => void;
 }) => {
-  return (
-    <div className="space-y-2">
-      {preview && (
-        <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/50">
-          <FileUp className="w-4 h-4 text-primary flex-shrink-0" />
-          <span className="text-xs truncate flex-1">{preview.split('/').pop() || 'Uploaded file'}</span>
-          <Button type="button" variant="ghost" size="icon" className="h-5 w-5" onClick={onRemove}>
-            <X className="w-3 h-3" />
-          </Button>
-        </div>
-      )}
-      <div
-        onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) onFile(f); }}
-        onDragOver={(e) => e.preventDefault()}
-        onClick={() => {
-          const inp = document.createElement('input');
-          inp.type = 'file';
-          inp.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.webp';
-          inp.onchange = (ev) => { const f = (ev.target as HTMLInputElement).files?.[0]; if (f) onFile(f); };
-          inp.click();
-        }}
-        className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
-      >
-        <div className="flex flex-col items-center gap-1.5">
-          <div className="p-2 bg-muted rounded-full">
-            <Upload className="h-5 w-5 text-muted-foreground" />
+  const isImageUrl = preview && (preview.startsWith('data:image') || /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(preview));
+
+  if (preview) {
+    return (
+      <div className="relative w-full">
+        {isImageUrl ? (
+          <div className="overflow-hidden rounded-lg border aspect-[4/5]">
+            <img src={preview} alt="Preview" className="w-full h-full object-cover" />
           </div>
-          <p className="text-xs font-medium">Klik atau drag & drop</p>
-          <p className="text-xs text-muted-foreground">PDF, DOC, atau gambar</p>
+        ) : (
+          <div className="flex items-center gap-2 rounded-lg border bg-muted/50 aspect-[4/5] justify-center flex-col p-4">
+            <FileUp className="w-8 h-8 text-primary" />
+            <span className="text-xs truncate max-w-full px-2 text-center">{preview.split('/').pop() || 'Uploaded file'}</span>
+          </div>
+        )}
+        <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 w-7 h-7 shadow-md" onClick={onRemove}>
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) onFile(f); }}
+      onDragOver={(e) => e.preventDefault()}
+      onClick={() => {
+        const inp = document.createElement('input');
+        inp.type = 'file';
+        inp.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.webp';
+        inp.onchange = (ev) => { const f = (ev.target as HTMLInputElement).files?.[0]; if (f) onFile(f); };
+        inp.click();
+      }}
+      className="border-2 border-dashed rounded-lg text-center cursor-pointer hover:border-primary/50 transition-colors aspect-[4/5] flex items-center justify-center"
+    >
+      <div className="flex flex-col items-center gap-1.5">
+        <div className="p-2 bg-muted rounded-full">
+          <Upload className="h-5 w-5 text-muted-foreground" />
         </div>
+        <p className="text-xs font-medium">Klik atau drag & drop</p>
+        <p className="text-xs text-muted-foreground">PDF, DOC, atau gambar</p>
       </div>
     </div>
   );
@@ -981,51 +1009,49 @@ const PackageForm = () => {
   };
 
   return (
-    <div className="space-y-6 pb-8">
-      {/* Sticky top action bar - positioned within admin layout content area */}
-      <div className="sticky top-0 z-40 -mx-8 -mt-8 px-8 py-3 bg-background/95 backdrop-blur border-b shadow-sm mb-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" type="button" onClick={() => safeNavigate("/admin/packages")}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <span className="font-semibold text-sm">{id ? "Edit Paket" : "Tambah Paket"}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <FormField control={form.control} name="status" render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="w-[130px] h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
-                </SelectContent>
-              </Select>
-            )} />
-            <Button type="button" variant="outline" size="sm" onClick={() => safeNavigate("/admin/packages")}>
-              Batal
-            </Button>
-            <Button
-              type="submit"
-              size="sm"
-              disabled={loading || uploadingImages}
-              data-save-btn
-              className="bg-primary"
-            >
-              {uploadingImages ? "Uploading..." : loading ? "Menyimpan..." : "Simpan"}
-            </Button>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit, handleValidationError)} className="space-y-6 pb-8">
+        {/* Sticky top action bar */}
+        <div className="sticky top-0 z-40 -mx-8 -mt-8 px-8 py-3 bg-background/95 backdrop-blur border-b shadow-sm mb-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" type="button" onClick={() => safeNavigate("/admin/packages")}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <span className="font-semibold text-sm">{id ? "Edit Paket" : "Tambah Paket"}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <FormField control={form.control} name="status" render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger className="w-[130px] h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="published">Published</SelectItem>
+                  </SelectContent>
+                </Select>
+              )} />
+              <Button type="button" variant="outline" size="sm" onClick={() => safeNavigate("/admin/packages")}>
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={loading || uploadingImages}
+                data-save-btn
+                className="bg-primary"
+              >
+                {uploadingImages ? "Uploading..." : loading ? "Menyimpan..." : "Simpan"}
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div>
-        <h1 className="text-3xl font-bold">{id ? "Edit Paket" : "Tambah Paket"}</h1>
-        <p className="text-muted-foreground">Lengkapi informasi paket umroh</p>
-      </div>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit, handleValidationError)} className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">{id ? "Edit Paket" : "Tambah Paket"}</h1>
+          <p className="text-muted-foreground">Lengkapi informasi paket umroh</p>
+        </div>
           {/* Package Info */}
           <Card data-form-section>
             <CardHeader>
@@ -1395,16 +1421,14 @@ const PackageForm = () => {
               </div>
             </CardContent>
           </Card>
-        </form>
-      </Form>
-
-      <AddHotelModal
-        open={hotelModalOpen}
-        onOpenChange={setHotelModalOpen}
-        location={hotelModalLocation}
-        onSuccess={handleHotelAdded}
-      />
-    </div>
+        <AddHotelModal
+          open={hotelModalOpen}
+          onOpenChange={setHotelModalOpen}
+          location={hotelModalLocation}
+          onSuccess={handleHotelAdded}
+        />
+      </form>
+    </Form>
   );
 };
 
