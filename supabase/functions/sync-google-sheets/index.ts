@@ -142,6 +142,73 @@ function parseDate(v: string): string | null {
   return null
 }
 
+// Strip diacritics and normalize for fuzzy comparison
+function normalizeForMatch(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/\bhotel\b/g, '').replace(/\bmakkah\b/g, '')
+    .replace(/\bmadinah\b/g, '').replace(/\bmekkah\b/g, '')
+    .replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim()
+}
+
+// Simple edit distance for short strings
+function editDistance(a: string, b: string): number {
+  if (a.length > b.length) [a, b] = [b, a]
+  const row = Array.from({ length: a.length + 1 }, (_, i) => i)
+  for (let j = 1; j <= b.length; j++) {
+    let prev = row[0]; row[0] = j
+    for (let i = 1; i <= a.length; i++) {
+      const tmp = row[i]
+      row[i] = a[i-1] === b[j-1] ? prev : 1 + Math.min(prev, row[i], row[i-1])
+      prev = tmp
+    }
+  }
+  return row[a.length]
+}
+
+interface HotelRecord { name: string; location: string; star_rating: number | null }
+
+async function resolveHotel(
+  rawName: string,
+  location: 'makkah' | 'madinah',
+  allHotels: HotelRecord[],
+  supabase: any
+): Promise<string> {
+  if (!rawName) return ''
+  const norm = normalizeForMatch(rawName)
+  if (!norm) return rawName.trim()
+
+  // Try exact normalized match, then substring, then edit distance
+  let best: HotelRecord | null = null
+  let bestDist = Infinity
+  for (const h of allHotels) {
+    const hn = normalizeForMatch(h.name)
+    if (hn === norm) { best = h; break }
+    if (hn.includes(norm) || norm.includes(hn)) { best = h; bestDist = 0; continue }
+    const dist = editDistance(hn, norm)
+    const maxLen = Math.max(hn.length, norm.length)
+    if (dist <= Math.max(2, maxLen * 0.25) && dist < bestDist) {
+      bestDist = dist
+      best = h
+    }
+  }
+
+  if (best) {
+    console.log(`🏨 Matched "${rawName}" → "${best.name}"`)
+    return best.name
+  }
+
+  // No match - auto-create hotel
+  const newHotel = { name: rawName.trim(), location, star_rating: 3, distance: '-', walking_duration: '-' }
+  const { data, error } = await supabase.from('hotels').insert(newHotel).select('name').single()
+  if (!error && data) {
+    allHotels.push({ name: data.name, location, star_rating: 3 })
+    console.log(`🏨 Auto-created hotel: "${data.name}" (${location})`)
+    return data.name
+  }
+  console.error(`🏨 Failed to create hotel "${rawName}":`, error?.message)
+  return rawName.trim()
+}
+
 function matchHeader(header: string): string | null {
   const normalized = header.trim().toLowerCase().replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ')
   if (!normalized) return null
@@ -226,6 +293,11 @@ Deno.serve(async (req) => {
       return (row[col] ?? '').trim()
     }
 
+    // Fetch all hotels for fuzzy matching
+    const { data: hotelsData } = await supabase.from('hotels').select('name, location, star_rating')
+    const allHotels: HotelRecord[] = (hotelsData || []).map((h: any) => ({ name: h.name, location: h.location, star_rating: h.star_rating }))
+    console.log(`🏨 Loaded ${allHotels.length} hotels for matching`)
+
     const results = { synced: 0, skipped: 0, errors: 0, details: [] as string[] }
     const dataRows = rows.slice(headerRowIdx + 1)
 
@@ -263,12 +335,15 @@ Deno.serve(async (req) => {
       const flightTypeRaw = getVal(row, 'flight_type').toLowerCase()
       const flightType = flightTypeRaw.includes('direct') ? 'direct' : flightTypeRaw.includes('transit') ? 'transit' : 'direct'
 
-      // Hotels - these are hotel NAMES, not star ratings
-      const makkahHotel = getVal(row, '_hotel_makkah') || null
-      const madinahHotel = getVal(row, '_hotel_madinah') || null
+      // Hotels - resolve against hotels table with fuzzy matching
+      const makkahHotelRaw = getVal(row, '_hotel_makkah')
+      const madinahHotelRaw = getVal(row, '_hotel_madinah')
+      const makkahHotel = makkahHotelRaw ? await resolveHotel(makkahHotelRaw, 'makkah', allHotels, supabase) : null
+      const madinahHotel = madinahHotelRaw ? await resolveHotel(madinahHotelRaw, 'madinah', allHotels, supabase) : null
       const hotelExtra = getVal(row, '_hotel_extra') || null
-      const makkahStar: number | null = null
-      const madinahStar: number | null = null
+      // Look up star ratings from resolved hotel
+      const makkahStar = makkahHotel ? (allHotels.find(h => h.name === makkahHotel)?.star_rating ?? null) : null
+      const madinahStar = madinahHotel ? (allHotels.find(h => h.name === madinahHotel)?.star_rating ?? null) : null
       
       // Nights
       const nightsMakkah = parseInt(getVal(row, 'nights_makkah')) || null
