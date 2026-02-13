@@ -39,6 +39,7 @@ interface PackageCardProps {
   bestSellerTransport?: string;
   isSoldOut?: boolean;
   waitlistCount?: number;
+  index?: number;
 }
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -76,6 +77,7 @@ export const PackageCard = ({
   bestSellerTransport = "Bus Eksklusif",
   isSoldOut = false,
   waitlistCount = 0,
+  index = 0,
 }: PackageCardProps) => {
   const navigate = useNavigate();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -200,8 +202,9 @@ export const PackageCard = ({
         <img
           src={allImages[currentImageIndex] || '/placeholder.svg'}
           alt={title}
-          loading="lazy"
+          loading={index < 4 ? 'eager' : 'lazy'}
           decoding="async"
+          fetchPriority={index < 4 ? 'high' : 'auto'}
           width="600"
           height="600"
           className={`w-full h-full object-cover transition-all duration-300 ${

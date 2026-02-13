@@ -116,7 +116,7 @@ const PaketUmroh = () => {
       <section className="py-16 bg-muted/50">
         <div className="container mx-auto px-4 text-center">
           <Package className="h-16 w-16 mx-auto mb-4 text-primary" />
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Paket Umroh Musafar Tour</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Paket Umroh Musafar Tour</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Pilihan paket Umroh terlengkap mulai dari Budget hingga Premium Bintang 5.
           </p>
@@ -231,8 +231,8 @@ const PaketUmroh = () => {
           </div>
         ) : viewMode === "card" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {transformedPackages.map((pkg) => (
-              <PackageCard key={pkg.id} {...pkg} />
+            {transformedPackages.map((pkg, idx) => (
+              <PackageCard key={pkg.id} {...pkg} index={idx} />
             ))}
           </div>
         ) : (

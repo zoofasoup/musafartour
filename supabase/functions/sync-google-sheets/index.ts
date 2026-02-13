@@ -457,9 +457,43 @@ Deno.serve(async (req) => {
       // Set slots if available
       if (seatCount) upsertData.slots_total = seatCount
 
-      // Set media links if available (convert Google Drive links to direct URLs)
+      // Set media links if available (convert Google Drive links and upload to storage)
       const convertedFlyer = convertDriveLink(flyerLink || '')
-      if (convertedFlyer) upsertData.banner_image = convertedFlyer
+      if (convertedFlyer) {
+        // If it's a Google Drive URL, try to download and upload to storage
+        if (convertedFlyer.includes('googleusercontent.com') || convertedFlyer.includes('drive.google.com')) {
+          try {
+            console.log(`⬇️ Downloading Drive image for "${slug}"...`)
+            const imgResp = await fetch(convertedFlyer, { headers: { 'Accept': 'image/*' }, redirect: 'follow' })
+            if (imgResp.ok) {
+              const imageData = await imgResp.arrayBuffer()
+              if (imageData.byteLength > 1000) {
+                const contentType = imgResp.headers.get('content-type') || 'image/jpeg'
+                const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg'
+                const fileName = `${slug}-banner.${ext}`
+                const { error: uploadErr } = await supabase.storage.from('package-images').upload(fileName, imageData, { contentType, upsert: true })
+                if (!uploadErr) {
+                  const { data: urlData } = supabase.storage.from('package-images').getPublicUrl(fileName)
+                  upsertData.banner_image = urlData.publicUrl
+                  console.log(`✅ Uploaded image to storage for "${slug}"`)
+                } else {
+                  console.warn(`⚠️ Storage upload failed for "${slug}": ${uploadErr.message}, using Drive URL`)
+                  upsertData.banner_image = convertedFlyer
+                }
+              } else {
+                upsertData.banner_image = convertedFlyer
+              }
+            } else {
+              upsertData.banner_image = convertedFlyer
+            }
+          } catch (imgErr) {
+            console.warn(`⚠️ Image migration failed for "${slug}": ${(imgErr as Error).message}`)
+            upsertData.banner_image = convertedFlyer
+          }
+        } else {
+          upsertData.banner_image = convertedFlyer
+        }
+      }
       if (katalogLink) upsertData.catalog_link = katalogLink
       if (itineraryLink) upsertData.itinerary_link = itineraryLink
 

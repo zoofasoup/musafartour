@@ -97,7 +97,7 @@ ${formData.message}`;
       <section className="py-16 bg-muted/50">
         <div className="container mx-auto px-4 text-center">
           <MessageCircle className="h-16 w-16 mx-auto mb-4 text-primary" />
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Hubungi Kami</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Hubungi Kami</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Tim Musamin kami siap membantu dan menjawab setiap pertanyaan Anda
           </p>
