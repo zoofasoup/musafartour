@@ -31,7 +31,7 @@ const packageSchema = z.object({
   duration_days: z.number().min(1, "Durasi minimal 1 hari"),
   flight: z.string().min(1, "Maskapai wajib diisi"),
   flight_type: z.string().min(1, "Tipe penerbangan wajib diisi"),
-  available_tiers: z.array(z.enum(["hemat", "nyaman", "five-star", "pelataran-hemat"])).min(1, "Pilih minimal satu tier"),
+  available_tiers: z.array(z.enum(["hemat", "nyaman", "five-star", "pelataran-hemat"])).length(1, "Pilih tepat satu tier"),
   
   // New fields
   timeframe: z.string().optional(),
@@ -266,6 +266,7 @@ const PackageForm = () => {
   const [hotelModalOpen, setHotelModalOpen] = useState(false);
   const [hotelModalLocation, setHotelModalLocation] = useState<"makkah" | "madinah">("madinah");
   const [hotelModalTier, setHotelModalTier] = useState<"best_seller" | "five_star">("best_seller");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const form = useForm<PackageFormValues>({
     resolver: zodResolver(packageSchema),
@@ -315,6 +316,26 @@ const PackageForm = () => {
       fetchPackage();
     }
   }, [id]);
+
+  // Track unsaved changes
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      setHasUnsavedChanges(true);
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  // Warn before leaving with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   const fetchPackageItems = async () => {
     const { data, error } = await supabase
@@ -750,6 +771,7 @@ const PackageForm = () => {
         toast.success("Paket berhasil dibuat");
       }
 
+      setHasUnsavedChanges(false);
       navigate("/admin/packages");
     } catch (error: any) {
       toast.error("Gagal menyimpan paket: " + error.message);
@@ -757,6 +779,21 @@ const PackageForm = () => {
       setLoading(false);
       setUploadingImages(false);
     }
+  };
+
+  // Safe navigation with unsaved changes warning
+  const safeNavigate = (path: string) => {
+    if (hasUnsavedChanges) {
+      toast.error("Ada perubahan yang belum disimpan! Simpan terlebih dahulu.");
+      // Shake the save button
+      const saveBtn = document.querySelector('[data-save-btn]');
+      if (saveBtn) {
+        saveBtn.classList.add('animate-shake');
+        setTimeout(() => saveBtn.classList.remove('animate-shake'), 600);
+      }
+      return;
+    }
+    navigate(path);
   };
 
   if (initialLoading) {
@@ -955,7 +992,7 @@ const PackageForm = () => {
   return (
     <div className="space-y-6 pb-28">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate("/admin/packages")}>
+        <Button variant="ghost" size="sm" onClick={() => safeNavigate("/admin/packages")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
@@ -994,7 +1031,7 @@ const PackageForm = () => {
                   control={form.control}
                   name="departure_date"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
+                    <FormItem>
                       <FormLabel>Tanggal Keberangkatan *</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
@@ -1119,7 +1156,7 @@ const PackageForm = () => {
           <Card data-form-section>
             <CardHeader>
               <CardTitle>Tier Paket</CardTitle>
-              <CardDescription>Pilih tier yang tersedia untuk paket ini</CardDescription>
+              <CardDescription>Pilih satu tier untuk paket ini</CardDescription>
             </CardHeader>
             <CardContent>
               <FormField
@@ -1127,30 +1164,29 @@ const PackageForm = () => {
                 name="available_tiers"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tier yang Tersedia *</FormLabel>
-                    <div className="space-y-3">
-                      {[
-                        { value: "hemat" as const, label: "Hemat" },
-                        { value: "nyaman" as const, label: "Nyaman" },
-                        { value: "five-star" as const, label: "Five Star" },
-                        { value: "pelataran-hemat" as const, label: "Pelataran Hemat" },
-                      ].map((tier) => (
-                        <div key={tier.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={field.value?.includes(tier.value)}
-                            onCheckedChange={(checked) => {
-                              const currentValue = field.value || [];
-                              if (checked) {
-                                field.onChange([...currentValue, tier.value]);
-                              } else {
-                                field.onChange(currentValue.filter((v) => v !== tier.value));
-                              }
-                            }}
-                          />
-                          <Label className="cursor-pointer font-normal">{tier.label}</Label>
-                        </div>
-                      ))}
-                    </div>
+                    <FormLabel>Tier Paket *</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        value={field.value?.[0] || ""}
+                        onValueChange={(val) => field.onChange([val])}
+                        className="space-y-3"
+                      >
+                        {[
+                          { value: "hemat", label: "Hemat", desc: "Paket ekonomis dengan hotel bintang 3" },
+                          { value: "nyaman", label: "Nyaman", desc: "Paket terlaris dengan hotel bintang 4" },
+                          { value: "five-star", label: "Five Star", desc: "Paket premium hotel bintang 5" },
+                          { value: "pelataran-hemat", label: "Pelataran Hemat", desc: "Paket hemat area pelataran" },
+                        ].map((tier) => (
+                          <div key={tier.value} className="flex items-start space-x-3 rounded-lg border p-3 hover:bg-accent/50 transition-colors">
+                            <RadioGroupItem value={tier.value} id={`tier-${tier.value}`} />
+                            <div className="flex-1">
+                              <Label htmlFor={`tier-${tier.value}`} className="font-medium cursor-pointer">{tier.label}</Label>
+                              <p className="text-xs text-muted-foreground">{tier.desc}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1395,6 +1431,7 @@ const PackageForm = () => {
             <Button
               type="submit"
               disabled={loading || uploadingImages}
+              data-save-btn
               className="flex items-center gap-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-6"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -1407,7 +1444,7 @@ const PackageForm = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate("/admin/packages")}
+              onClick={() => safeNavigate("/admin/packages")}
               className="flex items-center gap-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-6 bg-background"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

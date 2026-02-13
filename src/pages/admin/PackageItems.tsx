@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,7 +17,24 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, CheckCircle, Circle, X } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle, Circle, X, GripVertical, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface PackageItem {
   id: string;
@@ -27,6 +44,79 @@ interface PackageItem {
   display_order: number;
   is_active: boolean;
 }
+
+type SortField = "display_order" | "name" | "is_essential" | "is_active";
+type SortDir = "asc" | "desc";
+
+// Sortable row component
+const SortableRow = ({
+  item,
+  type,
+  onEdit,
+  onDelete,
+  onToggle,
+}: {
+  item: PackageItem;
+  type: "include" | "exclude";
+  onEdit: (item: PackageItem) => void;
+  onDelete: (item: PackageItem) => void;
+  onToggle: (item: PackageItem) => void;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      className={!item.is_active ? "opacity-50" : ""}
+    >
+      <TableCell className="w-10">
+        <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground">
+          <GripVertical className="h-4 w-4" />
+        </button>
+      </TableCell>
+      <TableCell className="text-muted-foreground text-xs w-10">{item.display_order}</TableCell>
+      <TableCell className="font-medium">{item.name}</TableCell>
+      {type === "include" && (
+        <TableCell>
+          <Badge variant={item.is_essential ? "default" : "secondary"} className="text-xs">
+            {item.is_essential ? (
+              <><CheckCircle className="h-3 w-3 mr-1" />Standard</>
+            ) : (
+              <><Circle className="h-3 w-3 mr-1" />Opsional</>
+            )}
+          </Badge>
+        </TableCell>
+      )}
+      <TableCell>
+        <Switch checked={item.is_active} onCheckedChange={() => onToggle(item)} />
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="flex justify-end gap-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(item)}>
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onDelete(item)}>
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+};
 
 const PackageItems = () => {
   const [items, setItems] = useState<PackageItem[]>([]);
@@ -38,6 +128,13 @@ const PackageItems = () => {
   const [formEssential, setFormEssential] = useState(false);
   const [formOrder, setFormOrder] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [sortField, setSortField] = useState<SortField>("display_order");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   const fetchItems = async () => {
     const { data, error } = await supabase
@@ -112,68 +209,125 @@ const PackageItems = () => {
     fetchItems();
   };
 
+  const handleDragEnd = useCallback(async (event: DragEndEvent, type: "include" | "exclude") => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const filtered = items.filter(i => i.type === type);
+    const oldIndex = filtered.findIndex((i) => i.id === active.id);
+    const newIndex = filtered.findIndex((i) => i.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(filtered, oldIndex, newIndex);
+
+    // Optimistic update
+    const updatedItems = items.map((item) => {
+      if (item.type !== type) return item;
+      const idx = reordered.findIndex((r) => r.id === item.id);
+      return idx >= 0 ? { ...item, display_order: idx + 1 } : item;
+    });
+    setItems(updatedItems);
+
+    // Persist to DB
+    for (let i = 0; i < reordered.length; i++) {
+      await supabase
+        .from("package_items")
+        .update({ display_order: i + 1 } as any)
+        .eq("id", reordered[i].id);
+    }
+  }, [items]);
+
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDir("asc");
+    }
+  };
+
+  const sortItems = (data: PackageItem[]): PackageItem[] => {
+    return [...data].sort((a, b) => {
+      let cmp = 0;
+      switch (sortField) {
+        case "display_order": cmp = a.display_order - b.display_order; break;
+        case "name": cmp = a.name.localeCompare(b.name); break;
+        case "is_essential": cmp = (a.is_essential === b.is_essential) ? 0 : a.is_essential ? -1 : 1; break;
+        case "is_active": cmp = (a.is_active === b.is_active) ? 0 : a.is_active ? -1 : 1; break;
+      }
+      return sortDir === "desc" ? -cmp : cmp;
+    });
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
+
   const includeItems = items.filter(i => i.type === "include");
   const excludeItems = items.filter(i => i.type === "exclude");
 
-  const renderTable = (data: PackageItem[], type: "include" | "exclude") => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <p className="text-sm text-muted-foreground">
-          {data.length} item {type === "include" ? "termasuk" : "tidak termasuk"}
-        </p>
-        <Button size="sm" onClick={() => openAdd(type)}>
-          <Plus className="h-4 w-4 mr-1" /> Tambah Item
-        </Button>
+  const renderTable = (data: PackageItem[], type: "include" | "exclude") => {
+    const sorted = sortItems(data);
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <p className="text-sm text-muted-foreground">
+            {data.length} item {type === "include" ? "termasuk" : "tidak termasuk"}
+          </p>
+          <Button size="sm" onClick={() => openAdd(type)}>
+            <Plus className="h-4 w-4 mr-1" /> Tambah Item
+          </Button>
+        </div>
+        <div className="border rounded-lg overflow-hidden">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={(e) => handleDragEnd(e, type)}
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-10"></TableHead>
+                  <TableHead className="w-10 cursor-pointer select-none" onClick={() => toggleSort("display_order")}>
+                    <div className="flex items-center">#<SortIcon field="display_order" /></div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("name")}>
+                    <div className="flex items-center">Nama<SortIcon field="name" /></div>
+                  </TableHead>
+                  {type === "include" && (
+                    <TableHead className="w-32 cursor-pointer select-none" onClick={() => toggleSort("is_essential")}>
+                      <div className="flex items-center">Kategori<SortIcon field="is_essential" /></div>
+                    </TableHead>
+                  )}
+                  <TableHead className="w-20 cursor-pointer select-none" onClick={() => toggleSort("is_active")}>
+                    <div className="flex items-center">Aktif<SortIcon field="is_active" /></div>
+                  </TableHead>
+                  <TableHead className="w-24 text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <SortableContext items={sorted.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                <TableBody>
+                  {sorted.length === 0 ? (
+                    <TableRow><TableCell colSpan={type === "include" ? 6 : 5} className="text-center text-muted-foreground py-8">Belum ada item</TableCell></TableRow>
+                  ) : sorted.map((item) => (
+                    <SortableRow
+                      key={item.id}
+                      item={item}
+                      type={type}
+                      onEdit={openEdit}
+                      onDelete={handleDelete}
+                      onToggle={toggleActive}
+                    />
+                  ))}
+                </TableBody>
+              </SortableContext>
+            </Table>
+          </DndContext>
+        </div>
       </div>
-      <div className="border rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-10">#</TableHead>
-              <TableHead>Nama</TableHead>
-              {type === "include" && <TableHead className="w-32">Kategori</TableHead>}
-              <TableHead className="w-20">Aktif</TableHead>
-              <TableHead className="w-24 text-right">Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.length === 0 ? (
-              <TableRow><TableCell colSpan={type === "include" ? 5 : 4} className="text-center text-muted-foreground py-8">Belum ada item</TableCell></TableRow>
-            ) : data.map((item) => (
-              <TableRow key={item.id} className={!item.is_active ? "opacity-50" : ""}>
-                <TableCell className="text-muted-foreground text-xs">{item.display_order}</TableCell>
-                <TableCell className="font-medium">{item.name}</TableCell>
-                {type === "include" && (
-                  <TableCell>
-                    <Badge variant={item.is_essential ? "default" : "secondary"} className="text-xs">
-                      {item.is_essential ? (
-                        <><CheckCircle className="h-3 w-3 mr-1" />Standard</>
-                      ) : (
-                        <><Circle className="h-3 w-3 mr-1" />Opsional</>
-                      )}
-                    </Badge>
-                  </TableCell>
-                )}
-                <TableCell>
-                  <Switch checked={item.is_active} onCheckedChange={() => toggleActive(item)} />
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(item)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(item)}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -187,7 +341,7 @@ const PackageItems = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Fasilitas Paket</h1>
-        <p className="text-muted-foreground">Kelola item yang termasuk dan tidak termasuk dalam paket umroh</p>
+        <p className="text-muted-foreground">Kelola item yang termasuk dan tidak termasuk dalam paket umroh. Drag untuk mengurutkan.</p>
       </div>
 
       <Tabs defaultValue="include">
