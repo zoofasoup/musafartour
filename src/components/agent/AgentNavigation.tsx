@@ -6,6 +6,7 @@ import {
   Wallet, 
   Palette,
   Trophy,
+  Calculator,
   User,
   LogOut,
   Menu,
@@ -50,6 +51,12 @@ const navItems = [
     url: "/agent/leaderboard", 
     icon: Trophy,
     description: "Rankings & rewards"
+  },
+  { 
+    title: "Kalkulator", 
+    url: "/agent/calculator", 
+    icon: Calculator,
+    description: "Sales calculator"
   },
   { 
     title: "Marketing", 
