@@ -85,6 +85,116 @@ const TEMPLATE_COLUMNS = [
   "Maks Diskon",
 ];
 
+// ─── Fuzzy matching utilities ───────────────────────────────────────────
+function normalizeStr(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[_\s]+/g, " ")
+    .replace(/[^a-z0-9 ]/g, "")
+    .trim();
+}
+
+function findColumnIndex(headers: string[], possibleNames: string[]): number {
+  const nh = headers.map((h) => (h ? normalizeStr(String(h)) : ""));
+  const nn = possibleNames.map(normalizeStr);
+
+  for (const name of nn) {
+    const idx = nh.indexOf(name);
+    if (idx !== -1) return idx;
+  }
+  for (const name of nn) {
+    const idx = nh.findIndex((h) => h.startsWith(name));
+    if (idx !== -1) return idx;
+  }
+  for (const name of nn) {
+    const idx = nh.findIndex((h) => h.includes(name));
+    if (idx !== -1) return idx;
+  }
+  return -1;
+}
+
+// Known airline names for fuzzy matching
+const KNOWN_AIRLINES = [
+  "Garuda Indonesia",
+  "Saudia",
+  "Scoot Airlines",
+  "Oman Air",
+  "Qatar Airways",
+  "Emirates",
+  "Lion Air",
+];
+
+function fuzzyMatchAirline(input: string): string {
+  if (!input) return "";
+  const n = normalizeStr(input);
+  // Exact match first
+  for (const airline of KNOWN_AIRLINES) {
+    if (normalizeStr(airline) === n) return airline;
+  }
+  // Partial match: input contained in airline or vice-versa
+  for (const airline of KNOWN_AIRLINES) {
+    const na = normalizeStr(airline);
+    if (na.includes(n) || n.includes(na)) return airline;
+  }
+  // Word-level match: any word in input matches a word in airline
+  const inputWords = n.split(" ");
+  for (const airline of KNOWN_AIRLINES) {
+    const airlineWords = normalizeStr(airline).split(" ");
+    if (inputWords.some((w) => w.length >= 3 && airlineWords.some((aw) => aw.includes(w) || w.includes(aw)))) {
+      return airline;
+    }
+  }
+  // Return original if no match
+  return input.trim();
+}
+
+function fuzzyMatchFlightType(input: string): string {
+  const n = normalizeStr(input);
+  if (n.includes("direct") || n === "d") return "direct";
+  if (n.includes("transit") || n === "t") return "transit";
+  return "direct";
+}
+
+// ─── Column mapping with fuzzy header detection ─────────────────────────
+const COLUMN_ALIASES: Record<string, string[]> = {
+  departure_date: ["tanggal berangkat", "berangkat", "departure", "tgl berangkat", "tanggal"],
+  duration_days: ["durasi", "duration", "hari"],
+  tier: ["klasifikasi paket", "klasifikasi", "tier", "paket"],
+  slots_total: ["seat", "kuota", "slots"],
+  package_name: ["judul paket", "judul", "nama paket", "package name"],
+  timeframe: ["timeframe", "time frame", "waktu"],
+  start_airport: ["start bandara", "start", "bandara", "airport"],
+  flight: ["maskapai", "airline", "penerbangan"],
+  flight_type: ["direct transit", "direct/transit", "tipe penerbangan", "flight type"],
+  route: ["rute", "route"],
+  itinerary: ["itinerary", "jadwal"],
+  nights_makkah: ["malam makkah", "makkah"],
+  nights_madinah: ["malam madinah", "madinah"],
+  hotel_makkah: ["hotel makkah"],
+  hotel_madinah: ["hotel madinah"],
+  hotel_extra: ["hotel kota", "hotel kota +", "hotel extra"],
+  selling_points: ["selling points", "selling point", "keunggulan"],
+  price_quad: ["harga quad", "quad"],
+  price_triple: ["harga triple", "triple"],
+  price_double: ["harga double", "double"],
+  max_discount: ["maks diskon", "max diskon", "diskon"],
+};
+
+function buildColumnMap(headers: string[]): Record<string, number> {
+  const map: Record<string, number> = {};
+  for (const [field, aliases] of Object.entries(COLUMN_ALIASES)) {
+    map[field] = findColumnIndex(headers, aliases);
+  }
+  return map;
+}
+
+function getVal(row: unknown[], idx: number): unknown {
+  return idx >= 0 ? row[idx] : undefined;
+}
+
+// ─── Parsing helpers ────────────────────────────────────────────────────
 function parsePrice(val: unknown): number {
   if (val === null || val === undefined || val === "-" || val === "") return 0;
   if (typeof val === "number") return Math.abs(val);
@@ -95,30 +205,23 @@ function parsePrice(val: unknown): number {
 function parseDate(val: unknown): string {
   if (!val) return "";
   if (typeof val === "number") {
-    // Excel serial date
     const date = XLSX.SSF.parse_date_code(val);
     if (date) {
       return `${date.y}-${String(date.m).padStart(2, "0")}-${String(date.d).padStart(2, "0")}`;
     }
   }
   const str = String(val).trim();
-  // Try YYYY-MM-DD format first (avoid UTC timezone shift)
   const isoMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   if (isoMatch) {
     return `${isoMatch[1]}-${String(isoMatch[2]).padStart(2, "0")}-${String(isoMatch[3]).padStart(2, "0")}`;
   }
-  // Try DD/MM/YYYY or DD-MM-YYYY
   const dmyMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
   if (dmyMatch) {
     return `${dmyMatch[3]}-${String(dmyMatch[2]).padStart(2, "0")}-${String(dmyMatch[1]).padStart(2, "0")}`;
   }
-  // Fallback: use local date components to avoid UTC -1 day issue
   const d = new Date(str);
   if (!isNaN(d.getTime())) {
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   }
   return "";
 }
@@ -145,45 +248,59 @@ function validateRow(row: ParsedPackage): string[] {
 }
 
 function parseExcelData(worksheet: XLSX.WorkSheet): ParsedPackage[] {
-  const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, { defval: "" });
-  
-  return jsonData.map((row, idx) => {
-    const tierRaw = String(row["Klasifikasi Paket"] || "").toLowerCase().trim();
-    const tier = TIER_MAP[tierRaw] || "";
-    const departureDateStr = parseDate(row["Tanggal Berangkat"] || row["Berangkat"]);
-    const packageName = String(row["Judul Paket"] || "").trim();
-    const flightTypeRaw = String(row["Direct/Transit"] || row["Direct/Tran"] || "").toLowerCase().trim();
+  // Use sheet_to_json with header:1 to get raw arrays for fuzzy header matching
+  const rawData = XLSX.utils.sheet_to_json<unknown[]>(worksheet, { header: 1, defval: "" });
+  if (rawData.length < 2) return [];
 
-    const parsed: ParsedPackage = {
-      rowIndex: idx + 1,
-      departure_date: departureDateStr,
-      duration_days: parseInt(String(row["Durasi"] || "0"), 10) || 0,
-      tier,
-      slots_total: parseInt(String(row["Seat"] || "0"), 10) || 0,
-      package_name: packageName,
-      timeframe: String(row["Timeframe"] || "").trim(),
-      start_airport: String(row["Start (Bandara)"] || row["Start"] || "").trim(),
-      flight: String(row["Maskapai"] || "").trim(),
-      flight_type: flightTypeRaw.includes("direct") ? "direct" : "transit",
-      route: String(row["Rute"] || "").trim(),
-      itinerary: String(row["Itinerary"] || "").trim(),
-      nights_makkah: parseInt(String(row["Malam Makkah"] || row["Makkah"] || "0"), 10) || 0,
-      nights_madinah: parseInt(String(row["Malam Madinah"] || row["Madinah"] || "0"), 10) || 0,
-      hotel_makkah: String(row["Hotel Makkah"] || row["Hotel"] || "").trim(),
-      hotel_madinah: String(row["Hotel Madinah"] || "").trim(),
-      hotel_extra: String(row["Hotel Kota +"] || "").trim(),
-      selling_points: String(row["Selling Points"] || "").trim(),
-      price_quad: parsePrice(row["Harga Quad"] || row["Quad"]),
-      price_triple: parsePrice(row["Harga Triple"] || row["Triple"]),
-      price_double: parsePrice(row["Harga Double"] || row["Double"]),
-      max_discount: parsePrice(row["Maks Diskon"]),
-      slug: slugify(packageName, departureDateStr),
-      errors: [],
-    };
+  const headers = (rawData[0] as string[]).map((h) => String(h || ""));
+  const colMap = buildColumnMap(headers);
+  const dataRows = rawData.slice(1);
 
-    parsed.errors = validateRow(parsed);
-    return parsed;
-  });
+  return dataRows
+    .filter((row) => {
+      // Skip completely empty rows
+      const arr = row as unknown[];
+      return arr.some((cell) => cell !== "" && cell !== null && cell !== undefined);
+    })
+    .map((rawRow, idx) => {
+      const row = rawRow as unknown[];
+      const tierRaw = String(getVal(row, colMap.tier) || "").toLowerCase().trim();
+      const tier = TIER_MAP[tierRaw] || "";
+      const departureDateStr = parseDate(getVal(row, colMap.departure_date));
+      const packageName = String(getVal(row, colMap.package_name) || "").trim();
+      const rawFlight = String(getVal(row, colMap.flight) || "").trim();
+      const rawFlightType = String(getVal(row, colMap.flight_type) || "").trim();
+
+      const parsed: ParsedPackage = {
+        rowIndex: idx + 1,
+        departure_date: departureDateStr,
+        duration_days: parseInt(String(getVal(row, colMap.duration_days) || "0"), 10) || 0,
+        tier,
+        slots_total: parseInt(String(getVal(row, colMap.slots_total) || "0"), 10) || 0,
+        package_name: packageName,
+        timeframe: String(getVal(row, colMap.timeframe) || "").trim(),
+        start_airport: String(getVal(row, colMap.start_airport) || "").trim(),
+        flight: fuzzyMatchAirline(rawFlight),
+        flight_type: fuzzyMatchFlightType(rawFlightType),
+        route: String(getVal(row, colMap.route) || "").trim(),
+        itinerary: String(getVal(row, colMap.itinerary) || "").trim(),
+        nights_makkah: parseInt(String(getVal(row, colMap.nights_makkah) || "0"), 10) || 0,
+        nights_madinah: parseInt(String(getVal(row, colMap.nights_madinah) || "0"), 10) || 0,
+        hotel_makkah: String(getVal(row, colMap.hotel_makkah) || "").trim(),
+        hotel_madinah: String(getVal(row, colMap.hotel_madinah) || "").trim(),
+        hotel_extra: String(getVal(row, colMap.hotel_extra) || "").trim(),
+        selling_points: String(getVal(row, colMap.selling_points) || "").trim(),
+        price_quad: parsePrice(getVal(row, colMap.price_quad)),
+        price_triple: parsePrice(getVal(row, colMap.price_triple)),
+        price_double: parsePrice(getVal(row, colMap.price_double)),
+        max_discount: parsePrice(getVal(row, colMap.max_discount)),
+        slug: slugify(packageName, departureDateStr),
+        errors: [],
+      };
+
+      parsed.errors = validateRow(parsed);
+      return parsed;
+    });
 }
 
 interface HotelRecord {
@@ -196,11 +313,20 @@ interface HotelRecord {
 
 function findHotel(hotels: HotelRecord[], name: string, location: string): HotelRecord | undefined {
   if (!name) return undefined;
-  const normalized = name.toLowerCase().trim();
+  const n = normalizeStr(name);
+  // Exact name + location
+  const exact = hotels.find(
+    (h) => normalizeStr(h.name) === n && h.location === location
+  );
+  if (exact) return exact;
+  // Fuzzy: contains match with location
+  const fuzzyLoc = hotels.find(
+    (h) => h.location === location && (normalizeStr(h.name).includes(n) || n.includes(normalizeStr(h.name)))
+  );
+  if (fuzzyLoc) return fuzzyLoc;
+  // Fuzzy: any location
   return hotels.find(
-    (h) => h.name.toLowerCase().trim() === normalized && h.location === location
-  ) || hotels.find(
-    (h) => h.name.toLowerCase().trim().includes(normalized) || normalized.includes(h.name.toLowerCase().trim())
+    (h) => normalizeStr(h.name).includes(n) || n.includes(normalizeStr(h.name))
   );
 }
 
@@ -262,7 +388,15 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[]) {
     available_tiers: [row.tier],
     slots_total: row.slots_total || null,
     status: "draft",
-    // Always set package_price - use actual prices for nyaman, default for others
+    timeframe: row.timeframe || null,
+    start_airport: row.start_airport || null,
+    route: row.route || null,
+    itinerary: row.itinerary || null,
+    nights_makkah: row.nights_makkah || null,
+    nights_madinah: row.nights_madinah || null,
+    hotel_extra: row.hotel_extra || null,
+    selling_points: row.selling_points || null,
+    max_discount: row.max_discount || 0,
     package_price: row.tier === "nyaman" ? priceJson : { quad: 0, triple: 0, double: 0 },
     [priceField(row.tier)]: priceJson,
     [transportField(row.tier)]: row.start_airport || null,
@@ -300,10 +434,7 @@ function downloadTemplate() {
     },
   ];
   const ws = XLSX.utils.json_to_sheet(sampleData, { header: TEMPLATE_COLUMNS });
-  
-  // Set column widths
   ws["!cols"] = TEMPLATE_COLUMNS.map((col) => ({ wch: Math.max(col.length + 2, 16) }));
-  
   XLSX.utils.book_append_sheet(wb, ws, "Paket Umroh");
   XLSX.writeFile(wb, "template-paket-umroh.xlsx");
   toast.success("Template berhasil didownload");
@@ -376,7 +507,6 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
     setStep("importing");
     setImportProgress({ done: 0, total: validRows.length, errors: 0 });
 
-    // Fetch hotels from DB for auto-fill
     const { data: hotelsData } = await supabase.from("hotels").select("name, star_rating, distance, walking_duration, location");
     const hotels: HotelRecord[] = hotelsData || [];
 
@@ -431,7 +561,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
             Import Paket dari Excel
           </DialogTitle>
           <DialogDescription>
-            Upload file Excel (.xlsx) untuk menambahkan atau memperbarui paket secara massal.
+            Upload file Excel (.xlsx) untuk menambahkan atau memperbarui paket secara massal. Sistem akan mencocokkan nama maskapai dan hotel secara otomatis.
           </DialogDescription>
         </DialogHeader>
 
