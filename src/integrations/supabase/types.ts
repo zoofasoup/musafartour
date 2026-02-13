@@ -941,6 +941,7 @@ export type Database = {
           max_discount: number | null
           meta_description: string | null
           meta_title: string | null
+          nights_extra: number | null
           nights_madinah: number | null
           nights_makkah: number | null
           og_image: string | null
@@ -1023,6 +1024,7 @@ export type Database = {
           max_discount?: number | null
           meta_description?: string | null
           meta_title?: string | null
+          nights_extra?: number | null
           nights_madinah?: number | null
           nights_makkah?: number | null
           og_image?: string | null
@@ -1105,6 +1107,7 @@ export type Database = {
           max_discount?: number | null
           meta_description?: string | null
           meta_title?: string | null
+          nights_extra?: number | null
           nights_madinah?: number | null
           nights_makkah?: number | null
           og_image?: string | null

@@ -40,6 +40,7 @@ const packageSchema = z.object({
   itinerary: z.string().optional(),
   nights_makkah: z.number().min(0).optional(),
   nights_madinah: z.number().min(0).optional(),
+  nights_extra: z.number().min(0).optional(),
   hotel_extra: z.string().optional(),
   selling_points: z.string().optional(),
   max_discount: z.number().min(0).optional(),
@@ -242,11 +243,8 @@ const PackageForm = () => {
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [katalogFile, setKatalogFile] = useState<File | null>(null);
   const [katalogPreview, setKatalogPreview] = useState<string>("");
-  const [katalogMode, setKatalogMode] = useState<"link" | "upload">("link");
   const [itineraryFile, setItineraryFile] = useState<File | null>(null);
   const [itineraryPreview, setItineraryPreview] = useState<string>("");
-  const [itineraryMode, setItineraryMode] = useState<"link" | "upload">("link");
-  const [flyerMode, setFlyerMode] = useState<"link" | "upload">("upload");
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -284,6 +282,7 @@ const PackageForm = () => {
       itinerary: "",
       nights_makkah: 0,
       nights_madinah: 0,
+      nights_extra: 0,
       hotel_extra: "",
       selling_points: "",
       max_discount: 0,
@@ -422,26 +421,12 @@ const PackageForm = () => {
       if (data) {
         if (data.banner_image) {
           setBannerPreview(data.banner_image);
-          // If banner_image is a URL, check if it looks like an uploaded file or a drive link
-          if (data.banner_image.startsWith('http') && !data.banner_image.includes('supabase')) {
-            setFlyerMode("link");
-          }
         }
         if (data.catalog_link) {
-          if (data.catalog_link.startsWith('http') && !data.catalog_link.includes('supabase')) {
-            setKatalogMode("link");
-          } else {
-            setKatalogMode("upload");
-            setKatalogPreview(data.catalog_link);
-          }
+          setKatalogPreview(data.catalog_link);
         }
         if ((data as any).itinerary_link) {
-          if ((data as any).itinerary_link.startsWith('http') && !(data as any).itinerary_link.includes('supabase')) {
-            setItineraryMode("link");
-          } else {
-            setItineraryMode("upload");
-            setItineraryPreview((data as any).itinerary_link);
-          }
+          setItineraryPreview((data as any).itinerary_link);
         }
         if (data.gallery_images && Array.isArray(data.gallery_images)) setGalleryPreviews(data.gallery_images);
 
@@ -474,6 +459,7 @@ const PackageForm = () => {
           itinerary: d.itinerary || "",
           nights_makkah: d.nights_makkah || 0,
           nights_madinah: d.nights_madinah || 0,
+          nights_extra: d.nights_extra || 0,
           hotel_extra: d.hotel_extra || "",
           selling_points: d.selling_points || "",
           max_discount: d.max_discount || 0,
@@ -673,28 +659,28 @@ const PackageForm = () => {
     setLoading(true);
     setUploadingImages(true);
     try {
-      // Upload flyer (banner)
+      // Upload flyer (banner) - prefer uploaded file, fallback to link
       let bannerUrl: string | null;
-      if (flyerMode === "link") {
-        bannerUrl = values.banner_link || bannerPreview || null;
-      } else {
+      if (bannerFile) {
         bannerUrl = await uploadBannerImage();
+      } else {
+        bannerUrl = values.banner_link || bannerPreview || null;
       }
 
-      // Upload katalog
-      let catalogUrl = values.catalog_link || '';
-      if (katalogMode === "upload" && katalogFile) {
+      // Upload katalog - prefer uploaded file, fallback to link
+      let catalogUrl = '';
+      if (katalogFile) {
         catalogUrl = await uploadDocumentFile(katalogFile, 'katalog');
-      } else if (katalogMode === "upload" && katalogPreview) {
-        catalogUrl = katalogPreview;
+      } else {
+        catalogUrl = values.catalog_link || katalogPreview || '';
       }
 
-      // Upload itinerary
-      let itineraryUrl = values.itinerary_link || '';
-      if (itineraryMode === "upload" && itineraryFile) {
+      // Upload itinerary - prefer uploaded file, fallback to link
+      let itineraryUrl = '';
+      if (itineraryFile) {
         itineraryUrl = await uploadDocumentFile(itineraryFile, 'itinerary');
-      } else if (itineraryMode === "upload" && itineraryPreview) {
-        itineraryUrl = itineraryPreview;
+      } else {
+        itineraryUrl = values.itinerary_link || itineraryPreview || '';
       }
 
       const galleryUrls = await uploadGalleryImages();
@@ -756,6 +742,7 @@ const PackageForm = () => {
         itinerary: values.itinerary || null,
         nights_makkah: values.nights_makkah || null,
         nights_madinah: values.nights_madinah || null,
+        nights_extra: values.nights_extra || null,
         hotel_extra: values.hotel_extra || null,
         selling_points: values.selling_points || null,
         max_discount: values.max_discount || 0,
@@ -1061,15 +1048,10 @@ const PackageForm = () => {
   };
 
   return (
-    <div className="space-y-6 pb-28">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => safeNavigate("/admin/packages")}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">{id ? "Edit Paket" : "Tambah Paket"}</h1>
-          <p className="text-muted-foreground">Lengkapi informasi paket umroh</p>
-        </div>
+    <div className="space-y-6 pt-16 pb-8">
+      <div>
+        <h1 className="text-3xl font-bold">{id ? "Edit Paket" : "Tambah Paket"}</h1>
+        <p className="text-muted-foreground">Lengkapi informasi paket umroh</p>
       </div>
 
       <Form {...form}>
@@ -1201,7 +1183,7 @@ const PackageForm = () => {
                 <FormItem><FormLabel>Itinerary</FormLabel><FormControl><Input {...field} placeholder="Makkah - Madinah" /></FormControl><FormMessage /></FormItem>
               )} />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField control={form.control} name="nights_makkah" render={({ field }) => (
                   <FormItem><FormLabel>Malam Makkah</FormLabel><FormControl>
                     <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="7" />
@@ -1210,6 +1192,11 @@ const PackageForm = () => {
                 <FormField control={form.control} name="nights_madinah" render={({ field }) => (
                   <FormItem><FormLabel>Malam Madinah</FormLabel><FormControl>
                     <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="3" />
+                  </FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="nights_extra" render={({ field }) => (
+                  <FormItem><FormLabel>Malam Kota +</FormLabel><FormControl>
+                    <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="1" />
                   </FormControl><FormMessage /></FormItem>
                 )} />
               </div>
@@ -1240,25 +1227,21 @@ const PackageForm = () => {
                 name="available_tiers"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tier Paket *</FormLabel>
                     <FormControl>
                       <RadioGroup
                         value={field.value?.[0] || ""}
                         onValueChange={(val) => field.onChange([val])}
-                        className="space-y-3"
+                        className="grid grid-cols-2 md:grid-cols-4 gap-3"
                       >
                         {[
-                          { value: "hemat", label: "Hemat", desc: "Paket ekonomis dengan hotel bintang 3" },
-                          { value: "nyaman", label: "Nyaman", desc: "Paket terlaris dengan hotel bintang 4" },
-                          { value: "five-star", label: "Five Star", desc: "Paket premium hotel bintang 5" },
-                          { value: "pelataran-hemat", label: "Pelataran Hemat", desc: "Paket hemat area pelataran" },
+                          { value: "hemat", label: "Hemat" },
+                          { value: "nyaman", label: "Nyaman" },
+                          { value: "five-star", label: "Five Star" },
+                          { value: "pelataran-hemat", label: "Pelataran Hemat" },
                         ].map((tier) => (
-                          <div key={tier.value} className="flex items-start space-x-3 rounded-lg border p-3 hover:bg-accent/50 transition-colors">
+                          <div key={tier.value} className="flex items-center space-x-2 rounded-lg border p-3 hover:bg-accent/50 transition-colors">
                             <RadioGroupItem value={tier.value} id={`tier-${tier.value}`} />
-                            <div className="flex-1">
-                              <Label htmlFor={`tier-${tier.value}`} className="font-medium cursor-pointer">{tier.label}</Label>
-                              <p className="text-xs text-muted-foreground">{tier.desc}</p>
-                            </div>
+                            <Label htmlFor={`tier-${tier.value}`} className="font-medium cursor-pointer text-sm">{tier.label}</Label>
                           </div>
                         ))}
                       </RadioGroup>
@@ -1276,132 +1259,96 @@ const PackageForm = () => {
           {hasFiveStar && renderTierSection("Five Star", "five_star_makkah", "five_star_madinah", "five_star_price", "five_star_transport")}
           {hasPelataranHemat && renderTierSection("Pelataran Hemat", "pelataran_makkah", "pelataran_madinah", "pelataran_price", "pelataran_transport")}
 
-          {/* Flyer, Katalog & Itinerary - Side by side */}
+          {/* Flyer, Katalog & Itinerary - Uniform layout: upload top, link bottom */}
           <Card>
             <CardHeader>
               <CardTitle>Flyer, Katalog & Itinerary</CardTitle>
-              <CardDescription>Upload file atau masukkan link drive untuk masing-masing dokumen</CardDescription>
+              <CardDescription>Upload file dan/atau masukkan link drive</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Flyer */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-semibold">Flyer</label>
-                    <div className="flex gap-1 rounded-lg border p-0.5">
-                      <button type="button" onClick={() => setFlyerMode("upload")} className={cn("px-2 py-1 text-xs rounded-md transition-colors", flyerMode === "upload" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
-                        <FileUp className="w-3 h-3 inline mr-1" />Upload
-                      </button>
-                      <button type="button" onClick={() => setFlyerMode("link")} className={cn("px-2 py-1 text-xs rounded-md transition-colors", flyerMode === "link" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
-                        <LinkIcon className="w-3 h-3 inline mr-1" />Link
-                      </button>
-                    </div>
-                  </div>
-                  {flyerMode === "upload" ? (
-                    <ImageDropZone
-                      label=""
-                      description="1080x1350px, Maks 5MB"
-                      previews={bannerPreview ? [bannerPreview] : []}
-                      onFiles={handleBannerFiles}
-                      onRemove={removeBanner}
-                      disabled={loading}
-                    />
-                  ) : (
-                    <FormField control={form.control} name="banner_link" render={({ field }) => (
-                      <FormItem>
-                        <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                  )}
+                  <label className="text-sm font-semibold">Flyer</label>
+                  <ImageDropZone
+                    label=""
+                    description="1080x1350px, Maks 5MB"
+                    previews={bannerPreview ? [bannerPreview] : []}
+                    onFiles={handleBannerFiles}
+                    onRemove={removeBanner}
+                    disabled={loading}
+                  />
+                  <FormField control={form.control} name="banner_link" render={({ field }) => (
+                    <FormItem>
+                      <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs" /></FormControl>
+                    </FormItem>
+                  )} />
                 </div>
 
                 {/* Katalog */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-semibold">Katalog</label>
-                    <div className="flex gap-1 rounded-lg border p-0.5">
-                      <button type="button" onClick={() => setKatalogMode("upload")} className={cn("px-2 py-1 text-xs rounded-md transition-colors", katalogMode === "upload" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
-                        <FileUp className="w-3 h-3 inline mr-1" />Upload
-                      </button>
-                      <button type="button" onClick={() => setKatalogMode("link")} className={cn("px-2 py-1 text-xs rounded-md transition-colors", katalogMode === "link" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
-                        <LinkIcon className="w-3 h-3 inline mr-1" />Link
-                      </button>
-                    </div>
-                  </div>
-                  {katalogMode === "upload" ? (
-                    <div className="space-y-2">
-                      {katalogPreview && (
-                        <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/50">
-                          <FileUp className="w-4 h-4 text-primary flex-shrink-0" />
-                          <span className="text-xs truncate flex-1">{katalogPreview.split('/').pop() || 'Uploaded file'}</span>
-                          <Button type="button" variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setKatalogFile(null); setKatalogPreview(""); }}>
-                            <X className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      )}
-                      <div
-                        onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) { setKatalogFile(f); setKatalogPreview(f.name); } }}
-                        onDragOver={(e) => e.preventDefault()}
-                        onClick={() => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.webp'; inp.onchange = (ev) => { const f = (ev.target as HTMLInputElement).files?.[0]; if (f) { setKatalogFile(f); setKatalogPreview(f.name); } }; inp.click(); }}
-                        className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                      >
-                        <Upload className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
-                        <p className="text-xs text-muted-foreground">Drag & drop atau klik</p>
+                  <label className="text-sm font-semibold">Katalog</label>
+                  <div className="space-y-2">
+                    {katalogPreview && (
+                      <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/50">
+                        <FileUp className="w-4 h-4 text-primary flex-shrink-0" />
+                        <span className="text-xs truncate flex-1">{katalogPreview.split('/').pop() || 'Uploaded file'}</span>
+                        <Button type="button" variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setKatalogFile(null); setKatalogPreview(""); }}>
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    )}
+                    <div
+                      onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) { setKatalogFile(f); setKatalogPreview(f.name); } }}
+                      onDragOver={(e) => e.preventDefault()}
+                      onClick={() => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.webp'; inp.onchange = (ev) => { const f = (ev.target as HTMLInputElement).files?.[0]; if (f) { setKatalogFile(f); setKatalogPreview(f.name); } }; inp.click(); }}
+                      className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="p-3 bg-muted rounded-full"><Upload className="h-6 w-6 text-muted-foreground" /></div>
+                        <p className="text-sm font-medium">Klik, drag & drop</p>
+                        <p className="text-xs text-muted-foreground">PDF, DOC, atau gambar</p>
                       </div>
                     </div>
-                  ) : (
-                    <FormField control={form.control} name="catalog_link" render={({ field }) => (
-                      <FormItem>
-                        <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                  )}
+                  </div>
+                  <FormField control={form.control} name="catalog_link" render={({ field }) => (
+                    <FormItem>
+                      <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs" /></FormControl>
+                    </FormItem>
+                  )} />
                 </div>
 
                 {/* Itinerary */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-semibold">Itinerary</label>
-                    <div className="flex gap-1 rounded-lg border p-0.5">
-                      <button type="button" onClick={() => setItineraryMode("upload")} className={cn("px-2 py-1 text-xs rounded-md transition-colors", itineraryMode === "upload" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
-                        <FileUp className="w-3 h-3 inline mr-1" />Upload
-                      </button>
-                      <button type="button" onClick={() => setItineraryMode("link")} className={cn("px-2 py-1 text-xs rounded-md transition-colors", itineraryMode === "link" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
-                        <LinkIcon className="w-3 h-3 inline mr-1" />Link
-                      </button>
-                    </div>
-                  </div>
-                  {itineraryMode === "upload" ? (
-                    <div className="space-y-2">
-                      {itineraryPreview && (
-                        <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/50">
-                          <FileUp className="w-4 h-4 text-primary flex-shrink-0" />
-                          <span className="text-xs truncate flex-1">{itineraryPreview.split('/').pop() || 'Uploaded file'}</span>
-                          <Button type="button" variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setItineraryFile(null); setItineraryPreview(""); }}>
-                            <X className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      )}
-                      <div
-                        onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) { setItineraryFile(f); setItineraryPreview(f.name); } }}
-                        onDragOver={(e) => e.preventDefault()}
-                        onClick={() => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.webp'; inp.onchange = (ev) => { const f = (ev.target as HTMLInputElement).files?.[0]; if (f) { setItineraryFile(f); setItineraryPreview(f.name); } }; inp.click(); }}
-                        className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                      >
-                        <Upload className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
-                        <p className="text-xs text-muted-foreground">Drag & drop atau klik</p>
+                  <label className="text-sm font-semibold">Itinerary</label>
+                  <div className="space-y-2">
+                    {itineraryPreview && (
+                      <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/50">
+                        <FileUp className="w-4 h-4 text-primary flex-shrink-0" />
+                        <span className="text-xs truncate flex-1">{itineraryPreview.split('/').pop() || 'Uploaded file'}</span>
+                        <Button type="button" variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setItineraryFile(null); setItineraryPreview(""); }}>
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    )}
+                    <div
+                      onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) { setItineraryFile(f); setItineraryPreview(f.name); } }}
+                      onDragOver={(e) => e.preventDefault()}
+                      onClick={() => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.webp'; inp.onchange = (ev) => { const f = (ev.target as HTMLInputElement).files?.[0]; if (f) { setItineraryFile(f); setItineraryPreview(f.name); } }; inp.click(); }}
+                      className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="p-3 bg-muted rounded-full"><Upload className="h-6 w-6 text-muted-foreground" /></div>
+                        <p className="text-sm font-medium">Klik, drag & drop</p>
+                        <p className="text-xs text-muted-foreground">PDF, DOC, atau gambar</p>
                       </div>
                     </div>
-                  ) : (
-                    <FormField control={form.control} name="itinerary_link" render={({ field }) => (
-                      <FormItem>
-                        <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                  )}
+                  </div>
+                  <FormField control={form.control} name="itinerary_link" render={({ field }) => (
+                    <FormItem>
+                      <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs" /></FormControl>
+                    </FormItem>
+                  )} />
                 </div>
               </div>
             </CardContent>
@@ -1526,52 +1473,45 @@ const PackageForm = () => {
             </CardContent>
           </Card>
 
-          {/* Status */}
-          <Card data-form-section>
-            <CardHeader><CardTitle>Status</CardTitle></CardHeader>
-            <CardContent>
-              <FormField control={form.control} name="status" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status Paket</FormLabel>
+          {/* Sticky Top Action Bar */}
+          <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-b shadow-sm">
+            <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="sm" type="button" onClick={() => safeNavigate("/admin/packages")}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <span className="font-semibold text-sm">{id ? "Edit Paket" : "Tambah Paket"}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <FormField control={form.control} name="status" render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                    <SelectTrigger className="w-[130px] h-9">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="draft">Draft</SelectItem>
                       <SelectItem value="published">Published</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
-                </FormItem>
-              )} />
-            </CardContent>
-          </Card>
-
-          {/* Floating Action Buttons */}
-          <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
-            <Button
-              type="submit"
-              disabled={loading || uploadingImages}
-              data-save-btn
-              className="flex items-center gap-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-6"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z" />
-              </svg>
-              <span className="font-medium">
-                {uploadingImages ? "Uploading..." : loading ? "Menyimpan..." : "Simpan"}
-              </span>
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => safeNavigate("/admin/packages")}
-              className="flex items-center gap-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-6 bg-background"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-              <span className="font-medium">Batal</span>
-            </Button>
+                )} />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => safeNavigate("/admin/packages")}
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={loading || uploadingImages}
+                  data-save-btn
+                >
+                  {uploadingImages ? "Uploading..." : loading ? "Menyimpan..." : "Simpan"}
+                </Button>
+              </div>
+            </div>
           </div>
         </form>
       </Form>

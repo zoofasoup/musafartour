@@ -52,6 +52,9 @@ const HEADER_MAP: Record<string, string> = {
   'nights makkah': 'nights_makkah',
   'malam madinah': 'nights_madinah',
   'nights madinah': 'nights_madinah',
+  'malam kota': 'nights_extra',
+  'malam kota +': 'nights_extra',
+  'nights extra': 'nights_extra',
   'harga quad': '_price_quad',
   'quad': '_price_quad',
   'harga triple': '_price_triple',
@@ -276,6 +279,7 @@ Deno.serve(async (req) => {
       const madinahStar = parseInt(getVal(row, 'madinah_hotel_star')) || null
       const nightsMakkah = parseInt(getVal(row, 'nights_makkah')) || null
       const nightsMadinah = parseInt(getVal(row, 'nights_madinah')) || null
+      const nightsExtra = parseInt(getVal(row, 'nights_extra')) || null
 
       // Prices
       const priceQuad = parseRupiah(getVal(row, '_price_quad'))
@@ -315,6 +319,7 @@ Deno.serve(async (req) => {
         madinah_hotel_star: madinahStar,
         nights_makkah: nightsMakkah,
         nights_madinah: nightsMadinah,
+        nights_extra: nightsExtra,
         route: route,
         timeframe: timeframe,
         start_airport: startAirport,
@@ -373,9 +378,50 @@ Deno.serve(async (req) => {
       }
     }
 
+    // --- Sync selling_points → package_items (optional includes) ---
+    // Collect all unique selling points across all packages
+    const allSellingPoints = new Set<string>()
+    for (let i = 0; i < dataRows.length; i++) {
+      const row = dataRows[i]
+      if (!row) continue
+      const sp = getVal(row, 'selling_points')
+      if (sp) {
+        sp.split(',').map((s: string) => s.trim()).filter(Boolean).forEach((s: string) => allSellingPoints.add(s))
+      }
+    }
+
+    // Fetch existing optional package_items
+    const { data: existingItems } = await supabase
+      .from('package_items')
+      .select('name')
+      .eq('type', 'include')
+      .eq('is_essential', false)
+
+    const existingNames = new Set((existingItems || []).map((i: any) => i.name))
+
+    // Insert new ones
+    const newItems = [...allSellingPoints].filter(name => !existingNames.has(name))
+    if (newItems.length > 0) {
+      const { error: itemsError } = await supabase
+        .from('package_items')
+        .insert(newItems.map((name, idx) => ({
+          name,
+          type: 'include',
+          is_essential: false,
+          is_active: true,
+          display_order: 100 + idx,
+        })))
+      if (itemsError) {
+        console.error('Error syncing selling points to package_items:', itemsError)
+      } else {
+        console.log(`📦 Synced ${newItems.length} new selling points to package_items`)
+      }
+    }
+
     const summary = {
       message: `Sync selesai: ${results.synced} berhasil, ${results.skipped} dilewati, ${results.errors} gagal`,
       ...results,
+      selling_points_synced: newItems.length,
     }
     console.log(`📊 ${summary.message}`)
 
