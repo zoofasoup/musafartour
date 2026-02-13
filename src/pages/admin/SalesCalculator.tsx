@@ -29,7 +29,6 @@ import {
   Star,
   Footprints,
 } from "lucide-react";
-import { useAgentAuth } from "@/hooks/useAgentAuth";
 
 const CHILD_PRICE = 25_000_000;
 const INFANT_PRICE = 12_000_000;
@@ -181,9 +180,7 @@ function HotelCard({ city, name, star, distance, walk }: { city: string; name: s
   );
 }
 
-export default function AgentCalculator() {
-  const { agent } = useAgentAuth();
-
+export default function SalesCalculator() {
   const { data: packages = [], isLoading } = useQuery({
     queryKey: ["calc-packages"],
     queryFn: async () => {
@@ -209,8 +206,6 @@ export default function AgentCalculator() {
 
   const selectedPkg = packages.find((p) => p.id === selectedPkgId);
   const availableTiers = selectedPkg?.available_tiers || ["nyaman"];
-
-  // Auto-select tier when package changes
   const effectiveTier = availableTiers.includes(selectedTier) ? selectedTier : availableTiers[0];
 
   const price = selectedPkg ? getTierPrice(selectedPkg, effectiveTier) : null;
@@ -247,16 +242,14 @@ export default function AgentCalculator() {
     if (calc.totalSavings > 0) {
       msg += `🎉 Termasuk diskon spesial ${fmtShort(discount)}/pax untuk ${adults} dewasa = hemat *${fmtShort(calc.totalSavings)}*!\n`;
     }
-    if (agent?.name) {
-      msg += `\n_Dihitung oleh ${agent.name} — Musafar Tour_`;
-    }
+    msg += `\n_Musafar Tour_`;
 
     const encoded = encodeURIComponent(msg);
     window.open(`https://wa.me/?text=${encoded}`, "_blank");
   };
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
