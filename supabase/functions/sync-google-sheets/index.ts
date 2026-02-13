@@ -8,13 +8,13 @@ const corsHeaders = {
 const SPREADSHEET_ID = '11R3Dv7YNJEYj0NLCY-xm4OH2PuZ_T85jsbizPJNQsn0'
 const SHEET_NAME = 'ALL PACKAGES_FIX'
 
-// ---------- Column Aliases → DB Field ----------
-// Maps various header names to database column names
+// Column M:AD mapping - matches actual spreadsheet headers
 const HEADER_MAP: Record<string, string> = {
   'no': '_row_number',
   'dev': '_dev',
   'codename': '_codename',
   'vendor': '_vendor',
+  // Core fields
   'berangkat': 'departure_date',
   'tanggal berangkat': 'departure_date',
   'tanggal keberangkatan': 'departure_date',
@@ -38,23 +38,27 @@ const HEADER_MAP: Record<string, string> = {
   'tipe penerbangan': 'flight_type',
   'rute': 'route',
   'route': 'route',
-  'itinerary': '_itinerary_desc',
-  'hotel makkah': 'makkah_hotel_name',
-  'hotel mekkah': 'makkah_hotel_name',
-  'makkah': 'makkah_hotel_name',
-  'hotel madinah': 'madinah_hotel_name',
-  'madinah': 'madinah_hotel_name',
-  'bintang makkah': 'makkah_hotel_star',
-  'star makkah': 'makkah_hotel_star',
-  'bintang madinah': 'madinah_hotel_star',
-  'star madinah': 'madinah_hotel_star',
+  'itinerary': 'itinerary',
+  // Hotels - use specific column header names from spreadsheet
+  'hotel makkah': '_hotel_makkah',
+  'hotel mekkah': '_hotel_makkah',
+  'bintang makkah': '_star_makkah',
+  'star makkah': '_star_makkah',
+  'bintang hotel makkah': '_star_makkah',
+  'hotel madinah': '_hotel_madinah',
+  'bintang madinah': '_star_madinah',
+  'star madinah': '_star_madinah',
+  'bintang hotel madinah': '_star_madinah',
+  // Nights
   'malam makkah': 'nights_makkah',
   'nights makkah': 'nights_makkah',
   'malam madinah': 'nights_madinah',
   'nights madinah': 'nights_madinah',
   'malam kota': 'nights_extra',
   'malam kota +': 'nights_extra',
+  'malam kota tambahan': 'nights_extra',
   'nights extra': 'nights_extra',
+  // Prices
   'harga quad': '_price_quad',
   'quad': '_price_quad',
   'harga triple': '_price_triple',
@@ -64,18 +68,31 @@ const HEADER_MAP: Record<string, string> = {
   'harga jual quad': '_price_quad',
   'harga jual triple': '_price_triple',
   'harga jual double': '_price_double',
+  // Discount
   'diskon': 'max_discount',
   'max diskon': 'max_discount',
   'maksimal diskon': 'max_discount',
+  'maks diskon': 'max_discount',
+  // Selling points
   'selling point': 'selling_points',
   'selling points': 'selling_points',
   'highlight': 'selling_points',
+  // Transport
   'transport': '_transport',
   'transportasi': '_transport',
+  // Media links
+  'flyer': '_flyer_link',
+  'link flyer': '_flyer_link',
+  'banner': '_flyer_link',
+  'link banner': '_flyer_link',
+  'katalog': '_katalog_link',
+  'link katalog': '_katalog_link',
+  'catalog': '_katalog_link',
+  'link itinerary': '_itinerary_link',
+  'file itinerary': '_itinerary_link',
 }
 
-// ---------- Helpers ----------
-
+// Known airlines for fuzzy matching
 const KNOWN_AIRLINES: Record<string, string> = {
   'oman': 'Oman Air', 'oman air': 'Oman Air',
   'qatar': 'Qatar Airways', 'qatar airways': 'Qatar Airways',
@@ -113,43 +130,31 @@ function parseDate(v: string): string | null {
     january: '01', february: '02', march: '03', april: '04', june: '06',
     july: '07', august: '08', september: '09', october: '10', november: '11', december: '12',
   }
-  // "June 21, 2026" or "Jun 21, 2026"
   let m = s.match(/(\w+)\s+(\d{1,2}),?\s+(\d{4})/)
   if (m) {
     const mo = months[m[1].toLowerCase()] || months[m[1].toLowerCase().substring(0, 3)]
     if (mo) return `${m[3]}-${mo}-${m[2].padStart(2, '0')}`
   }
-  // "21 Jun 2026"
   m = s.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/)
   if (m) {
     const mo = months[m[2].toLowerCase()] || months[m[2].toLowerCase().substring(0, 3)]
     if (mo) return `${m[3]}-${mo}-${m[1].padStart(2, '0')}`
   }
-  // DD/MM/YYYY
   m = s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/)
   if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`
-  // ISO
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 10)
   return null
 }
 
-// ---------- Header matching ----------
-
 function matchHeader(header: string): string | null {
   const normalized = header.trim().toLowerCase()
   if (!normalized) return null
-
-  // Exact match
   if (HEADER_MAP[normalized]) return HEADER_MAP[normalized]
-
-  // Fuzzy: check if any alias is contained in header or vice versa
   for (const [alias, field] of Object.entries(HEADER_MAP)) {
     if (normalized.includes(alias) || alias.includes(normalized)) return field
   }
   return null
 }
-
-// ---------- Main ----------
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -164,7 +169,6 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Fetch sheet data
     const range = encodeURIComponent(`${SHEET_NAME}!A1:AD100`)
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${apiKey}&valueRenderOption=FORMATTED_VALUE`
 
@@ -185,10 +189,9 @@ Deno.serve(async (req) => {
       })
     }
 
-    // --- Find header row ---
-    // Header row is the first row that has recognizable column names
+    // Find header row
     let headerRowIdx = -1
-    let columnMap: Record<string, number> = {} // field -> column index
+    let columnMap: Record<string, number> = {}
 
     for (let r = 0; r < Math.min(rows.length, 10); r++) {
       const row = rows[r] || []
@@ -203,7 +206,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      if (matchCount >= 3) { // At least 3 recognized headers
+      if (matchCount >= 3) {
         headerRowIdx = r
         columnMap = matches
         break
@@ -216,13 +219,11 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Log mapping
     const headerRow = rows[headerRowIdx] || []
     console.log(`📋 Header row: ${headerRowIdx}`)
     console.log(`📋 All headers: ${headerRow.join(' | ')}`)
     console.log(`📋 Mapped: ${JSON.stringify(columnMap)}`)
 
-    // --- Parse data rows ---
     const getVal = (row: string[], field: string): string => {
       const col = columnMap[field]
       if (col === undefined) return ''
@@ -254,29 +255,25 @@ Deno.serve(async (req) => {
         continue
       }
 
-      // Dev/published status
       const devVal = getVal(row, '_dev').toLowerCase()
       const isPublished = devVal === 'true' || devVal === '1' || devVal === 'ya' || devVal === 'yes'
 
-      // Tier
       const tier = getVal(row, '_tier') || 'Nyaman'
-
-      // Duration
       const duration = parseInt(getVal(row, 'duration_days')) || 9
 
-      // Airline
       const airlineRaw = getVal(row, 'flight')
       const airline = fuzzyAirline(airlineRaw)
 
-      // Flight type
       const flightTypeRaw = getVal(row, 'flight_type').toLowerCase()
       const flightType = flightTypeRaw.includes('direct') ? 'direct' : flightTypeRaw.includes('transit') ? 'transit' : 'direct'
 
-      // Hotels
-      const makkahHotel = getVal(row, 'makkah_hotel_name') || null
-      const madinahHotel = getVal(row, 'madinah_hotel_name') || null
-      const makkahStar = parseInt(getVal(row, 'makkah_hotel_star')) || null
-      const madinahStar = parseInt(getVal(row, 'madinah_hotel_star')) || null
+      // Hotels - these are hotel NAMES, not star ratings
+      const makkahHotel = getVal(row, '_hotel_makkah') || null
+      const madinahHotel = getVal(row, '_hotel_madinah') || null
+      const makkahStar = parseInt(getVal(row, '_star_makkah')) || null
+      const madinahStar = parseInt(getVal(row, '_star_madinah')) || null
+      
+      // Nights
       const nightsMakkah = parseInt(getVal(row, 'nights_makkah')) || null
       const nightsMadinah = parseInt(getVal(row, 'nights_madinah')) || null
       const nightsExtra = parseInt(getVal(row, 'nights_extra')) || null
@@ -288,24 +285,38 @@ Deno.serve(async (req) => {
 
       // Other fields
       const route = getVal(row, 'route') || null
+      const itinerary = getVal(row, 'itinerary') || null
       const timeframe = getVal(row, 'timeframe') || null
       const startAirport = getVal(row, 'start_airport') || null
-      const maxDiscount = parseInt(getVal(row, 'max_discount')) || null
+      const maxDiscount = parseRupiah(getVal(row, 'max_discount')) || null
       const sellingPoints = getVal(row, 'selling_points') || null
       const codename = getVal(row, '_codename')
+      const seatCount = parseInt(getVal(row, '_seat')) || null
 
-      // Generate slug from codename or package name
+      // Media links
+      const flyerLink = getVal(row, '_flyer_link') || null
+      const katalogLink = getVal(row, '_katalog_link') || null
+      const itineraryLink = getVal(row, '_itinerary_link') || null
+
       const slug = slugify(codename || packageName)
 
-      // Determine transport based on tier
       const transport = getVal(row, '_transport') || (
         tier.toLowerCase().includes('five') || tier.toLowerCase().includes('bintang 5')
           ? 'Kereta Cepat' : 'Bus Eksklusif'
       )
 
-      // Build tier-specific price
       const basePrice = { quad: priceQuad, triple: priceTriple, double: priceDouble }
       const tierLower = tier.toLowerCase()
+
+      // Map tier to available_tiers value
+      let availableTier = 'nyaman'
+      if (tierLower.includes('hemat') && tierLower.includes('pelataran')) {
+        availableTier = 'pelataran-hemat'
+      } else if (tierLower.includes('hemat')) {
+        availableTier = 'hemat'
+      } else if (tierLower.includes('five') || tierLower.includes('bintang 5') || tierLower.includes('bintang5')) {
+        availableTier = 'five-star'
+      }
 
       const upsertData: Record<string, unknown> = {
         package_name: packageName,
@@ -313,47 +324,75 @@ Deno.serve(async (req) => {
         duration_days: duration,
         flight: airline,
         flight_type: flightType,
-        makkah_hotel_name: makkahHotel,
-        madinah_hotel_name: madinahHotel,
-        makkah_hotel_star: makkahStar,
-        madinah_hotel_star: madinahStar,
-        nights_makkah: nightsMakkah,
-        nights_madinah: nightsMadinah,
-        nights_extra: nightsExtra,
         route: route,
+        itinerary: itinerary,
         timeframe: timeframe,
         start_airport: startAirport,
         max_discount: maxDiscount,
         selling_points: sellingPoints,
+        nights_makkah: nightsMakkah,
+        nights_madinah: nightsMadinah,
+        nights_extra: nightsExtra,
         slug: slug,
         status: isPublished ? 'published' : 'draft',
         updated_at: new Date().toISOString(),
+        available_tiers: [availableTier],
+        package_price: basePrice,
       }
 
-      // Map price to the correct tier column
-      if (tierLower.includes('hemat')) {
+      // Set slots if available
+      if (seatCount) upsertData.slots_total = seatCount
+
+      // Set media links if available
+      if (flyerLink) upsertData.banner_image = flyerLink
+      if (katalogLink) upsertData.catalog_link = katalogLink
+      if (itineraryLink) upsertData.itinerary_link = itineraryLink
+
+      // Map hotel/price/transport to the correct tier columns
+      if (availableTier === 'hemat') {
+        upsertData.hemat_makkah_hotel_name = makkahHotel
+        upsertData.hemat_makkah_hotel_star = makkahStar
+        upsertData.hemat_madinah_hotel_name = madinahHotel
+        upsertData.hemat_madinah_hotel_star = madinahStar
         upsertData.hemat_package_price = basePrice
         upsertData.hemat_transport = transport
-        upsertData.available_tiers = ['hemat']
-        upsertData.package_price = basePrice // Also set default
-      } else if (tierLower.includes('five') || tierLower.includes('bintang 5') || tierLower.includes('bintang5')) {
+        // Also set default hotel fields for display
+        upsertData.makkah_hotel_name = makkahHotel
+        upsertData.makkah_hotel_star = makkahStar
+        upsertData.madinah_hotel_name = madinahHotel
+        upsertData.madinah_hotel_star = madinahStar
+      } else if (availableTier === 'five-star') {
+        upsertData.five_star_makkah_hotel_name = makkahHotel
+        upsertData.five_star_makkah_hotel_star = makkahStar
+        upsertData.five_star_madinah_hotel_name = madinahHotel
+        upsertData.five_star_madinah_hotel_star = madinahStar
         upsertData.five_star_package_price = basePrice
         upsertData.five_star_transport = transport
-        upsertData.available_tiers = ['five_star']
-        upsertData.package_price = basePrice
-      } else if (tierLower.includes('pelataran')) {
+        upsertData.makkah_hotel_name = makkahHotel
+        upsertData.makkah_hotel_star = makkahStar
+        upsertData.madinah_hotel_name = madinahHotel
+        upsertData.madinah_hotel_star = madinahStar
+      } else if (availableTier === 'pelataran-hemat') {
+        upsertData.pelataran_makkah_hotel_name = makkahHotel
+        upsertData.pelataran_makkah_hotel_star = makkahStar
+        upsertData.pelataran_madinah_hotel_name = madinahHotel
+        upsertData.pelataran_madinah_hotel_star = madinahStar
         upsertData.pelataran_package_price = basePrice
         upsertData.pelataran_transport = transport
-        upsertData.available_tiers = ['pelataran']
-        upsertData.package_price = basePrice
+        upsertData.makkah_hotel_name = makkahHotel
+        upsertData.makkah_hotel_star = makkahStar
+        upsertData.madinah_hotel_name = madinahHotel
+        upsertData.madinah_hotel_star = madinahStar
       } else {
-        // Default: Nyaman / best_seller
-        upsertData.package_price = basePrice
+        // Nyaman / best_seller
+        upsertData.makkah_hotel_name = makkahHotel
+        upsertData.makkah_hotel_star = makkahStar
+        upsertData.madinah_hotel_name = madinahHotel
+        upsertData.madinah_hotel_star = madinahStar
         upsertData.best_seller_transport = transport
-        upsertData.available_tiers = ['best_seller']
       }
 
-      // Upsert: try by slug first
+      // Upsert by slug
       const { data: existing } = await supabase
         .from('packages')
         .select('id')
@@ -374,12 +413,11 @@ Deno.serve(async (req) => {
         results.details.push(`❌ "${packageName}": ${error.message}`)
       } else {
         results.synced++
-        results.details.push(`✅ "${packageName}" (${existing ? 'updated' : 'created'})`)
+        results.details.push(`✅ "${packageName}" (${existing ? 'updated' : 'created'}) tier=${availableTier}`)
       }
     }
 
-    // --- Sync selling_points → package_items (optional includes) ---
-    // Collect all unique selling points across all packages
+    // Sync selling_points → package_items (optional includes)
     const allSellingPoints = new Set<string>()
     for (let i = 0; i < dataRows.length; i++) {
       const row = dataRows[i]
@@ -390,7 +428,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fetch existing optional package_items
     const { data: existingItems } = await supabase
       .from('package_items')
       .select('name')
@@ -399,7 +436,6 @@ Deno.serve(async (req) => {
 
     const existingNames = new Set((existingItems || []).map((i: any) => i.name))
 
-    // Insert new ones
     const newItems = [...allSellingPoints].filter(name => !existingNames.has(name))
     if (newItems.length > 0) {
       const { error: itemsError } = await supabase

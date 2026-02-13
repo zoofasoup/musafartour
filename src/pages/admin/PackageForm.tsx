@@ -22,7 +22,6 @@ import { id as idLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { compressAndConvertToWebP, generateContextualFileName } from "@/lib/imageUtils";
 import { AddHotelModal } from "@/components/admin/AddHotelModal";
-import { FloatingPortal } from "@/components/admin/FloatingPortal";
 
 const packageSchema = z.object({
   package_name: z.string().min(1, "Nama paket wajib diisi"),
@@ -33,7 +32,6 @@ const packageSchema = z.object({
   flight_type: z.string().min(1, "Tipe penerbangan wajib diisi"),
   available_tiers: z.array(z.enum(["hemat", "nyaman", "five-star", "pelataran-hemat"])).length(1, "Pilih tepat satu tier"),
   
-  // New fields
   timeframe: z.string().optional(),
   start_airport: z.string().optional(),
   route: z.string().optional(),
@@ -116,7 +114,6 @@ const packageSchema = z.object({
 
 type PackageFormValues = z.infer<typeof packageSchema>;
 
-// Shake animation CSS class name
 const SHAKE_CLASS = "animate-shake";
 
 // Reusable image drop zone component
@@ -170,16 +167,11 @@ const ImageDropZone = ({
   }, [handleFiles]);
 
   return (
-    <div className="space-y-3" onPaste={handlePaste}>
-      <label className="text-sm font-medium flex items-center gap-2">
-        <Upload className="w-4 h-4" />
-        {label}
-      </label>
-
+    <div className="space-y-2" onPaste={handlePaste}>
       {previews.length > 0 && (
         <div className={cn("grid gap-4", multiple ? "grid-cols-3" : "flex justify-center")}>
           {previews.map((preview, index) => (
-            <div key={index} className={cn("relative", !multiple && "w-48")}>
+            <div key={index} className={cn("relative", !multiple && "w-full max-w-[180px]")}>
               <div className={cn("overflow-hidden rounded-lg border", multiple ? "aspect-square" : "aspect-[1080/1350]")}>
                 <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
               </div>
@@ -197,7 +189,7 @@ const ImageDropZone = ({
         onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
         onClick={() => inputRef.current?.click()}
         className={cn(
-          "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
+          "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors",
           isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50",
           disabled && "opacity-50 cursor-not-allowed"
         )}
@@ -211,15 +203,57 @@ const ImageDropZone = ({
           className="hidden"
           disabled={disabled}
         />
-        <div className="flex flex-col items-center gap-2">
-          <div className="p-3 bg-muted rounded-full">
-            <Upload className="h-6 w-6 text-muted-foreground" />
+        <div className="flex flex-col items-center gap-1.5">
+          <div className="p-2 bg-muted rounded-full">
+            <Upload className="h-5 w-5 text-muted-foreground" />
           </div>
-          <p className="text-sm font-medium">Klik, drag & drop, atau paste dari clipboard</p>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Clipboard className="w-3 h-3" />
-            <span>{description}</span>
+          <p className="text-xs font-medium">Klik atau drag & drop</p>
+          <p className="text-xs text-muted-foreground">{description}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Reusable document drop zone
+const DocDropZone = ({
+  preview,
+  onFile,
+  onRemove,
+}: {
+  preview: string;
+  onFile: (f: File) => void;
+  onRemove: () => void;
+}) => {
+  return (
+    <div className="space-y-2">
+      {preview && (
+        <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/50">
+          <FileUp className="w-4 h-4 text-primary flex-shrink-0" />
+          <span className="text-xs truncate flex-1">{preview.split('/').pop() || 'Uploaded file'}</span>
+          <Button type="button" variant="ghost" size="icon" className="h-5 w-5" onClick={onRemove}>
+            <X className="w-3 h-3" />
+          </Button>
+        </div>
+      )}
+      <div
+        onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) onFile(f); }}
+        onDragOver={(e) => e.preventDefault()}
+        onClick={() => {
+          const inp = document.createElement('input');
+          inp.type = 'file';
+          inp.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.webp';
+          inp.onchange = (ev) => { const f = (ev.target as HTMLInputElement).files?.[0]; if (f) onFile(f); };
+          inp.click();
+        }}
+        className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
+      >
+        <div className="flex flex-col items-center gap-1.5">
+          <div className="p-2 bg-muted rounded-full">
+            <Upload className="h-5 w-5 text-muted-foreground" />
           </div>
+          <p className="text-xs font-medium">Klik atau drag & drop</p>
+          <p className="text-xs text-muted-foreground">PDF, DOC, atau gambar</p>
         </div>
       </div>
     </div>
@@ -251,21 +285,14 @@ const PackageForm = () => {
   const [makkahHotels, setMakkahHotels] = useState<any[]>([]);
   const [madinahHotels, setMadinahHotels] = useState<any[]>([]);
   
-  // DB-driven items
   const [dbStandardItems, setDbStandardItems] = useState<PackageItemRecord[]>([]);
   const [dbOptionalItems, setDbOptionalItems] = useState<PackageItemRecord[]>([]);
   const [dbExcludeItems, setDbExcludeItems] = useState<PackageItemRecord[]>([]);
   
-  // Hotel modal states
   const [hotelModalOpen, setHotelModalOpen] = useState(false);
   const [hotelModalLocation, setHotelModalLocation] = useState<"makkah" | "madinah">("madinah");
   const [hotelModalTier, setHotelModalTier] = useState<"best_seller" | "five_star">("best_seller");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-  // Default transport based on tier
-  const getDefaultTransport = (tier: string) => {
-    return tier === "five-star" ? "Kereta Cepat" : "Bus Eksklusif";
-  };
 
   const form = useForm<PackageFormValues>({
     resolver: zodResolver(packageSchema),
@@ -287,19 +314,14 @@ const PackageForm = () => {
       selling_points: "",
       max_discount: 0,
       slots_total: 40,
-      // Hemat
       hemat_price_quad: 0, hemat_price_triple: 0, hemat_price_double: 0,
       hemat_transport: "Bus Eksklusif",
-      // Nyaman
       price_quad: 0, price_triple: 0, price_double: 0,
       best_seller_transport: "Bus Eksklusif",
-      // Five Star
       five_star_price_quad: 0, five_star_price_triple: 0, five_star_price_double: 0,
       five_star_transport: "Kereta Cepat",
-      // Pelataran Hemat
       pelataran_price_quad: 0, pelataran_price_triple: 0, pelataran_price_double: 0,
       pelataran_transport: "Bus Eksklusif",
-      
       optional_items: [],
       custom_optional_items: [],
       banner_link: "",
@@ -317,7 +339,6 @@ const PackageForm = () => {
     }
   }, [id]);
 
-  // Track unsaved changes
   useEffect(() => {
     const subscription = form.watch(() => {
       setHasUnsavedChanges(true);
@@ -325,7 +346,6 @@ const PackageForm = () => {
     return () => subscription.unsubscribe();
   }, [form]);
 
-  // Warn before leaving with unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
@@ -352,25 +372,16 @@ const PackageForm = () => {
 
   const fetchHotels = async () => {
     try {
-      const { data, error } = await supabase
-        .from("hotels")
-        .select("*")
-        .order("name", { ascending: true });
-
+      const { data, error } = await supabase.from("hotels").select("*").order("name", { ascending: true });
       if (error) throw error;
-
-      const makkah = data?.filter((h: any) => h.location === "makkah") || [];
-      const madinah = data?.filter((h: any) => h.location === "madinah") || [];
-      
-      setMakkahHotels(makkah);
-      setMadinahHotels(madinah);
+      setMakkahHotels(data?.filter((h: any) => h.location === "makkah") || []);
+      setMadinahHotels(data?.filter((h: any) => h.location === "madinah") || []);
     } catch (error) {
       console.error("Error fetching hotels:", error);
       toast.error("Gagal memuat data hotel");
     }
   };
 
-  // Generic hotel change handler for any tier
   const handleHotelChange = (hotelId: string, location: "makkah" | "madinah", prefix: string) => {
     const hotels = location === "makkah" ? makkahHotels : madinahHotels;
     const hotelNameField = `${prefix}_hotel_name` as any;
@@ -410,33 +421,20 @@ const PackageForm = () => {
 
   const fetchPackage = async () => {
     try {
-      const { data, error } = await supabase
-        .from("packages")
-        .select("*")
-        .eq("id", id)
-        .single();
-
+      const { data, error } = await supabase.from("packages").select("*").eq("id", id).single();
       if (error) throw error;
 
       if (data) {
-        if (data.banner_image) {
-          setBannerPreview(data.banner_image);
-        }
-        if (data.catalog_link) {
-          setKatalogPreview(data.catalog_link);
-        }
-        if ((data as any).itinerary_link) {
-          setItineraryPreview((data as any).itinerary_link);
-        }
+        if (data.banner_image) setBannerPreview(data.banner_image);
+        if (data.catalog_link) setKatalogPreview(data.catalog_link);
+        if ((data as any).itinerary_link) setItineraryPreview((data as any).itinerary_link);
         if (data.gallery_images && Array.isArray(data.gallery_images)) setGalleryPreviews(data.gallery_images);
 
         const priceData = data.package_price as any;
         const fiveStarPriceData = data.five_star_package_price as any;
         const d = data as any;
         
-        // Parse optional items from included_items string
         let optionalItems: string[] = [];
-        let customOptional: string[] = [];
         if (typeof data.included_items === 'string') {
           const items = data.included_items.split(",").map((item: string) => item.trim()).filter(Boolean);
           optionalItems = items.filter((item: string) => {
@@ -465,7 +463,6 @@ const PackageForm = () => {
           max_discount: d.max_discount || 0,
           slots_total: data.slots_total || 40,
 
-          // Hemat
           hemat_makkah_hotel_name: d.hemat_makkah_hotel_name || "",
           hemat_makkah_hotel_star: d.hemat_makkah_hotel_star || 0,
           hemat_makkah_distance: d.hemat_makkah_distance || "",
@@ -479,7 +476,6 @@ const PackageForm = () => {
           hemat_price_triple: (d.hemat_package_price as any)?.triple || 0,
           hemat_price_double: (d.hemat_package_price as any)?.double || 0,
 
-          // Nyaman
           makkah_hotel_name: data.makkah_hotel_name || "",
           makkah_hotel_star: data.makkah_hotel_star || 0,
           makkah_distance: data.makkah_distance || "",
@@ -493,7 +489,6 @@ const PackageForm = () => {
           price_double: priceData?.double || 0,
           best_seller_transport: data.best_seller_transport || "Bus Eksklusif",
           
-          // Five Star
           five_star_makkah_hotel_name: data.five_star_makkah_hotel_name || "",
           five_star_makkah_hotel_star: data.five_star_makkah_hotel_star || 0,
           five_star_makkah_distance: data.five_star_makkah_distance || "",
@@ -507,7 +502,6 @@ const PackageForm = () => {
           five_star_price_double: fiveStarPriceData?.double || 0,
           five_star_transport: data.five_star_transport || "Kereta Cepat",
 
-          // Pelataran Hemat
           pelataran_makkah_hotel_name: d.pelataran_makkah_hotel_name || "",
           pelataran_makkah_hotel_star: d.pelataran_makkah_hotel_star || 0,
           pelataran_makkah_distance: d.pelataran_makkah_distance || "",
@@ -522,7 +516,7 @@ const PackageForm = () => {
           pelataran_price_double: (d.pelataran_package_price as any)?.double || 0,
           
           optional_items: optionalItems,
-          custom_optional_items: customOptional,
+          custom_optional_items: [],
           
           catalog_link: data.catalog_link || "",
           itinerary_link: data.itinerary_link || "",
@@ -548,7 +542,7 @@ const PackageForm = () => {
     reader.readAsDataURL(file);
   }, []);
 
-  const removeBanner = useCallback((index: number) => {
+  const removeBanner = useCallback(() => {
     setBannerFile(null);
     setBannerPreview("");
   }, []);
@@ -573,50 +567,29 @@ const PackageForm = () => {
 
   const uploadBannerImage = async (): Promise<string | null> => {
     if (!bannerFile) return bannerPreview || null;
-
     const compressedFile = await compressAndConvertToWebP(bannerFile, 80, 0.85);
     const packageName = form.getValues('package_name');
     const fileName = generateContextualFileName('package', { name: packageName }, 'banner');
     const filePath = `banners/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('package-images')
-      .upload(filePath, compressedFile, { upsert: true });
-
+    const { error: uploadError } = await supabase.storage.from('package-images').upload(filePath, compressedFile, { upsert: true });
     if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('package-images')
-      .getPublicUrl(filePath);
-
+    const { data: { publicUrl } } = supabase.storage.from('package-images').getPublicUrl(filePath);
     return publicUrl;
   };
 
   const uploadGalleryImages = async (): Promise<string[]> => {
     const existingUrls = galleryPreviews.filter(url => url.startsWith('http'));
-    
     if (galleryFiles.length === 0) return existingUrls;
-
     const packageName = form.getValues('package_name');
-    
     const uploadPromises = galleryFiles.map(async (file, index) => {
       const compressedFile = await compressAndConvertToWebP(file, 40, 0.8);
       const fileName = generateContextualFileName('package', { name: packageName, index: index + 1 }, 'gallery');
       const filePath = `galleries/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('package-images')
-        .upload(filePath, compressedFile, { upsert: true });
-
+      const { error: uploadError } = await supabase.storage.from('package-images').upload(filePath, compressedFile, { upsert: true });
       if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('package-images')
-        .getPublicUrl(filePath);
-
+      const { data: { publicUrl } } = supabase.storage.from('package-images').getPublicUrl(filePath);
       return publicUrl;
     });
-
     const newUrls = await Promise.all(uploadPromises);
     return [...existingUrls, ...newUrls];
   };
@@ -627,21 +600,12 @@ const PackageForm = () => {
     const safeName = packageName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
     const fileName = `${safeName}-${folder}-${Date.now()}.${ext}`;
     const filePath = `${folder}/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('package-images')
-      .upload(filePath, file, { upsert: true });
-
+    const { error: uploadError } = await supabase.storage.from('package-images').upload(filePath, file, { upsert: true });
     if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('package-images')
-      .getPublicUrl(filePath);
-
+    const { data: { publicUrl } } = supabase.storage.from('package-images').getPublicUrl(filePath);
     return publicUrl;
   };
 
-  // Shake + scroll to first error
   const handleValidationError = () => {
     const errorEl = document.querySelector('[data-field-error="true"]') || document.querySelector('.text-destructive');
     if (errorEl) {
@@ -659,7 +623,6 @@ const PackageForm = () => {
     setLoading(true);
     setUploadingImages(true);
     try {
-      // Upload flyer (banner) - prefer uploaded file, fallback to link
       let bannerUrl: string | null;
       if (bannerFile) {
         bannerUrl = await uploadBannerImage();
@@ -667,7 +630,6 @@ const PackageForm = () => {
         bannerUrl = values.banner_link || bannerPreview || null;
       }
 
-      // Upload katalog - prefer uploaded file, fallback to link
       let catalogUrl = '';
       if (katalogFile) {
         catalogUrl = await uploadDocumentFile(katalogFile, 'katalog');
@@ -675,7 +637,6 @@ const PackageForm = () => {
         catalogUrl = values.catalog_link || katalogPreview || '';
       }
 
-      // Upload itinerary - prefer uploaded file, fallback to link
       let itineraryUrl = '';
       if (itineraryFile) {
         itineraryUrl = await uploadDocumentFile(itineraryFile, 'itinerary');
@@ -684,7 +645,6 @@ const PackageForm = () => {
       }
 
       const galleryUrls = await uploadGalleryImages();
-      
       setUploadingImages(false);
 
       const generateSlug = (name: string): string => {
@@ -697,12 +657,7 @@ const PackageForm = () => {
         const departureDate = new Date(values.departure_date);
         const formattedDate = format(departureDate, 'dd-MMM-yyyy').toLowerCase();
         const slugWithDate = `${baseSlug}-${formattedDate}`;
-        
-        const { data: existingPackages } = await supabase
-          .from("packages")
-          .select("slug")
-          .eq("slug", slugWithDate);
-        
+        const { data: existingPackages } = await supabase.from("packages").select("slug").eq("slug", slugWithDate);
         if (existingPackages && existingPackages.length > 0) {
           let counter = 2;
           let uniqueSlug = `${slugWithDate}-${counter}`;
@@ -717,14 +672,11 @@ const PackageForm = () => {
         }
       }
 
-      // Combine all included items from DB
       const allIncluded = [
         ...dbStandardItems.map(i => i.name),
         ...(values.optional_items || []),
         ...(values.custom_optional_items || []),
       ];
-
-      // All excluded items from DB
       const allExcluded = dbExcludeItems.map(i => i.name);
 
       const packageData: any = {
@@ -735,7 +687,6 @@ const PackageForm = () => {
         flight: values.flight,
         flight_type: values.flight_type,
         available_tiers: values.available_tiers,
-        
         timeframe: values.timeframe || null,
         start_airport: values.start_airport || null,
         route: values.route || null,
@@ -748,7 +699,6 @@ const PackageForm = () => {
         max_discount: values.max_discount || 0,
         slots_total: values.slots_total || null,
 
-        // Hemat
         hemat_makkah_hotel_name: values.hemat_makkah_hotel_name,
         hemat_makkah_hotel_star: values.hemat_makkah_hotel_star,
         hemat_makkah_distance: values.hemat_makkah_distance,
@@ -760,7 +710,6 @@ const PackageForm = () => {
         hemat_transport: values.hemat_transport,
         hemat_package_price: { quad: values.hemat_price_quad, triple: values.hemat_price_triple, double: values.hemat_price_double },
 
-        // Nyaman
         makkah_hotel_name: values.makkah_hotel_name,
         makkah_hotel_star: values.makkah_hotel_star,
         makkah_distance: values.makkah_distance,
@@ -772,7 +721,6 @@ const PackageForm = () => {
         package_price: { quad: values.price_quad, triple: values.price_triple, double: values.price_double },
         best_seller_transport: values.best_seller_transport,
         
-        // Five Star
         five_star_makkah_hotel_name: values.five_star_makkah_hotel_name,
         five_star_makkah_hotel_star: values.five_star_makkah_hotel_star,
         five_star_makkah_distance: values.five_star_makkah_distance,
@@ -784,7 +732,6 @@ const PackageForm = () => {
         five_star_package_price: { quad: values.five_star_price_quad, triple: values.five_star_price_triple, double: values.five_star_price_double },
         five_star_transport: values.five_star_transport,
 
-        // Pelataran Hemat
         pelataran_makkah_hotel_name: values.pelataran_makkah_hotel_name,
         pelataran_makkah_hotel_star: values.pelataran_makkah_hotel_star,
         pelataran_makkah_distance: values.pelataran_makkah_distance,
@@ -798,11 +745,9 @@ const PackageForm = () => {
         
         banner_image: bannerUrl,
         gallery_images: galleryUrls,
-        
         included_items: allIncluded.join(", "),
         excluded_items: allExcluded.join(", "),
         equipment_list: "Perlengkapan Lengkap",
-        
         catalog_link: catalogUrl,
         itinerary_link: itineraryUrl,
         status: values.status,
@@ -830,15 +775,9 @@ const PackageForm = () => {
     }
   };
 
-  // Safe navigation with unsaved changes warning
   const safeNavigate = (path: string) => {
     if (hasUnsavedChanges) {
       toast.error("Ada perubahan yang belum disimpan! Simpan terlebih dahulu.");
-      const saveBtn = document.querySelector('[data-save-btn]');
-      if (saveBtn) {
-        saveBtn.classList.add('animate-shake');
-        setTimeout(() => saveBtn.classList.remove('animate-shake'), 600);
-      }
       return;
     }
     navigate(path);
@@ -858,7 +797,6 @@ const PackageForm = () => {
   const hasFiveStar = watchedTiers.includes("five-star");
   const hasPelataranHemat = watchedTiers.includes("pelataran-hemat");
 
-  // Helper to render full tier section: Hotel Makkah → Hotel Madinah → Hotel Kota + → Transport → Price
   const renderTierSection = (
     tierLabel: string,
     makkahPrefix: string,
@@ -881,12 +819,7 @@ const PackageForm = () => {
 
     return (
       <>
-        {/* Tier Header */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-primary">{tierLabel}</CardTitle>
-          </CardHeader>
-        </Card>
+        <Card><CardHeader><CardTitle className="text-primary">{tierLabel}</CardTitle></CardHeader></Card>
 
         {/* 1. Hotel Makkah */}
         <Card data-form-section>
@@ -990,7 +923,7 @@ const PackageForm = () => {
           </CardContent>
         </Card>
 
-        {/* 3. Hotel Kota + (below Madinah) */}
+        {/* 3. Hotel Kota + */}
         <Card data-form-section>
           <CardHeader><CardTitle>Hotel Kota + - {tierLabel}</CardTitle></CardHeader>
           <CardContent>
@@ -1048,7 +981,44 @@ const PackageForm = () => {
   };
 
   return (
-    <div className="space-y-6 pt-16 pb-8">
+    <div className="space-y-6 pb-8">
+      {/* Sticky top action bar - positioned within admin layout content area */}
+      <div className="sticky top-0 z-40 -mx-8 -mt-8 px-8 py-3 bg-background/95 backdrop-blur border-b shadow-sm mb-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" type="button" onClick={() => safeNavigate("/admin/packages")}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <span className="font-semibold text-sm">{id ? "Edit Paket" : "Tambah Paket"}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <FormField control={form.control} name="status" render={({ field }) => (
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger className="w-[130px] h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="published">Published</SelectItem>
+                </SelectContent>
+              </Select>
+            )} />
+            <Button type="button" variant="outline" size="sm" onClick={() => safeNavigate("/admin/packages")}>
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={loading || uploadingImages}
+              data-save-btn
+              className="bg-primary"
+            >
+              {uploadingImages ? "Uploading..." : loading ? "Menyimpan..." : "Simpan"}
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <div>
         <h1 className="text-3xl font-bold">{id ? "Edit Paket" : "Tambah Paket"}</h1>
         <p className="text-muted-foreground">Lengkapi informasi paket umroh</p>
@@ -1064,12 +1034,12 @@ const PackageForm = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField control={form.control} name="package_name" render={({ field }) => (
-                <FormItem><FormLabel>Nama Paket *</FormLabel><FormControl><Input {...field} placeholder="Umroh 10 Hari Reguler" /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Nama Paket *</FormLabel><FormControl><Input {...field} placeholder="Umroh Hemat 9 Hari" /></FormControl><FormMessage /></FormItem>
               )} />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="timeframe" render={({ field }) => (
-                  <FormItem><FormLabel>Timeframe</FormLabel><FormControl><Input {...field} placeholder="Bulan Juli" /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>Timeframe</FormLabel><FormControl><Input {...field} placeholder="Bulan November" /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="slots_total" render={({ field }) => (
                   <FormItem><FormLabel>Seat (Kuota)</FormLabel><FormControl>
@@ -1079,7 +1049,6 @@ const PackageForm = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Pretty Calendar Date Picker - synced to selected date */}
                 <FormField
                   control={form.control}
                   name="departure_date"
@@ -1091,34 +1060,14 @@ const PackageForm = () => {
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal h-10",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(new Date(field.value), "dd MMMM yyyy", { locale: idLocale })
-                                ) : (
-                                  <span>Pilih tanggal</span>
-                                )}
+                              <Button variant="outline" className={cn("w-full pl-3 text-left font-normal h-10", !field.value && "text-muted-foreground")}>
+                                {field.value ? format(new Date(field.value), "dd MMMM yyyy", { locale: idLocale }) : <span>Pilih tanggal</span>}
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={selectedDate}
-                              defaultMonth={selectedDate || new Date()}
-                              onSelect={(date) => {
-                                if (date) field.onChange(format(date, "yyyy-MM-dd"));
-                              }}
-                              disabled={(date) => date < new Date("2024-01-01")}
-                              initialFocus
-                              className="p-3 pointer-events-auto"
-                            />
+                            <Calendar mode="single" selected={selectedDate} defaultMonth={selectedDate || new Date()} onSelect={(date) => { if (date) field.onChange(format(date, "yyyy-MM-dd")); }} disabled={(date) => date < new Date("2024-01-01")} initialFocus className="p-3 pointer-events-auto" />
                           </PopoverContent>
                         </Popover>
                         <FormMessage />
@@ -1126,15 +1075,10 @@ const PackageForm = () => {
                     );
                   }}
                 />
-
                 <FormField control={form.control} name="duration_days" render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Durasi (Hari) *</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} className="h-10" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem className="flex flex-col"><FormLabel>Durasi (Hari) *</FormLabel><FormControl>
+                    <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} className="h-10" placeholder="9" />
+                  </FormControl><FormMessage /></FormItem>
                 )} />
               </div>
 
@@ -1153,6 +1097,8 @@ const PackageForm = () => {
                         <SelectItem value="Scoot Airlines">Scoot Airlines</SelectItem>
                         <SelectItem value="Oman Air">Oman Air</SelectItem>
                         <SelectItem value="Qatar Airways">Qatar Airways</SelectItem>
+                        <SelectItem value="Lion Air">Lion Air</SelectItem>
+                        <SelectItem value="Emirates">Emirates</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -1186,7 +1132,7 @@ const PackageForm = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField control={form.control} name="nights_makkah" render={({ field }) => (
                   <FormItem><FormLabel>Malam Makkah</FormLabel><FormControl>
-                    <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="7" />
+                    <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="4" />
                   </FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="nights_madinah" render={({ field }) => (
@@ -1203,7 +1149,7 @@ const PackageForm = () => {
 
               <FormField control={form.control} name="selling_points" render={({ field }) => (
                 <FormItem><FormLabel>Selling Points</FormLabel><FormControl>
-                  <Textarea {...field} placeholder="Thaif + Romansiah, Fotografer" rows={2} />
+                  <Textarea {...field} placeholder="Thaif + Romansiah, Fotografer, Quba Night" rows={2} />
                 </FormControl><FormMessage /></FormItem>
               )} />
 
@@ -1215,7 +1161,7 @@ const PackageForm = () => {
             </CardContent>
           </Card>
 
-          {/* Tier Selection */}
+          {/* Tier Selection - clickable boxes */}
           <Card data-form-section>
             <CardHeader>
               <CardTitle>Tier Paket</CardTitle>
@@ -1239,10 +1185,19 @@ const PackageForm = () => {
                           { value: "five-star", label: "Five Star" },
                           { value: "pelataran-hemat", label: "Pelataran Hemat" },
                         ].map((tier) => (
-                          <div key={tier.value} className="flex items-center space-x-2 rounded-lg border p-3 hover:bg-accent/50 transition-colors">
+                          <label
+                            key={tier.value}
+                            htmlFor={`tier-${tier.value}`}
+                            className={cn(
+                              "flex items-center gap-2 rounded-lg border p-3 cursor-pointer transition-colors",
+                              field.value?.[0] === tier.value
+                                ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                                : "hover:bg-accent/50"
+                            )}
+                          >
                             <RadioGroupItem value={tier.value} id={`tier-${tier.value}`} />
-                            <Label htmlFor={`tier-${tier.value}`} className="font-medium cursor-pointer text-sm">{tier.label}</Label>
-                          </div>
+                            <span className="font-medium text-sm">{tier.label}</span>
+                          </label>
                         ))}
                       </RadioGroup>
                     </FormControl>
@@ -1259,7 +1214,7 @@ const PackageForm = () => {
           {hasFiveStar && renderTierSection("Five Star", "five_star_makkah", "five_star_madinah", "five_star_price", "five_star_transport")}
           {hasPelataranHemat && renderTierSection("Pelataran Hemat", "pelataran_makkah", "pelataran_madinah", "pelataran_price", "pelataran_transport")}
 
-          {/* Flyer, Katalog & Itinerary - Uniform layout: upload top, link bottom */}
+          {/* Flyer, Katalog & Itinerary - Uniform layout */}
           <Card>
             <CardHeader>
               <CardTitle>Flyer, Katalog & Itinerary</CardTitle>
@@ -1269,86 +1224,59 @@ const PackageForm = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Flyer */}
                 <div className="space-y-3">
-                  <label className="text-sm font-semibold">Flyer</label>
+                  <p className="text-sm font-semibold">Flyer</p>
                   <ImageDropZone
                     label=""
-                    description="1080x1350px, Maks 5MB"
+                    description="Gambar flyer, maks 5MB"
                     previews={bannerPreview ? [bannerPreview] : []}
                     onFiles={handleBannerFiles}
                     onRemove={removeBanner}
                     disabled={loading}
                   />
-                  <FormField control={form.control} name="banner_link" render={({ field }) => (
-                    <FormItem>
-                      <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs" /></FormControl>
-                    </FormItem>
-                  )} />
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Link Drive</p>
+                    <FormField control={form.control} name="banner_link" render={({ field }) => (
+                      <FormItem>
+                        <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs h-8" /></FormControl>
+                      </FormItem>
+                    )} />
+                  </div>
                 </div>
 
                 {/* Katalog */}
                 <div className="space-y-3">
-                  <label className="text-sm font-semibold">Katalog</label>
-                  <div className="space-y-2">
-                    {katalogPreview && (
-                      <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/50">
-                        <FileUp className="w-4 h-4 text-primary flex-shrink-0" />
-                        <span className="text-xs truncate flex-1">{katalogPreview.split('/').pop() || 'Uploaded file'}</span>
-                        <Button type="button" variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setKatalogFile(null); setKatalogPreview(""); }}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    )}
-                    <div
-                      onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) { setKatalogFile(f); setKatalogPreview(f.name); } }}
-                      onDragOver={(e) => e.preventDefault()}
-                      onClick={() => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.webp'; inp.onchange = (ev) => { const f = (ev.target as HTMLInputElement).files?.[0]; if (f) { setKatalogFile(f); setKatalogPreview(f.name); } }; inp.click(); }}
-                      className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="p-3 bg-muted rounded-full"><Upload className="h-6 w-6 text-muted-foreground" /></div>
-                        <p className="text-sm font-medium">Klik, drag & drop</p>
-                        <p className="text-xs text-muted-foreground">PDF, DOC, atau gambar</p>
-                      </div>
-                    </div>
+                  <p className="text-sm font-semibold">Katalog</p>
+                  <DocDropZone
+                    preview={katalogPreview}
+                    onFile={(f) => { setKatalogFile(f); setKatalogPreview(f.name); }}
+                    onRemove={() => { setKatalogFile(null); setKatalogPreview(""); }}
+                  />
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Link Drive</p>
+                    <FormField control={form.control} name="catalog_link" render={({ field }) => (
+                      <FormItem>
+                        <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs h-8" /></FormControl>
+                      </FormItem>
+                    )} />
                   </div>
-                  <FormField control={form.control} name="catalog_link" render={({ field }) => (
-                    <FormItem>
-                      <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs" /></FormControl>
-                    </FormItem>
-                  )} />
                 </div>
 
                 {/* Itinerary */}
                 <div className="space-y-3">
-                  <label className="text-sm font-semibold">Itinerary</label>
-                  <div className="space-y-2">
-                    {itineraryPreview && (
-                      <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/50">
-                        <FileUp className="w-4 h-4 text-primary flex-shrink-0" />
-                        <span className="text-xs truncate flex-1">{itineraryPreview.split('/').pop() || 'Uploaded file'}</span>
-                        <Button type="button" variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setItineraryFile(null); setItineraryPreview(""); }}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    )}
-                    <div
-                      onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) { setItineraryFile(f); setItineraryPreview(f.name); } }}
-                      onDragOver={(e) => e.preventDefault()}
-                      onClick={() => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.webp'; inp.onchange = (ev) => { const f = (ev.target as HTMLInputElement).files?.[0]; if (f) { setItineraryFile(f); setItineraryPreview(f.name); } }; inp.click(); }}
-                      className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="p-3 bg-muted rounded-full"><Upload className="h-6 w-6 text-muted-foreground" /></div>
-                        <p className="text-sm font-medium">Klik, drag & drop</p>
-                        <p className="text-xs text-muted-foreground">PDF, DOC, atau gambar</p>
-                      </div>
-                    </div>
+                  <p className="text-sm font-semibold">Itinerary</p>
+                  <DocDropZone
+                    preview={itineraryPreview}
+                    onFile={(f) => { setItineraryFile(f); setItineraryPreview(f.name); }}
+                    onRemove={() => { setItineraryFile(null); setItineraryPreview(""); }}
+                  />
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Link Drive</p>
+                    <FormField control={form.control} name="itinerary_link" render={({ field }) => (
+                      <FormItem>
+                        <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs h-8" /></FormControl>
+                      </FormItem>
+                    )} />
                   </div>
-                  <FormField control={form.control} name="itinerary_link" render={({ field }) => (
-                    <FormItem>
-                      <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs" /></FormControl>
-                    </FormItem>
-                  )} />
                 </div>
               </div>
             </CardContent>
@@ -1381,7 +1309,6 @@ const PackageForm = () => {
               <CardDescription>Fasilitas dikelola di halaman <a href="/admin/package-items" className="text-primary underline" target="_blank">Fasilitas Paket</a></CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Standard Included Items - read-only from DB */}
               <div className="space-y-3">
                 <FormLabel className="text-base font-semibold">Termasuk (Standard)</FormLabel>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-lg bg-muted/50">
@@ -1396,7 +1323,6 @@ const PackageForm = () => {
                 </div>
               </div>
 
-              {/* Optional Included Items - checkboxes + can add new */}
               <FormField
                 control={form.control}
                 name="optional_items"
@@ -1417,7 +1343,6 @@ const PackageForm = () => {
                             <span className="text-sm">{item.name}</span>
                           </div>
                         ))}
-                        {/* Custom optional items */}
                         {(form.watch("custom_optional_items") || []).map((item, idx) => (
                           <div key={`custom-${idx}`} className="flex items-center gap-2 group">
                             <Checkbox
@@ -1444,7 +1369,6 @@ const PackageForm = () => {
                           </div>
                         ))}
                       </div>
-                      {/* Add new optional item */}
                       <AddItemInput onAdd={(name) => {
                         const customs = form.getValues("custom_optional_items") || [];
                         form.setValue("custom_optional_items", [...customs, name]);
@@ -1455,7 +1379,6 @@ const PackageForm = () => {
                 )}
               />
 
-              {/* Excluded Items - read-only from DB */}
               <div className="space-y-3">
                 <FormLabel className="text-base font-semibold">Tidak Termasuk</FormLabel>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-lg bg-muted/50">
@@ -1472,51 +1395,9 @@ const PackageForm = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Sticky Top Action Bar */}
-          <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-b shadow-sm">
-            <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <Button variant="ghost" size="sm" type="button" onClick={() => safeNavigate("/admin/packages")}>
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <span className="font-semibold text-sm">{id ? "Edit Paket" : "Tambah Paket"}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <FormField control={form.control} name="status" render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="w-[130px] h-9">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="published">Published</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )} />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => safeNavigate("/admin/packages")}
-                >
-                  Batal
-                </Button>
-                <Button
-                  type="submit"
-                  size="sm"
-                  disabled={loading || uploadingImages}
-                  data-save-btn
-                >
-                  {uploadingImages ? "Uploading..." : loading ? "Menyimpan..." : "Simpan"}
-                </Button>
-              </div>
-            </div>
-          </div>
         </form>
       </Form>
 
-      {/* Add Hotel Modal */}
       <AddHotelModal
         open={hotelModalOpen}
         onOpenChange={setHotelModalOpen}
@@ -1527,7 +1408,6 @@ const PackageForm = () => {
   );
 };
 
-// Small helper component for adding new optional items
 const AddItemInput = ({ onAdd }: { onAdd: (name: string) => void }) => {
   const [value, setValue] = useState("");
   const add = () => {

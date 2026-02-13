@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -7,18 +7,12 @@ import { PackageCard } from "@/components/PackageCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package, Calendar, Plane, Clock, Grid3X3, List } from "lucide-react";
+import { Package, Calendar, Plane, Clock, Grid3X3, List, SlidersHorizontal, X, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { formatPriceJuta } from "@/lib/utils";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { usePublishedPackages } from "@/hooks/usePackages";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
 const PaketUmroh = () => {
   const [viewMode, setViewMode] = useState<"card" | "schedule">("card");
@@ -32,31 +26,54 @@ const PaketUmroh = () => {
 
   const formatPrice = (price: number) => formatPriceJuta(price);
 
-  const getCategoryFromPrice = (price: number) => {
-    if (price < 25000000) return "hemat";
-    if (price <= 40000000) return "nyaman";
-    return "five-star";
-  };
+  // Dynamic filter options derived from actual data
+  const filterOptions = useMemo(() => {
+    const airlines = [...new Set(packages.map(p => p.flight).filter(Boolean))].sort();
+    const durations = [...new Set(packages.map(p => p.duration_days))].sort((a, b) => a - b);
+    const months = [...new Set(packages.map(p => {
+      const d = new Date(p.departure_date);
+      return format(d, "yyyy-MM");
+    }))].sort().map(ym => {
+      const d = new Date(ym + "-01");
+      return { value: format(d, "MMMM", { locale: localeId }).toLowerCase(), label: format(d, "MMMM yyyy", { locale: localeId }) };
+    });
+    // Deduplicate months by value
+    const uniqueMonths = months.filter((m, i, arr) => arr.findIndex(x => x.value === m.value) === i);
+
+    const tiers = [...new Set(packages.flatMap(p => (p as any).available_tiers || []))].filter(Boolean);
+    const tierMap: Record<string, string> = { hemat: "Hemat", nyaman: "Nyaman", best_seller: "Nyaman", "five-star": "Five Star", five_star: "Five Star", pelataran: "Pelataran Hemat", "pelataran-hemat": "Pelataran Hemat" };
+    const categories = [...new Set(tiers.map(t => ({ value: t, label: tierMap[t] || t })).map(c => JSON.stringify(c)))].map(s => JSON.parse(s));
+
+    return { airlines, durations, months: uniqueMonths, categories };
+  }, [packages]);
 
   const getMonthFromDate = (date: string) => {
     return format(new Date(date), "MMMM yyyy", { locale: localeId }).toLowerCase();
   };
 
   const filteredPackages = packages.filter((pkg) => {
-    const pkgCategory = getCategoryFromPrice(pkg.package_price.quad);
     const pkgMonth = getMonthFromDate(pkg.departure_date);
-    
-    const categoryMatch = category === "all" || pkgCategory === category;
+    const pkgTiers = (pkg as any).available_tiers || [];
+
+    const categoryMatch = category === "all" || pkgTiers.includes(category);
     const airlineMatch = airline === "all" || pkg.flight === airline;
     const monthMatch = month === "all" || pkgMonth.includes(month.toLowerCase());
     const flightTypeMatch = flightType === "all" || pkg.flight_type.toLowerCase() === flightType;
-    const durationMatch = duration === "all" || 
-      (duration === "9" && pkg.duration_days === 9) ||
-      (duration === "12" && pkg.duration_days === 12) ||
-      (duration === "13" && pkg.duration_days === 13);
+    const durationMatch = duration === "all" || pkg.duration_days === parseInt(duration);
 
     return categoryMatch && airlineMatch && monthMatch && flightTypeMatch && durationMatch;
   });
+
+  const isFiltered = category !== "all" || airline !== "all" || month !== "all" || flightType !== "all" || duration !== "all";
+  const activeFilterCount = [category, airline, month, flightType, duration].filter(v => v !== "all").length;
+
+  const resetFilters = () => {
+    setCategory("all");
+    setAirline("all");
+    setMonth("all");
+    setFlightType("all");
+    setDuration("all");
+  };
 
   const transformedPackages = filteredPackages.map((pkg) => ({
     id: pkg.id,
@@ -72,8 +89,10 @@ const PaketUmroh = () => {
     hotelMakkahRating: pkg.makkah_hotel_star || undefined,
     hotelMadinah: pkg.madinah_hotel_name || undefined,
     hotelMadinahRating: pkg.madinah_hotel_star || undefined,
-    category: getCategoryFromPrice(pkg.package_price.quad),
-    seatAvailable: true,
+    category: (pkg as any).available_tiers?.[0] || "nyaman",
+    seatAvailable: !pkg.is_sold_out,
+    isSoldOut: pkg.is_sold_out || false,
+    waitlistCount: pkg.waitlist_count || 0,
     fiveStarPrice: pkg.five_star_package_price?.quad ? formatPrice(pkg.five_star_package_price.quad) : undefined,
     fiveStarHotelMakkah: pkg.five_star_makkah_hotel_name || undefined,
     fiveStarHotelMakkahRating: pkg.five_star_makkah_hotel_star || undefined,
@@ -90,20 +109,6 @@ const PaketUmroh = () => {
         description="Pilih paket umroh terbaik: 9 hari, 12 hari, plus Turki. Harga mulai 20 juta, hotel bintang 5, keberangkatan fleksibel. Daftar sekarang!"
         keywords="paket umroh 2025, harga umroh, paket umroh murah, jadwal umroh 2025, umroh hemat"
         canonicalUrl="https://musafartour.com/paket-umroh"
-        structuredData={{
-          "@context": "https://schema.org",
-          "@type": "Service",
-          "serviceType": "Paket Umroh",
-          "provider": {
-            "@type": "TravelAgency",
-            "name": "Musafar Tour"
-          },
-          "areaServed": "ID",
-          "availableChannel": {
-            "@type": "ServiceChannel",
-            "serviceUrl": "https://musafartour.com/paket-umroh"
-          }
-        }}
       />
       <Navbar />
       
@@ -113,158 +118,116 @@ const PaketUmroh = () => {
           <Package className="h-16 w-16 mx-auto mb-4 text-primary" />
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Paket Umroh Musafar Tour</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Pilihan paket Umroh terlengkap mulai dari Budget hingga Premium Bintang 5. Semua dirancang untuk kenyamanan dan keberkahan perjalanan spiritual Anda.
+            Pilihan paket Umroh terlengkap mulai dari Budget hingga Premium Bintang 5.
           </p>
-          
-          {/* View Toggle */}
           <div className="flex justify-center gap-2 mt-6">
-            <Button
-              variant={viewMode === "card" ? "default" : "outline"}
-              onClick={() => setViewMode("card")}
-              className="gap-2"
-            >
-              <Grid3X3 className="h-4 w-4" />
-              Tampilan Kartu
+            <Button variant={viewMode === "card" ? "default" : "outline"} onClick={() => setViewMode("card")} className="gap-2">
+              <Grid3X3 className="h-4 w-4" /> Tampilan Kartu
             </Button>
-            <Button
-              variant={viewMode === "schedule" ? "default" : "outline"}
-              onClick={() => setViewMode("schedule")}
-              className="gap-2"
-            >
-              <List className="h-4 w-4" />
-              Tampilan Jadwal
+            <Button variant={viewMode === "schedule" ? "default" : "outline"} onClick={() => setViewMode("schedule")} className="gap-2">
+              <List className="h-4 w-4" /> Tampilan Jadwal
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Filter & Package Catalog */}
+      {/* Filter & Packages */}
       <section className="py-16 container mx-auto px-4">
-        {/* Filter Bar with Accordion */}
-        <div className="bg-card rounded-lg shadow-md mb-12 border">
-          <Accordion type="single" collapsible defaultValue="filters" className="w-full">
-            <AccordionItem value="filters" className="border-none">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  <span className="font-semibold">Filter Paket</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Kategori" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Kategori</SelectItem>
-                      <SelectItem value="hemat">Hemat</SelectItem>
-                      <SelectItem value="nyaman">Nyaman</SelectItem>
-                      <SelectItem value="five-star">Five Star</SelectItem>
-                    </SelectContent>
-                  </Select>
+        {/* Filter Bar */}
+        <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="w-[160px] h-9 text-sm">
+              <SelectValue placeholder="Kategori" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Kategori</SelectItem>
+              {filterOptions.categories.map((c) => (
+                <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-                  <Select value={month} onValueChange={setMonth}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Bulan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Bulan</SelectItem>
-                      <SelectItem value="november">November 2025</SelectItem>
-                      <SelectItem value="desember">Desember 2025</SelectItem>
-                      <SelectItem value="januari">Januari 2026</SelectItem>
-                      <SelectItem value="februari">Februari 2026</SelectItem>
-                      <SelectItem value="maret">Maret 2026</SelectItem>
-                      <SelectItem value="april">April 2026</SelectItem>
-                      <SelectItem value="mei">Mei 2026</SelectItem>
-                      <SelectItem value="juni">Juni 2026</SelectItem>
-                      <SelectItem value="juli">Juli 2026</SelectItem>
-                      <SelectItem value="agustus">Agustus 2026</SelectItem>
-                      <SelectItem value="september">September 2026</SelectItem>
-                      <SelectItem value="oktober">Oktober 2026</SelectItem>
-                    </SelectContent>
-                  </Select>
+          <Select value={month} onValueChange={setMonth}>
+            <SelectTrigger className="w-[170px] h-9 text-sm">
+              <SelectValue placeholder="Bulan" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Bulan</SelectItem>
+              {filterOptions.months.map((m) => (
+                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-                  <Select value={airline} onValueChange={setAirline}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Maskapai" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Maskapai</SelectItem>
-                      <SelectItem value="Garuda Indonesia">Garuda Indonesia</SelectItem>
-                      <SelectItem value="Saudia">Saudia</SelectItem>
-                      <SelectItem value="Scoot Airlines">Scoot Airlines</SelectItem>
-                      <SelectItem value="Oman Air">Oman Air</SelectItem>
-                      <SelectItem value="Qatar Airways">Qatar Airways</SelectItem>
-                    </SelectContent>
-                  </Select>
+          <Select value={airline} onValueChange={setAirline}>
+            <SelectTrigger className="w-[170px] h-9 text-sm">
+              <SelectValue placeholder="Maskapai" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Maskapai</SelectItem>
+              {filterOptions.airlines.map((a) => (
+                <SelectItem key={a} value={a}>{a}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-                  <Select value={flightType} onValueChange={setFlightType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Tipe Penerbangan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Tipe Penerbangan</SelectItem>
-                      <SelectItem value="direct">Direct</SelectItem>
-                      <SelectItem value="transit">Transit</SelectItem>
-                    </SelectContent>
-                  </Select>
+          <Select value={flightType} onValueChange={setFlightType}>
+            <SelectTrigger className="w-[150px] h-9 text-sm">
+              <SelectValue placeholder="Penerbangan" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Tipe</SelectItem>
+              <SelectItem value="direct">Direct</SelectItem>
+              <SelectItem value="transit">Transit</SelectItem>
+            </SelectContent>
+          </Select>
 
-                  <Select value={duration} onValueChange={setDuration}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Durasi" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Durasi</SelectItem>
-                      <SelectItem value="9">9 Hari</SelectItem>
-                      <SelectItem value="12">12 Hari</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button
-                  variant="ghost"
-                  className="w-full text-primary hover:text-primary hover:bg-primary/5"
-                  onClick={() => {
-                    setCategory("all");
-                    setAirline("all");
-                    setMonth("all");
-                    setFlightType("all");
-                    setDuration("all");
-                  }}
-                >
-                  Reset Filter
-                </Button>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          <Select value={duration} onValueChange={setDuration}>
+            <SelectTrigger className="w-[140px] h-9 text-sm">
+              <SelectValue placeholder="Durasi" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Durasi</SelectItem>
+              {filterOptions.durations.map((d) => (
+                <SelectItem key={d} value={String(d)}>{d} Hari</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {isFiltered && (
+            <Button variant="ghost" size="sm" onClick={resetFilters} className="text-muted-foreground hover:text-foreground gap-1">
+              <X className="h-3 w-3" /> Reset
+            </Button>
+          )}
         </div>
 
-        {/* Package Grid / Schedule List */}
+        {/* Results */}
         {loading ? (
           <div className={viewMode === "card" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}>
             {[...Array(6)].map((_, i) => (
-              viewMode === "card" ? (
-                <div key={i} className="space-y-4">
-                  <Skeleton className="aspect-[4/5] w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
-              ) : (
-                <div key={i} className="bg-card p-6 rounded-lg border">
-                  <Skeleton className="h-8 w-1/3 mb-4" />
-                  <Skeleton className="h-6 w-2/3 mb-2" />
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
-              )
+              <div key={i} className="space-y-4">
+                <Skeleton className="aspect-square w-full rounded-xl" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
             ))}
           </div>
         ) : transformedPackages.length === 0 ? (
           <div className="text-center py-16">
             <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2">Tidak ada paket tersedia</h3>
-            <p className="text-muted-foreground">
-              Coba ubah filter atau kembali lagi nanti
+            <h3 className="text-xl font-semibold mb-2">Paket tidak ditemukan</h3>
+            <p className="text-muted-foreground mb-4">
+              Maaf, paket dengan kriteria tersebut belum tersedia.
             </p>
+            <Button
+              className="gap-2"
+              onClick={() => {
+                redirectToWhatsApp("Halo Musafar Tour, saya mencari paket umroh yang belum tersedia di website. Bisa dibantu?");
+              }}
+            >
+              <MessageCircle className="h-4 w-4" />
+              Hubungi via WhatsApp
+            </Button>
           </div>
         ) : viewMode === "card" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -286,24 +249,16 @@ const PaketUmroh = () => {
                     </div>
                     <h3 className="text-xl font-semibold mb-2">{pkg.package_name}</h3>
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        {pkg.duration_days} Hari
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Plane className="h-4 w-4" />
-                        {pkg.flight}
-                      </div>
-                      <span className="text-accent font-medium">
-                        {pkg.flight_type === "direct" ? "Direct" : "Transit"}
-                      </span>
+                      <div className="flex items-center gap-1"><Clock className="h-4 w-4" />{pkg.duration_days} Hari</div>
+                      <div className="flex items-center gap-1"><Plane className="h-4 w-4" />{pkg.flight}</div>
+                      <span className="text-accent font-medium">{pkg.flight_type === "direct" ? "Direct" : "Transit"}</span>
                     </div>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Link to={`/paket-umroh/${pkg.slug || pkg.id}`}>
                       <Button variant="outline" className="w-full sm:w-auto">Lihat Detail</Button>
                     </Link>
-                    <Button 
+                    <Button
                       className="bg-[#25D366] hover:bg-[#22c55e] text-white w-full sm:w-auto"
                       onClick={() => {
                         const message = `Halo Musafar Tour, saya ingin mendaftar untuk ${pkg.package_name} dengan keberangkatan ${format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId })}.`;
