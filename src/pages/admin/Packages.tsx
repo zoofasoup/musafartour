@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, RefreshCw } from "lucide-react";
+import { Plus, Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, RefreshCw, Presentation } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import {
@@ -25,6 +25,7 @@ import { formatNumber } from "@/lib/utils";
 
 interface Package {
   id: string;
+  slug: string;
   package_name: string;
   departure_date: string;
   duration_days: number;
@@ -411,6 +412,14 @@ const Packages = () => {
                       </div>
                     </TableCell>
                     <TableCell className="text-right space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`/admin/brochure/${pkg.slug}`)}
+                        title="Digital Brochure"
+                      >
+                        <Presentation className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
