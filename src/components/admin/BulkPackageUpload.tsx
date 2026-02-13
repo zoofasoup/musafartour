@@ -360,6 +360,10 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[]) {
     }
   };
 
+  const defaultTransport = (tier: string) => {
+    return tier === "five-star" ? "Kereta Cepat" : "Bus Eksklusif";
+  };
+
   const priceField = (tier: string) => {
     switch (tier) {
       case "hemat": return "hemat_package_price";
@@ -399,7 +403,7 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[]) {
     max_discount: row.max_discount || 0,
     package_price: row.tier === "nyaman" ? priceJson : { quad: 0, triple: 0, double: 0 },
     [priceField(row.tier)]: priceJson,
-    [transportField(row.tier)]: row.start_airport || null,
+    [transportField(row.tier)]: defaultTransport(row.tier),
     ...hotelFields(hotelPrefix(row.tier), makkahHotel, madinahHotel),
   };
 
