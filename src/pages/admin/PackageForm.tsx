@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { ArrowLeft, X, Upload, Plus, CalendarIcon, Clipboard } from "lucide-react";
+import { ArrowLeft, X, Upload, Plus, CalendarIcon, Clipboard, Link as LinkIcon, FileUp } from "lucide-react";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -106,6 +106,7 @@ const packageSchema = z.object({
   
   catalog_link: z.string().optional(),
   itinerary_link: z.string().optional(),
+  banner_link: z.string().optional(),
   status: z.string(),
   
   is_sold_out: z.boolean().default(false),
@@ -239,6 +240,13 @@ const PackageForm = () => {
   const [initialLoading, setInitialLoading] = useState(!!id);
   const [bannerPreview, setBannerPreview] = useState<string>("");
   const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [katalogFile, setKatalogFile] = useState<File | null>(null);
+  const [katalogPreview, setKatalogPreview] = useState<string>("");
+  const [katalogMode, setKatalogMode] = useState<"link" | "upload">("link");
+  const [itineraryFile, setItineraryFile] = useState<File | null>(null);
+  const [itineraryPreview, setItineraryPreview] = useState<string>("");
+  const [itineraryMode, setItineraryMode] = useState<"link" | "upload">("link");
+  const [flyerMode, setFlyerMode] = useState<"link" | "upload">("upload");
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -295,6 +303,7 @@ const PackageForm = () => {
       
       optional_items: [],
       custom_optional_items: [],
+      banner_link: "",
       status: "draft",
       is_sold_out: false,
       waitlist_count: 0,
@@ -411,7 +420,29 @@ const PackageForm = () => {
       if (error) throw error;
 
       if (data) {
-        if (data.banner_image) setBannerPreview(data.banner_image);
+        if (data.banner_image) {
+          setBannerPreview(data.banner_image);
+          // If banner_image is a URL, check if it looks like an uploaded file or a drive link
+          if (data.banner_image.startsWith('http') && !data.banner_image.includes('supabase')) {
+            setFlyerMode("link");
+          }
+        }
+        if (data.catalog_link) {
+          if (data.catalog_link.startsWith('http') && !data.catalog_link.includes('supabase')) {
+            setKatalogMode("link");
+          } else {
+            setKatalogMode("upload");
+            setKatalogPreview(data.catalog_link);
+          }
+        }
+        if ((data as any).itinerary_link) {
+          if ((data as any).itinerary_link.startsWith('http') && !(data as any).itinerary_link.includes('supabase')) {
+            setItineraryMode("link");
+          } else {
+            setItineraryMode("upload");
+            setItineraryPreview((data as any).itinerary_link);
+          }
+        }
         if (data.gallery_images && Array.isArray(data.gallery_images)) setGalleryPreviews(data.gallery_images);
 
         const priceData = data.package_price as any;
@@ -509,6 +540,7 @@ const PackageForm = () => {
           
           catalog_link: data.catalog_link || "",
           itinerary_link: data.itinerary_link || "",
+          banner_link: data.banner_image || "",
           status: data.status,
           is_sold_out: data.is_sold_out || false,
           waitlist_count: data.waitlist_count || 0,
@@ -603,6 +635,26 @@ const PackageForm = () => {
     return [...existingUrls, ...newUrls];
   };
 
+  const uploadDocumentFile = async (file: File, folder: string): Promise<string> => {
+    const packageName = form.getValues('package_name');
+    const ext = file.name.split('.').pop() || 'pdf';
+    const safeName = packageName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+    const fileName = `${safeName}-${folder}-${Date.now()}.${ext}`;
+    const filePath = `${folder}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('package-images')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('package-images')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
   // Shake + scroll to first error
   const handleValidationError = () => {
     const errorEl = document.querySelector('[data-field-error="true"]') || document.querySelector('.text-destructive');
@@ -621,7 +673,30 @@ const PackageForm = () => {
     setLoading(true);
     setUploadingImages(true);
     try {
-      const bannerUrl = await uploadBannerImage();
+      // Upload flyer (banner)
+      let bannerUrl: string | null;
+      if (flyerMode === "link") {
+        bannerUrl = values.banner_link || bannerPreview || null;
+      } else {
+        bannerUrl = await uploadBannerImage();
+      }
+
+      // Upload katalog
+      let catalogUrl = values.catalog_link || '';
+      if (katalogMode === "upload" && katalogFile) {
+        catalogUrl = await uploadDocumentFile(katalogFile, 'katalog');
+      } else if (katalogMode === "upload" && katalogPreview) {
+        catalogUrl = katalogPreview;
+      }
+
+      // Upload itinerary
+      let itineraryUrl = values.itinerary_link || '';
+      if (itineraryMode === "upload" && itineraryFile) {
+        itineraryUrl = await uploadDocumentFile(itineraryFile, 'itinerary');
+      } else if (itineraryMode === "upload" && itineraryPreview) {
+        itineraryUrl = itineraryPreview;
+      }
+
       const galleryUrls = await uploadGalleryImages();
       
       setUploadingImages(false);
@@ -741,8 +816,8 @@ const PackageForm = () => {
         excluded_items: allExcluded.join(", "),
         equipment_list: "Perlengkapan Lengkap",
         
-        catalog_link: values.catalog_link,
-        itinerary_link: values.itinerary_link,
+        catalog_link: catalogUrl,
+        itinerary_link: itineraryUrl,
         status: values.status,
         is_sold_out: values.is_sold_out,
         waitlist_count: values.waitlist_count,
@@ -1201,21 +1276,134 @@ const PackageForm = () => {
           {hasFiveStar && renderTierSection("Five Star", "five_star_makkah", "five_star_madinah", "five_star_price", "five_star_transport")}
           {hasPelataranHemat && renderTierSection("Pelataran Hemat", "pelataran_makkah", "pelataran_madinah", "pelataran_price", "pelataran_transport")}
 
-          {/* Banner Image */}
+          {/* Flyer, Katalog & Itinerary - Side by side */}
           <Card>
             <CardHeader>
-              <CardTitle>Banner Image</CardTitle>
-              <CardDescription>Upload banner untuk paket (1080x1350px)</CardDescription>
+              <CardTitle>Flyer, Katalog & Itinerary</CardTitle>
+              <CardDescription>Upload file atau masukkan link drive untuk masing-masing dokumen</CardDescription>
             </CardHeader>
             <CardContent>
-              <ImageDropZone
-                label="Upload Banner"
-                description="Ukuran ideal: 1080x1350px (portrait). Maks 5MB. Ctrl+V untuk paste."
-                previews={bannerPreview ? [bannerPreview] : []}
-                onFiles={handleBannerFiles}
-                onRemove={removeBanner}
-                disabled={loading}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Flyer */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold">Flyer</label>
+                    <div className="flex gap-1 rounded-lg border p-0.5">
+                      <button type="button" onClick={() => setFlyerMode("upload")} className={cn("px-2 py-1 text-xs rounded-md transition-colors", flyerMode === "upload" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
+                        <FileUp className="w-3 h-3 inline mr-1" />Upload
+                      </button>
+                      <button type="button" onClick={() => setFlyerMode("link")} className={cn("px-2 py-1 text-xs rounded-md transition-colors", flyerMode === "link" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
+                        <LinkIcon className="w-3 h-3 inline mr-1" />Link
+                      </button>
+                    </div>
+                  </div>
+                  {flyerMode === "upload" ? (
+                    <ImageDropZone
+                      label=""
+                      description="1080x1350px, Maks 5MB"
+                      previews={bannerPreview ? [bannerPreview] : []}
+                      onFiles={handleBannerFiles}
+                      onRemove={removeBanner}
+                      disabled={loading}
+                    />
+                  ) : (
+                    <FormField control={form.control} name="banner_link" render={({ field }) => (
+                      <FormItem>
+                        <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  )}
+                </div>
+
+                {/* Katalog */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold">Katalog</label>
+                    <div className="flex gap-1 rounded-lg border p-0.5">
+                      <button type="button" onClick={() => setKatalogMode("upload")} className={cn("px-2 py-1 text-xs rounded-md transition-colors", katalogMode === "upload" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
+                        <FileUp className="w-3 h-3 inline mr-1" />Upload
+                      </button>
+                      <button type="button" onClick={() => setKatalogMode("link")} className={cn("px-2 py-1 text-xs rounded-md transition-colors", katalogMode === "link" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
+                        <LinkIcon className="w-3 h-3 inline mr-1" />Link
+                      </button>
+                    </div>
+                  </div>
+                  {katalogMode === "upload" ? (
+                    <div className="space-y-2">
+                      {katalogPreview && (
+                        <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/50">
+                          <FileUp className="w-4 h-4 text-primary flex-shrink-0" />
+                          <span className="text-xs truncate flex-1">{katalogPreview.split('/').pop() || 'Uploaded file'}</span>
+                          <Button type="button" variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setKatalogFile(null); setKatalogPreview(""); }}>
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
+                      <div
+                        onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) { setKatalogFile(f); setKatalogPreview(f.name); } }}
+                        onDragOver={(e) => e.preventDefault()}
+                        onClick={() => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.webp'; inp.onchange = (ev) => { const f = (ev.target as HTMLInputElement).files?.[0]; if (f) { setKatalogFile(f); setKatalogPreview(f.name); } }; inp.click(); }}
+                        className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                      >
+                        <Upload className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+                        <p className="text-xs text-muted-foreground">Drag & drop atau klik</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <FormField control={form.control} name="catalog_link" render={({ field }) => (
+                      <FormItem>
+                        <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  )}
+                </div>
+
+                {/* Itinerary */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold">Itinerary</label>
+                    <div className="flex gap-1 rounded-lg border p-0.5">
+                      <button type="button" onClick={() => setItineraryMode("upload")} className={cn("px-2 py-1 text-xs rounded-md transition-colors", itineraryMode === "upload" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
+                        <FileUp className="w-3 h-3 inline mr-1" />Upload
+                      </button>
+                      <button type="button" onClick={() => setItineraryMode("link")} className={cn("px-2 py-1 text-xs rounded-md transition-colors", itineraryMode === "link" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
+                        <LinkIcon className="w-3 h-3 inline mr-1" />Link
+                      </button>
+                    </div>
+                  </div>
+                  {itineraryMode === "upload" ? (
+                    <div className="space-y-2">
+                      {itineraryPreview && (
+                        <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/50">
+                          <FileUp className="w-4 h-4 text-primary flex-shrink-0" />
+                          <span className="text-xs truncate flex-1">{itineraryPreview.split('/').pop() || 'Uploaded file'}</span>
+                          <Button type="button" variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setItineraryFile(null); setItineraryPreview(""); }}>
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
+                      <div
+                        onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) { setItineraryFile(f); setItineraryPreview(f.name); } }}
+                        onDragOver={(e) => e.preventDefault()}
+                        onClick={() => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.webp'; inp.onchange = (ev) => { const f = (ev.target as HTMLInputElement).files?.[0]; if (f) { setItineraryFile(f); setItineraryPreview(f.name); } }; inp.click(); }}
+                        className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                      >
+                        <Upload className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+                        <p className="text-xs text-muted-foreground">Drag & drop atau klik</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <FormField control={form.control} name="itinerary_link" render={({ field }) => (
+                      <FormItem>
+                        <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  )}
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -1338,22 +1526,13 @@ const PackageForm = () => {
             </CardContent>
           </Card>
 
-          {/* Link & Status */}
+          {/* Status */}
           <Card data-form-section>
-            <CardHeader><CardTitle>Link & Status</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField control={form.control} name="catalog_link" render={({ field }) => (
-                  <FormItem><FormLabel>Link Katalog</FormLabel><FormControl><Input {...field} placeholder="https://..." /></FormControl><FormMessage /></FormItem>
-                )} />
-                <FormField control={form.control} name="itinerary_link" render={({ field }) => (
-                  <FormItem><FormLabel>Link Itinerary</FormLabel><FormControl><Input {...field} placeholder="https://..." /></FormControl><FormMessage /></FormItem>
-                )} />
-              </div>
-
+            <CardHeader><CardTitle>Status</CardTitle></CardHeader>
+            <CardContent>
               <FormField control={form.control} name="status" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
+                  <FormLabel>Status Paket</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
