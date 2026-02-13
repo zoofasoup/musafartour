@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,9 @@ interface Package {
   duration_days: number;
   flight: string;
   package_price: any;
+  hemat_package_price: any;
+  five_star_package_price: any;
+  pelataran_package_price: any;
   status: string;
   is_sold_out: boolean;
 }
@@ -37,21 +40,40 @@ interface Package {
 type SortField = 'package_name' | 'departure_date' | 'duration_days' | 'flight' | 'package_price' | 'status';
 type SortDirection = 'asc' | 'desc';
 
+/** Extract the best quad price from tier-specific or default price columns */
+const getDisplayPrice = (pkg: Package): number => {
+  // Check tier-specific prices first, then fallback to package_price
+  const candidates = [
+    pkg.package_price,
+    pkg.hemat_package_price,
+    pkg.five_star_package_price,
+    pkg.pelataran_package_price,
+  ];
+  for (const price of candidates) {
+    if (price && typeof price === 'object' && price.quad && price.quad > 0) {
+      return price.quad;
+    }
+  }
+  return 0;
+};
+
 const Packages = () => {
   const navigate = useNavigate();
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [sortField, setSortField] = useState<SortField>('departure_date');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [selectionMode, setSelectionMode] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const lastSelectedIndex = useRef<number | null>(null);
 
-  const { selectedIds, toggleSelect, selectAll, clearSelection, isSelected, allSelected } = useBulkSelection(packages);
+  const { selectedIds, toggleSelect, selectAll, clearSelection, isSelected, allSelected, setSelectedIds } = useBulkSelection(packages);
 
   const handleExitSelectionMode = () => {
     setSelectionMode(false);
     clearSelection();
+    lastSelectedIndex.current = null;
   };
 
   const handleSort = (field: SortField) => {
@@ -73,8 +95,8 @@ const Packages = () => {
     let bValue: any = b[sortField];
 
     if (sortField === 'package_price') {
-      aValue = a.package_price.quad;
-      bValue = b.package_price.quad;
+      aValue = getDisplayPrice(a);
+      bValue = getDisplayPrice(b);
     }
 
     if (sortField === 'departure_date') {
@@ -91,6 +113,26 @@ const Packages = () => {
     if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
     return 0;
   });
+
+  const handleRowClick = useCallback((pkg: Package, index: number, event: React.MouseEvent) => {
+    if (!selectionMode) return;
+    // Don't trigger on button/checkbox clicks
+    const target = event.target as HTMLElement;
+    if (target.closest('button') || target.closest('[role="checkbox"]')) return;
+
+    if (event.shiftKey && lastSelectedIndex.current !== null) {
+      const start = Math.min(lastSelectedIndex.current, index);
+      const end = Math.max(lastSelectedIndex.current, index);
+      const rangeIds = sortedPackages.slice(start, end + 1).map(p => p.id);
+      setSelectedIds(prev => {
+        const combined = new Set([...prev, ...rangeIds]);
+        return Array.from(combined);
+      });
+    } else {
+      toggleSelect(pkg.id);
+      lastSelectedIndex.current = index;
+    }
+  }, [selectionMode, sortedPackages, toggleSelect, setSelectedIds]);
 
   const fetchPackages = async () => {
     try {
@@ -192,7 +234,7 @@ const Packages = () => {
       pkg.departure_date,
       pkg.duration_days,
       pkg.flight,
-      pkg.package_price.quad,
+      getDisplayPrice(pkg),
       pkg.status,
     ]);
 
@@ -311,13 +353,20 @@ const Packages = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                sortedPackages.map((pkg) => (
-                  <TableRow key={pkg.id} className={isSelected(pkg.id) ? "bg-muted/50" : ""}>
+                sortedPackages.map((pkg, index) => (
+                  <TableRow
+                    key={pkg.id}
+                    className={`${isSelected(pkg.id) ? "bg-primary/10" : ""} ${selectionMode ? "cursor-pointer select-none" : ""}`}
+                    onClick={(e) => handleRowClick(pkg, index, e)}
+                  >
                     {selectionMode && (
                       <TableCell>
                         <Checkbox
                           checked={isSelected(pkg.id)}
-                          onCheckedChange={() => toggleSelect(pkg.id)}
+                          onCheckedChange={() => {
+                            toggleSelect(pkg.id);
+                            lastSelectedIndex.current = index;
+                          }}
                           aria-label={`Select ${pkg.package_name}`}
                         />
                       </TableCell>
@@ -326,7 +375,7 @@ const Packages = () => {
                     <TableCell>{format(new Date(pkg.departure_date), "dd MMM yyyy")}</TableCell>
                     <TableCell>{pkg.duration_days} hari</TableCell>
                     <TableCell>{pkg.flight}</TableCell>
-                    <TableCell>Rp {formatNumber(pkg.package_price.quad)}</TableCell>
+                    <TableCell>Rp {formatNumber(getDisplayPrice(pkg))}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Badge variant={pkg.status === "published" ? "default" : "secondary"}>

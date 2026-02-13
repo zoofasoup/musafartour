@@ -165,6 +165,7 @@ export const useBulkSelection = <T extends { id: string }>(items: T[]) => {
 
   return {
     selectedIds,
+    setSelectedIds,
     toggleSelect,
     selectAll,
     clearSelection,
