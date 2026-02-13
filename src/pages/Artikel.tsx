@@ -93,7 +93,7 @@ const Artikel = () => {
       <section className="py-16 bg-muted/50">
         <div className="container mx-auto px-4 text-center">
           <BookOpen className="h-16 w-16 mx-auto mb-4 text-primary" />
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Artikel & Tips Umroh</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Artikel & Tips Umroh</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Panduan, tips, dan informasi bermanfaat seputar perjalanan Umroh dan Haji
           </p>
