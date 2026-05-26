@@ -399,39 +399,39 @@ const PackageDetailPage = () => {
 
         {/* ── Column B: Brochure Content ── */}
         <main className="flex-1 overflow-y-auto min-w-0">
-          <div className="p-4 md:p-6 space-y-6 max-w-4xl">
+          <div className="p-4 md:p-5 space-y-4">
 
             {/* Hero: Flyer + Key Metrics */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
               {/* Flyer Image */}
               {packageData.banner_image && (
-                <div className="relative rounded-2xl overflow-hidden shadow-xl bg-card border">
+                <div className="lg:col-span-2 relative rounded-2xl overflow-hidden shadow-lg bg-card border self-start">
                   <img
                     src={packageData.banner_image}
                     alt={packageData.package_name}
-                    className="w-full h-auto object-contain"
+                    className="w-full h-auto object-contain max-h-[560px]"
                     loading="eager"
                     fetchPriority="high"
                   />
                   {/* Overlay badges */}
-                  <div className="absolute top-4 left-4 flex flex-col gap-2">
-                    <Badge className="bg-card/90 backdrop-blur text-foreground border shadow-lg text-xs">
+                  <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+                    <Badge className="bg-card/90 backdrop-blur text-foreground border shadow text-[10px]">
                       <Plane className="h-3 w-3 mr-1" /> {packageData.flight}
                     </Badge>
-                    <Badge className="bg-card/90 backdrop-blur text-foreground border shadow-lg text-xs">
+                    <Badge className="bg-card/90 backdrop-blur text-foreground border shadow text-[10px]">
                       <Clock className="h-3 w-3 mr-1" /> {packageData.duration_days} Hari
                     </Badge>
                   </div>
                   {packageData.is_sold_out && (
-                    <div className="absolute top-4 right-4">
-                      <Badge className="bg-destructive text-destructive-foreground border-0 shadow-lg">SOLD OUT</Badge>
+                    <div className="absolute top-3 right-3">
+                      <Badge className="bg-destructive text-destructive-foreground border-0 shadow">SOLD OUT</Badge>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Key Metrics + Hotels */}
-              <div className="space-y-4">
+              {/* Key Metrics + Hotels (wider column) */}
+              <div className={cn("space-y-4", packageData.banner_image ? "lg:col-span-3" : "lg:col-span-5")}>
                 {/* Key Metrics */}
                 <Card className="border shadow-sm">
                   <CardContent className="p-5">
@@ -576,16 +576,19 @@ const PackageDetailPage = () => {
               </div>
             </div>
 
+            {/* Dense 2-col masonry for secondary cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+
             {/* Selling Points */}
             {sellingPoints.length > 0 && (
               <Card className="border shadow-sm">
-                <CardContent className="p-5">
-                  <h3 className="text-sm font-bold tracking-tighter text-muted-foreground uppercase mb-4">Selling Points</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <CardContent className="p-4">
+                  <h3 className="text-xs font-bold tracking-tighter text-muted-foreground uppercase mb-3">Selling Points</h3>
+                  <div className="grid grid-cols-1 gap-1.5">
                     {sellingPoints.map((item, idx) => (
-                      <div key={idx} className="flex items-start gap-2.5 py-1.5">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                        <span className="text-sm tracking-tight">{item}</span>
+                      <div key={idx} className="flex items-start gap-2 py-0.5">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                        <span className="text-xs tracking-tight">{item}</span>
                       </div>
                     ))}
                   </div>
@@ -593,54 +596,52 @@ const PackageDetailPage = () => {
               </Card>
             )}
 
-            {/* Included / Excluded */}
-            {(includedItems.length > 0 || excludedItems.length > 0) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {includedItems.length > 0 && (
-                  <Card className="border-l-4 border-l-emerald-500 shadow-sm">
-                    <CardContent className="p-5">
-                      <h3 className="text-sm font-bold tracking-tighter text-emerald-600 dark:text-emerald-400 mb-3 flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4" /> Termasuk
-                      </h3>
-                      <ul className="space-y-1.5">
-                        {includedItems.map((item, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-xs tracking-tight">
-                            <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
-                {excludedItems.length > 0 && (
-                  <Card className="border-l-4 border-l-destructive shadow-sm">
-                    <CardContent className="p-5">
-                      <h3 className="text-sm font-bold tracking-tighter text-destructive mb-3 flex items-center gap-2">
-                        <XCircle className="h-4 w-4" /> Tidak Termasuk
-                      </h3>
-                      <ul className="space-y-1.5">
-                        {excludedItems.map((item, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-xs tracking-tight text-muted-foreground">
-                            <span className="text-destructive shrink-0">✕</span>
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
+            {/* Included */}
+            {includedItems.length > 0 && (
+              <Card className="border-l-4 border-l-emerald-500 shadow-sm">
+                <CardContent className="p-4">
+                  <h3 className="text-xs font-bold tracking-tighter text-emerald-600 dark:text-emerald-400 mb-2 flex items-center gap-2 uppercase">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Termasuk
+                  </h3>
+                  <ul className="space-y-1">
+                    {includedItems.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-xs tracking-tight">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Excluded */}
+            {excludedItems.length > 0 && (
+              <Card className="border-l-4 border-l-destructive shadow-sm">
+                <CardContent className="p-4">
+                  <h3 className="text-xs font-bold tracking-tighter text-destructive mb-2 flex items-center gap-2 uppercase">
+                    <XCircle className="h-3.5 w-3.5" /> Tidak Termasuk
+                  </h3>
+                  <ul className="space-y-1">
+                    {excludedItems.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-xs tracking-tight text-muted-foreground">
+                        <span className="text-destructive shrink-0">✕</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
             )}
 
             {/* Equipment */}
             {equipmentItems.length > 0 && (
               <Card className="border shadow-sm">
-                <CardContent className="p-5">
-                  <h3 className="text-sm font-bold tracking-tighter text-muted-foreground uppercase mb-3">Perlengkapan</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <CardContent className="p-4">
+                  <h3 className="text-xs font-bold tracking-tighter text-muted-foreground uppercase mb-3">Perlengkapan</h3>
+                  <div className="grid grid-cols-2 gap-1.5">
                     {equipmentItems.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-xs tracking-tight py-1">
+                      <div key={idx} className="flex items-center gap-2 text-xs tracking-tight py-0.5">
                         <CheckCircle2 className="h-3 w-3 text-primary shrink-0" />
                         {item}
                       </div>
@@ -653,16 +654,14 @@ const PackageDetailPage = () => {
             {/* Itinerary Timeline */}
             {packageData.itinerary && packageData.itinerary !== "-" && (
               <Card className="border shadow-sm">
-                <CardContent className="p-5">
-                  <h3 className="text-sm font-bold tracking-tighter text-muted-foreground uppercase mb-4">Itinerary Perjalanan</h3>
-                  <div className="relative pl-6 space-y-4">
+                <CardContent className="p-4">
+                  <h3 className="text-xs font-bold tracking-tighter text-muted-foreground uppercase mb-3">Itinerary Perjalanan</h3>
+                  <div className="relative pl-5 space-y-3">
                     {parseListItems(packageData.itinerary).map((item, idx) => (
                       <div key={idx} className="relative">
-                        {/* Timeline dot */}
-                        <div className="absolute -left-6 top-1 w-3 h-3 rounded-full bg-primary border-2 border-background shadow-sm" />
-                        {/* Line connector */}
+                        <div className="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-primary border-2 border-background shadow-sm" />
                         {idx < parseListItems(packageData.itinerary).length - 1 && (
-                          <div className="absolute -left-[18px] top-4 w-0.5 h-full bg-border" />
+                          <div className="absolute -left-[15px] top-3.5 w-0.5 h-full bg-border" />
                         )}
                         <p className="text-xs tracking-tight leading-relaxed">{item}</p>
                       </div>
@@ -671,6 +670,9 @@ const PackageDetailPage = () => {
                 </CardContent>
               </Card>
             )}
+
+            </div>
+            {/* /masonry */}
 
             {/* Gallery */}
             {packageData.gallery_images && packageData.gallery_images.length > 0 && (
