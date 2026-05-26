@@ -639,11 +639,11 @@ const PackageDetailPage = () => {
             {/* Equipment */}
             {equipmentItems.length > 0 && (
               <Card className="border shadow-sm">
-                <CardContent className="p-5">
-                  <h3 className="text-sm font-bold tracking-tighter text-muted-foreground uppercase mb-3">Perlengkapan</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <CardContent className="p-4">
+                  <h3 className="text-xs font-bold tracking-tighter text-muted-foreground uppercase mb-3">Perlengkapan</h3>
+                  <div className="grid grid-cols-2 gap-1.5">
                     {equipmentItems.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-xs tracking-tight py-1">
+                      <div key={idx} className="flex items-center gap-2 text-xs tracking-tight py-0.5">
                         <CheckCircle2 className="h-3 w-3 text-primary shrink-0" />
                         {item}
                       </div>
@@ -656,16 +656,14 @@ const PackageDetailPage = () => {
             {/* Itinerary Timeline */}
             {packageData.itinerary && packageData.itinerary !== "-" && (
               <Card className="border shadow-sm">
-                <CardContent className="p-5">
-                  <h3 className="text-sm font-bold tracking-tighter text-muted-foreground uppercase mb-4">Itinerary Perjalanan</h3>
-                  <div className="relative pl-6 space-y-4">
+                <CardContent className="p-4">
+                  <h3 className="text-xs font-bold tracking-tighter text-muted-foreground uppercase mb-3">Itinerary Perjalanan</h3>
+                  <div className="relative pl-5 space-y-3">
                     {parseListItems(packageData.itinerary).map((item, idx) => (
                       <div key={idx} className="relative">
-                        {/* Timeline dot */}
-                        <div className="absolute -left-6 top-1 w-3 h-3 rounded-full bg-primary border-2 border-background shadow-sm" />
-                        {/* Line connector */}
+                        <div className="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-primary border-2 border-background shadow-sm" />
                         {idx < parseListItems(packageData.itinerary).length - 1 && (
-                          <div className="absolute -left-[18px] top-4 w-0.5 h-full bg-border" />
+                          <div className="absolute -left-[15px] top-3.5 w-0.5 h-full bg-border" />
                         )}
                         <p className="text-xs tracking-tight leading-relaxed">{item}</p>
                       </div>
@@ -674,6 +672,9 @@ const PackageDetailPage = () => {
                 </CardContent>
               </Card>
             )}
+
+            </div>
+            {/* /masonry */}
 
             {/* Gallery */}
             {packageData.gallery_images && packageData.gallery_images.length > 0 && (
