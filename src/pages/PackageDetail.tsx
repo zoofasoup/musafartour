@@ -576,16 +576,19 @@ const PackageDetailPage = () => {
               </div>
             </div>
 
+            {/* Dense 2-col masonry for secondary cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+
             {/* Selling Points */}
             {sellingPoints.length > 0 && (
               <Card className="border shadow-sm">
-                <CardContent className="p-5">
-                  <h3 className="text-sm font-bold tracking-tighter text-muted-foreground uppercase mb-4">Selling Points</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <CardContent className="p-4">
+                  <h3 className="text-xs font-bold tracking-tighter text-muted-foreground uppercase mb-3">Selling Points</h3>
+                  <div className="grid grid-cols-1 gap-1.5">
                     {sellingPoints.map((item, idx) => (
-                      <div key={idx} className="flex items-start gap-2.5 py-1.5">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                        <span className="text-sm tracking-tight">{item}</span>
+                      <div key={idx} className="flex items-start gap-2 py-0.5">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                        <span className="text-xs tracking-tight">{item}</span>
                       </div>
                     ))}
                   </div>
