@@ -402,36 +402,36 @@ const PackageDetailPage = () => {
           <div className="p-4 md:p-5 space-y-4">
 
             {/* Hero: Flyer + Key Metrics */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
               {/* Flyer Image */}
               {packageData.banner_image && (
-                <div className="relative rounded-2xl overflow-hidden shadow-xl bg-card border">
+                <div className="lg:col-span-2 relative rounded-2xl overflow-hidden shadow-lg bg-card border self-start">
                   <img
                     src={packageData.banner_image}
                     alt={packageData.package_name}
-                    className="w-full h-auto object-contain"
+                    className="w-full h-auto object-contain max-h-[560px]"
                     loading="eager"
                     fetchPriority="high"
                   />
                   {/* Overlay badges */}
-                  <div className="absolute top-4 left-4 flex flex-col gap-2">
-                    <Badge className="bg-card/90 backdrop-blur text-foreground border shadow-lg text-xs">
+                  <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+                    <Badge className="bg-card/90 backdrop-blur text-foreground border shadow text-[10px]">
                       <Plane className="h-3 w-3 mr-1" /> {packageData.flight}
                     </Badge>
-                    <Badge className="bg-card/90 backdrop-blur text-foreground border shadow-lg text-xs">
+                    <Badge className="bg-card/90 backdrop-blur text-foreground border shadow text-[10px]">
                       <Clock className="h-3 w-3 mr-1" /> {packageData.duration_days} Hari
                     </Badge>
                   </div>
                   {packageData.is_sold_out && (
-                    <div className="absolute top-4 right-4">
-                      <Badge className="bg-destructive text-destructive-foreground border-0 shadow-lg">SOLD OUT</Badge>
+                    <div className="absolute top-3 right-3">
+                      <Badge className="bg-destructive text-destructive-foreground border-0 shadow">SOLD OUT</Badge>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Key Metrics + Hotels */}
-              <div className="space-y-4">
+              {/* Key Metrics + Hotels (wider column) */}
+              <div className={cn("space-y-4", packageData.banner_image ? "lg:col-span-3" : "lg:col-span-5")}>
                 {/* Key Metrics */}
                 <Card className="border shadow-sm">
                   <CardContent className="p-5">
