@@ -33,15 +33,18 @@ function validatePixelId(id: string | null | undefined, type: 'meta' | 'tiktok' 
 
 export const useMarketingPixels = () => {
   const { data: settings } = useQuery({
-    queryKey: ["marketing-settings"],
+    queryKey: ["marketing-settings-public"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("marketing_settings")
-        .select("*")
-        .maybeSingle();
-
+      const { data, error } = await supabase.functions.invoke("get-marketing-pixels");
       if (error) throw error;
-      return data;
+      return data as {
+        meta_pixel_id?: string | null;
+        meta_pixel_enabled?: boolean | null;
+        tiktok_pixel_id?: string | null;
+        tiktok_pixel_enabled?: boolean | null;
+        ga4_id?: string | null;
+        ga4_enabled?: boolean | null;
+      } | null;
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     gcTime: 10 * 60 * 1000,

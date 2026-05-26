@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.migrate-drive-images]
 verify_jwt = false
+
+[functions.get-marketing-pixels]
+verify_jwt = false
