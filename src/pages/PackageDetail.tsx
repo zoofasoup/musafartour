@@ -399,7 +399,7 @@ const PackageDetailPage = () => {
 
         {/* ── Column B: Brochure Content ── */}
         <main className="flex-1 overflow-y-auto min-w-0">
-          <div className="p-4 md:p-6 space-y-6 max-w-4xl">
+          <div className="p-4 md:p-5 space-y-4">
 
             {/* Hero: Flyer + Key Metrics */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
