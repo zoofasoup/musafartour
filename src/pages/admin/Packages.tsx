@@ -574,7 +574,7 @@ const Packages = () => {
                           </TableRow>
                         );
                       })}
-                    </>
+                    </Fragment>
                   );
                 })
               )}
