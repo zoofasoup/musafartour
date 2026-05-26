@@ -596,44 +596,42 @@ const PackageDetailPage = () => {
               </Card>
             )}
 
-            {/* Included / Excluded */}
-            {(includedItems.length > 0 || excludedItems.length > 0) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {includedItems.length > 0 && (
-                  <Card className="border-l-4 border-l-emerald-500 shadow-sm">
-                    <CardContent className="p-5">
-                      <h3 className="text-sm font-bold tracking-tighter text-emerald-600 dark:text-emerald-400 mb-3 flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4" /> Termasuk
-                      </h3>
-                      <ul className="space-y-1.5">
-                        {includedItems.map((item, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-xs tracking-tight">
-                            <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
-                {excludedItems.length > 0 && (
-                  <Card className="border-l-4 border-l-destructive shadow-sm">
-                    <CardContent className="p-5">
-                      <h3 className="text-sm font-bold tracking-tighter text-destructive mb-3 flex items-center gap-2">
-                        <XCircle className="h-4 w-4" /> Tidak Termasuk
-                      </h3>
-                      <ul className="space-y-1.5">
-                        {excludedItems.map((item, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-xs tracking-tight text-muted-foreground">
-                            <span className="text-destructive shrink-0">✕</span>
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
+            {/* Included */}
+            {includedItems.length > 0 && (
+              <Card className="border-l-4 border-l-emerald-500 shadow-sm">
+                <CardContent className="p-4">
+                  <h3 className="text-xs font-bold tracking-tighter text-emerald-600 dark:text-emerald-400 mb-2 flex items-center gap-2 uppercase">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Termasuk
+                  </h3>
+                  <ul className="space-y-1">
+                    {includedItems.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-xs tracking-tight">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Excluded */}
+            {excludedItems.length > 0 && (
+              <Card className="border-l-4 border-l-destructive shadow-sm">
+                <CardContent className="p-4">
+                  <h3 className="text-xs font-bold tracking-tighter text-destructive mb-2 flex items-center gap-2 uppercase">
+                    <XCircle className="h-3.5 w-3.5" /> Tidak Termasuk
+                  </h3>
+                  <ul className="space-y-1">
+                    {excludedItems.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-xs tracking-tight text-muted-foreground">
+                        <span className="text-destructive shrink-0">✕</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
             )}
 
             {/* Equipment */}
