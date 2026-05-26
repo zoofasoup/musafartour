@@ -499,7 +499,7 @@ const Packages = () => {
                     .slice(0, grouped.indexOf(group))
                     .reduce((acc, g) => acc + g.items.length, 0);
                   return (
-                    <>
+                    <Fragment key={`grp-${group.key || "_"}`}>
                       {groupBy !== "none" && (
                         <TableRow key={`grp-${group.key}`} className="bg-muted/60 hover:bg-muted/60 border-y">
                           <TableCell colSpan={selectionMode ? 9 : 8} className="py-2">
