@@ -1,25 +1,33 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import type { SellingPoint } from "@/hooks/useHomepageData";
+import { Plane, MapPin, Hotel, MessageCircle, Heart, Package, ShieldCheck, Award, Sparkles, Users, Star, CheckCircle, type LucideIcon } from "lucide-react";
 
 interface WhyChooseSectionProps {
   sellingPoints: SellingPoint[];
 }
 
-// Placeholder images for jamaah photos
-const placeholderImages = [
-  "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?w=600&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1564769625905-50e93615e769?w=600&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=600&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1519817650390-64a93db51149?w=600&h=400&fit=crop",
-];
+const iconMap: Record<string, LucideIcon> = {
+  plane: Plane,
+  "map-pin": MapPin,
+  hotel: Hotel,
+  heart: Heart,
+  "message-circle": MessageCircle,
+  package: Package,
+  "shield-check": ShieldCheck,
+  award: Award,
+  sparkles: Sparkles,
+  users: Users,
+  star: Star,
+  "check-circle": CheckCircle,
+};
+
+const getIcon = (name: string): LucideIcon => iconMap[name] || CheckCircle;
 
 export const WhyChooseSection = ({ sellingPoints }: WhyChooseSectionProps) => {
   const animation = useScrollAnimation();
 
-  // Take first 4 selling points for 2x2 grid
-  const features = sellingPoints.slice(0, 4);
+  const features = sellingPoints.slice(0, 6);
 
-  // YouTube video ID
   const videoId = "lr9-md4muys";
 
   return (
@@ -62,52 +70,37 @@ export const WhyChooseSection = ({ sellingPoints }: WhyChooseSectionProps) => {
             <div className="absolute inset-0 pointer-events-none ring-1 ring-inset ring-white/10 rounded-2xl z-20" />
           </div>
 
-          {/* Selling Points 2x2 Grid with Photos */}
-          <div className="grid grid-cols-2 gap-4">
-            {features.length > 0 ? (
-              features.map((feature, index) => (
-                <div
-                  key={index}
-                  className="relative rounded-xl overflow-hidden group cursor-pointer aspect-[4/3]"
-                >
-                  {/* Background Image */}
-                  <img
-                    src={placeholderImages[index % placeholderImages.length]}
-                    alt={feature.title}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                  
-                  {/* Content */}
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="text-white font-semibold text-sm md:text-base">
-                      {feature.title}
-                    </h3>
+          {/* Selling Points - Pill Stack */}
+          <div className="flex flex-col gap-3 justify-center">
+            {(features.length > 0
+              ? features
+              : Array.from({ length: 5 }).map((_, i) => ({
+                  id: `placeholder-${i}`,
+                  title: `Fitur ${i + 1}`,
+                  icon: "check-circle",
+                })) as any)
+              .map((feature: any, index: number) => {
+                const Icon = getIcon(feature.icon);
+                return (
+                  <div
+                    key={feature.id ?? index}
+                    style={{ animationDelay: `${index * 80}ms` }}
+                    className="group relative animate-fade-in"
+                  >
+                    {/* Soft glow halo */}
+                    <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-primary/30 via-accent/40 to-primary/30 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
+
+                    <div className="relative flex items-center gap-4 rounded-full bg-card/90 backdrop-blur px-5 py-3.5 shadow-[0_4px_20px_-8px_hsl(var(--primary)/0.25)] ring-1 ring-border/60 transition-all duration-300 ease-out group-hover:-translate-y-0.5 group-hover:scale-[1.02] group-hover:shadow-[0_10px_30px_-10px_hsl(var(--primary)/0.5)] group-hover:ring-primary/40 group-hover:bg-card cursor-default">
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-transform duration-500 group-hover:rotate-[360deg] group-hover:bg-primary group-hover:text-primary-foreground">
+                        <Icon className="h-5 w-5" strokeWidth={2.25} />
+                      </div>
+                      <h3 className="font-bold uppercase tracking-wide text-sm md:text-base text-foreground transition-colors group-hover:text-primary">
+                        {feature.title}
+                      </h3>
+                    </div>
                   </div>
-                </div>
-              ))
-            ) : (
-              Array.from({ length: 4 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="relative rounded-xl overflow-hidden group cursor-pointer aspect-[4/3]"
-                >
-                  <img
-                    src={placeholderImages[index]}
-                    alt={`Feature ${index + 1}`}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="text-white font-semibold text-sm">
-                      Fitur {index + 1}
-                    </h3>
-                  </div>
-                </div>
-              ))
-            )}
+                );
+              })}
           </div>
         </div>
       </div>
