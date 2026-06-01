@@ -1,25 +1,33 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import type { SellingPoint } from "@/hooks/useHomepageData";
+import { Plane, MapPin, Hotel, MessageCircle, Heart, Package, ShieldCheck, Award, Sparkles, Users, Star, CheckCircle, type LucideIcon } from "lucide-react";
 
 interface WhyChooseSectionProps {
   sellingPoints: SellingPoint[];
 }
 
-// Placeholder images for jamaah photos
-const placeholderImages = [
-  "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?w=600&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1564769625905-50e93615e769?w=600&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=600&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1519817650390-64a93db51149?w=600&h=400&fit=crop",
-];
+const iconMap: Record<string, LucideIcon> = {
+  plane: Plane,
+  "map-pin": MapPin,
+  hotel: Hotel,
+  heart: Heart,
+  "message-circle": MessageCircle,
+  package: Package,
+  "shield-check": ShieldCheck,
+  award: Award,
+  sparkles: Sparkles,
+  users: Users,
+  star: Star,
+  "check-circle": CheckCircle,
+};
+
+const getIcon = (name: string): LucideIcon => iconMap[name] || CheckCircle;
 
 export const WhyChooseSection = ({ sellingPoints }: WhyChooseSectionProps) => {
   const animation = useScrollAnimation();
 
-  // Take first 4 selling points for 2x2 grid
-  const features = sellingPoints.slice(0, 4);
+  const features = sellingPoints.slice(0, 6);
 
-  // YouTube video ID
   const videoId = "lr9-md4muys";
 
   return (
