@@ -1414,6 +1414,68 @@ export type Database = {
         }
         Relationships: []
       }
+      umroh_calculator_leads: {
+        Row: {
+          created_at: string
+          daily_target: number | null
+          existing_savings: number
+          id: string
+          monthly_saving: number
+          months_to_departure: number | null
+          name: string
+          pilgrim_count: number
+          recommended_package_id: string | null
+          recommended_tier: string | null
+          referrer: string | null
+          result_data: Json | null
+          updated_at: string
+          user_agent: string | null
+          whatsapp: string
+        }
+        Insert: {
+          created_at?: string
+          daily_target?: number | null
+          existing_savings?: number
+          id?: string
+          monthly_saving: number
+          months_to_departure?: number | null
+          name: string
+          pilgrim_count?: number
+          recommended_package_id?: string | null
+          recommended_tier?: string | null
+          referrer?: string | null
+          result_data?: Json | null
+          updated_at?: string
+          user_agent?: string | null
+          whatsapp: string
+        }
+        Update: {
+          created_at?: string
+          daily_target?: number | null
+          existing_savings?: number
+          id?: string
+          monthly_saving?: number
+          months_to_departure?: number | null
+          name?: string
+          pilgrim_count?: number
+          recommended_package_id?: string | null
+          recommended_tier?: string | null
+          referrer?: string | null
+          result_data?: Json | null
+          updated_at?: string
+          user_agent?: string | null
+          whatsapp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "umroh_calculator_leads_recommended_package_id_fkey"
+            columns: ["recommended_package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
