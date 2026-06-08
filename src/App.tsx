@@ -58,6 +58,8 @@ const ChatRotation = lazy(() => import("./pages/admin/ChatRotation"));
 const URLShortener = lazy(() => import("./pages/admin/URLShortener"));
 const ShortLinkRedirect = lazy(() => import("./pages/ShortLinkRedirect"));
 const BoothLead = lazy(() => import("./pages/BoothLead"));
+const UmrohCalculator = lazy(() => import("./pages/UmrohCalculator"));
+const UmrohCalculatorResult = lazy(() => import("./pages/UmrohCalculatorResult"));
 
 // Agent Portal
 const AgentLogin = lazy(() => import("./pages/agent/AgentLogin"));
@@ -118,8 +120,9 @@ const ConditionalFloatingWhatsApp = () => {
   const isAdminPage = location.pathname.startsWith('/admin');
   const isAgentPage = location.pathname.startsWith('/agent');
   const isBoothPage = location.pathname === '/booth';
+  const isCalcPage = location.pathname.startsWith('/kalkulator');
   
-  if (isAdminPage || isAgentPage || isBoothPage) {
+  if (isAdminPage || isAgentPage || isBoothPage || isCalcPage) {
     return null;
   }
   
@@ -165,6 +168,8 @@ const App = () => (
                   <Route path="/chat" element={<Chat />} />
                   <Route path="/s/:code" element={<ShortLinkRedirect />} />
                   <Route path="/booth" element={<BoothLead />} />
+                  <Route path="/kalkulator" element={<UmrohCalculator />} />
+                  <Route path="/kalkulator/hasil/:id" element={<UmrohCalculatorResult />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/admin/setup" element={<AdminSetup />} />
                   
