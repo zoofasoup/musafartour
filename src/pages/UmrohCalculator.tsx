@@ -710,7 +710,7 @@ function CardHero({ perDay, perWeek, monthly }: { perDay: number; perWeek: numbe
       <motion.div
         initial={{ scale: 0.85, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.7, ease: "easeOut" as const }}
       >
         <div className="text-6xl md:text-8xl font-black" style={{ color: BRAND.red, letterSpacing: "-0.055em", lineHeight: 0.9 }}>
           {formatIDR(perDay)}
