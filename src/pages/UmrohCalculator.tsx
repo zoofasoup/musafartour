@@ -121,7 +121,7 @@ export default function UmrohCalculator() {
         recommended_tier: recommended?.tier ?? null,
         daily_target: Math.round(perDay),
         months_to_departure: recommended?.monthsRequired ?? null,
-        result_data: { results, recommendedTier: recommended?.tier },
+        result_data: JSON.parse(JSON.stringify({ results, recommendedTier: recommended?.tier })),
         referrer: document.referrer || null,
         user_agent: navigator.userAgent.slice(0, 500),
       })
