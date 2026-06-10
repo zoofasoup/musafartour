@@ -28,6 +28,7 @@ Deno.serve(async (req) => {
       { url: '/galeri', priority: '0.6', changefreq: 'weekly' },
       { url: '/kontak', priority: '0.7', changefreq: 'monthly' },
       { url: '/artikel', priority: '0.8', changefreq: 'weekly' },
+      { url: '/kalkulator', priority: '0.8', changefreq: 'monthly' },
     ];
 
     // Fetch published articles
