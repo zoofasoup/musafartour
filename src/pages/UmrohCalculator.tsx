@@ -701,13 +701,14 @@ function Wrapped(props: {
   perDay: number; perWeek: number; perMonth: number;
   results: TierResult[]; recommended: TierResult;
   input: CalcInput;
-  leadName: string; leadWa: string;
+  leadName: string; leadWa: string; companion: string;
   errors: { name?: string; whatsapp?: string };
-  onNameChange: (s: string) => void; onWaChange: (s: string) => void;
-  onNext: () => void; onBack: () => void; onSubmit: () => void;
+  onNameChange: (s: string) => void; onWaChange: (s: string) => void; onCompanionChange: (s: string) => void;
+  onNext: () => void; onBack: () => void; onSubmit: () => void; onReset: () => void;
 }) {
   const { index, total, mode, perDay, perWeek, perMonth, results, recommended, input,
-    leadName, leadWa, errors, onNameChange, onWaChange, onNext, onBack, onSubmit } = props;
+    leadName, leadWa, companion, errors, onNameChange, onWaChange, onCompanionChange,
+    onNext, onBack, onSubmit, onReset } = props;
 
   return (
     <motion.div key={index} {...fade} className="relative">
@@ -721,16 +722,18 @@ function Wrapped(props: {
         style={{ background: "white", boxShadow: "0 20px 60px -20px rgba(0,0,0,0.15)" }}>
         {index === 0 && <CardHero perDay={perDay} perWeek={perWeek} perMonth={perMonth} mode={mode} />}
         {index === 1 && <CardReframe perDay={perDay} />}
-        {index === 2 && (mode === "A"
+        {index === 2 && <CardHabitSim input={input} recommended={recommended} />}
+        {index === 3 && (mode === "A"
           ? <CardLadder results={results} recommended={recommended} />
           : <CardTargetDate recommended={recommended} perMonth={perMonth} />)}
-        {index === 3 && <CardTimeline recommended={recommended} />}
-        {index === 4 && <CardLockPrice />}
-        {index === 5 && <CardVsMusafar perMonth={perMonth} />}
-        {index === 6 && <CardShare recommended={recommended} perDay={perDay} leadName={leadName} />}
-        {index === 7 && (
+        {index === 4 && <CardTimeline recommended={recommended} />}
+        {index === 5 && <CardLockPrice />}
+        {index === 6 && <CardVsMusafar perMonth={perMonth} />}
+        {index === 7 && <CardCountdown recommended={recommended} />}
+        {index === 8 && <CardShare recommended={recommended} perDay={perDay} leadName={leadName} companion={companion} onCompanionChange={onCompanionChange} />}
+        {index === 9 && (
           <CardLead recommended={recommended} leadName={leadName} leadWa={leadWa} errors={errors}
-            onNameChange={onNameChange} onWaChange={onWaChange} onSubmit={onSubmit} />
+            onNameChange={onNameChange} onWaChange={onWaChange} onSubmit={onSubmit} onReset={onReset} />
         )}
       </div>
 
