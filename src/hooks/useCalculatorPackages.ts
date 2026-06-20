@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TierKey, TierOption } from "@/lib/umrohCalc";
+import { TIER_PRICE_OVERRIDE } from "@/lib/calcConfig";
 
 const TIER_LABELS: Record<TierKey, string> = {
   hemat: "Hemat",
@@ -60,9 +61,24 @@ export const useCalculatorTiers = () => {
         }
         if (best) tiers.push(best);
       });
+      // Ensure all 4 tiers exist (even if DB has none) using override prices
+      (Object.keys(TIER_LABELS) as TierKey[]).forEach((tier) => {
+        if (!tiers.some((t) => t.tier === tier)) {
+          tiers.push({
+            tier,
+            label: TIER_LABELS[tier],
+            pricePerPerson: TIER_PRICE_OVERRIDE[tier],
+          });
+        }
+      });
+      // Apply calculator price override (DB packages remain untouched)
+      const overridden = tiers.map((t) => ({
+        ...t,
+        pricePerPerson: TIER_PRICE_OVERRIDE[t.tier] ?? t.pricePerPerson,
+      }));
       // Sort cheapest to most premium
-      tiers.sort((a, b) => a.pricePerPerson - b.pricePerPerson);
-      return tiers;
+      overridden.sort((a, b) => a.pricePerPerson - b.pricePerPerson);
+      return overridden;
     },
     staleTime: 5 * 60 * 1000,
   });

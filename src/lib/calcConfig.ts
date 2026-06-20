@@ -1,8 +1,17 @@
 // Konfigurasi global Umroh Financial Planner
+import type { TierKey } from "./umrohCalc";
 
 export const USD_KURS = 18_000; // Asumsi kurs USD untuk pricing umroh
 
 export const PRICING_FOOTNOTE = `Harga paket mengikuti kondisi ekonomi terkini dengan asumsi kurs USD = Rp ${USD_KURS.toLocaleString("id-ID")}. Harga final dikonfirmasi saat pendaftaran.`;
+
+/** Harga indikatif kalkulator (override dari DB — hanya untuk simulator finansial). */
+export const TIER_PRICE_OVERRIDE: Record<TierKey, number> = {
+  "hemat": 28_900_000,
+  "nyaman": 33_400_000,
+  "pelataran-hemat": 33_900_000,
+  "five-star": 41_400_000,
+};
 
 /** Mapping "setara apa" berdasarkan target harian (IDR) */
 export function dailyEquivalent(perDay: number): string {

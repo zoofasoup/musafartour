@@ -1,0 +1,1 @@
+ALTER TABLE public.umroh_calculator_leads ADD COLUMN IF NOT EXISTS companion_name TEXT NULL;
