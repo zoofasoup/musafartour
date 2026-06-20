@@ -5,8 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatIDR, type TierResult } from "@/lib/umrohCalc";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
 
+import { PRICING_FOOTNOTE } from "@/lib/calcConfig";
+
 const BRAND = {
-  red: "#CC002D",
+  red: "#C8102E",
   gold: "#FFB100",
   ink: "#262626",
   bg: "#F2F3F3",
