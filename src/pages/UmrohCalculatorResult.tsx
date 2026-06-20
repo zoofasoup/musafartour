@@ -88,7 +88,7 @@ export default function UmrohCalculatorResult() {
           className="text-xs font-semibold tracking-widest uppercase"
           style={{ color: BRAND.muted }}
         >
-          Hasil Kalkulator
+          Hasil Financial Planner
         </div>
       </header>
 
