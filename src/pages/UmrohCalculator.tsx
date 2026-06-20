@@ -142,6 +142,23 @@ export default function UmrohCalculator() {
     return () => clearTimeout(t);
   }, [step]);
 
+  const resetAll = () => {
+    setStep({ kind: "intro" });
+    setMode("A");
+    setPilgrims(1);
+    setHasSavings(null);
+    setExisting(0);
+    setMonthly(1_000_000);
+    setCustomOn(false);
+    setTargetMonths(12);
+    setCustomMonthsOn(false);
+    setSelectedTier(null);
+    setLeadName("");
+    setLeadWa("");
+    setCompanion("");
+    setErrors({});
+  };
+
   const submitLead = async () => {
     setErrors({});
     const parsed = leadSchema.safeParse({ name: leadName, whatsapp: leadWa });
@@ -168,6 +185,7 @@ export default function UmrohCalculator() {
       .insert({
         name: parsed.data.name,
         whatsapp: parsed.data.whatsapp,
+        companion_name: companion.trim() || null,
         mode,
         monthly_saving: mode === "A" ? monthly : null,
         target_timeframe_months: mode === "B" ? targetMonths : null,
