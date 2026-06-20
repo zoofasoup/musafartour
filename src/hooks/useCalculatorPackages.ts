@@ -61,6 +61,16 @@ export const useCalculatorTiers = () => {
         }
         if (best) tiers.push(best);
       });
+      // Ensure all 4 tiers exist (even if DB has none) using override prices
+      (Object.keys(TIER_LABELS) as TierKey[]).forEach((tier) => {
+        if (!tiers.some((t) => t.tier === tier)) {
+          tiers.push({
+            tier,
+            label: TIER_LABELS[tier],
+            pricePerPerson: TIER_PRICE_OVERRIDE[tier],
+          });
+        }
+      });
       // Apply calculator price override (DB packages remain untouched)
       const overridden = tiers.map((t) => ({
         ...t,
