@@ -138,6 +138,28 @@ export function speedUpImpact(
   return { newMonths: boosted, monthsSaved: Math.max(0, baseline - boosted), bump };
 }
 
+/** Mode B — Goal-Based: monthly saving target needed to hit a departure in N months */
+export function monthlyTargetForGoal(
+  pricePerPerson: number,
+  pilgrimCount: number,
+  targetMonths: number,
+  existingSavings: number,
+): { monthly: number; weekly: number; daily: number; totalNeeded: number; netNeeded: number } {
+  const totalNeeded = pricePerPerson * pilgrimCount;
+  const netNeeded = Math.max(0, totalNeeded - existingSavings);
+  // Pelunasan must be paid 40 days (~1.3 months) before departure
+  const effectiveMonths = Math.max(1, targetMonths - PELUNASAN_DAYS_BEFORE / 30);
+  const monthly = netNeeded / effectiveMonths;
+  return {
+    monthly,
+    weekly: monthly / 4.345,
+    daily: monthly / 30,
+    totalNeeded,
+    netNeeded,
+  };
+}
+
+
 /** Pick the recommended tier: the most affordable one feasible within 24 months,
  * otherwise the cheapest tier (hemat). */
 export function pickRecommended(results: TierResult[]): TierResult {

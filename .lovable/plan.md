@@ -1,77 +1,76 @@
+## Umroh Financial Planner — Revisi
 
+### 1. Rename & Repositioning
+- Ganti semua "LEAD MAGNET" → "UMROH FINANCIAL PLANNER" di `UmrohCalculator.tsx` & `UmrohCalculatorResult.tsx`.
+- Subjudul tetap: perencana finansial umroh.
 
-# Fix Dark Mode Contrast + Speed Up Package Images
+### 2. Database — extend `umroh_calculator_leads`
+Tambah kolom:
+- `mode` (text, "A"|"B")
+- `target_timeframe_months` (int, nullable — Mode B)
+- `selected_package` (text)
+- `calculated_monthly_target` (numeric, nullable — Mode B)
+- `calculated_daily_target` (numeric)
+- `status` (text default 'NEW': NEW/CONTACTED/QUALIFIED/CLOSED)
+- `utm_source`, `utm_medium`, `utm_campaign`, `fbclid`, `ctwa_clid` (text nullable)
 
-## Problem 1: Dark Mode Text Still Unreadable
-The h1 heading in page headers relies on CSS inheritance for its color, which can fail in some rendering contexts. Adding explicit `text-foreground` to all headings and descriptions in the header sections will guarantee readability.
+RLS sudah ada (public insert, single-id select). Tambah policy admin SELECT/UPDATE semua row (via `has_role(auth.uid(), 'admin')`).
 
-**Files to update** (6 pages -- same pattern):
-- `src/pages/PaketUmroh.tsx`
-- `src/pages/Artikel.tsx`
-- `src/pages/JadwalUmroh.tsx`
-- `src/pages/Kontak.tsx`
-- `src/pages/Galeri.tsx`
-- `src/pages/TentangKami.tsx`
+### 3. Konfigurasi global (`src/lib/calcConfig.ts` baru)
+- `USD_KURS = 18000` (1 tempat)
+- Mapping "setara apa" per range harian (7 tier)
+- Footnote string asumsi harga
 
-Change: Add `text-foreground` to h1 tags in the header section.
+### 4. Mode B — Goal-Based
+File baru `src/lib/umrohCalc.ts` (extend) — fungsi `monthlyTargetForGoal(price, pilgrims, months, existing)`:
+- `total = price*pilgrims − existing`
+- `effectiveMonths = max(1, months − 1.3)` (pelunasan 40 hari sebelum berangkat)
+- `monthly = total / effectiveMonths`
+- `daily = monthly/30`, `weekly = monthly/4.33`
 
-## Problem 2: Images Loading Extremely Slow
-All package banner images are currently served from Google Drive indirect URLs (`lh3.googleusercontent.com/d/...`). Google Drive is not designed as a CDN and adds significant latency (redirects, no edge caching, throttling).
+### 5. Landing flow
+Di `UmrohCalculator.tsx`, setelah Hero "Mulai Hitung" → step **MODE PICKER** (2 kartu besar):
+- **Forward** (sudah ada flow)
+- **Goal-Based** (BARU): step input target bulan (chips 6/12/18/24/36 + slider 3–60) → pilih paket (4 kartu tier) → jumlah jamaah → tabungan awal → reveal.
 
-### Solution: Migrate Images to Lovable Cloud Storage
-Create a backend function that:
-1. Downloads each image from the Google Drive URL
-2. Compresses and converts it to WebP
-3. Uploads it to a `package-images` storage bucket
-4. Updates the `banner_image` field in the database with the new fast CDN URL
+### 6. Slide hasil baru (untuk Mode A & B)
+Tambah/perkaya:
+1. Target harian + setara apa (update mapping)
+2. Tanggal keberangkatan per paket (Mode A) / Tanggal target (Mode B)
+3. **Timeline progress** — bar dengan milestone 25/50/75/100%
+4. **Lock harga hari ini** — pesan jujur tentang kenaikan harga
+5. **Nabung sendiri vs Musafar** — komparasi singkat
+6. **Kartu Share 9:16** — render div CSS, tombol "Download" via `html2canvas` + `file-saver`. Berisi nama, target, tanggal, logo Musafar.
+7. CTA WhatsApp form (existing)
+8. Slide penutup spiritual
 
-After migration, all future syncs from Google Sheets will also auto-upload Drive links to storage instead of storing them directly.
+Footnote `USD_KURS` di setiap slide hasil & kartu paket.
 
-### Implementation Steps
+### 7. Lead capture + tracking
+- Form WA: simpan dengan `mode`, `selected_package`, `calculated_*`, dan UTM/fbclid/ctwa_clid (parse dari `window.location.search` saat mount, simpan ke state).
+- Fire Meta Pixel `Lead` event dengan `event_id` UUID. Simpan event_id ke field result JSON untuk dedup CAPI nanti.
 
-1. **Create storage bucket** via SQL migration:
-   - `package-images` bucket (public, for banner images)
+### 8. Admin Dashboard — `/admin/calculator-leads`
+Route baru di `AdminLayout`. Tabel:
+- Kolom: tanggal masuk, nama, no WA, mode, paket, target (date/monthly), status, actions
+- Sort default: terbaru di atas
+- Filter: range tanggal, paket, status, search nama/WA
+- Klik baris → drawer detail (semua data + result_url)
+- Tombol per row: "Kirim hasil via WA" (wa.me dengan pesan prefilled + result_url), update status (dropdown), copy result link
+- Export CSV (client-side)
+- Panel analitik atas: total leads, leads hari ini, paket terpopuler, rata-rata nabung/bln, distribusi mode A/B
 
-2. **Create edge function** `migrate-drive-images`:
-   - Fetches all packages with Google Drive banner URLs
-   - Downloads each image
-   - Uploads to `package-images` bucket as WebP
-   - Updates the database record with the new storage URL
-   - Returns a summary of migrated images
+### 9. Yang DI-SKIP (per keputusan user)
+- Notifikasi otomatis ke Umroh Consultant (tabel UC, round-robin, webhook UC, kolom `assigned_uc` / `uc_notified_at`) — TIDAK dibangun.
+- Webhook customer otomatis (Make.com) — tidak prioritas, cukup tombol manual wa.me di admin.
+- CAPI server-side — siapkan `event_id` saja, kirim CAPI lewat webhook nanti (out of scope).
 
-3. **Update `sync-google-sheets`** edge function:
-   - When a new Google Drive link is detected during sync, automatically download and upload to storage instead of storing the Drive URL directly
+### 10. File yang disentuh
+- Migration baru: extend `umroh_calculator_leads` + admin SELECT/UPDATE policy
+- Baru: `src/lib/calcConfig.ts`, `src/pages/UmrohCalculatorB.tsx` (atau merge ke `UmrohCalculator.tsx`), `src/pages/admin/CalculatorLeads.tsx`, `src/components/calculator/ShareCard.tsx`
+- Edit: `src/lib/umrohCalc.ts`, `src/pages/UmrohCalculator.tsx`, `src/pages/UmrohCalculatorResult.tsx`, `src/App.tsx`, `src/components/admin/AdminLayout.tsx` (nav item)
+- Dependencies: `html2canvas`, `file-saver` (+types)
 
-4. **Add image loading optimization to `PackageCard`**:
-   - Add a blurhash/skeleton placeholder while loading
-   - Use `fetchpriority="high"` for first 4 visible cards
-
-## Technical Details
-
-### Storage Bucket Migration SQL
-```sql
-INSERT INTO storage.buckets (id, name, public) 
-VALUES ('package-images', 'package-images', true);
-
--- Allow public read access
-CREATE POLICY "Public read access" ON storage.objects
-  FOR SELECT USING (bucket_id = 'package-images');
-
--- Allow service role to upload
-CREATE POLICY "Service role upload" ON storage.objects
-  FOR INSERT WITH CHECK (bucket_id = 'package-images');
-```
-
-### Edge Function: `migrate-drive-images`
-- Fetches packages where `banner_image LIKE '%googleusercontent%' OR banner_image LIKE '%drive.google%'`
-- Downloads image via fetch
-- Uploads to storage as `{package-slug}-banner.webp`
-- Updates `packages.banner_image` with the public storage URL
-
-### Sync Function Update
-- In the existing `sync-google-sheets` function, after converting a Drive link, also upload to storage before saving
-
-### PackageCard Optimization
-- First 4 cards rendered with `loading="eager"` and `fetchpriority="high"`
-- Remaining cards keep `loading="lazy"`
-
+### Konfirmasi
+- Harga paket: pakai data DB existing (`useCalculatorTiers`) — tidak hardcode angka brief karena DB sudah jadi sumber kebenaran. OK?
+- Mode B disubmit menyimpan `target_timeframe_months` & `calculated_monthly_target`; Mode A tetap simpan `calculated_departure_date`.

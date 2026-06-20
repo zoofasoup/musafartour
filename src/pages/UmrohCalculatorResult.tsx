@@ -5,8 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatIDR, type TierResult } from "@/lib/umrohCalc";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
 
+import { PRICING_FOOTNOTE } from "@/lib/calcConfig";
+
 const BRAND = {
-  red: "#CC002D",
+  red: "#C8102E",
   gold: "#FFB100",
   ink: "#262626",
   bg: "#F2F3F3",
@@ -86,7 +88,7 @@ export default function UmrohCalculatorResult() {
           className="text-xs font-semibold tracking-widest uppercase"
           style={{ color: BRAND.muted }}
         >
-          Hasil Kalkulator
+          Hasil Financial Planner
         </div>
       </header>
 
@@ -200,9 +202,8 @@ export default function UmrohCalculatorResult() {
               </div>
             </div>
 
-            <div className="text-center text-xs pt-2" style={{ color: BRAND.muted }}>
-              Estimasi berdasarkan harga publish saat ini. Tim Musafar akan hubungi
-              kamu dengan detail final.
+            <div className="text-center text-[11px] pt-2 leading-snug" style={{ color: BRAND.muted }}>
+              * {PRICING_FOOTNOTE}
             </div>
           </div>
         )}

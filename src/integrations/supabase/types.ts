@@ -1416,10 +1416,16 @@ export type Database = {
       }
       umroh_calculator_leads: {
         Row: {
+          calculated_daily_target: number | null
+          calculated_monthly_target: number | null
           created_at: string
+          ctwa_clid: string | null
           daily_target: number | null
+          event_id: string | null
           existing_savings: number
+          fbclid: string | null
           id: string
+          mode: string
           monthly_saving: number
           months_to_departure: number | null
           name: string
@@ -1428,15 +1434,27 @@ export type Database = {
           recommended_tier: string | null
           referrer: string | null
           result_data: Json | null
+          selected_package: string | null
+          status: string
+          target_timeframe_months: number | null
           updated_at: string
           user_agent: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
           whatsapp: string
         }
         Insert: {
+          calculated_daily_target?: number | null
+          calculated_monthly_target?: number | null
           created_at?: string
+          ctwa_clid?: string | null
           daily_target?: number | null
+          event_id?: string | null
           existing_savings?: number
+          fbclid?: string | null
           id?: string
+          mode?: string
           monthly_saving: number
           months_to_departure?: number | null
           name: string
@@ -1445,15 +1463,27 @@ export type Database = {
           recommended_tier?: string | null
           referrer?: string | null
           result_data?: Json | null
+          selected_package?: string | null
+          status?: string
+          target_timeframe_months?: number | null
           updated_at?: string
           user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
           whatsapp: string
         }
         Update: {
+          calculated_daily_target?: number | null
+          calculated_monthly_target?: number | null
           created_at?: string
+          ctwa_clid?: string | null
           daily_target?: number | null
+          event_id?: string | null
           existing_savings?: number
+          fbclid?: string | null
           id?: string
+          mode?: string
           monthly_saving?: number
           months_to_departure?: number | null
           name?: string
@@ -1462,8 +1492,14 @@ export type Database = {
           recommended_tier?: string | null
           referrer?: string | null
           result_data?: Json | null
+          selected_package?: string | null
+          status?: string
+          target_timeframe_months?: number | null
           updated_at?: string
           user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
           whatsapp?: string
         }
         Relationships: [
