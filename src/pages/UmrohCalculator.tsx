@@ -64,7 +64,7 @@ const leadSchema = z.object({
     .regex(/^[0-9+]+$/, "Hanya angka & tanda +"),
 });
 
-const WRAPPED_COUNT = 8;
+const WRAPPED_COUNT = 10;
 
 export default function UmrohCalculator() {
   const navigate = useNavigate();
@@ -89,6 +89,7 @@ export default function UmrohCalculator() {
   // Lead capture
   const [leadName, setLeadName] = useState("");
   const [leadWa, setLeadWa] = useState("");
+  const [companion, setCompanion] = useState("");
   const [errors, setErrors] = useState<{ name?: string; whatsapp?: string }>({});
 
   // Tracking
