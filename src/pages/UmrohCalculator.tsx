@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCalculatorTiers } from "@/hooks/useCalculatorPackages";
 import {
   buildTierResult,
+  earliestMonthsToDepart,
   formatIDR,
   formatMonthYear,
   monthlyTargetForGoal,
@@ -1027,7 +1028,6 @@ function CardHabitSim({ input, recommended }: { input: CalcInput; recommended: T
 
   const totalNeeded = recommended.pricePerPerson * input.pilgrimCount;
   const baseline = recommended.monthsRequired;
-  const { earliestMonthsToDepart, formatMonthYear } = require("@/lib/umrohCalc") as typeof import("@/lib/umrohCalc");
   const boosted = bonus > 0
     ? earliestMonthsToDepart(totalNeeded, input.monthlySaving + bonus, input.existingSavings, input.pilgrimCount)
     : baseline;
