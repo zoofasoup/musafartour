@@ -78,6 +78,7 @@ const AgentProtectedRoute = lazy(() => import("./components/agent/AgentProtected
 const AgentManagement = lazy(() => import("./pages/admin/AgentManagement"));
 const Gamification = lazy(() => import("./pages/admin/Gamification"));
 const PackageItems = lazy(() => import("./pages/admin/PackageItems"));
+const CalculatorLeads = lazy(() => import("./pages/admin/CalculatorLeads"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -294,6 +295,7 @@ const App = () => (
                     <Route path="agents" element={<AgentManagement />} />
                     <Route path="gamification" element={<Gamification />} />
                     <Route path="calculator" element={<SalesCalculator />} />
+                    <Route path="calculator-leads" element={<CalculatorLeads />} />
                     <Route path="brochure/:slug" element={<PackageBrochure />} />
                   </Route>
                   <Route path="*" element={<NotFound />} />
