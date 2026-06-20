@@ -919,7 +919,9 @@ function CardVsMusafar({ perMonth }: { perMonth: number }) {
   );
 }
 
-function CardShare({ recommended, perDay, leadName }: { recommended: TierResult; perDay: number; leadName: string }) {
+function CardShare({ recommended, perDay, leadName, companion, onCompanionChange }: {
+  recommended: TierResult; perDay: number; leadName: string; companion: string; onCompanionChange: (s: string) => void;
+}) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
 
@@ -938,22 +940,30 @@ function CardShare({ recommended, perDay, leadName }: { recommended: TierResult;
     }
   };
 
+  const dedicatedTo = companion.trim() || "Diri sendiri & keluarga";
+
   return (
     <div className="space-y-5">
       <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>Kartu untuk dibagikan</div>
       <div className="text-2xl md:text-3xl font-black" style={{ letterSpacing: "-0.04em" }}>
-        Bawa pulang rencanamu — share ke Story.
+        Untuk siapa kamu niatkan umroh ini?
       </div>
+      <input
+        value={companion}
+        onChange={(e) => onCompanionChange(e.target.value.slice(0, 60))}
+        placeholder="cth. Ayah, Ibu, atau diri sendiri"
+        className="w-full h-12 rounded-2xl px-4 text-sm font-semibold bg-neutral-50 outline-none border-2 border-transparent focus:border-neutral-900 transition"
+      />
 
       <div className="flex justify-center pt-2">
         <div
           ref={cardRef}
           style={{
-            width: 270, height: 480, // 9:16 thumbnail (final scales 2x = 540x960)
+            width: 270, height: 480,
             background: `linear-gradient(160deg, ${BRAND.ink} 0%, #1a1a1a 100%)`,
             color: "white",
             fontFamily: "'Onest', system-ui, sans-serif",
-            padding: 24,
+            padding: 22,
             borderRadius: 24,
             display: "flex", flexDirection: "column", justifyContent: "space-between",
             boxShadow: "0 20px 60px -20px rgba(0,0,0,0.4)",
@@ -963,25 +973,29 @@ function CardShare({ recommended, perDay, leadName }: { recommended: TierResult;
             <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 2, color: BRAND.gold, textTransform: "uppercase" }}>
               Umroh Financial Planner
             </div>
-            <div style={{ fontSize: 18, fontWeight: 800, marginTop: 8, opacity: 0.8 }}>
-              {leadName || "Calon Tamu Allah"},
+            <div style={{ fontSize: 12, fontWeight: 700, marginTop: 10, opacity: 0.7 }}>
+              Atas nama {leadName || "Calon Tamu Allah"}
             </div>
-            <div style={{ fontSize: 22, fontWeight: 900, lineHeight: 1.1, marginTop: 4, letterSpacing: "-0.03em" }}>
-              insya Allah berangkat
+            <div style={{ fontSize: 11, fontWeight: 600, marginTop: 12, opacity: 0.55, textTransform: "uppercase", letterSpacing: 1.5 }}>
+              Diniatkan untuk
             </div>
-            <div style={{ fontSize: 38, fontWeight: 900, color: BRAND.red, lineHeight: 0.95, letterSpacing: "-0.04em", marginTop: 6 }}>
-              {recommended.feasibleLabel}
+            <div style={{
+              fontSize: 26, fontWeight: 900, lineHeight: 1.05, marginTop: 4,
+              letterSpacing: "-0.03em", color: BRAND.gold,
+              fontFamily: "'Onest', serif",
+            }}>
+              {dedicatedTo}
             </div>
           </div>
           <div>
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.6 }}>
-              Target harian
+              Insya Allah berangkat
             </div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: BRAND.gold, letterSpacing: "-0.03em" }}>
-              {formatIDR(perDay)}
+            <div style={{ fontSize: 32, fontWeight: 900, color: BRAND.red, lineHeight: 0.95, letterSpacing: "-0.04em", marginTop: 4 }}>
+              {recommended.feasibleLabel}
             </div>
-            <div style={{ fontSize: 11, opacity: 0.7, marginTop: 4 }}>
-              Paket {recommended.label}
+            <div style={{ fontSize: 11, opacity: 0.7, marginTop: 6 }}>
+              Paket {recommended.label} · {formatIDR(perDay)}/hari
             </div>
           </div>
           <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.5, opacity: 0.6, textTransform: "uppercase" }}>
@@ -999,7 +1013,130 @@ function CardShare({ recommended, perDay, leadName }: { recommended: TierResult;
   );
 }
 
-function CardLead({ recommended, leadName, leadWa, errors, onNameChange, onWaChange, onSubmit }: any) {
+/* ---------------- Habit Simulator ---------------- */
+const HABITS = [
+  { key: "kopi", label: "Kopi kekinian", emoji: "☕", perMonth: 25_000 * 12 }, // ~3x/week
+  { key: "rokok", label: "Rokok harian", emoji: "🚬", perMonth: 25_000 * 30 },
+  { key: "ojol", label: "Ojol harian", emoji: "🛵", perMonth: 30_000 * 22 },
+  { key: "stream", label: "Streaming", emoji: "📺", perMonth: 50_000 },
+];
+
+function CardHabitSim({ input, recommended }: { input: CalcInput; recommended: TierResult }) {
+  const [picked, setPicked] = useState<Record<string, boolean>>({});
+  const bonus = HABITS.reduce((s, h) => s + (picked[h.key] ? h.perMonth : 0), 0);
+
+  const totalNeeded = recommended.pricePerPerson * input.pilgrimCount;
+  const baseline = recommended.monthsRequired;
+  const { earliestMonthsToDepart, formatMonthYear } = require("@/lib/umrohCalc") as typeof import("@/lib/umrohCalc");
+  const boosted = bonus > 0
+    ? earliestMonthsToDepart(totalNeeded, input.monthlySaving + bonus, input.existingSavings, input.pilgrimCount)
+    : baseline;
+  const saved = Math.max(0, baseline - boosted);
+  const newDate = (() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + boosted);
+    return formatMonthYear(d.toISOString());
+  })();
+
+  return (
+    <div className="space-y-5">
+      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>
+        Geser kebiasaanmu, lihat keajaibannya
+      </div>
+      <div className="text-2xl md:text-3xl font-black leading-tight" style={{ letterSpacing: "-0.04em" }}>
+        Skip 1 kebiasaan, berangkat lebih cepat.
+      </div>
+      <div className="grid grid-cols-2 gap-2.5">
+        {HABITS.map((h) => {
+          const on = !!picked[h.key];
+          return (
+            <button
+              key={h.key}
+              onClick={() => setPicked((p) => ({ ...p, [h.key]: !p[h.key] }))}
+              className="rounded-2xl p-3 text-left transition-all active:scale-[0.98]"
+              style={{
+                background: on ? BRAND.ink : "white",
+                color: on ? "white" : BRAND.ink,
+                border: `2px solid ${on ? BRAND.ink : "#e5e5e5"}`,
+              }}
+            >
+              <div className="text-xl">{h.emoji}</div>
+              <div className="text-xs font-bold mt-1" style={{ letterSpacing: "-0.01em" }}>{h.label}</div>
+              <div className="text-[10px] opacity-70 mt-0.5">+{formatIDR(h.perMonth)}/bln</div>
+            </button>
+          );
+        })}
+      </div>
+      <div className="rounded-2xl p-4" style={{ background: bonus > 0 ? BRAND.gold + "33" : BRAND.bg }}>
+        {bonus > 0 ? (
+          <>
+            <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: BRAND.red }}>
+              Berangkat {saved} bulan lebih cepat ✨
+            </div>
+            <div className="text-2xl font-black mt-1" style={{ letterSpacing: "-0.03em", color: BRAND.ink }}>
+              {newDate}
+            </div>
+            <div className="text-xs mt-1" style={{ color: BRAND.muted }}>
+              Niat baik berbuah jalan ke Baitullah.
+            </div>
+          </>
+        ) : (
+          <div className="text-sm" style={{ color: BRAND.muted }}>
+            Pilih satu kebiasaan untuk lihat dampaknya ke tanggal berangkatmu.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Live Countdown ---------------- */
+function CardCountdown({ recommended }: { recommended: TierResult }) {
+  const target = useMemo(() => new Date(recommended.feasibleDate).getTime(), [recommended.feasibleDate]);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const diff = Math.max(0, target - now);
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  const secs = Math.floor((diff % 60000) / 1000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  return (
+    <div className="space-y-5 text-center relative" style={{
+      background: `radial-gradient(circle at 50% 30%, ${BRAND.gold}22 0%, transparent 60%)`,
+      margin: -32, padding: 32, borderRadius: 24,
+    }}>
+      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>
+        Hitung mundur ke Baitullah
+      </div>
+      <div className="text-5xl md:text-7xl font-black" style={{ color: BRAND.red, letterSpacing: "-0.05em", lineHeight: 0.95 }}>
+        {days.toLocaleString("id-ID")}
+      </div>
+      <div className="text-sm font-bold uppercase tracking-widest" style={{ color: BRAND.ink }}>
+        hari lagi
+      </div>
+      <div className="flex justify-center gap-2 pt-2">
+        {[
+          { v: hours, l: "Jam" }, { v: mins, l: "Menit" }, { v: secs, l: "Detik" },
+        ].map((u) => (
+          <div key={u.l} className="rounded-xl px-3 py-2" style={{ background: BRAND.ink, color: "white", minWidth: 64 }}>
+            <div className="text-2xl font-black tabular-nums" style={{ letterSpacing: "-0.03em" }}>{pad(u.v)}</div>
+            <div className="text-[9px] uppercase tracking-widest opacity-70 mt-0.5">{u.l}</div>
+          </div>
+        ))}
+      </div>
+      <div className="text-sm pt-3" style={{ color: BRAND.muted, letterSpacing: "-0.015em" }}>
+        Tiap detik yang lewat = satu langkah lebih dekat. InsyaAllah {recommended.feasibleLabel}.
+      </div>
+    </div>
+  );
+}
+
+function CardLead({ recommended, leadName, leadWa, errors, onNameChange, onWaChange, onSubmit, onReset }: any) {
   return (
     <div className="space-y-5">
       <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>Simpan & terima detail paket</div>
@@ -1023,6 +1160,15 @@ function CardLead({ recommended, leadName, leadWa, errors, onNameChange, onWaCha
         <button onClick={onSubmit} className="w-full h-14 rounded-2xl font-bold text-base active:scale-[0.98] transition-transform"
           style={{ background: BRAND.red, color: "white" }}>
           Simpan Rencanaku →
+        </button>
+        <button
+          onClick={() => {
+            if (window.confirm("Hitung untuk orang baru? Data yang belum dikirim akan hilang.")) onReset();
+          }}
+          className="w-full h-12 rounded-2xl font-semibold text-sm active:scale-[0.98] transition-transform"
+          style={{ background: "white", color: BRAND.ink, border: `1.5px solid #e5e5e5` }}
+        >
+          ↻ Hitung untuk orang lain
         </button>
         <div className="text-[11px] text-center pt-1" style={{ color: BRAND.muted }}>
           Data kamu aman. Kami tidak spam.
