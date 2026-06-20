@@ -202,9 +202,8 @@ export default function UmrohCalculatorResult() {
               </div>
             </div>
 
-            <div className="text-center text-xs pt-2" style={{ color: BRAND.muted }}>
-              Estimasi berdasarkan harga publish saat ini. Tim Musafar akan hubungi
-              kamu dengan detail final.
+            <div className="text-center text-[11px] pt-2 leading-snug" style={{ color: BRAND.muted }}>
+              * {PRICING_FOOTNOTE}
             </div>
           </div>
         )}
