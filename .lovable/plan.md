@@ -1,76 +1,65 @@
-## Umroh Financial Planner — Revisi
+## Umroh Financial Planner — Polish & Mind-Blow Update
 
-### 1. Rename & Repositioning
-- Ganti semua "LEAD MAGNET" → "UMROH FINANCIAL PLANNER" di `UmrohCalculator.tsx` & `UmrohCalculatorResult.tsx`.
-- Subjudul tetap: perencana finansial umroh.
+### 1. Tombol "Hitung Lagi" (Reset)
+- Tambah tombol **"Hitung untuk orang lain"** di slide terakhir hasil (sebelum/sesudah CTA WA) dan juga sebagai ikon kecil di pojok atas saat di slide hasil.
+- Aksi: reset semua state (mode, input, slideIndex=0, lead form) → kembali ke Hero. Tidak reload page agar instant di booth.
+- Konfirmasi ringan (kalau lead belum disubmit): "Mulai ulang? Data yang belum dikirim akan hilang." (skippable kalau lead sudah tersimpan).
 
-### 2. Database — extend `umroh_calculator_leads`
-Tambah kolom:
-- `mode` (text, "A"|"B")
-- `target_timeframe_months` (int, nullable — Mode B)
-- `selected_package` (text)
-- `calculated_monthly_target` (numeric, nullable — Mode B)
-- `calculated_daily_target` (numeric)
-- `status` (text default 'NEW': NEW/CONTACTED/QUALIFIED/CLOSED)
-- `utm_source`, `utm_medium`, `utm_campaign`, `fbclid`, `ctwa_clid` (text nullable)
+### 2. Override Harga Paket (kalkulator-only)
+- File `src/lib/calcConfig.ts` → tambah konstanta `TIER_PRICE_OVERRIDE`:
+  - `hemat`: 28.900.000
+  - `nyaman`: 33.400.000
+  - `pelataran-hemat`: 33.900.000
+  - `five-star`: 41.400.000
+- `useCalculatorTiers` tetap query DB untuk dapat `packageId`, `packageName`, `earliestDeparture` (untuk tanggal real & link booking). Hanya `pricePerPerson` diganti dari override.
+- DB packages **tidak disentuh** — listing publik tetap pakai harga asli.
+- Tampilkan footnote kecil di kartu paket: "Harga indikatif kalkulator. Final saat pendaftaran."
 
-RLS sudah ada (public insert, single-id select). Tambah policy admin SELECT/UPDATE semua row (via `has_role(auth.uid(), 'admin')`).
+### 3. Mind-Blow Feature A — Simulator "Skip 1 Kopi/Hari"
+Slide baru setelah "Target Harian", judul: **"Geser kebiasaanmu, lihat keajaibannya."**
+- 4 toggle/slider chip kebiasaan dengan estimasi default:
+  - ☕ Kopi kekinian (Rp 25rb × N/minggu)
+  - 🚬 Rokok (Rp 25rb/hari)
+  - 🛵 Ojol bolak-balik (Rp 30rb/hari)
+  - 📺 Langganan streaming (Rp 50rb/bulan)
+- Tiap toggle on → tambahkan ke `monthlySaving` virtual.
+- Tampilkan **delta real-time**: "Berangkat **4 bulan lebih cepat** → Februari 2027" + bar progress yang menyusut animasi.
+- Pakai existing `earliestMonthsToDepart()` untuk recompute.
+- Hint: "Niat baik berbuah jalan ke Baitullah."
 
-### 3. Konfigurasi global (`src/lib/calcConfig.ts` baru)
-- `USD_KURS = 18000` (1 tempat)
-- Mapping "setara apa" per range harian (7 tier)
-- Footnote string asumsi harga
+### 4. Mind-Blow Feature B — Live Countdown ke Tanggal Target
+Slide baru di akhir results (sebelum lead capture), judul: **"X hari lagi kamu di depan Ka'bah."**
+- Hitung target date (Mode A: `feasibleDate`, Mode B: bulan target).
+- Komponen `<CountdownTicker>` update tiap detik: `DD hari : HH jam : MM menit : SS detik`.
+- Background: gradient gold/midnight + foto Ka'bah blur subtle.
+- Caption: "Tiap detik yang lewat = satu detik lebih dekat. InsyaAllah."
+- Countdown ini juga muncul di Share Card 9:16 (statis, dalam format "DD hari lagi").
 
-### 4. Mode B — Goal-Based
-File baru `src/lib/umrohCalc.ts` (extend) — fungsi `monthlyTargetForGoal(price, pilgrims, months, existing)`:
-- `total = price*pilgrims − existing`
-- `effectiveMonths = max(1, months − 1.3)` (pelunasan 40 hari sebelum berangkat)
-- `monthly = total / effectiveMonths`
-- `daily = monthly/30`, `weekly = monthly/4.33`
+### 5. Mind-Blow Feature C — Doa & Nama Orang Tersayang di Share Card
+- Di lead form (sebelum reveal akhir), tambah field opsional:
+  - **"Siapa yang ingin kamu ajak/doakan?"** (text, max 60 char) — placeholder: "Ayah, Ibu, atau dirimu sendiri"
+- Field disimpan ke `umroh_calculator_leads.companion_name` (kolom baru, nullable text).
+- Share Card 9:16 di-redesign:
+  - Header: "Atas nama [Nama User]"
+  - Hero: **"Untuk [Companion Name]"** dalam font kaligrafi/serif elegan
+  - Tengah: tanggal target + countdown "X hari lagi"
+  - Footer: logo Musafar + `musafartour.com/kalkulator`
+- Jika kosong → fallback "Untuk diri sendiri & keluarga."
+- Tetap pakai html2canvas → download PNG.
 
-### 5. Landing flow
-Di `UmrohCalculator.tsx`, setelah Hero "Mulai Hitung" → step **MODE PICKER** (2 kartu besar):
-- **Forward** (sudah ada flow)
-- **Goal-Based** (BARU): step input target bulan (chips 6/12/18/24/36 + slider 3–60) → pilih paket (4 kartu tier) → jumlah jamaah → tabungan awal → reveal.
+### 6. Database — Migration kecil
+- Tambah kolom `companion_name TEXT NULL` ke `umroh_calculator_leads`.
 
-### 6. Slide hasil baru (untuk Mode A & B)
-Tambah/perkaya:
-1. Target harian + setara apa (update mapping)
-2. Tanggal keberangkatan per paket (Mode A) / Tanggal target (Mode B)
-3. **Timeline progress** — bar dengan milestone 25/50/75/100%
-4. **Lock harga hari ini** — pesan jujur tentang kenaikan harga
-5. **Nabung sendiri vs Musafar** — komparasi singkat
-6. **Kartu Share 9:16** — render div CSS, tombol "Download" via `html2canvas` + `file-saver`. Berisi nama, target, tanggal, logo Musafar.
-7. CTA WhatsApp form (existing)
-8. Slide penutup spiritual
+### 7. Files yang Disentuh
+- `src/lib/calcConfig.ts` — tambah `TIER_PRICE_OVERRIDE`
+- `src/hooks/useCalculatorPackages.ts` — apply override pada `pricePerPerson`
+- `src/pages/UmrohCalculator.tsx` — tombol "Hitung Lagi", simulator kebiasaan, countdown slide, field companion
+- `src/components/calculator/ShareCard.tsx` — redesign dengan companion + countdown
+- `src/components/calculator/HabitSimulator.tsx` (baru)
+- `src/components/calculator/CountdownTicker.tsx` (baru)
+- Migration: `companion_name` column
 
-Footnote `USD_KURS` di setiap slide hasil & kartu paket.
-
-### 7. Lead capture + tracking
-- Form WA: simpan dengan `mode`, `selected_package`, `calculated_*`, dan UTM/fbclid/ctwa_clid (parse dari `window.location.search` saat mount, simpan ke state).
-- Fire Meta Pixel `Lead` event dengan `event_id` UUID. Simpan event_id ke field result JSON untuk dedup CAPI nanti.
-
-### 8. Admin Dashboard — `/admin/calculator-leads`
-Route baru di `AdminLayout`. Tabel:
-- Kolom: tanggal masuk, nama, no WA, mode, paket, target (date/monthly), status, actions
-- Sort default: terbaru di atas
-- Filter: range tanggal, paket, status, search nama/WA
-- Klik baris → drawer detail (semua data + result_url)
-- Tombol per row: "Kirim hasil via WA" (wa.me dengan pesan prefilled + result_url), update status (dropdown), copy result link
-- Export CSV (client-side)
-- Panel analitik atas: total leads, leads hari ini, paket terpopuler, rata-rata nabung/bln, distribusi mode A/B
-
-### 9. Yang DI-SKIP (per keputusan user)
-- Notifikasi otomatis ke Umroh Consultant (tabel UC, round-robin, webhook UC, kolom `assigned_uc` / `uc_notified_at`) — TIDAK dibangun.
-- Webhook customer otomatis (Make.com) — tidak prioritas, cukup tombol manual wa.me di admin.
-- CAPI server-side — siapkan `event_id` saja, kirim CAPI lewat webhook nanti (out of scope).
-
-### 10. File yang disentuh
-- Migration baru: extend `umroh_calculator_leads` + admin SELECT/UPDATE policy
-- Baru: `src/lib/calcConfig.ts`, `src/pages/UmrohCalculatorB.tsx` (atau merge ke `UmrohCalculator.tsx`), `src/pages/admin/CalculatorLeads.tsx`, `src/components/calculator/ShareCard.tsx`
-- Edit: `src/lib/umrohCalc.ts`, `src/pages/UmrohCalculator.tsx`, `src/pages/UmrohCalculatorResult.tsx`, `src/App.tsx`, `src/components/admin/AdminLayout.tsx` (nav item)
-- Dependencies: `html2canvas`, `file-saver` (+types)
-
-### Konfirmasi
-- Harga paket: pakai data DB existing (`useCalculatorTiers`) — tidak hardcode angka brief karena DB sudah jadi sumber kebenaran. OK?
-- Mode B disubmit menyimpan `target_timeframe_months` & `calculated_monthly_target`; Mode A tetap simpan `calculated_departure_date`.
+### Catatan
+- Semua fitur baru tetap mengikuti Onest font, tight typography (-0.035em), dan tone spiritual yang lembut.
+- Tidak ada perubahan ke listing publik atau halaman paket existing.
+- Tracking pixel `Lead` tetap fire saat submit form — tidak berubah.

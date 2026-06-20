@@ -1418,6 +1418,7 @@ export type Database = {
         Row: {
           calculated_daily_target: number | null
           calculated_monthly_target: number | null
+          companion_name: string | null
           created_at: string
           ctwa_clid: string | null
           daily_target: number | null
@@ -1447,6 +1448,7 @@ export type Database = {
         Insert: {
           calculated_daily_target?: number | null
           calculated_monthly_target?: number | null
+          companion_name?: string | null
           created_at?: string
           ctwa_clid?: string | null
           daily_target?: number | null
@@ -1476,6 +1478,7 @@ export type Database = {
         Update: {
           calculated_daily_target?: number | null
           calculated_monthly_target?: number | null
+          companion_name?: string | null
           created_at?: string
           ctwa_clid?: string | null
           daily_target?: number | null
