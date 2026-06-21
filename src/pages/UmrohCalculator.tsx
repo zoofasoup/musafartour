@@ -227,7 +227,7 @@ export default function UmrohCalculator() {
         referrer: document.referrer || null,
         user_agent: navigator.userAgent.slice(0, 500),
       })
-      .select("id")
+      .select("id, share_token")
       .single();
 
     if (error || !data) {
@@ -245,7 +245,7 @@ export default function UmrohCalculator() {
       }
     } catch {}
 
-    navigate(`/kalkulator/hasil/${data.id}`);
+    navigate(`/kalkulator/hasil/${(data as any).share_token ?? data.id}`);
   };
 
   // Navigation
