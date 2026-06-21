@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { z } from "zod";
-import html2canvas from "html2canvas";
 import { supabase } from "@/integrations/supabase/client";
 import { useCalculatorTiers } from "@/hooks/useCalculatorPackages";
 import {
