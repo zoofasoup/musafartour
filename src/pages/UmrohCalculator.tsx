@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { z } from "zod";
-import html2canvas from "html2canvas";
 import { supabase } from "@/integrations/supabase/client";
 import { useCalculatorTiers } from "@/hooks/useCalculatorPackages";
 import {
@@ -171,7 +170,7 @@ export default function UmrohCalculator() {
     }
     setStep({ kind: "submitting" });
 
-    const recommended = mode === "A" ? recommendedA : null;
+    const recommended = mode === "A" ? recommendedA : recommendedDisplay;
     const departureLabel =
       mode === "A"
         ? recommendedA?.feasibleLabel
@@ -181,6 +180,14 @@ export default function UmrohCalculator() {
             return formatMonthYear(d.toISOString());
           })();
 
+    // Unified results array so the result page renders for both modes.
+    const unifiedResults: TierResult[] =
+      mode === "A" ? resultsA : recommendedDisplay ? [recommendedDisplay] : [];
+
+    // monthly_saving is NOT NULL in DB — always send a number.
+    const monthlySavingValue =
+      mode === "A" ? monthly : Math.round(calcB?.monthly ?? 0);
+
     const { data, error } = await supabase
       .from("umroh_calculator_leads")
       .insert({
@@ -188,7 +195,7 @@ export default function UmrohCalculator() {
         whatsapp: parsed.data.whatsapp,
         companion_name: companion.trim() || null,
         mode,
-        monthly_saving: mode === "A" ? monthly : null,
+        monthly_saving: monthlySavingValue,
         target_timeframe_months: mode === "B" ? targetMonths : null,
         selected_package: mode === "B" ? selectedTier?.label ?? null : recommended?.label ?? null,
         calculated_monthly_target: mode === "B" ? Math.round(calcB?.monthly ?? 0) : null,
@@ -208,12 +215,14 @@ export default function UmrohCalculator() {
         event_id: eventId,
         result_data: JSON.parse(JSON.stringify({
           mode,
+          results: unifiedResults,
           resultsA,
           recommendedTier: recommended?.tier,
           selectedTier,
           targetMonths,
           calcB,
           departureLabel,
+          companion: companion.trim() || null,
         })),
         referrer: document.referrer || null,
         user_agent: navigator.userAgent.slice(0, 500),
@@ -222,8 +231,9 @@ export default function UmrohCalculator() {
       .single();
 
     if (error || !data) {
-      setStep({ kind: "wrapped", index: WRAPPED_COUNT - 2 });
-      setErrors({ name: "Gagal menyimpan. Coba lagi." });
+      console.error("Submit lead failed:", error);
+      setStep({ kind: "wrapped", index: WRAPPED_COUNT - 1 });
+      setErrors({ name: error?.message ? `Gagal menyimpan: ${error.message}` : "Gagal menyimpan. Coba lagi." });
       return;
     }
 
@@ -923,30 +933,14 @@ function CardVsMusafar({ perMonth }: { perMonth: number }) {
 function CardShare({ recommended, perDay, leadName, companion, onCompanionChange }: {
   recommended: TierResult; perDay: number; leadName: string; companion: string; onCompanionChange: (s: string) => void;
 }) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [downloading, setDownloading] = useState(false);
-
-  const handleDownload = async () => {
-    if (!cardRef.current) return;
-    setDownloading(true);
-    try {
-      const canvas = await html2canvas(cardRef.current, { backgroundColor: null, scale: 2 });
-      const url = canvas.toDataURL("image/png");
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `umroh-plan-${Date.now()}.png`;
-      a.click();
-    } finally {
-      setDownloading(false);
-    }
-  };
-
   const dedicatedTo = companion.trim() || "Diri sendiri & keluarga";
 
   return (
     <div className="space-y-5">
-      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>Kartu untuk dibagikan</div>
-      <div className="text-2xl md:text-3xl font-black" style={{ letterSpacing: "-0.04em" }}>
+      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>
+        Niatkan perjalananmu
+      </div>
+      <div className="text-2xl md:text-3xl font-black leading-tight" style={{ letterSpacing: "-0.04em" }}>
         Untuk siapa kamu niatkan umroh ini?
       </div>
       <input
@@ -958,58 +952,98 @@ function CardShare({ recommended, perDay, leadName, companion, onCompanionChange
 
       <div className="flex justify-center pt-2">
         <div
-          ref={cardRef}
           style={{
-            width: 270, height: 480,
-            background: `linear-gradient(160deg, ${BRAND.ink} 0%, #1a1a1a 100%)`,
+            width: 290, height: 510,
+            background: `
+              radial-gradient(circle at 20% 0%, ${BRAND.red}55 0%, transparent 45%),
+              radial-gradient(circle at 90% 100%, ${BRAND.gold}40 0%, transparent 50%),
+              linear-gradient(160deg, #1a1a1a 0%, ${BRAND.ink} 60%, #0a0a0a 100%)
+            `,
             color: "white",
             fontFamily: "'Onest', system-ui, sans-serif",
-            padding: 22,
-            borderRadius: 24,
+            padding: 24,
+            borderRadius: 28,
             display: "flex", flexDirection: "column", justifyContent: "space-between",
-            boxShadow: "0 20px 60px -20px rgba(0,0,0,0.4)",
+            boxShadow: "0 30px 80px -20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          <div>
-            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 2, color: BRAND.gold, textTransform: "uppercase" }}>
-              Umroh Financial Planner
+          {/* Decorative ring */}
+          <div style={{
+            position: "absolute", top: -60, right: -60,
+            width: 180, height: 180, borderRadius: "50%",
+            border: `1px solid ${BRAND.gold}33`,
+          }} />
+          <div style={{
+            position: "absolute", top: -90, right: -90,
+            width: 240, height: 240, borderRadius: "50%",
+            border: `1px solid ${BRAND.gold}1a`,
+          }} />
+
+          <div style={{ position: "relative" }}>
+            <div style={{
+              display: "inline-block",
+              fontSize: 9, fontWeight: 900, letterSpacing: 2.5,
+              color: BRAND.gold, textTransform: "uppercase",
+              padding: "5px 10px", borderRadius: 999,
+              background: `${BRAND.gold}1a`,
+              border: `1px solid ${BRAND.gold}33`,
+            }}>
+              ✦ Niat Perjalanan
             </div>
-            <div style={{ fontSize: 12, fontWeight: 700, marginTop: 10, opacity: 0.7 }}>
-              Atas nama {leadName || "Calon Tamu Allah"}
+            <div style={{ fontSize: 11, fontWeight: 600, marginTop: 18, opacity: 0.55, letterSpacing: 1.2, textTransform: "uppercase" }}>
+              Atas nama
             </div>
-            <div style={{ fontSize: 11, fontWeight: 600, marginTop: 12, opacity: 0.55, textTransform: "uppercase", letterSpacing: 1.5 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, marginTop: 2, letterSpacing: "-0.02em" }}>
+              {leadName || "Calon Tamu Allah"}
+            </div>
+          </div>
+
+          <div style={{ position: "relative", textAlign: "center", padding: "8px 0" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", opacity: 0.55, marginBottom: 8 }}>
               Diniatkan untuk
             </div>
             <div style={{
-              fontSize: 26, fontWeight: 900, lineHeight: 1.05, marginTop: 4,
-              letterSpacing: "-0.03em", color: BRAND.gold,
-              fontFamily: "'Onest', serif",
+              fontSize: 32, fontWeight: 900, lineHeight: 1.05,
+              letterSpacing: "-0.035em", color: BRAND.gold,
+              padding: "0 4px",
+              textShadow: `0 2px 20px ${BRAND.gold}33`,
             }}>
               {dedicatedTo}
             </div>
+            <div style={{
+              width: 40, height: 2, background: BRAND.gold,
+              margin: "14px auto 0", borderRadius: 2, opacity: 0.6,
+            }} />
           </div>
-          <div>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.6 }}>
+
+          <div style={{ position: "relative" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.55 }}>
               Insya Allah berangkat
             </div>
-            <div style={{ fontSize: 32, fontWeight: 900, color: BRAND.red, lineHeight: 0.95, letterSpacing: "-0.04em", marginTop: 4 }}>
+            <div style={{ fontSize: 28, fontWeight: 900, color: "white", lineHeight: 0.95, letterSpacing: "-0.04em", marginTop: 4 }}>
               {recommended.feasibleLabel}
             </div>
-            <div style={{ fontSize: 11, opacity: 0.7, marginTop: 6 }}>
-              Paket {recommended.label} · {formatIDR(perDay)}/hari
+            <div style={{
+              marginTop: 10, paddingTop: 12,
+              borderTop: `1px solid rgba(255,255,255,0.1)`,
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+            }}>
+              <div style={{ fontSize: 10, opacity: 0.6 }}>
+                Paket {recommended.label}
+              </div>
+              <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.5, opacity: 0.5, textTransform: "uppercase" }}>
+                musafartour.com
+              </div>
             </div>
-          </div>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.5, opacity: 0.6, textTransform: "uppercase" }}>
-            MUSAFAR · musafartour.com
           </div>
         </div>
       </div>
 
-      <button onClick={handleDownload} disabled={downloading}
-        className="w-full h-12 rounded-2xl font-bold text-sm active:scale-[0.98] transition-transform"
-        style={{ background: BRAND.gold, color: BRAND.ink }}>
-        {downloading ? "Menyiapkan…" : "📥 Download Kartu"}
-      </button>
+      <p className="text-xs text-center pt-1" style={{ color: BRAND.muted, letterSpacing: "-0.01em" }}>
+        Niatkan dengan tulus — Allah Maha Mendengar setiap doa. 🤍
+      </p>
     </div>
   );
 }
