@@ -171,7 +171,7 @@ export default function UmrohCalculator() {
     }
     setStep({ kind: "submitting" });
 
-    const recommended = mode === "A" ? recommendedA : null;
+    const recommended = mode === "A" ? recommendedA : recommendedDisplay;
     const departureLabel =
       mode === "A"
         ? recommendedA?.feasibleLabel
@@ -181,6 +181,14 @@ export default function UmrohCalculator() {
             return formatMonthYear(d.toISOString());
           })();
 
+    // Unified results array so the result page renders for both modes.
+    const unifiedResults: TierResult[] =
+      mode === "A" ? resultsA : recommendedDisplay ? [recommendedDisplay] : [];
+
+    // monthly_saving is NOT NULL in DB — always send a number.
+    const monthlySavingValue =
+      mode === "A" ? monthly : Math.round(calcB?.monthly ?? 0);
+
     const { data, error } = await supabase
       .from("umroh_calculator_leads")
       .insert({
@@ -188,7 +196,7 @@ export default function UmrohCalculator() {
         whatsapp: parsed.data.whatsapp,
         companion_name: companion.trim() || null,
         mode,
-        monthly_saving: mode === "A" ? monthly : null,
+        monthly_saving: monthlySavingValue,
         target_timeframe_months: mode === "B" ? targetMonths : null,
         selected_package: mode === "B" ? selectedTier?.label ?? null : recommended?.label ?? null,
         calculated_monthly_target: mode === "B" ? Math.round(calcB?.monthly ?? 0) : null,
@@ -208,12 +216,14 @@ export default function UmrohCalculator() {
         event_id: eventId,
         result_data: JSON.parse(JSON.stringify({
           mode,
+          results: unifiedResults,
           resultsA,
           recommendedTier: recommended?.tier,
           selectedTier,
           targetMonths,
           calcB,
           departureLabel,
+          companion: companion.trim() || null,
         })),
         referrer: document.referrer || null,
         user_agent: navigator.userAgent.slice(0, 500),
@@ -222,8 +232,9 @@ export default function UmrohCalculator() {
       .single();
 
     if (error || !data) {
-      setStep({ kind: "wrapped", index: WRAPPED_COUNT - 2 });
-      setErrors({ name: "Gagal menyimpan. Coba lagi." });
+      console.error("Submit lead failed:", error);
+      setStep({ kind: "wrapped", index: WRAPPED_COUNT - 1 });
+      setErrors({ name: error?.message ? `Gagal menyimpan: ${error.message}` : "Gagal menyimpan. Coba lagi." });
       return;
     }
 
