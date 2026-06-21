@@ -1436,6 +1436,7 @@ export type Database = {
           referrer: string | null
           result_data: Json | null
           selected_package: string | null
+          share_token: string
           status: string
           target_timeframe_months: number | null
           updated_at: string
@@ -1466,6 +1467,7 @@ export type Database = {
           referrer?: string | null
           result_data?: Json | null
           selected_package?: string | null
+          share_token?: string
           status?: string
           target_timeframe_months?: number | null
           updated_at?: string
@@ -1496,6 +1498,7 @@ export type Database = {
           referrer?: string | null
           result_data?: Json | null
           selected_package?: string | null
+          share_token?: string
           status?: string
           target_timeframe_months?: number | null
           updated_at?: string
@@ -1778,6 +1781,46 @@ export type Database = {
     }
     Functions: {
       generate_referral_code: { Args: never; Returns: string }
+      get_calculator_lead_by_token: {
+        Args: { _token: string }
+        Returns: {
+          calculated_daily_target: number | null
+          calculated_monthly_target: number | null
+          companion_name: string | null
+          created_at: string
+          ctwa_clid: string | null
+          daily_target: number | null
+          event_id: string | null
+          existing_savings: number
+          fbclid: string | null
+          id: string
+          mode: string
+          monthly_saving: number
+          months_to_departure: number | null
+          name: string
+          pilgrim_count: number
+          recommended_package_id: string | null
+          recommended_tier: string | null
+          referrer: string | null
+          result_data: Json | null
+          selected_package: string | null
+          share_token: string
+          status: string
+          target_timeframe_months: number | null
+          updated_at: string
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          whatsapp: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "umroh_calculator_leads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
