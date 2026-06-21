@@ -47,11 +47,11 @@ export default function UmrohCalculatorResult() {
     (async () => {
       if (!id) return;
       const { data, error } = await supabase
-        .from("umroh_calculator_leads")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
-      if (!error && data) setLead(data as any);
+        .rpc("get_calculator_lead_by_token", { _token: id });
+      if (!error && data) {
+        const row = Array.isArray(data) ? data[0] : data;
+        if (row) setLead(row as any);
+      }
       setLoading(false);
     })();
   }, [id]);
