@@ -1780,6 +1780,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_calculator_lead: { Args: { _lead: Json }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       get_calculator_lead_by_token: {
         Args: { _token: string }
