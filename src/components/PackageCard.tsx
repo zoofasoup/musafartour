@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, Heart, ChevronLeft, ChevronRight, Bell, Users } from "lucide-react";
+import { Star, Heart, ChevronLeft, ChevronRight, Bell, Users, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "@/hooks/use-toast";
@@ -26,6 +26,8 @@ interface PackageCardProps {
   isSoldOut?: boolean;
   waitlistCount?: number;
   index?: number;
+  className?: string;
+  imageClassName?: string;
 }
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -54,6 +56,8 @@ export const PackageCard = ({
   isSoldOut = false,
   waitlistCount = 0,
   index = 0,
+  className = "",
+  imageClassName = "aspect-square",
 }: PackageCardProps) => {
   const navigate = useNavigate();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -116,10 +120,10 @@ export const PackageCard = ({
       onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`cursor-pointer group ${isSoldOut ? 'opacity-90' : ''}`}
+      className={`cursor-pointer group ${isSoldOut ? 'opacity-90' : ''} ${className}`}
     >
       {/* Image Container */}
-      <div className="relative aspect-square rounded-xl overflow-hidden mb-3">
+      <div className={`relative rounded-xl overflow-hidden mb-3 ${imageClassName}`}>
         {isSoldOut && (
           <div className="absolute top-0 left-0 right-0 z-20">
             <div className="bg-destructive text-destructive-foreground text-center py-2 font-bold text-sm shadow-lg">
@@ -162,7 +166,7 @@ export const PackageCard = ({
 
         <img
           src={allImages[currentImageIndex] || '/placeholder.svg'}
-          alt={title}
+          alt={`Paket Umroh ${title} - Musafar Tour`}
           loading={index < 4 ? 'eager' : 'lazy'}
           decoding="async"
           fetchPriority={index < 4 ? 'high' : 'auto'}
@@ -245,6 +249,17 @@ export const PackageCard = ({
         <p className="text-sm text-muted-foreground">
           {duration} · {date}
         </p>
+        
+        {!isSoldOut && (
+          <div className="flex flex-wrap items-center gap-1.5 pt-0.5 pb-0.5">
+            <span className="inline-flex items-center text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+              <ShieldCheck className="w-3 h-3 mr-1" /> Visa Terjamin
+            </span>
+            <span className="inline-flex items-center text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+              <CheckCircle2 className="w-3 h-3 mr-1" /> All-in
+            </span>
+          </div>
+        )}
 
         {isSoldOut ? (
           <div className="pt-2 space-y-2">

@@ -14,8 +14,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Onest', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
-        onest: ['Onest', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+        'plus-jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+        display: ['Outfit', 'sans-serif'],
+        serif: ['Playfair Display', 'Georgia', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -84,10 +86,19 @@ export default {
             height: "0",
           },
         },
+        "spin-slow": {
+          from: {
+            transform: "translateX(-50%) rotate(0deg)",
+          },
+          to: {
+            transform: "translateX(-50%) rotate(360deg)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "spin-slow": "spin-slow 40s linear infinite",
       },
     },
   },

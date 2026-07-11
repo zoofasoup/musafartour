@@ -2,14 +2,11 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-// Fallback placeholder images if database is empty
 const fallbackPhotos = [
-  { id: "1", image_url: "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?w=300&h=300&fit=crop" },
-  { id: "2", image_url: "https://images.unsplash.com/photo-1564769625905-50e93615e769?w=300&h=300&fit=crop" },
-  { id: "3", image_url: "https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=300&h=300&fit=crop" },
-  { id: "4", image_url: "https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?w=300&h=300&fit=crop" },
-  { id: "5", image_url: "https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=300&h=300&fit=crop" },
-  { id: "6", image_url: "https://images.unsplash.com/photo-1466442929976-97f336a657be?w=300&h=300&fit=crop" },
+  { id: "1", image_url: "/gallery/jamaah-1.jpg" },
+  { id: "2", image_url: "/gallery/jamaah-2.jpg" },
+  { id: "3", image_url: "/gallery/jamaah-3.jpg" },
+  { id: "4", image_url: "/gallery/jamaah-4.jpg" },
 ];
 
 export const JamaahCarousel = () => {

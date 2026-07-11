@@ -135,8 +135,12 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
       <Sidebar collapsible="icon" className="border-r h-svh sticky top-0">
         <SidebarHeader className="border-b">
           {open && (
-            <div className="flex items-center gap-2 px-2 py-4">
-              <img src={musafarLogo} alt="Musafar Tour" className="h-8" />
+            <div className="p-4 border-b">
+              {/* Dynamic color logo using CSS mask */}
+              <div 
+                className="h-8 w-32 bg-current [mask-image:url('/logo.webp')] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:left] [-webkit-mask-image:url('/logo.webp')] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:left]"
+                aria-label="Musafar Tour"
+              />
             </div>
           )}
           <SidebarMenu>

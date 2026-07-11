@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Helmet } from 'react-helmet-async';
 
 interface SEOProps {
   title?: string;
@@ -40,75 +40,38 @@ export const SEO = ({
   const finalDescription = description || globalSettings?.site_description || '';
   const finalKeywords = keywords || globalSettings?.default_keywords || '';
   const finalOgImage = ogImage || globalSettings?.default_og_image || "https://storage.googleapis.com/gpt-engineer-file-uploads/E3HH8pcvNtWabcauiIpC4SxdTkY2/social-images/social-1761537927169-banner design.jpg";
-  useEffect(() => {
-    // Update title
-    document.title = finalTitle;
-    
-    // Update meta tags
-    updateMetaTag('name', 'description', finalDescription);
-    if (finalKeywords) {
-      updateMetaTag('name', 'keywords', finalKeywords);
-    }
-    
-    // Update Open Graph tags
-    updateMetaTag('property', 'og:title', finalTitle);
-    updateMetaTag('property', 'og:description', finalDescription);
-    updateMetaTag('property', 'og:image', finalOgImage);
-    updateMetaTag('property', 'og:url', canonicalUrl || window.location.href);
-    
-    // Update Twitter tags
-    updateMetaTag('name', 'twitter:title', finalTitle);
-    updateMetaTag('name', 'twitter:description', finalDescription);
-    updateMetaTag('name', 'twitter:image', finalOgImage);
-    updateMetaTag('name', 'twitter:card', globalSettings?.twitter_card_type || 'summary_large_image');
-    if (globalSettings?.twitter_site) {
-      updateMetaTag('name', 'twitter:site', globalSettings.twitter_site);
-    }
-    
-    // Update canonical URL
-    if (canonicalUrl) {
-      updateCanonicalLink(canonicalUrl);
-    }
-    
-    // Add structured data
-    if (structuredData) {
-      addStructuredData(structuredData);
-    }
-  }, [finalTitle, finalDescription, finalKeywords, finalOgImage, canonicalUrl, structuredData, globalSettings]);
-  
-  return null;
-};
+  const url = canonicalUrl || (typeof window !== 'undefined' ? window.location.href : '');
 
-const updateMetaTag = (attribute: string, key: string, content: string) => {
-  let element = document.querySelector(`meta[${attribute}="${key}"]`);
-  if (!element) {
-    element = document.createElement('meta');
-    element.setAttribute(attribute, key);
-    document.head.appendChild(element);
-  }
-  element.setAttribute('content', content);
-};
-
-const updateCanonicalLink = (url: string) => {
-  let link = document.querySelector('link[rel="canonical"]');
-  if (!link) {
-    link = document.createElement('link');
-    link.setAttribute('rel', 'canonical');
-    document.head.appendChild(link);
-  }
-  link.setAttribute('href', url);
-};
-
-const addStructuredData = (data: object) => {
-  // Remove existing structured data
-  const existingScript = document.querySelector('script[type="application/ld+json"]');
-  if (existingScript) {
-    existingScript.remove();
-  }
-  
-  // Add new structured data
-  const script = document.createElement('script');
-  script.type = 'application/ld+json';
-  script.text = JSON.stringify(data);
-  document.head.appendChild(script);
+  return (
+    <Helmet prioritizeSeoTags>
+      <title>{finalTitle}</title>
+      <meta name="description" content={finalDescription} />
+      {finalKeywords && <meta name="keywords" content={finalKeywords} />}
+      
+      {/* Open Graph / Facebook */}
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content={url} />
+      <meta property="og:title" content={finalTitle} />
+      <meta property="og:description" content={finalDescription} />
+      <meta property="og:image" content={finalOgImage} />
+      
+      {/* Twitter */}
+      <meta name="twitter:card" content={globalSettings?.twitter_card_type || 'summary_large_image'} />
+      <meta name="twitter:url" content={url} />
+      <meta name="twitter:title" content={finalTitle} />
+      <meta name="twitter:description" content={finalDescription} />
+      <meta name="twitter:image" content={finalOgImage} />
+      {globalSettings?.twitter_site && <meta name="twitter:site" content={globalSettings.twitter_site} />}
+      
+      {/* Canonical URL */}
+      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+      
+      {/* Structured Data */}
+      {structuredData && (
+        <script type="application/ld+json">
+          {JSON.stringify(structuredData)}
+        </script>
+      )}
+    </Helmet>
+  );
 };

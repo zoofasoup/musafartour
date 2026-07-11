@@ -1,5 +1,6 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useState, useMemo } from "react";
+import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -345,8 +346,32 @@ const PackageDetailPage = () => {
   const sellingPoints = parseListItems(packageData.selling_points);
   const transport = getTierTransport(packageData, effectiveTier);
 
+  const schemaData = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": `Paket Umroh ${packageData.package_name}`,
+    "image": packageData.banner_image || (packageData.gallery_images?.[0]),
+    "description": `Paket Umroh ${packageData.package_name} selama ${packageData.duration_days} hari keberangkatan ${fmtDate(packageData.departure_date)}.`,
+    "brand": {
+      "@type": "Brand",
+      "name": "Musafar Tour"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": typeof window !== 'undefined' ? window.location.href : '',
+      "priceCurrency": "IDR",
+      "price": price?.quad || 0,
+      "availability": packageData.is_sold_out ? "https://schema.org/SoldOut" : "https://schema.org/InStock"
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{`Paket Umroh ${packageData.package_name} - Musafar Tour`}</title>
+        <meta name="description" content={`Daftar Paket Umroh ${packageData.package_name} bersama Musafar Tour. Berangkat ${fmtDate(packageData.departure_date)}, durasi ${packageData.duration_days} hari.`} />
+      </Helmet>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
       <Navbar />
 
       {/* Sold Out Banner */}

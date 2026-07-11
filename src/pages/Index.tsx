@@ -6,12 +6,11 @@ import { useHomepageData } from "@/hooks/useHomepageData";
 import { HeroSection } from "@/components/home/HeroSection";
 import { AirlinesCarousel } from "@/components/home/AirlinesCarousel";
 import { JamaahCarousel } from "@/components/home/JamaahCarousel";
-import { PackageFilterSection } from "@/components/home/PackageFilterSection";
+import { PackageRadialCarousel } from "@/components/home/PackageRadialCarousel";
 import { WhyChooseSection } from "@/components/home/WhyChooseSection";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { FAQSection } from "@/components/home/FAQSection";
 import { CTASection } from "@/components/home/CTASection";
-import { SectionDivider } from "@/components/home/SectionDivider";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -82,40 +81,37 @@ const Index = () => {
       />
       <Navbar />
 
-      <HeroSection heroData={heroData} websiteSettings={websiteSettings} isLoading={heroLoading} />
-
-      <SectionDivider />
-
-      <TrustElements />
-
-      <SectionDivider />
-
-      <AirlinesCarousel />
-
-      <SectionDivider />
-
-      <JamaahCarousel />
-
-      <SectionDivider />
-
-      <PackageFilterSection packages={packages} loading={packagesLoading} />
-
-      <SectionDivider />
-
-      <WhyChooseSection sellingPoints={sellingPoints} />
-
-      <SectionDivider />
-
-      <TestimonialsSection
-        testimonials={testimonials}
-        websiteSettings={websiteSettings}
+      {/* Cinematic page intro curtain */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-[9999] bg-slate-950 animate-site-intro-out"
       />
 
-      <SectionDivider />
+      <HeroSection heroData={heroData} websiteSettings={websiteSettings} isLoading={heroLoading} />
 
-      <FAQSection faqItems={faqItems} />
+      <div className="bg-white">
+        <TrustElements />
+      </div>
 
-      <SectionDivider />
+      <AirlinesCarousel />
+      <JamaahCarousel />
+
+      <PackageRadialCarousel packages={packages} loading={packagesLoading} />
+
+      <div className="bg-slate-50">
+        <WhyChooseSection sellingPoints={sellingPoints} />
+      </div>
+
+      <div className="bg-white">
+        <TestimonialsSection
+          testimonials={testimonials}
+          websiteSettings={websiteSettings}
+        />
+      </div>
+
+      <div className="bg-white">
+        <FAQSection faqItems={faqItems} />
+      </div>
 
       <CTASection websiteSettings={websiteSettings} />
 

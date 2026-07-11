@@ -11,11 +11,31 @@ interface FAQSectionProps {
 }
 
 export const FAQSection = ({ faqItems }: FAQSectionProps) => {
+  const schemaData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqItems.map(faq => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer
+      }
+    }))
+  };
+
   return (
-    <section className="py-20 bg-background">
+    <section className="py-24 md:py-32 bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+      />
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+        <div className="text-center mb-16">
+          <span className="text-accent uppercase tracking-[0.2em] text-xs font-bold mb-4 block">
+            FAQ
+          </span>
+          <h2 className="text-4xl md:text-5xl font-display font-bold mb-4 text-foreground tracking-tight">
             Pertanyaan yang Sering Diajukan
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -27,11 +47,17 @@ export const FAQSection = ({ faqItems }: FAQSectionProps) => {
           {faqItems.length > 0 ? (
             <Accordion type="single" collapsible className="w-full">
               {faqItems.map((faq, index) => (
-                <AccordionItem key={faq.id} value={`item-${index + 1}`}>
-                  <AccordionTrigger className="text-left">
+                <AccordionItem 
+                  key={faq.id} 
+                  value={`item-${index + 1}`}
+                  className="mb-2 border-b border-border last:border-0"
+                >
+                  <AccordionTrigger className="text-left text-lg md:text-xl font-semibold py-6 hover:no-underline hover:text-primary transition-colors">
                     {faq.question}
                   </AccordionTrigger>
-                  <AccordionContent>{faq.answer}</AccordionContent>
+                  <AccordionContent className="text-base md:text-lg text-muted-foreground leading-relaxed pb-8">
+                    {faq.answer}
+                  </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>

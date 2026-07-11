@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { HelmetProvider } from 'react-helmet-async';
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 import { useMarketingPixels } from "./hooks/useMarketingPixels";
 import { useRedirects } from "./hooks/useRedirects";
@@ -60,6 +61,7 @@ const ShortLinkRedirect = lazy(() => import("./pages/ShortLinkRedirect"));
 const BoothLead = lazy(() => import("./pages/BoothLead"));
 const UmrohCalculator = lazy(() => import("./pages/UmrohCalculator"));
 const UmrohCalculatorResult = lazy(() => import("./pages/UmrohCalculatorResult"));
+const PublicMarketingKit = lazy(() => import("./pages/PublicMarketingKit"));
 
 // Agent Portal
 const AgentLogin = lazy(() => import("./pages/agent/AgentLogin"));
@@ -132,11 +134,12 @@ const ConditionalFloatingWhatsApp = () => {
 
 const App = () => (
   <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <FavoritesProvider>
-        <AgentAuthProvider>
-          <TooltipProvider>
-            <Toaster />
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <FavoritesProvider>
+          <AgentAuthProvider>
+            <TooltipProvider>
+              <Toaster />
             <Sonner />
             <BrowserRouter
               future={{
@@ -173,6 +176,7 @@ const App = () => (
                   <Route path="/kalkulator/hasil/:id" element={<UmrohCalculatorResult />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/admin/setup" element={<AdminSetup />} />
+                  <Route path="/packages" element={<PublicMarketingKit />} />
                   
                   {/* Agent Portal Routes */}
                   <Route path="/agent/login" element={<AgentLogin />} />
@@ -306,6 +310,7 @@ const App = () => (
         </AgentAuthProvider>
       </FavoritesProvider>
     </QueryClientProvider>
+    </HelmetProvider>
   </ErrorBoundary>
 );
 

@@ -54,6 +54,8 @@ export const LazyImage = ({
     ? sizes || '(max-width: 640px) 640px, (max-width: 1024px) 1024px, 1920px'
     : sizes;
 
+  const defaultSrc = src;
+
   return (
     <div className="relative overflow-hidden">
       {!isLoaded && (
@@ -64,7 +66,7 @@ export const LazyImage = ({
       )}
       <img
         ref={imgRef}
-        src={isInView ? src : ''}
+        src={isInView ? defaultSrc : ''}
         srcSet={isInView ? srcSet : undefined}
         alt={alt}
         className={cn(

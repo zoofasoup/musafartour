@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 95%;
+    --background: 0 0% 100%;
     --foreground: 0 0% 15%;
 
     --card: 0 0% 100%;
@@ -17,24 +17,24 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 15%;
 
-    --primary: 353 68% 46%;
+    --primary: 347 99% 40%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 0 2% 60%;
+    --secondary: 180 0% 60%;
     --secondary-foreground: 0 0% 15%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 2% 60%;
+    --muted: 180 4% 95%;
+    --muted-foreground: 0 0% 35%;
 
-    --accent: 42 100% 56%;
+    --accent: 42 100% 50%;
     --accent-foreground: 0 0% 15%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 347 99% 40%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 353 68% 46%;
+    --border: 180 4% 95%;
+    --input: 180 4% 95%;
+    --ring: 347 99% 40%;
 
     --radius: 0.75rem;
 
@@ -57,32 +57,32 @@ All colors MUST be HSL.
 
   .dark {
     --background: 0 0% 15%;
-    --foreground: 0 0% 98%;
+    --foreground: 180 4% 95%;
 
     --card: 0 0% 15%;
-    --card-foreground: 0 0% 98%;
+    --card-foreground: 180 4% 95%;
 
     --popover: 0 0% 15%;
-    --popover-foreground: 0 0% 98%;
+    --popover-foreground: 180 4% 95%;
 
-    --primary: 353 68% 46%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 347 99% 40%;
+    --primary-foreground: 180 4% 95%;
 
-    --secondary: 0 0% 25%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 180 0% 60%;
+    --secondary-foreground: 0 0% 15%;
 
-    --muted: 0 0% 25%;
-    --muted-foreground: 0 2% 60%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 180 0% 60%;
 
-    --accent: 42 100% 56%;
+    --accent: 42 100% 50%;
     --accent-foreground: 0 0% 15%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 347 99% 40%;
+    --destructive-foreground: 180 4% 95%;
 
-    --border: 0 0% 25%;
-    --input: 0 0% 25%;
-    --ring: 353 68% 46%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 347 99% 40%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -100,7 +100,7 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-medium select-none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -151,6 +151,21 @@ All colors MUST be HSL.
       opacity: 1;
       transform: translate3d(0, 0, 0);
     }
+  }
+  
+  /* Cinematic page intro curtain (House of Honey inspired) */
+  @keyframes site-intro-out {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+  
+  .animate-site-intro-out {
+    animation: site-intro-out 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s both;
   }
 }
 

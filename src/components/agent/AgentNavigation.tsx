@@ -98,7 +98,10 @@ export function AgentNavigation({ children }: AgentNavigationProps) {
         sidebarCollapsed && !mobile && "justify-center"
       )}>
         {(!sidebarCollapsed || mobile) && (
-          <img src={musafarLogo} alt="Musafar" className="h-8" />
+          <div 
+            className="h-8 w-32 bg-current [mask-image:url('/logo.webp')] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:left] [-webkit-mask-image:url('/logo.webp')] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:left]"
+            aria-label="Musafar Tour"
+          />
         )}
         {!mobile && (
           <Button
@@ -217,7 +220,10 @@ export function AgentNavigation({ children }: AgentNavigationProps) {
             </SheetContent>
           </Sheet>
 
-          <img src={musafarLogo} alt="Musafar" className="h-7" />
+          <div 
+            className="h-7 w-28 bg-current [mask-image:url('/logo.webp')] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:left] [-webkit-mask-image:url('/logo.webp')] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:left]"
+            aria-label="Musafar Tour"
+          />
 
           <Avatar className="h-8 w-8">
             <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">

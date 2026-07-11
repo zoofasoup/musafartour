@@ -46,12 +46,12 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <img 
-              src={isDarkMode ? musafarLogoLight : musafarLogoDark} 
-              alt="Musafar Tour" 
-              className="h-7"
-              width="140"
-              height="28"
+            {/* Dynamic color logo using CSS mask */}
+            <div 
+              className={`h-8 w-32 md:h-10 md:w-40 bg-current transition-colors duration-300 [mask-image:url('/logo.webp')] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:left] [-webkit-mask-image:url('/logo.webp')] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:left] ${
+                isDarkMode ? "text-white" : "text-foreground"
+              }`}
+              aria-label="Musafar Tour"
             />
           </Link>
 

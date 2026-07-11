@@ -127,12 +127,15 @@ export const PackageFilterSection = ({
   };
 
   return (
-    <section id="packages" className="py-16 container mx-auto px-4">
-      <div className="mb-10">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-3 text-foreground">
+    <section id="packages" className="py-24 md:py-32 container mx-auto px-4">
+      <div className="mb-16 text-center">
+        <span className="text-accent uppercase tracking-[0.2em] text-xs font-bold mb-4 block">
+          Paket Umroh
+        </span>
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-center mb-4 text-foreground tracking-tight">
           Paket Umroh Unggulan Kami
         </h2>
-        <p className="text-center text-muted-foreground text-lg">
+        <p className="text-center text-muted-foreground text-lg max-w-xl mx-auto">
           Temukan paket yang paling cocok dengan Musafriends!
         </p>
       </div>
@@ -260,9 +263,19 @@ export const PackageFilterSection = ({
             </div>
           </Carousel>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {transformedPackages.map((pkg) => (
-              <PackageCard key={pkg.id} {...pkg} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-fr">
+            {transformedPackages.map((pkg, index) => (
+              <div 
+                key={pkg.id} 
+                className={index === 0 ? "md:col-span-2 md:row-span-2" : ""}
+              >
+                <PackageCard 
+                  {...pkg} 
+                  index={index} 
+                  className={index === 0 ? "h-full flex flex-col" : "h-full flex flex-col"}
+                  imageClassName={index === 0 ? "aspect-[4/3] md:aspect-auto md:flex-1" : "aspect-square"}
+                />
+              </div>
             ))}
           </div>
         )}
