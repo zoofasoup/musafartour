@@ -189,13 +189,22 @@ All colors MUST be HSL.
 }
 
 .animate-scroll-logos {
-  animation: scroll-logos 25s linear infinite;
+  animation: scroll-logos 15s linear infinite;
   will-change: transform;
 }
 
 .animate-scroll-photos {
-  animation: scroll-photos 35s linear infinite;
+  animation: scroll-photos 15s linear infinite;
   will-change: transform;
+}
+
+@media (min-width: 768px) {
+  .animate-scroll-logos {
+    animation-duration: 25s;
+  }
+  .animate-scroll-photos {
+    animation-duration: 35s;
+  }
 }
 
 /* Heart favorite animation */
