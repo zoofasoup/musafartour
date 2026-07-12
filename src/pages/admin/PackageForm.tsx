@@ -1048,8 +1048,9 @@ const PackageForm = () => {
           </div>
         </div>
 
-        <div>
-          <h1 className="text-3xl font-bold">{id ? "Edit Paket" : "Tambah Paket"}</h1>
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold">{id ? "Edit Paket" : "Tambah Paket"}</h1>
           <p className="text-muted-foreground">Lengkapi informasi paket umroh</p>
         </div>
           {/* Package Info */}
@@ -1427,6 +1428,7 @@ const PackageForm = () => {
           location={hotelModalLocation}
           onSuccess={handleHotelAdded}
         />
+        </div>
       </form>
     </Form>
   );

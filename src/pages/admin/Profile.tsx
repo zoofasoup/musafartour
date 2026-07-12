@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Mail, KeyRound, Eye, EyeOff, Shield } from "lucide-react";
+import { Loader2, User, Mail, KeyRound, Eye, EyeOff, Shield, Save } from "lucide-react";
 import { z } from "zod";
 
 const passwordSchema = z.string()
@@ -20,9 +20,11 @@ const Profile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [fullName, setFullName] = useState(user?.user_metadata?.full_name || user?.user_metadata?.name || "");
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +68,29 @@ const Profile = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: { full_name: fullName }
+      });
+      if (error) throw error;
+      toast({
+        title: "Profil berhasil diperbarui!",
+        description: "Nama Anda telah disimpan.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Gagal memperbarui profil",
+        description: error.message || "Terjadi kesalahan.",
+        variant: "destructive",
+      });
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -113,6 +138,24 @@ const Profile = () => {
             <CardDescription>Detail akun Anda saat ini</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <form onSubmit={handleUpdateProfile} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="fullName" className="text-muted-foreground text-sm">Nama Lengkap</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    id="fullName"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Masukkan nama Anda"
+                    className="flex-1"
+                  />
+                  <Button type="submit" disabled={profileLoading || fullName === (user?.user_metadata?.full_name || user?.user_metadata?.name || "")} className="gap-2">
+                    {profileLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Simpan
+                  </Button>
+                </div>
+              </div>
+            </form>
             <div className="space-y-2">
               <Label className="text-muted-foreground text-sm">Email</Label>
               <div className="flex items-center gap-2 p-3 bg-muted rounded-md">

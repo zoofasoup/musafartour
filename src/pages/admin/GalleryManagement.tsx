@@ -62,6 +62,39 @@ const GalleryManagement = () => {
     if (isAdmin) fetchImages();
   }, [isAdmin]);
 
+  // Auto-seed jamaah photos if gallery is empty
+  useEffect(() => {
+    const seedGallery = async () => {
+      try {
+        // Only seed if we actually have 0 images after loading
+        if (images.length === 0 && !loading) {
+          // Check database to be absolutely sure it's empty
+          const { count } = await (supabase as any)
+            .from("gallery_images")
+            .select("*", { count: "exact", head: true });
+            
+          if (count === 0) {
+            const defaultImages = [
+              { title: "Keluarga Jamaah", description: "Kebersamaan jamaah Musafar Tour", image_url: "/gallery/jamaah-1.jpg", category: "umroh", display_order: 1, is_active: true },
+              { title: "Fasilitas Hotel", description: "Kenyamanan fasilitas penginapan", image_url: "/gallery/jamaah-2.jpg", category: "umroh", display_order: 2, is_active: true },
+              { title: "Ziarah Madinah", description: "Kunjungan sejarah di Madinah", image_url: "/gallery/jamaah-3.jpg", category: "umroh", display_order: 3, is_active: true },
+              { title: "Ibadah Umroh", description: "Khusyuk dalam ibadah di Tanah Suci", image_url: "/gallery/jamaah-4.jpg", category: "umroh", display_order: 4, is_active: true }
+            ];
+            await (supabase as any).from("gallery_images").insert(defaultImages);
+            fetchImages();
+            toast({ title: "Success", description: "Default jamaah photos added to gallery!" });
+          }
+        }
+      } catch (error) {
+        console.error("Failed to seed gallery", error);
+      }
+    };
+
+    if (isAdmin && images.length === 0 && !loading) {
+      seedGallery();
+    }
+  }, [isAdmin, images.length, loading]);
+
   const fetchImages = async () => {
     try {
       setLoading(true);
@@ -388,49 +421,65 @@ const GalleryManagement = () => {
       )}
 
       {viewMode === "grid" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
           {images.map((item) => (
-            <Card key={item.id} className={isSelected(item.id) ? "ring-2 ring-primary" : ""}>
-              <CardHeader className="p-0 relative">
-                {selectionMode && (
-                  <div className="absolute top-2 left-2 z-10">
-                    <Checkbox
-                      checked={isSelected(item.id)}
-                      onCheckedChange={() => toggleSelect(item.id)}
-                      aria-label={`Select ${item.title}`}
-                      className="bg-white"
-                    />
+            <div 
+              key={item.id} 
+              className={`group relative aspect-square rounded-xl overflow-hidden cursor-pointer transition-all duration-200 ${isSelected(item.id) ? "ring-4 ring-primary scale-[0.95]" : "hover:shadow-md"}`}
+              onClick={() => {
+                if (selectionMode) {
+                  toggleSelect(item.id);
+                } else {
+                  openEditDialog(item);
+                }
+              }}
+            >
+              <img
+                src={item.image_url}
+                alt={item.title}
+                className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+              />
+              
+              {/* Overlay gradient on hover or selection */}
+              <div className={`absolute inset-0 transition-opacity duration-200 ${isSelected(item.id) || selectionMode ? "bg-black/20 opacity-100" : "bg-gradient-to-t from-black/60 via-black/0 to-black/20 opacity-0 group-hover:opacity-100"}`}>
+                
+                {/* Checkbox (Top Left) */}
+                <div className="absolute top-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
+                  <Checkbox
+                    checked={isSelected(item.id)}
+                    onCheckedChange={(checked) => {
+                      toggleSelect(item.id);
+                      if (checked && !selectionMode) setSelectionMode(true);
+                    }}
+                    className={`h-5 w-5 rounded-full border-2 border-white/80 bg-black/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground ${isSelected(item.id) ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity shadow-sm`}
+                  />
+                </div>
+
+                {/* Actions (Top Right) - Only show if not in selection mode */}
+                {!selectionMode && (
+                  <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow-sm" onClick={() => openEditDialog(item)}>
+                      <Edit className="h-4 w-4 text-slate-700" />
+                    </Button>
+                    <Button variant="destructive" size="icon" className="h-8 w-8 rounded-full bg-red-500/90 hover:bg-red-500 shadow-sm" onClick={() => handleDelete(item.id)}>
+                      <Trash2 className="h-4 w-4 text-white" />
+                    </Button>
                   </div>
                 )}
-                <div className="aspect-video relative overflow-hidden rounded-t-lg">
-                  <img
-                    src={item.image_url}
-                    alt={item.title}
-                    className="object-cover w-full h-full"
-                  />
-                  {!item.is_active && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">Inactive</span>
-                    </div>
-                  )}
+                
+                {/* Info (Bottom Left) */}
+                <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                  <p className="text-sm font-medium truncate drop-shadow-md">{item.title}</p>
+                  {item.category && <p className="text-[10px] uppercase tracking-wider font-semibold opacity-80 drop-shadow-md">{item.category}</p>}
                 </div>
-              </CardHeader>
-              <CardContent className="p-4">
-                <CardTitle className="text-lg mb-2">{item.title}</CardTitle>
-                <CardDescription className="mb-4">{item.description}</CardDescription>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground capitalize">{item.category}</span>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleDelete(item.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
+              </div>
+              
+              {!item.is_active && (
+                <div className="absolute bottom-3 right-3 bg-black/60 px-2 py-0.5 rounded text-[10px] text-white font-medium backdrop-blur-sm">
+                  Inactive
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </div>
           ))}
         </div>
       ) : (

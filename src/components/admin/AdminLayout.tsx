@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { 
   LogOut, LayoutDashboard, Home, Image, Target, MessageSquare, 
   Images, Package, Plane, Hotel, Calendar, FileText, HelpCircle,
-  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles
+  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles, PanelLeft
 } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
 import {
@@ -109,7 +109,6 @@ const AdminLayout = () => {
         { icon: Link2, label: "URL Shortener", path: "/admin/url-shortener" },
         { icon: Search, label: "SEO", path: "/admin/seo" },
         { icon: Users, label: "Team", path: "/admin/team" },
-        { icon: UserCircle, label: "Profil", path: "/admin/profile" },
       ]
     }
   ];
@@ -128,60 +127,72 @@ const AdminLayout = () => {
 };
 
 const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => {
-  const { open } = useSidebar();
+  const { open, toggleSidebar } = useSidebar();
 
   return (
-    <div className="h-svh flex w-full bg-background">
-      <Sidebar collapsible="icon" className="border-r h-svh sticky top-0">
-        <SidebarHeader className="border-b">
-          {open && (
-            <div className="p-4 border-b">
-              {/* Dynamic color logo using CSS mask */}
+    <div className="h-svh flex w-full bg-[#F1F5F9] overflow-hidden" style={{ "--sidebar-background": "transparent" } as React.CSSProperties}>
+        <Sidebar collapsible="icon" className="border-none h-svh bg-transparent text-slate-600">
+        <SidebarHeader className="border-b border-slate-200/50 pt-4 pb-2">
+          {open ? (
+            <div className="flex items-center justify-between px-4 pb-2">
               <div 
-                className="h-8 w-32 bg-current [mask-image:url('/logo.webp')] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:left] [-webkit-mask-image:url('/logo.webp')] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:left]"
+                className="h-8 w-28 bg-slate-800 [mask-image:url('/logo.webp')] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:left] [-webkit-mask-image:url('/logo.webp')] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:left]"
                 aria-label="Musafar Tour"
               />
+              <SidebarTrigger className="text-slate-500 hover:bg-slate-200 rounded-lg" />
             </div>
+          ) : (
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={toggleSidebar} 
+                  tooltip="Expand Sidebar" 
+                  className="hover:bg-slate-200/50 rounded-lg transition-all duration-300 ease-in-out mx-2 text-slate-500"
+                >
+                  <PanelLeft className="h-4 w-4" />
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
           )}
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Back to Website" className="hover:bg-accent">
+              <SidebarMenuButton asChild tooltip="Back to Website" className="hover:bg-white hover:shadow-sm rounded-lg transition-all duration-300 ease-in-out mx-2 text-slate-600 mt-2">
                 <Link to="/">
                   <Home className="h-4 w-4" />
-                  <span>Back to Website</span>
+                  <span className="font-medium">Back to Website</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
 
-        <SidebarContent>
-          {menuSections.map((section, idx) => (
+        <SidebarContent className="px-2 py-2">
+          {menuSections.map((section: any, idx: number) => (
             <SidebarGroup key={idx}>
               {section.label && (
-                <SidebarGroupLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                <SidebarGroupLabel className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold px-2 mb-1">
                   {section.label}
                 </SidebarGroupLabel>
               )}
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {section.items.map((item) => {
+                  {section.items.map((item: any) => {
                     const Icon = item.icon;
                     const active = isActive(item.path);
                     return (
-                      <SidebarMenuItem key={item.path}>
+                      <SidebarMenuItem key={item.path} className="mb-1">
                         <SidebarMenuButton
                           asChild
-                          className={`transition-colors ${
+                          className={`transition-all duration-300 ease-in-out rounded-lg ${
                             active
-                              ? "bg-red-600 text-white hover:bg-red-700 hover:text-white"
-                              : "hover:bg-accent"
+                              ? "bg-white shadow-sm text-slate-900 border border-slate-100"
+                              : "text-slate-500 hover:bg-slate-200/50 hover:text-slate-800"
                           }`}
                           tooltip={item.label}
                         >
                           <Link to={item.path}>
-                            <Icon className={`h-4 w-4 ${active ? "text-white" : ""}`} />
-                            <span className={active ? "font-semibold text-white" : ""}>{item.label}</span>
+                            <Icon className={`h-4 w-4 ${active ? "text-slate-900" : ""}`} />
+                            <span className={active ? "font-semibold text-slate-900" : "font-medium"}>{item.label}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -193,61 +204,48 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
           ))}
         </SidebarContent>
 
-        <SidebarFooter className="border-t">
+        <SidebarFooter className="p-4">
           {open && (
-            <div className="px-2 py-2">
-              <p className="text-sm font-medium truncate">{user?.email}</p>
-              <p className="text-xs text-muted-foreground">Admin</p>
-            </div>
+            <Link to="/admin/profile" className="px-2 mb-4 flex flex-col hover:bg-slate-200/50 p-2 rounded-lg transition-all duration-300 ease-in-out cursor-pointer group">
+              <p className="text-sm font-semibold text-slate-700 truncate w-full group-hover:text-slate-900">
+                {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email}
+              </p>
+              <p className="text-xs text-slate-500">Administrator</p>
+            </Link>
           )}
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={handleSignOut}
                 tooltip="Sign Out"
-                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                className="text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-300 ease-in-out"
               >
                 <LogOut className="h-4 w-4" />
-                <span>Sign Out</span>
+                <span className="font-medium">Sign Out</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
 
-      <main className="flex-1 h-svh overflow-auto">
-        <div className="border-b bg-background sticky top-0 z-30">
-          <div className="container mx-auto px-8 py-4 flex items-center justify-between">
-            <SidebarTrigger />
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground hidden sm:inline">{user?.email}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSignOut}
-                className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Logout</span>
-              </Button>
-            </div>
-          </div>
-        </div>
+      <div className="flex-1 h-svh p-2 sm:p-4">
+        <main className="h-full w-full overflow-auto bg-[#F8FAFC] flex flex-col rounded-xl border border-slate-200/60 relative shadow-sm">
 
-        <div className="container mx-auto p-8">
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            }
-          >
-            <Outlet />
-          </Suspense>
-        </div>
-      </main>
+          <div className="p-6 sm:p-8 md:p-10 flex-1">
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center py-12 h-full">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              }
+            >
+              <Outlet />
+            </Suspense>
+          </div>
+        </main>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
 export default AdminLayout;

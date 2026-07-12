@@ -92,23 +92,25 @@ export const FileUpload = ({
   }, [handleFiles]);
 
   return (
-    <div className={cn("space-y-2", className)}>
-      {label && <Label>{label}</Label>}
+    <div className={cn("space-y-3 w-full", className)}>
+      {label && <Label className="block text-sm font-medium text-slate-700">{label}</Label>}
       
       {/* Current Image(s) Preview */}
       {!multiple && currentImage && (
-        <div className="relative inline-block">
-          <img
-            src={currentImage}
-            alt="Preview"
-            className="w-full max-w-xs h-48 object-cover rounded-lg border"
-          />
+        <div className="relative block w-full max-w-sm">
+          <div className="relative rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-50">
+            <img
+              src={currentImage}
+              alt="Preview"
+              className="w-full h-auto max-h-[300px] object-cover"
+            />
+          </div>
           {onRemove && !loading && (
             <Button
               type="button"
               variant="destructive"
               size="icon"
-              className="absolute top-2 right-2"
+              className="absolute -top-3 -right-3 rounded-full shadow-md z-10"
               onClick={onRemove}
             >
               <X className="h-4 w-4" />
@@ -132,7 +134,8 @@ export const FileUpload = ({
       )}
 
       {/* Upload Area */}
-      <div
+      {((!multiple && !currentImage) || (multiple && currentImages.length < maxFiles)) && (
+        <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -179,6 +182,7 @@ export const FileUpload = ({
           )}
         </label>
       </div>
+      )}
 
       {error && (
         <p className="text-sm text-destructive">{error}</p>

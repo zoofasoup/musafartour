@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { motion, useMotionValue, useTransform, animate, useInView } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -11,6 +12,18 @@ const fallbackPhotos = [
 
 export const JamaahCarousel = () => {
   const [isPaused, setIsPaused] = useState(false);
+  const countRef = useRef(null);
+  const isInView = useInView(countRef, { once: true, margin: "-50px" });
+  
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (latest) => Math.round(latest).toLocaleString('id-ID'));
+
+  useEffect(() => {
+    if (isInView) {
+      const controls = animate(count, 2000, { duration: 2.5, ease: "easeOut" });
+      return controls.stop;
+    }
+  }, [isInView]);
 
   // Fetch jamaah photos from gallery_images with category 'jamaah'
   const { data: galleryPhotos } = useQuery({
@@ -38,14 +51,11 @@ export const JamaahCarousel = () => {
     <section className="py-16 md:py-20 bg-gradient-to-b from-muted/30 to-background overflow-hidden">
       <div className="container mx-auto px-4 mb-10">
         <div className="text-center max-w-3xl mx-auto">
-          <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
-            1.200+ Jamaah Telah Berangkat
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Mereka Sudah Berangkat Bersama Musafar
+          <h2 ref={countRef} className="text-5xl md:text-7xl font-display font-bold text-primary mb-3 flex items-center justify-center gap-2">
+            <motion.span>{rounded}</motion.span>+ Jamaah
           </h2>
-          <p className="text-muted-foreground text-lg">
-            Ribuan jamaah telah mewujudkan impian umroh mereka bersama kami
+          <p className="text-xl md:text-2xl text-foreground/80 font-medium">
+            Telah berangkat bersama Musafar Tour
           </p>
         </div>
       </div>

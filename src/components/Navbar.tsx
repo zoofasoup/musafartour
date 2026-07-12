@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, MessageCircle, Heart } from "lucide-react";
@@ -40,8 +41,13 @@ const Navbar = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  return (
-    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const navbarContent = (
+    <nav className="fixed top-0 left-0 right-0 z-[100] w-full bg-background/95 backdrop-blur-sm border-b transition-all duration-300">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -101,8 +107,9 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <div className="flex md:hidden items-center gap-2">
+            <DarkModeToggle />
             <FavoritesDrawer>
-              <button className="relative p-2" aria-label="Paket tersimpan">
+              <button className="relative p-2 rounded-full hover:bg-accent transition-colors">
                 <Heart className={`h-5 w-5 ${favorites.length > 0 ? 'fill-primary text-primary' : ''}`} />
                 {favorites.length > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
@@ -111,28 +118,26 @@ const Navbar = () => {
                 )}
               </button>
             </FavoritesDrawer>
-            <DarkModeToggle />
             <button
               onClick={() => setIsOpen(!isOpen)}
-              aria-label="Toggle menu"
-              className="p-2"
+              className="p-2 text-foreground"
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu Content */}
         {isOpen && (
-          <div className="md:hidden py-4 space-y-1 border-t animate-fade-in">
+          <div className="md:hidden py-4 border-t animate-fade-in space-y-4">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
-                className={`block py-3 text-base font-medium transition-colors hover:text-primary ${
+                onClick={() => setIsOpen(false)}
+                className={`block py-2 text-sm font-medium transition-colors hover:text-primary ${
                   isActive(link.href) ? "text-primary" : "text-foreground"
                 }`}
-                onClick={() => setIsOpen(false)}
               >
                 {link.label}
               </Link>
@@ -167,6 +172,14 @@ const Navbar = () => {
         }
       `}</style>
     </nav>
+  );
+
+  return (
+    <>
+      {/* Spacer to prevent layout shifting since navbar is now fixed */}
+      <div className="h-16 w-full bg-transparent" />
+      {mounted && createPortal(navbarContent, document.body)}
+    </>
   );
 };
 

@@ -25,6 +25,9 @@ const HEADER_MAP: Record<string, string> = {
   'klasifikasi': '_tier',
   'tier': '_tier',
   'seat': '_seat',
+  'sisa seat': '_sisa_seat',
+  'sisa': '_sisa_seat',
+  'available seat': '_sisa_seat',
   'judul paket': 'package_name',
   'nama paket': 'package_name',
   'package name': 'package_name',
@@ -405,6 +408,8 @@ Deno.serve(async (req) => {
       const sellingPoints = getVal(row, 'selling_points') || null
       const codename = getVal(row, '_codename')
       const seatCount = parseInt(getVal(row, '_seat')) || null
+      const sisaSeatStr = getVal(row, '_sisa_seat')
+      const sisaSeat = sisaSeatStr ? parseInt(sisaSeatStr) : null
 
       // Media links
       const flyerLink = getVal(row, '_flyer_link') || null
@@ -456,6 +461,9 @@ Deno.serve(async (req) => {
 
       // Set slots if available
       if (seatCount) upsertData.slots_total = seatCount
+      if (seatCount && sisaSeat !== null && !isNaN(sisaSeat)) {
+        upsertData.slots_filled = Math.max(0, seatCount - sisaSeat)
+      }
 
       // Set media links if available (convert Google Drive links and upload to storage)
       const convertedFlyer = convertDriveLink(flyerLink || '')

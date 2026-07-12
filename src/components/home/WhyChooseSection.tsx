@@ -86,7 +86,7 @@ export const WhyChooseSection = ({ sellingPoints }: WhyChooseSectionProps) => {
                   <div
                     key={feature.id ?? index}
                     style={{ transitionDelay: `${index * 100}ms` }}
-                    className="group border-b border-border/50 last:border-0 py-6 md:py-8 flex items-center gap-6 md:gap-8 transition-all hover:bg-muted/50 -mx-4 px-4 rounded-2xl"
+                    className="group border-b border-border/50 last:border-0 py-4 md:py-5 flex items-center gap-6 md:gap-8 transition-all hover:bg-muted/50 -mx-4 px-4 rounded-2xl"
                   >
                     <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-muted text-muted-foreground transition-all duration-500 group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110 group-hover:rotate-6">
                       <Icon className="h-6 w-6" strokeWidth={1.5} />

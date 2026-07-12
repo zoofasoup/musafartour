@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
@@ -29,26 +30,53 @@ const Artikel = () => {
   const [email, setEmail] = useState("");
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  
+  const ITEMS_PER_PAGE = 9;
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchArticles();
+    fetchArticles(1);
   }, []);
 
-  const fetchArticles = async () => {
-    setLoading(true);
+  const fetchArticles = async (pageNumber: number) => {
+    if (pageNumber === 1) setLoading(true);
+    else setLoadingMore(true);
+    
+    const from = (pageNumber - 1) * ITEMS_PER_PAGE;
+    const to = from + ITEMS_PER_PAGE - 1;
+
     const { data, error } = await supabase
       .from("articles")
       .select("*")
       .eq("status", "published")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(from, to);
 
     if (error) {
       console.error("Error fetching articles:", error);
     } else {
-      setArticles(data || []);
+      if (data) {
+        if (pageNumber === 1) {
+          setArticles(data);
+        } else {
+          setArticles(prev => [...prev, ...data]);
+        }
+        setHasMore(data.length === ITEMS_PER_PAGE);
+      }
     }
+    
     setLoading(false);
+    setLoadingMore(false);
+  };
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchArticles(nextPage);
   };
 
   const handleSubscribe = (e: React.FormEvent) => {
@@ -102,7 +130,7 @@ const Artikel = () => {
 
       {/* Articles Grid */}
       <section className="py-16 container mx-auto px-4">
-        {loading ? (
+        {loading && page === 1 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="bg-card rounded-lg overflow-hidden shadow-md">
@@ -122,53 +150,69 @@ const Artikel = () => {
             <p className="text-xl text-muted-foreground">Belum ada artikel tersedia</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {articles.map((article) => (
-              <article 
-                key={article.id} 
-                className="bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow cursor-pointer"
-                onClick={() => window.location.href = `/artikel/${article.slug}`}
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <LazyImage
-                    src={article.featured_image || "https://images.unsplash.com/photo-1591604021695-0c69b7c05981?w=800&h=400&fit=crop"}
-                    alt={article.title}
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                  />
-                  {article.category && (
-                    <div className="absolute top-4 left-4">
-                      <span className="bg-accent text-accent-foreground text-xs font-semibold px-3 py-1 rounded">
-                        {article.category}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="p-6">
-                  <h2 className="text-xl font-bold mb-3 line-clamp-2 hover:text-primary transition-colors">
-                    {article.title}
-                  </h2>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                    {article.excerpt || article.meta_description || ""}
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-4">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        <span>{article.author_name || "Admin"}</span>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {articles.map((article) => (
+                <article 
+                  key={article.id} 
+                  className="bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow cursor-pointer"
+                  onClick={() => navigate(`/artikel/${article.slug}`)}
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <LazyImage
+                      src={article.featured_image || "https://images.unsplash.com/photo-1591604021695-0c69b7c05981?w=800&h=400&fit=crop"}
+                      alt={article.title}
+                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                    />
+                    {article.category && (
+                      <div className="absolute top-4 left-4">
+                        <span className="bg-accent text-accent-foreground text-xs font-semibold px-3 py-1 rounded">
+                          {article.category}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        <span>5 menit</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {format(new Date(article.created_at), "dd MMMM yyyy", { locale: localeId })}
-                  </p>
-                </div>
-              </article>
-            ))}
-          </div>
+                  <div className="p-6">
+                    <h2 className="text-xl font-bold mb-3 line-clamp-2 hover:text-primary transition-colors">
+                      {article.title}
+                    </h2>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                      {article.excerpt || article.meta_description || ""}
+                    </p>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          <span>{article.author_name || "Admin"}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>5 menit</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {format(new Date(article.created_at), "dd MMMM yyyy", { locale: localeId })}
+                    </p>
+                  </div>
+                </article>
+              ))}
+            </div>
+            
+            {hasMore && (
+              <div className="mt-12 flex justify-center">
+                <Button 
+                  onClick={handleLoadMore} 
+                  disabled={loadingMore}
+                  variant="outline"
+                  size="lg"
+                  className="px-8 rounded-full border-foreground/20 hover:bg-foreground/5 text-foreground"
+                >
+                  {loadingMore ? "Memuat..." : "Muat Lebih Banyak Artikel"}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </section>
 

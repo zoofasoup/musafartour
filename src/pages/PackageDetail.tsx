@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   Calendar, Plane, Hotel, Star, Clock, Users, MapPin,
   CheckCircle2, XCircle, Package, ExternalLink, ArrowLeft, Bus,
@@ -132,7 +133,7 @@ function CounterInput({ value, onChange, min = 0, max = 99 }: { value: number; o
       <Button type="button" variant="outline" size="icon" className="h-7 w-7 shrink-0 rounded-full" onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min}>
         <Minus className="h-3 w-3" />
       </Button>
-      <span className="text-lg font-bold tracking-tighter min-w-[2rem] text-center">{value}</span>
+      <span className="text-lg font-bold  min-w-[2rem] text-center">{value}</span>
       <Button type="button" variant="outline" size="icon" className="h-7 w-7 shrink-0 rounded-full" onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max}>
         <Plus className="h-3 w-3" />
       </Button>
@@ -145,81 +146,7 @@ const parseListItems = (items?: string | null) => {
   return items.split("\n").filter(item => item.trim() && item.trim() !== "-");
 };
 
-/* ── Package Sidebar (Column A) ────────────────────────────── */
-const PackageSidebar = ({
-  currentSlug,
-  collapsed,
-  onToggle,
-}: {
-  currentSlug?: string;
-  collapsed: boolean;
-  onToggle: () => void;
-}) => {
-  const { data: packages, isLoading } = usePublishedPackages();
-
-  const grouped = useMemo(() => {
-    if (!packages) return {};
-    const groups: Record<string, typeof packages> = {};
-    for (const pkg of packages) {
-      const key = format(new Date(pkg.departure_date), "MMMM yyyy", { locale: localeId });
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(pkg);
-    }
-    return groups;
-  }, [packages]);
-
-  return (
-    <aside
-      className={cn(
-        "hidden lg:flex flex-col border-r bg-card/50 backdrop-blur-sm transition-all duration-300 shrink-0 sticky top-0 h-screen overflow-y-auto z-10",
-        collapsed ? "w-12" : "w-64"
-      )}
-    >
-      <div className={cn("flex items-center border-b p-2", collapsed ? "justify-center" : "justify-between px-4")}>
-        {!collapsed && <span className="text-xs font-bold tracking-tighter text-foreground uppercase">Paket Lainnya</span>}
-        <Button variant="ghost" size="icon" onClick={onToggle} className="h-7 w-7">
-          {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-        </Button>
-      </div>
-
-      {!collapsed && (
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {isLoading ? (
-            <div className="space-y-2">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
-          ) : (
-            Object.entries(grouped).map(([month, pkgs]) => (
-              <div key={month}>
-                <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest mb-2">{month}</p>
-                <div className="space-y-1">
-                  {pkgs.map(pkg => {
-                    const isActive = pkg.slug === currentSlug;
-                    return (
-                      <Link
-                        key={pkg.id}
-                        to={`/paket-umroh/${pkg.slug}`}
-                        className={cn(
-                          "block px-3 py-2.5 rounded-lg text-xs tracking-tight transition-all",
-                          isActive
-                            ? "bg-primary text-primary-foreground font-semibold shadow-md"
-                            : "text-foreground hover:bg-muted"
-                        )}
-                      >
-                        <span className="block font-medium truncate">{pkg.package_name}</span>
-                        <span className={cn("block text-[10px] mt-0.5", isActive ? "text-primary-foreground/70" : "text-muted-foreground")}>
-                          {fmtDate(pkg.departure_date)} · {pkg.duration_days}H
-                        </span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-    </aside>
-  );
-};
+/* ── PackageSidebar Removed ── */
 
 /* ── Main Page ─────────────────────────────────────────────── */
 const PackageDetailPage = () => {
@@ -308,14 +235,11 @@ const PackageDetailPage = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="flex">
-          <PackageSidebar currentSlug={slug} collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
-          <div className="flex-1 container mx-auto px-4 py-8">
-            <Skeleton className="h-10 w-64 mb-6" />
-            <div className="grid grid-cols-12 gap-6">
-              <div className="col-span-8"><Skeleton className="h-[600px]" /></div>
-              <div className="col-span-4"><Skeleton className="h-[400px]" /></div>
-            </div>
+        <div className="container mx-auto px-4 py-8">
+          <Skeleton className="h-10 w-64 mb-6" />
+          <div className="grid grid-cols-12 gap-6">
+            <div className="col-span-8"><Skeleton className="h-[600px]" /></div>
+            <div className="col-span-4"><Skeleton className="h-[400px]" /></div>
           </div>
         </div>
       </div>
@@ -380,7 +304,7 @@ const PackageDetailPage = () => {
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center justify-center gap-3 text-center">
               <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-              <p className="font-semibold text-sm tracking-tight">
+              <p className="font-semibold text-sm ">
                 Paket ini sudah penuh untuk keberangkatan {fmtDate(packageData.departure_date)}
               </p>
             </div>
@@ -392,14 +316,14 @@ const PackageDetailPage = () => {
       {availableTiers.length > 1 && (
         <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-20">
           <div className="container mx-auto px-4 py-2 flex items-center justify-between">
-            <h1 className="text-sm font-bold tracking-tighter truncate max-w-xs lg:max-w-md">{packageData.package_name}</h1>
+            <h1 className="text-sm font-bold  truncate max-w-xs lg:max-w-md">{packageData.package_name}</h1>
             <div className="flex gap-1.5">
               {availableTiers.map((t) => (
                 <button
                   key={t}
                   onClick={() => { setSelectedTier(t); setSelectedComboIdx(0); }}
                   className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-medium tracking-tight transition-all",
+                    "px-3 py-1.5 rounded-full text-xs font-medium  transition-all",
                     effectiveTier === t
                       ? "bg-primary text-primary-foreground shadow-md"
                       : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -413,18 +337,10 @@ const PackageDetailPage = () => {
         </div>
       )}
 
-      {/* Main 3-Column Layout */}
-      <div className="flex min-h-[calc(100vh-4rem)]">
-        {/* ── Column A: Navigation Sidebar ── */}
-        <PackageSidebar
-          currentSlug={slug}
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-
-        {/* ── Column B: Brochure Content ── */}
-        <main className="flex-1 overflow-y-auto min-w-0">
-          <div className="p-4 md:p-5 space-y-4">
+      {/* Main 2-Column Layout */}
+      <div className="flex container mx-auto px-4 min-h-[calc(100vh-4rem)]">
+        {/* ── Column A: Brochure Content ── */}
+        <main className="flex-1 py-6 lg:pr-8 space-y-6">
 
             {/* Hero: Flyer + Key Metrics */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -460,15 +376,15 @@ const PackageDetailPage = () => {
                 {/* Key Metrics */}
                 <Card className="border shadow-sm">
                   <CardContent className="p-5">
-                    <h3 className="text-sm font-bold tracking-tighter mb-4 text-muted-foreground uppercase">Info Keberangkatan</h3>
+                    <h3 className="text-sm font-bold  mb-4 text-muted-foreground uppercase">Info Keberangkatan</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex items-start gap-3">
                         <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                           <Calendar className="h-4 w-4 text-primary" />
                         </div>
                         <div>
-                          <p className="text-[10px] text-muted-foreground tracking-tight uppercase">Berangkat</p>
-                          <p className="text-sm font-bold tracking-tighter">{fmtDate(packageData.departure_date)}</p>
+                          <p className="text-[10px] text-muted-foreground  uppercase">Berangkat</p>
+                          <p className="text-sm font-bold ">{fmtDate(packageData.departure_date)}</p>
                         </div>
                       </div>
                       {packageData.start_airport && (
@@ -477,8 +393,8 @@ const PackageDetailPage = () => {
                             <PlaneTakeoff className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <p className="text-[10px] text-muted-foreground tracking-tight uppercase">Bandara</p>
-                            <p className="text-sm font-bold tracking-tighter">{packageData.start_airport}</p>
+                            <p className="text-[10px] text-muted-foreground  uppercase">Bandara</p>
+                            <p className="text-sm font-bold ">{packageData.start_airport}</p>
                           </div>
                         </div>
                       )}
@@ -488,8 +404,8 @@ const PackageDetailPage = () => {
                             <Route className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <p className="text-[10px] text-muted-foreground tracking-tight uppercase">Rute</p>
-                            <p className="text-sm font-bold tracking-tighter">{packageData.route}</p>
+                            <p className="text-[10px] text-muted-foreground  uppercase">Rute</p>
+                            <p className="text-sm font-bold ">{packageData.route}</p>
                           </div>
                         </div>
                       )}
@@ -499,8 +415,8 @@ const PackageDetailPage = () => {
                             <Timer className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <p className="text-[10px] text-muted-foreground tracking-tight uppercase">Timeframe</p>
-                            <p className="text-sm font-bold tracking-tighter">{packageData.timeframe}</p>
+                            <p className="text-[10px] text-muted-foreground  uppercase">Timeframe</p>
+                            <p className="text-sm font-bold ">{packageData.timeframe}</p>
                           </div>
                         </div>
                       )}
@@ -513,8 +429,8 @@ const PackageDetailPage = () => {
                           <Bus className="h-4 w-4 text-primary" />
                         </div>
                         <div>
-                          <p className="text-[10px] text-muted-foreground tracking-tight uppercase">Transport</p>
-                          <p className="text-sm font-bold tracking-tighter">{transport}</p>
+                          <p className="text-[10px] text-muted-foreground  uppercase">Transport</p>
+                          <p className="text-sm font-bold ">{transport}</p>
                         </div>
                       </div>
                     )}
@@ -523,11 +439,11 @@ const PackageDetailPage = () => {
                     {seatPercentage !== null && packageData.slots_total && (
                       <div className="mt-4 pt-4 border-t">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs text-muted-foreground tracking-tight">Ketersediaan Seat</span>
-                          <span className="text-xs font-bold tracking-tighter">{packageData.slots_filled}/{packageData.slots_total}</span>
+                          <span className="text-xs text-muted-foreground ">Ketersediaan Seat</span>
+                          <span className="text-xs font-bold ">{packageData.slots_filled}/{packageData.slots_total}</span>
                         </div>
                         <Progress value={seatPercentage} className="h-2" />
-                        <p className="text-[10px] text-muted-foreground mt-1 tracking-tight">
+                        <p className="text-[10px] text-muted-foreground mt-1 ">
                           {packageData.slots_total - (packageData.slots_filled || 0)} seat tersisa
                         </p>
                       </div>
@@ -538,22 +454,21 @@ const PackageDetailPage = () => {
                 {/* Hotels */}
                 {hotels && (hotels.makkah.name || hotels.madinah.name) && (
                   <Card className="border shadow-sm">
-                    <CardContent className="p-5 space-y-4">
-                      <h3 className="text-sm font-bold tracking-tighter text-muted-foreground uppercase">Akomodasi</h3>
-
-                      {hotels.makkah.name && (
+                    <CardContent className="p-5">
+                      <h3 className="text-sm font-bold  text-muted-foreground uppercase mb-4">Akomodasi</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">                      {hotels.makkah.name && (
                         <div className="p-4 rounded-xl bg-muted/30 border space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <MapPin className="h-4 w-4 text-primary" />
-                              <span className="text-xs font-bold tracking-tight uppercase text-muted-foreground">Makkah</span>
+                              <span className="text-xs font-bold  uppercase text-muted-foreground">Makkah</span>
                               {packageData.nights_makkah && (
                                 <Badge variant="outline" className="text-[10px] px-1.5 py-0">{packageData.nights_makkah} Malam</Badge>
                               )}
                             </div>
                             {hotels.makkah.star && <StarRating rating={hotels.makkah.star} />}
                           </div>
-                          <p className="font-semibold text-sm tracking-tight">{hotels.makkah.name}</p>
+                          <p className="font-semibold text-sm ">{hotels.makkah.name}</p>
                           {(hotels.makkah.distance || hotels.makkah.walk) && (
                             <div className="flex items-center gap-3 text-xs text-muted-foreground">
                               {hotels.makkah.distance && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {hotels.makkah.distance}</span>}
@@ -568,14 +483,14 @@ const PackageDetailPage = () => {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <MapPin className="h-4 w-4 text-primary" />
-                              <span className="text-xs font-bold tracking-tight uppercase text-muted-foreground">Madinah</span>
+                              <span className="text-xs font-bold  uppercase text-muted-foreground">Madinah</span>
                               {packageData.nights_madinah && (
                                 <Badge variant="outline" className="text-[10px] px-1.5 py-0">{packageData.nights_madinah} Malam</Badge>
                               )}
                             </div>
                             {hotels.madinah.star && <StarRating rating={hotels.madinah.star} />}
                           </div>
-                          <p className="font-semibold text-sm tracking-tight">{hotels.madinah.name}</p>
+                          <p className="font-semibold text-sm ">{hotels.madinah.name}</p>
                           {(hotels.madinah.distance || hotels.madinah.walk) && (
                             <div className="flex items-center gap-3 text-xs text-muted-foreground">
                               {hotels.madinah.distance && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {hotels.madinah.distance}</span>}
@@ -589,121 +504,139 @@ const PackageDetailPage = () => {
                         <div className="p-4 rounded-xl bg-muted/30 border space-y-2">
                           <div className="flex items-center gap-2">
                             <Hotel className="h-4 w-4 text-primary" />
-                            <span className="text-xs font-bold tracking-tight uppercase text-muted-foreground">Kota Tambahan</span>
+                            <span className="text-xs font-bold  uppercase text-muted-foreground">Kota Tambahan</span>
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0">{packageData.nights_extra} Malam</Badge>
                           </div>
-                          <p className="font-semibold text-sm tracking-tight">{packageData.hotel_extra}</p>
+                          <p className="font-semibold text-sm ">{packageData.hotel_extra}</p>
                         </div>
                       )}
+                      </div>
                     </CardContent>
                   </Card>
                 )}
               </div>
             </div>
 
-            {/* Dense 2-col masonry for secondary cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-
-            {/* Selling Points */}
-            {sellingPoints.length > 0 && (
-              <Card className="border shadow-sm">
-                <CardContent className="p-4">
-                  <h3 className="text-xs font-bold tracking-tighter text-muted-foreground uppercase mb-3">Selling Points</h3>
-                  <div className="grid grid-cols-1 gap-1.5">
-                    {sellingPoints.map((item, idx) => (
-                      <div key={idx} className="flex items-start gap-2 py-0.5">
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                        <span className="text-xs tracking-tight">{item}</span>
+            <div className="mt-8">
+              <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-1">
+                {/* Selling Points */}
+                {sellingPoints.length > 0 && (
+                  <AccordionItem value="item-1" className="border rounded-lg bg-card px-4">
+                    <AccordionTrigger className="hover:no-underline py-4">
+                      <span className="text-sm font-bold  text-muted-foreground uppercase flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-amber-500" /> Keunggulan Paket
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {sellingPoints.map((item, idx) => (
+                          <div key={idx} className="flex items-start gap-2 py-1">
+                            <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                            <span className="text-sm ">{item}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
 
-            {/* Included */}
-            {includedItems.length > 0 && (
-              <Card className="border-l-4 border-l-emerald-500 shadow-sm">
-                <CardContent className="p-4">
-                  <h3 className="text-xs font-bold tracking-tighter text-emerald-600 dark:text-emerald-400 mb-2 flex items-center gap-2 uppercase">
-                    <CheckCircle2 className="h-3.5 w-3.5" /> Termasuk
-                  </h3>
-                  <ul className="space-y-1">
-                    {includedItems.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-xs tracking-tight">
-                        <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Excluded */}
-            {excludedItems.length > 0 && (
-              <Card className="border-l-4 border-l-destructive shadow-sm">
-                <CardContent className="p-4">
-                  <h3 className="text-xs font-bold tracking-tighter text-destructive mb-2 flex items-center gap-2 uppercase">
-                    <XCircle className="h-3.5 w-3.5" /> Tidak Termasuk
-                  </h3>
-                  <ul className="space-y-1">
-                    {excludedItems.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-xs tracking-tight text-muted-foreground">
-                        <span className="text-destructive shrink-0">✕</span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Equipment */}
-            {equipmentItems.length > 0 && (
-              <Card className="border shadow-sm">
-                <CardContent className="p-4">
-                  <h3 className="text-xs font-bold tracking-tighter text-muted-foreground uppercase mb-3">Perlengkapan</h3>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {equipmentItems.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-xs tracking-tight py-0.5">
-                        <CheckCircle2 className="h-3 w-3 text-primary shrink-0" />
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Itinerary Timeline */}
-            {packageData.itinerary && packageData.itinerary !== "-" && (
-              <Card className="border shadow-sm">
-                <CardContent className="p-4">
-                  <h3 className="text-xs font-bold tracking-tighter text-muted-foreground uppercase mb-3">Itinerary Perjalanan</h3>
-                  <div className="relative pl-5 space-y-3">
-                    {parseListItems(packageData.itinerary).map((item, idx) => (
-                      <div key={idx} className="relative">
-                        <div className="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-primary border-2 border-background shadow-sm" />
-                        {idx < parseListItems(packageData.itinerary).length - 1 && (
-                          <div className="absolute -left-[15px] top-3.5 w-0.5 h-full bg-border" />
+                {/* Included & Excluded */}
+                {(includedItems.length > 0 || excludedItems.length > 0) && (
+                  <AccordionItem value="item-2" className="border rounded-lg bg-card px-4">
+                    <AccordionTrigger className="hover:no-underline py-4">
+                      <span className="text-sm font-bold  text-muted-foreground uppercase flex items-center gap-2">
+                        <Package className="h-4 w-4 text-primary" /> Termasuk & Tidak Termasuk
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {includedItems.length > 0 && (
+                          <div>
+                            <h4 className="text-xs font-bold  text-emerald-600 uppercase mb-3 flex items-center gap-2">
+                              <CheckCircle2 className="h-3.5 w-3.5" /> Termasuk
+                            </h4>
+                            <ul className="space-y-2">
+                              {includedItems.map((item, idx) => (
+                                <li key={idx} className="flex items-start gap-2 text-sm ">
+                                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                                  {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
                         )}
-                        <p className="text-xs tracking-tight leading-relaxed">{item}</p>
+                        {excludedItems.length > 0 && (
+                          <div>
+                            <h4 className="text-xs font-bold  text-destructive uppercase mb-3 flex items-center gap-2">
+                              <XCircle className="h-3.5 w-3.5" /> Tidak Termasuk
+                            </h4>
+                            <ul className="space-y-2">
+                              {excludedItems.map((item, idx) => (
+                                <li key={idx} className="flex items-start gap-2 text-sm  text-muted-foreground">
+                                  <span className="text-destructive shrink-0 font-bold mt-0.5">✕</span>
+                                  {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
 
+                {/* Equipment */}
+                {equipmentItems.length > 0 && (
+                  <AccordionItem value="item-3" className="border rounded-lg bg-card px-4">
+                    <AccordionTrigger className="hover:no-underline py-4">
+                      <span className="text-sm font-bold  text-muted-foreground uppercase flex items-center gap-2">
+                        <Package className="h-4 w-4 text-primary" /> Perlengkapan
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        {equipmentItems.map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-2 text-sm  py-1">
+                            <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+
+                {/* Itinerary */}
+                {packageData.itinerary && packageData.itinerary !== "-" && (
+                  <AccordionItem value="item-4" className="border rounded-lg bg-card px-4">
+                    <AccordionTrigger className="hover:no-underline py-4">
+                      <span className="text-sm font-bold  text-muted-foreground uppercase flex items-center gap-2">
+                        <Route className="h-4 w-4 text-primary" /> Itinerary Perjalanan
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      <div className="relative pl-5 space-y-4 mt-2">
+                        {parseListItems(packageData.itinerary).map((item, idx) => (
+                          <div key={idx} className="relative">
+                            <div className="absolute -left-5 top-1.5 w-3 h-3 rounded-full bg-primary border-2 border-background shadow-sm" />
+                            {idx < parseListItems(packageData.itinerary).length - 1 && (
+                              <div className="absolute -left-[15px] top-4 w-0.5 h-[calc(100%+16px)] bg-border" />
+                            )}
+                            <p className="text-sm  leading-relaxed">{item}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+              </Accordion>
             </div>
-            {/* /masonry */}
 
             {/* Gallery */}
             {packageData.gallery_images && packageData.gallery_images.length > 0 && (
               <Card className="border shadow-sm">
                 <CardContent className="p-5">
-                  <h3 className="text-sm font-bold tracking-tighter text-muted-foreground uppercase mb-4">Galeri Foto</h3>
+                  <h3 className="text-sm font-bold  text-muted-foreground uppercase mb-4">Galeri Foto</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {packageData.gallery_images.map((image, idx) => (
                       <div key={idx} className="relative aspect-square overflow-hidden rounded-lg shadow-sm">
@@ -719,14 +652,14 @@ const PackageDetailPage = () => {
             <div className="flex flex-wrap gap-3">
               {packageData.catalog_link && (
                 <a href={packageData.catalog_link} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="gap-2 tracking-tight text-sm">
+                  <Button variant="outline" className="gap-2  text-sm">
                     <ExternalLink className="h-4 w-4" /> Lihat Katalog
                   </Button>
                 </a>
               )}
               {packageData.itinerary_link && (
                 <a href={packageData.itinerary_link} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="gap-2 tracking-tight text-sm">
+                  <Button variant="outline" className="gap-2  text-sm">
                     <Download className="h-4 w-4" /> Download Itinerary
                   </Button>
                 </a>
@@ -734,17 +667,15 @@ const PackageDetailPage = () => {
             </div>
 
             <div className="pb-24 lg:pb-8" />
-          </div>
-
-          <Footer />
         </main>
 
-        {/* ── Column C: Sticky Sales Calculator ── */}
-        <aside className="w-80 shrink-0 border-l bg-card/50 backdrop-blur-sm overflow-y-auto hidden xl:block">
+        {/* ── Column B: Sticky Sales Calculator (Temporarily Hidden) ── */}
+        {false && (
+        <aside className="w-[340px] shrink-0 border-l bg-card/50 backdrop-blur-sm overflow-y-auto hidden lg:block">
           <div className="p-4 space-y-4 sticky top-0">
             <div className="flex items-center gap-2 mb-1">
               <BedDouble className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-bold tracking-tighter">Kalkulator Harga</h3>
+              <h3 className="text-sm font-bold ">Kalkulator Harga</h3>
             </div>
 
             {/* Rate preview */}
@@ -752,8 +683,8 @@ const PackageDetailPage = () => {
               <div className="grid grid-cols-3 gap-1.5">
                 {(["quad", "triple", "double"] as const).map((rt) => (
                   <div key={rt} className="p-2 rounded-lg text-center border bg-muted/30">
-                    <span className="block text-[10px] text-muted-foreground tracking-tight capitalize">{rt}</span>
-                    <span className="block text-xs font-bold tracking-tighter mt-0.5">
+                    <span className="block text-[10px] text-muted-foreground  capitalize">{rt}</span>
+                    <span className="block text-xs font-bold  mt-0.5">
                       {price[rt] > 0 ? fmtShort(price[rt]) : "—"}
                     </span>
                   </div>
@@ -768,7 +699,7 @@ const PackageDetailPage = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Users className="h-3.5 w-3.5 text-blue-500" />
-                  <span className="text-xs font-semibold tracking-tight">Dewasa</span>
+                  <span className="text-xs font-semibold ">Dewasa</span>
                 </div>
                 <CounterInput value={adults} onChange={(v) => { setAdults(v); setSelectedComboIdx(0); }} min={1} />
               </div>
@@ -776,7 +707,7 @@ const PackageDetailPage = () => {
                 <div className="flex items-center gap-2">
                   <PersonStanding className="h-3.5 w-3.5 text-emerald-500" />
                   <div>
-                    <span className="text-xs font-semibold tracking-tight">Anak</span>
+                    <span className="text-xs font-semibold ">Anak</span>
                     <span className="text-[10px] text-muted-foreground ml-1">25jt</span>
                   </div>
                 </div>
@@ -786,7 +717,7 @@ const PackageDetailPage = () => {
                 <div className="flex items-center gap-2">
                   <Baby className="h-3.5 w-3.5 text-pink-500" />
                   <div>
-                    <span className="text-xs font-semibold tracking-tight">Infant</span>
+                    <span className="text-xs font-semibold ">Infant</span>
                     <span className="text-[10px] text-muted-foreground ml-1">12jt</span>
                   </div>
                 </div>
@@ -796,7 +727,7 @@ const PackageDetailPage = () => {
 
             {/* Discount */}
             <div className="space-y-1.5">
-              <Label className="text-xs tracking-tight flex items-center gap-1.5">
+              <Label className="text-xs  flex items-center gap-1.5">
                 <Sparkles className="h-3 w-3 text-amber-500" /> Diskon/Pax
               </Label>
               <Input
@@ -829,7 +760,7 @@ const PackageDetailPage = () => {
                       )}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold tracking-tight">{combo.label}</span>
+                        <span className="font-semibold ">{combo.label}</span>
                         {i === 0 && (
                           <Badge variant="secondary" className="text-[9px] px-1 py-0 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20">
                             <Crown className="h-2 w-2 mr-0.5" /> Hemat
@@ -853,24 +784,24 @@ const PackageDetailPage = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">{adults}x Dewasa</span>
-                    <span className="font-semibold tracking-tighter">{fmtShort(selectedCombo.totalRoomCost)}</span>
+                    <span className="font-semibold ">{fmtShort(selectedCombo.totalRoomCost)}</span>
                   </div>
                   {children > 0 && (
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">{children}x Anak</span>
-                      <span className="font-semibold tracking-tighter">{fmtShort(childTotal)}</span>
+                      <span className="font-semibold ">{fmtShort(childTotal)}</span>
                     </div>
                   )}
                   {infants > 0 && (
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">{infants}x Infant</span>
-                      <span className="font-semibold tracking-tighter">{fmtShort(infantTotal)}</span>
+                      <span className="font-semibold ">{fmtShort(infantTotal)}</span>
                     </div>
                   )}
                   <Separator />
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold tracking-tight">TOTAL</span>
-                    <span className="text-base font-bold tracking-tighter text-primary">{fmtShort(grandTotal)}</span>
+                    <span className="text-xs font-bold ">TOTAL</span>
+                    <span className="text-base font-bold  text-primary">{fmtShort(grandTotal)}</span>
                   </div>
                   {totalSavings > 0 && (
                     <Badge variant="secondary" className="w-full justify-center py-1 text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20">
@@ -909,6 +840,7 @@ const PackageDetailPage = () => {
             )}
           </div>
         </aside>
+        )}
       </div>
 
       {/* Sticky Mobile CTA */}
@@ -923,12 +855,13 @@ const PackageDetailPage = () => {
           </Button>
           {price && (
             <div className="text-right shrink-0 flex flex-col justify-center">
-              <p className="text-[10px] text-muted-foreground tracking-tight">Mulai</p>
-              <p className="text-sm font-bold tracking-tighter text-primary">{fmtShort(price.quad)}</p>
+              <p className="text-[10px] text-muted-foreground ">Mulai</p>
+              <p className="text-sm font-bold  text-primary">{fmtShort(price.quad)}</p>
             </div>
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

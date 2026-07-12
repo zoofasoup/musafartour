@@ -337,37 +337,42 @@ const Packages = () => {
             <TableHeader>
               <TableRow>
                 {selectionMode && <TableHead className="w-12"></TableHead>}
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('package_name')} className="h-auto p-0 font-semibold hover:bg-transparent">
+                <TableHead className="w-[100px] whitespace-nowrap">
+                  <Button variant="ghost" onClick={() => handleSort('slots_filled')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'slots_filled' ? 'text-red-600' : ''}`}>
+                    Sisa Seat {getSortIcon('slots_filled')}
+                  </Button>
+                </TableHead>
+                <TableHead className="whitespace-nowrap">
+                  <Button variant="ghost" onClick={() => handleSort('package_name')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'package_name' ? 'text-red-600' : ''}`}>
                     Nama Paket {getSortIcon('package_name')}
                   </Button>
                 </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('departure_date')} className="h-auto p-0 font-semibold hover:bg-transparent">
+                <TableHead className="whitespace-nowrap">
+                  <Button variant="ghost" onClick={() => handleSort('departure_date')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'departure_date' ? 'text-red-600' : ''}`}>
                     Tanggal Keberangkatan {getSortIcon('departure_date')}
                   </Button>
                 </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('duration_days')} className="h-auto p-0 font-semibold hover:bg-transparent">
+                <TableHead className="whitespace-nowrap">
+                  <Button variant="ghost" onClick={() => handleSort('duration_days')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'duration_days' ? 'text-red-600' : ''}`}>
                     Durasi {getSortIcon('duration_days')}
                   </Button>
                 </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('flight')} className="h-auto p-0 font-semibold hover:bg-transparent">
+                <TableHead className="whitespace-nowrap">
+                  <Button variant="ghost" onClick={() => handleSort('flight')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'flight' ? 'text-red-600' : ''}`}>
                     Maskapai {getSortIcon('flight')}
                   </Button>
                 </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('package_price')} className="h-auto p-0 font-semibold hover:bg-transparent">
+                <TableHead className="whitespace-nowrap">
+                  <Button variant="ghost" onClick={() => handleSort('package_price')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'package_price' ? 'text-red-600' : ''}`}>
                     Harga (Quad) {getSortIcon('package_price')}
                   </Button>
                 </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('status')} className="h-auto p-0 font-semibold hover:bg-transparent">
+                <TableHead className="whitespace-nowrap">
+                  <Button variant="ghost" onClick={() => handleSort('status')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'status' ? 'text-red-600' : ''}`}>
                     Status {getSortIcon('status')}
                   </Button>
                 </TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
+                <TableHead className="text-right whitespace-nowrap">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -396,14 +401,23 @@ const Packages = () => {
                         />
                       </TableCell>
                     )}
-                    <TableCell className="font-medium">{pkg.package_name}</TableCell>
-                    <TableCell>{format(new Date(pkg.departure_date), "dd MMM yyyy")}</TableCell>
-                    <TableCell>{pkg.duration_days} hari</TableCell>
-                    <TableCell>{pkg.flight}</TableCell>
-                    <TableCell>Rp {formatNumber(getDisplayPrice(pkg))}</TableCell>
-                    <TableCell>
+                    <TableCell className="font-bold text-center">
+                      {(() => {
+                        const sisa = Math.max(0, (pkg.slots_total || 45) - (pkg.slots_filled || 0));
+                        return <span className={sisa <= 5 ? "text-red-600" : "text-emerald-600"}>{sisa}</span>;
+                      })()}
+                    </TableCell>
+                    <TableCell className="font-medium min-w-[200px]">{pkg.package_name}</TableCell>
+                    <TableCell className="whitespace-nowrap">{format(new Date(pkg.departure_date), "dd MMM yyyy")}</TableCell>
+                    <TableCell className="whitespace-nowrap">{pkg.duration_days} hari</TableCell>
+                    <TableCell className="whitespace-nowrap">{pkg.flight}</TableCell>
+                    <TableCell className="whitespace-nowrap">Rp {formatNumber(getDisplayPrice(pkg))}</TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <Badge variant={pkg.status === "published" ? "default" : "secondary"}>
+                        <Badge 
+                          variant={pkg.status === "published" ? "default" : "secondary"}
+                          className={pkg.status === "published" ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+                        >
                           {pkg.status === "published" ? "Published" : "Draft"}
                         </Badge>
                         {pkg.is_sold_out && (

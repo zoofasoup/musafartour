@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import testimonialMale from "@/assets/testimonial-male.png";
@@ -9,14 +10,31 @@ interface TestimonialCardProps {
   location: string;
   gender?: 'male' | 'female';
   imageUrl?: string | null;
+  isFullView?: boolean;
 }
 
-export const TestimonialCard = ({ name, text, location, gender = 'male', imageUrl }: TestimonialCardProps) => {
+export const TestimonialCard = ({ name, text, location, gender = 'male', imageUrl, isFullView = false }: TestimonialCardProps) => {
   const defaultAvatar = gender === 'female' ? testimonialFemale : testimonialMale;
   const avatarImage = imageUrl || defaultAvatar;
 
+  const [isTruncated, setIsTruncated] = useState(false);
+  const textRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const checkTruncation = () => {
+      if (textRef.current) {
+        setIsTruncated(textRef.current.scrollHeight > textRef.current.clientHeight);
+      }
+    };
+    
+    checkTruncation();
+    // Re-check on resize in case the layout shifts
+    window.addEventListener('resize', checkTruncation);
+    return () => window.removeEventListener('resize', checkTruncation);
+  }, [text, isFullView]);
+
   return (
-    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
+    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow h-full flex flex-col bg-white rounded-3xl">
       <CardContent className="p-6 flex flex-col h-full">
         <div className="flex items-center justify-between mb-4">
           <div className="flex gap-1">
@@ -31,7 +49,17 @@ export const TestimonialCard = ({ name, text, location, gender = 'male', imageUr
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
           </svg>
         </div>
-        <p className="text-foreground leading-relaxed mb-4 flex-grow line-clamp-4">"{text}"</p>
+        <div className="flex-grow mb-4 flex flex-col items-start overflow-hidden">
+          <p 
+            ref={textRef}
+            className={`text-foreground leading-relaxed ${isFullView ? '' : 'line-clamp-4'}`}
+          >
+            "{text}"
+          </p>
+          {!isFullView && isTruncated && (
+            <span className="text-primary text-sm font-semibold mt-1 cursor-pointer hover:underline">Baca selengkapnya</span>
+          )}
+        </div>
         <div className="flex items-center gap-3 mt-auto pt-4 border-t border-border/50">
           <img
             src={avatarImage}

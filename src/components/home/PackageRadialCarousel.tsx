@@ -12,11 +12,14 @@ interface PackageRadialCarouselProps {
 
 export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarouselProps) => {
   const controls = useAnimation();
-  const rotationRef = useRef(0);
+  const rotationRef = useRef(Number(sessionStorage.getItem('carouselRotation')) || 0);
   const isDragging = useRef(false);
 
   useEffect(() => {
     if (loading || !packages || packages.length === 0) return;
+    
+    // Set initial rotation explicitly to avoid snap to 0
+    controls.set({ rotate: rotationRef.current });
     
     // Start infinite spin
     controls.start({
@@ -25,7 +28,13 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
     });
   }, [loading, packages, controls]);
 
-  if (loading || !packages || packages.length === 0) return null;
+  if (loading || !packages || packages.length === 0) {
+    return (
+      <section id="packages-carousel" className="relative w-full h-[600px] md:h-[750px] overflow-hidden bg-[#FAFAFA] flex items-center justify-center">
+        <div className="text-muted-foreground animate-pulse">Memuat paket...</div>
+      </section>
+    );
+  }
 
   // Duplicate packages to 20 items to find the sweet spot for spacing
   let displayPackages = packages;
@@ -67,16 +76,44 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
   };
 
   return (
-    <section className="relative w-full h-[600px] md:h-[750px] overflow-hidden bg-[#FAFAFA] flex flex-col items-center justify-end pb-12 md:pb-24">
+    <section id="packages-carousel" className="relative w-full h-[600px] md:h-[750px] overflow-hidden bg-[#FAFAFA] flex flex-col items-center justify-end pb-12 md:pb-24 pt-32">
+      
+      {/* Headline above carousel */}
+      <div className="absolute top-8 md:top-16 left-1/2 -translate-x-1/2 z-20 w-full px-4 text-center pointer-events-none">
+        <h2 className="text-3xl md:text-[2.5rem] font-display font-semibold text-[#1c1c1c]/90 tracking-tight">
+          Pilih Paketmu
+        </h2>
+        
+        {/* Color Code Legend */}
+        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-5 mt-3 text-xs md:text-sm text-[#1c1c1c]/70 font-medium">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-green-600 shadow-sm" /> Hemat
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-blue-600 shadow-sm" /> Nyaman
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-amber-500 shadow-sm" /> Pelataran Hemat
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-pink-600 shadow-sm" /> Five-star
+          </div>
+        </div>
+      </div>
       
       {/* The Spinning Wheel */}
-      <div className="absolute top-[120px] md:top-[160px] left-1/2 -translate-x-1/2 w-[2400px] h-[2400px]">
+      <div className="absolute top-[140px] md:top-[200px] left-1/2 -translate-x-1/2 w-[2400px] h-[2400px]">
         <motion.div 
           className="w-full h-full rounded-full cursor-grab active:cursor-grabbing touch-pan-y"
           animate={controls}
           onPanStart={handlePanStart}
           onPan={handlePan}
           onPanEnd={handlePanEnd}
+          onUpdate={(latest) => {
+            if (latest.rotate !== undefined) {
+              rotationRef.current = parseFloat(latest.rotate as string);
+            }
+          }}
         >
           {displayPackages.map((pkg, i) => {
             const angle = (i / displayPackages.length) * 360;
@@ -91,7 +128,12 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
               >
                 <div onClick={(e) => {
                   // Prevent navigation if the user was dragging
-                  if (isDragging.current) e.preventDefault();
+                  if (isDragging.current) {
+                    e.preventDefault();
+                  } else {
+                    sessionStorage.setItem('carouselRotation', rotationRef.current.toString());
+                    window.history.replaceState(null, '', window.location.pathname + '#packages-carousel');
+                  }
                 }}>
                   <Link to={`/paket-umroh/${pkg.slug}`} className="block transition-transform duration-500 hover:scale-105 hover:-translate-y-4" draggable={false}>
                     <img 
@@ -116,12 +158,6 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
 
       {/* CTA in the middle */}
       <div className="relative z-20 text-center max-w-md mx-auto px-4 mt-auto py-4 rounded-3xl pointer-events-auto">
-        <h3 className="text-2xl md:text-[2rem] font-medium tracking-tight text-[#1c1c1c] mb-3">
-          Temukan perjalanan suci.
-        </h3>
-        <p className="text-sm md:text-base text-[#1c1c1c]/60 mb-6 font-medium">
-          Momen berharga yang abadi di Tanah Suci.
-        </p>
         <Button 
           className="bg-[#1c1c1c] text-[#FAFAFA] hover:bg-[#1c1c1c]/80 rounded-full px-8 py-5 md:py-6 text-sm md:text-base shadow-xl transition-all hover:scale-105 group"
           onClick={() => window.location.href = '/paket-umroh'}

@@ -2,6 +2,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
+import { useHomepageData } from "@/hooks/useHomepageData";
+import { PackageCard } from "@/components/PackageCard";
 import {
   Heart,
   Shield,
@@ -36,6 +38,8 @@ const stagger = {
 };
 
 const TentangKami = () => {
+  const { packages, packagesLoading } = useHomepageData();
+
   const handleWhatsApp = () => {
     redirectToWhatsApp("Assalamu'alaikum, saya ingin konsultasi tentang paket umroh Musafar Tour");
   };
@@ -66,11 +70,7 @@ const TentangKami = () => {
       {/* ══════════════════════════════════════════════════════════
           SECTION 1: HERO — The Hook
       ══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-foreground text-background">
-        {/* Decorative pattern */}
-        <div className="absolute inset-0 opacity-[0.04]" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }} />
+      <section className="relative overflow-hidden bg-[#F9F8F6] text-foreground">
         <div className="relative z-10 container mx-auto px-4 py-24 md:py-32 text-center max-w-4xl">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.p variants={fadeUp} className="text-accent font-semibold text-sm tracking-widest uppercase mb-6">
@@ -81,13 +81,13 @@ const TentangKami = () => {
               <span className="text-accent">Ini Adalah Jalan Pulang</span>{" "}
               Menuju Baitullah.
             </motion.h1>
-            <motion.p variants={fadeUp} className="text-base md:text-lg text-background/80 max-w-2xl mx-auto mb-10 tracking-tight leading-relaxed">
+            <motion.p variants={fadeUp} className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-10 tracking-tight leading-relaxed">
               Rasakan pengalaman umrah yang Khusyuk, Sesuai Sunnah, dan Ramah Keluarga. Bersama Musafar, jadikan setiap langkah Anda bermakna.
             </motion.p>
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base px-8"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base px-8 rounded-full"
                 onClick={handleWhatsApp}
               >
                 Wujudkan Rindu Baitullah Sekarang
@@ -95,7 +95,7 @@ const TentangKami = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-background/30 text-background hover:bg-background/10 font-semibold text-base px-8"
+                className="border-foreground/20 text-foreground hover:bg-foreground/5 font-semibold text-base px-8 rounded-full"
                 onClick={() => window.location.href = "/jadwal-umroh"}
               >
                 Lihat Jadwal Keberangkatan
@@ -311,90 +311,35 @@ const TentangKami = () => {
             variants={stagger}
             className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto"
           >
-            {[
-              {
-                tier: "HEMAT",
-                tagline: "Untuk Anda yang mengutamakan budget tanpa mengurangi esensi ibadah.",
-                hotelMadinah: "Manazil Falah / Emaar Taiba (Setaraf)",
-                hotelMakkah: "Nada Ajyad / Olayan Golden (Setaraf)",
-                extra: "✈️ Direct Flight",
-                price: "Rp 27,9 Juta",
-                accent: false,
-              },
-              {
-                tier: "NYAMAN & PELATARAN",
-                tagline: "Keseimbangan sempurna antara fasilitas premium dan jarak ke masjid.",
-                hotelMadinah: "Rua International (Setaraf)",
-                hotelMakkah: "Maysan Al Maqom / Movenpick (Setaraf)",
-                extra: "🚄 Include: Kereta Cepat Haramain",
-                price: null,
-                accent: true,
-              },
-              {
-                tier: "FIVESTAR (VIP)",
-                tagline: "Kenyamanan maksimal untuk pengalaman ibadah yang tak terlupakan.",
-                hotelMadinah: "Worth Peninsula (Setaraf)",
-                hotelMakkah: "Movenpick (Setaraf - Pelataran Masjid)",
-                extra: "🌟 VIP Handling & Lounge",
-                price: null,
-                accent: false,
-              },
-            ].map((pkg, i) => (
-              <motion.div
-                key={i}
-                variants={fadeUp}
-                className={`relative rounded-2xl p-7 border shadow-sm flex flex-col ${
-                  pkg.accent
-                    ? "bg-foreground text-background border-foreground ring-2 ring-accent"
-                    : "bg-card"
-                }`}
-              >
-                {pkg.accent && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-xs font-bold px-4 py-1 rounded-full tracking-wide">
-                    POPULER
-                  </div>
-                )}
-                <h3 className={`font-bold text-lg tracking-tight mb-2 ${pkg.accent ? "text-accent" : "text-foreground"}`}>
-                  Paket {pkg.tier}
-                </h3>
-                <p className={`text-sm mb-5 leading-relaxed ${pkg.accent ? "text-background/70" : "text-muted-foreground"}`}>
-                  {pkg.tagline}
-                </p>
-                <div className="space-y-3 mb-6 flex-1">
-                  <div className="flex items-start gap-2 text-sm">
-                    <Hotel className={`h-4 w-4 mt-0.5 flex-shrink-0 ${pkg.accent ? "text-accent" : "text-primary"}`} />
-                    <span className={pkg.accent ? "text-background/90" : "text-foreground"}>
-                      <span className="font-medium">Madinah:</span> {pkg.hotelMadinah}
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-2 text-sm">
-                    <Hotel className={`h-4 w-4 mt-0.5 flex-shrink-0 ${pkg.accent ? "text-accent" : "text-primary"}`} />
-                    <span className={pkg.accent ? "text-background/90" : "text-foreground"}>
-                      <span className="font-medium">Makkah:</span> {pkg.hotelMakkah}
-                    </span>
-                  </div>
-                  <div className={`text-sm font-medium ${pkg.accent ? "text-background/80" : "text-muted-foreground"}`}>
-                    {pkg.extra}
-                  </div>
-                </div>
-                {pkg.price && (
-                  <p className="text-2xl font-bold tracking-tighter text-primary mb-4">
-                    {pkg.price}
-                  </p>
-                )}
-                <Button
-                  className={`w-full font-semibold ${
-                    pkg.accent
-                      ? "bg-accent text-accent-foreground hover:bg-accent/90"
-                      : "bg-primary text-primary-foreground hover:bg-primary/90"
-                  }`}
-                  onClick={() => handleWhatsAppPaket(`Paket Umrah ${pkg.tier}`)}
-                >
-                  <MessageCircle className="mr-2 h-4 w-4" />
-                  Tanya Detail Paket Ini
-                </Button>
-              </motion.div>
-            ))}
+            {packagesLoading ? (
+              <div className="col-span-full text-center text-muted-foreground py-10">Memuat paket...</div>
+            ) : packages && packages.length > 0 ? (
+              packages.slice(0, 3).map((pkg, i) => (
+                <motion.div key={pkg.id} variants={fadeUp} className="h-full">
+                  <PackageCard
+                    id={pkg.id}
+                    slug={pkg.slug}
+                    image={pkg.image_url || ""}
+                    title={pkg.name}
+                    price={pkg.package_price?.quad ? `Rp ${pkg.package_price.quad.toLocaleString("id-ID")}` : "Harga tidak tersedia"}
+                    date={new Date(pkg.departure_date).toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
+                    duration={`${pkg.duration_days} Hari`}
+                    airline={pkg.airline || "Saudia Airlines"}
+                    hotelMakkah={pkg.hotel_makkah || ""}
+                    hotelMakkahRating={pkg.hotel_makkah_rating || 4}
+                    hotelMadinah={pkg.hotel_madinah || ""}
+                    hotelMadinahRating={pkg.hotel_madinah_rating || 4}
+                    category={pkg.category}
+                    seatAvailable={pkg.available_seats > 0}
+                    isSoldOut={pkg.available_seats <= 0}
+                    waitlistCount={pkg.waitlist_count}
+                    className="h-full"
+                  />
+                </motion.div>
+              ))
+            ) : (
+              <div className="col-span-full text-center text-muted-foreground py-10">Belum ada paket tersedia.</div>
+            )}
           </motion.div>
         </div>
       </section>
