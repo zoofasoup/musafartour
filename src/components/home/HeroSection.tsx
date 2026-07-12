@@ -97,30 +97,7 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
             </div>
           </div>
 
-          {/* Vintage Mosaic Photo Grid */}
-          <div className="w-full max-w-[1800px] mx-auto px-4 md:px-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 pb-20 opacity-0 animate-fade-in" style={{ animationDelay: '0.8s', animationFillMode: 'forwards' }}>
-            {mosaicPhotos.map((photo, index) => {
-              // Staggered height effect
-              let verticalOffset = "translate-y-0";
-              if (index % 2 !== 0) verticalOffset = "translate-y-8 md:translate-y-16 lg:translate-y-24";
-              
-              // Hide last photo on 4-col tablet layout
-              const displayClass = index === 4 ? "hidden lg:block" : "";
 
-              return (
-                <div key={index} className={`relative rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl ${displayClass} ${verticalOffset}`}>
-                  <div className="aspect-[3/4] w-full">
-                    <img 
-                      src={photo} 
-                      alt={`Jamaah Musafar ${index + 1}`}
-                      className="w-full h-full object-cover sepia-[.4] saturate-[.6] contrast-[1.1] brightness-[1.05] hover:sepia-0 hover:saturate-100 hover:contrast-100 hover:brightness-100 transition-all duration-700 cursor-pointer"
-                      loading="lazy"
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         </>
       )}
     </section>
