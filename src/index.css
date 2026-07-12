@@ -189,12 +189,12 @@ All colors MUST be HSL.
 }
 
 .animate-scroll-logos {
-  animation: scroll-logos 15s linear infinite;
+  animation: scroll-logos 6s linear infinite;
   will-change: transform;
 }
 
 .animate-scroll-photos {
-  animation: scroll-photos 15s linear infinite;
+  animation: scroll-photos 8s linear infinite;
   will-change: transform;
 }
 
