@@ -62,31 +62,74 @@ export const JamaahCarousel = () => {
 
       {/* Infinite Carousel */}
       <div
-        className="relative w-full overflow-hidden"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
+        className="relative w-full overflow-visible py-10"
+        onMouseEnter={() => {
+          const track = document.getElementById("jamaah-scroll-track");
+          if (track) track.getAnimations().forEach(a => a.playbackRate = 0.15); // Slow down significantly
+        }}
+        onMouseLeave={() => {
+          const track = document.getElementById("jamaah-scroll-track");
+          if (track) track.getAnimations().forEach(a => a.playbackRate = 1); // Resume normal speed
+        }}
+        onTouchStart={() => {
+          const track = document.getElementById("jamaah-scroll-track");
+          if (track) track.getAnimations().forEach(a => a.playbackRate = 0.15);
+        }}
+        onTouchEnd={() => {
+          setTimeout(() => {
+            const track = document.getElementById("jamaah-scroll-track");
+            if (track) track.getAnimations().forEach(a => a.playbackRate = 1);
+          }, 1500); // Keep slow for a bit after touch ends
+        }}
       >
         <div
-          className="flex animate-scroll-photos"
-          style={{
-            animationPlayState: isPaused ? "paused" : "running",
-          }}
+          id="jamaah-scroll-track"
+          className="flex animate-scroll-photos items-center"
         >
-          {duplicatedPhotos.map((photo, index) => (
-            <div
-              key={`${photo.id}-${index}`}
-              className="relative flex-shrink-0 w-[200px] h-[200px] md:w-[280px] md:h-[280px] lg:w-[320px] lg:h-[320px] overflow-hidden cursor-pointer group transition-all duration-500 ease-out md:hover:scale-105 md:hover:rounded-2xl md:hover:z-10 md:hover:shadow-2xl"
-            >
-              <img
-                src={photo.image_url}
-                alt="Jamaah umroh Musafar Tour"
-                className="w-full h-full object-cover transition-transform duration-500 ease-out md:group-hover:scale-110"
-                loading="lazy"
-                width={320}
-                height={320}
-              />
-            </div>
-          ))}
+          {duplicatedPhotos.map((photo, index) => {
+            // Pseudo-random rotation for messy look (-8deg to 8deg)
+            const rotations = ["-rotate-6", "rotate-3", "-rotate-2", "rotate-6", "-rotate-4", "rotate-8"];
+            const rotateClass = rotations[index % rotations.length];
+            
+            // Randomize vertical offset slightly
+            const margins = ["mt-0", "mt-4", "-mt-6", "mt-8", "-mt-2", "-mt-8"];
+            const marginClass = margins[index % margins.length];
+
+            return (
+              <div
+                key={`${photo.id}-${index}`}
+                className={`relative flex-shrink-0 w-[180px] h-[220px] md:w-[260px] md:h-[320px] lg:w-[300px] lg:h-[360px] 
+                  ${index > 0 ? '-ml-12 md:-ml-20' : ''} 
+                  ${rotateClass} ${marginClass}
+                  cursor-pointer group transition-all duration-700 ease-out 
+                  hover:z-50 focus:z-50
+                `}
+                tabIndex={0} // Make focusable for mobile tap
+              >
+                {/* Polaroid Frame */}
+                <div className="w-full h-full bg-white p-2 md:p-3 pb-8 md:pb-12 shadow-xl border border-slate-200 transition-all duration-700 ease-out
+                  grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 group-focus:grayscale-0 group-focus:opacity-100
+                  group-hover:scale-110 group-hover:shadow-2xl group-hover:saturate-110 group-hover:contrast-110 group-hover:-rotate-0
+                  group-focus:scale-110 group-focus:shadow-2xl group-focus:saturate-110 group-focus:contrast-110 group-focus:-rotate-0"
+                >
+                  <div className="w-full h-full overflow-hidden bg-slate-100 relative">
+                    <img
+                      src={photo.image_url}
+                      alt="Jamaah umroh Musafar Tour"
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    {/* Subtle vintage overlay that disappears on hover */}
+                    <div className="absolute inset-0 bg-amber-900/10 mix-blend-overlay transition-opacity duration-700 group-hover:opacity-0 group-focus:opacity-0 pointer-events-none" />
+                  </div>
+                  {/* Handwritten looking text placeholder */}
+                  <div className="absolute bottom-2 md:bottom-3 left-0 w-full text-center opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-700 delay-100">
+                    <span className="font-serif text-slate-800 text-xs md:text-sm italic">Alhamdulillah</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
