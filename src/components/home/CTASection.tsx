@@ -33,11 +33,11 @@ export const CTASection = ({ websiteSettings }: CTASectionProps) => {
         </p>
         <Button
           size="lg"
-          className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-lg px-10 h-16 rounded-xl transition-all hover:scale-105"
+          className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-base md:text-lg px-8 h-14 md:h-16 rounded-xl transition-all hover:scale-105"
           onClick={handleWhatsAppClick}
         >
           <MessageCircle className="mr-2 h-5 w-5" />
-          Konsultasi Sekarang via WhatsApp
+          Konsultasi via WhatsApp
         </Button>
       </div>
     </section>
