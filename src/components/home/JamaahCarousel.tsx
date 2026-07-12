@@ -108,7 +108,7 @@ export const JamaahCarousel = () => {
               >
                 {/* Polaroid Frame */}
                 <div className="w-full h-full bg-white p-2 md:p-3 pb-8 md:pb-12 shadow-xl border border-slate-200 transition-all duration-700 ease-out
-                  grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 group-focus:grayscale-0 group-focus:opacity-100
+                  grayscale group-hover:grayscale-0 group-focus:grayscale-0
                   group-hover:scale-110 group-hover:shadow-2xl group-hover:saturate-110 group-hover:contrast-110 group-hover:-rotate-0
                   group-focus:scale-110 group-focus:shadow-2xl group-focus:saturate-110 group-focus:contrast-110 group-focus:-rotate-0"
                 >
