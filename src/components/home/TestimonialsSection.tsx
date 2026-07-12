@@ -136,7 +136,7 @@ export const TestimonialsSection = ({
         
         <div ref={testimonialsAnimation.ref} className={`transition-all duration-700 ${testimonialsAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
           {testimonials.length > 0 ? (
-            <div className="relative w-full max-w-6xl mx-auto mb-16 h-[380px] md:h-[300px] perspective-[1200px] flex items-center justify-center">
+            <div className="relative w-full max-w-6xl mx-auto mb-24 md:mb-16 h-[380px] md:h-[300px] perspective-[1200px] flex items-center justify-center">
               {testimonials.map((testimonial, index) => {
                 const isActive = index === activeIndex;
                 const isLeft = index === (activeIndex - 1 + testimonials.length) % testimonials.length;
@@ -184,22 +184,22 @@ export const TestimonialsSection = ({
               })}
               
               {/* Navigation Arrows */}
-              <div className="absolute top-1/2 -translate-y-1/2 flex justify-between w-full max-w-[800px] px-2 md:px-0 pointer-events-none z-40">
+              <div className="absolute -bottom-10 md:bottom-auto md:top-1/2 md:-translate-y-1/2 left-0 right-0 flex justify-center md:justify-between w-full max-w-[800px] mx-auto gap-4 md:gap-0 px-4 md:px-0 pointer-events-none z-40">
                 <Button 
                   variant="outline" 
                   size="icon" 
-                  className="rounded-full bg-white/80 backdrop-blur-sm pointer-events-auto shadow-md border-border/50 text-foreground hover:bg-white"
+                  className="rounded-full bg-white/80 backdrop-blur-sm pointer-events-auto shadow-md border-border/50 text-foreground hover:bg-white h-12 w-12 md:h-10 md:w-10"
                   onClick={prevSlide}
                 >
-                  <ChevronLeft className="h-5 w-5" />
+                  <ChevronLeft className="h-6 w-6 md:h-5 md:w-5" />
                 </Button>
                 <Button 
                   variant="outline" 
                   size="icon" 
-                  className="rounded-full bg-white/80 backdrop-blur-sm pointer-events-auto shadow-md border-border/50 text-foreground hover:bg-white"
+                  className="rounded-full bg-white/80 backdrop-blur-sm pointer-events-auto shadow-md border-border/50 text-foreground hover:bg-white h-12 w-12 md:h-10 md:w-10"
                   onClick={nextSlide}
                 >
-                  <ChevronRight className="h-5 w-5" />
+                  <ChevronRight className="h-6 w-6 md:h-5 md:w-5" />
                 </Button>
               </div>
             </div>
