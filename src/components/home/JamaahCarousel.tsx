@@ -12,6 +12,7 @@ const fallbackPhotos = [
 
 export const JamaahCarousel = () => {
   const [isPaused, setIsPaused] = useState(false);
+  const [activePhotoId, setActivePhotoId] = useState<string | null>(null);
   const countRef = useRef(null);
   const isInView = useInView(countRef, { once: true, margin: "-50px" });
   
@@ -47,6 +48,21 @@ export const JamaahCarousel = () => {
   // Duplicate photos for seamless infinite loop
   const duplicatedPhotos = [...photos, ...photos];
 
+  const handlePhotoClick = (id: string) => {
+    setActivePhotoId(id);
+    
+    // Slow down track
+    const track = document.getElementById("jamaah-scroll-track");
+    if (track) track.getAnimations().forEach(a => a.playbackRate = 0.15);
+
+    // Reset after 2 seconds
+    setTimeout(() => {
+      setActivePhotoId(null);
+      const currentTrack = document.getElementById("jamaah-scroll-track");
+      if (currentTrack) currentTrack.getAnimations().forEach(a => a.playbackRate = 1);
+    }, 2000);
+  };
+
   return (
     <section className="py-16 md:py-20 bg-gradient-to-b from-muted/30 to-background overflow-hidden">
       <div className="container mx-auto px-4 mb-10">
@@ -65,21 +81,11 @@ export const JamaahCarousel = () => {
         className="relative w-full overflow-visible py-10"
         onMouseEnter={() => {
           const track = document.getElementById("jamaah-scroll-track");
-          if (track) track.getAnimations().forEach(a => a.playbackRate = 0.15); // Slow down significantly
+          if (track) track.getAnimations().forEach(a => a.playbackRate = 0.15);
         }}
         onMouseLeave={() => {
           const track = document.getElementById("jamaah-scroll-track");
-          if (track) track.getAnimations().forEach(a => a.playbackRate = 1); // Resume normal speed
-        }}
-        onTouchStart={() => {
-          const track = document.getElementById("jamaah-scroll-track");
-          if (track) track.getAnimations().forEach(a => a.playbackRate = 0.15);
-        }}
-        onTouchEnd={() => {
-          setTimeout(() => {
-            const track = document.getElementById("jamaah-scroll-track");
-            if (track) track.getAnimations().forEach(a => a.playbackRate = 1);
-          }, 1500); // Keep slow for a bit after touch ends
+          if (track && !activePhotoId) track.getAnimations().forEach(a => a.playbackRate = 1);
         }}
       >
         <div
@@ -87,9 +93,12 @@ export const JamaahCarousel = () => {
           className="flex animate-scroll-photos items-center"
         >
           {duplicatedPhotos.map((photo, index) => {
+            const uniqueId = `${photo.id}-${index}`;
+            const isActive = activePhotoId === uniqueId;
+
             // Pseudo-random rotation for messy look (-8deg to 8deg)
             const rotations = ["-rotate-6", "rotate-3", "-rotate-2", "rotate-6", "-rotate-4", "rotate-8"];
-            const rotateClass = rotations[index % rotations.length];
+            const rotateClass = isActive ? "rotate-0" : rotations[index % rotations.length];
             
             // Randomize vertical offset slightly
             const margins = ["mt-0", "mt-4", "-mt-6", "mt-8", "-mt-2", "-mt-8"];
@@ -97,20 +106,21 @@ export const JamaahCarousel = () => {
 
             return (
               <div
-                key={`${photo.id}-${index}`}
+                key={uniqueId}
+                onClick={() => handlePhotoClick(uniqueId)}
                 className={`relative flex-shrink-0 w-[180px] h-[220px] md:w-[260px] md:h-[320px] lg:w-[300px] lg:h-[360px] 
                   ${index > 0 ? '-ml-6 md:-ml-10' : ''} 
                   ${rotateClass} ${marginClass}
                   cursor-pointer group transition-all duration-700 ease-out 
-                  hover:z-50 focus:z-50
+                  ${isActive ? 'z-50 scale-110' : 'md:hover:z-50 md:hover:scale-110'}
                 `}
-                tabIndex={0} // Make focusable for mobile tap
               >
                 {/* Polaroid Frame */}
-                <div className="w-full h-full bg-white p-2 md:p-3 pb-8 md:pb-12 shadow-xl border border-slate-200 transition-all duration-700 ease-out
-                  grayscale group-hover:grayscale-0 group-focus:grayscale-0
-                  group-hover:scale-110 group-hover:shadow-2xl group-hover:saturate-110 group-hover:contrast-110 group-hover:-rotate-0
-                  group-focus:scale-110 group-focus:shadow-2xl group-focus:saturate-110 group-focus:contrast-110 group-focus:-rotate-0"
+                <div className={`w-full h-full bg-white p-2 md:p-3 pb-8 md:pb-12 shadow-xl border border-slate-200 transition-all duration-700 ease-out
+                  ${isActive 
+                    ? 'grayscale-0 saturate-110 contrast-110 shadow-2xl' 
+                    : 'grayscale md:hover:grayscale-0 md:hover:saturate-110 md:hover:contrast-110 md:hover:shadow-2xl'
+                  }`}
                 >
                   <div className="w-full h-full overflow-hidden bg-slate-100 relative">
                     <img
@@ -119,8 +129,10 @@ export const JamaahCarousel = () => {
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
-                    {/* Subtle vintage overlay that disappears on hover */}
-                    <div className="absolute inset-0 bg-amber-900/10 mix-blend-overlay transition-opacity duration-700 group-hover:opacity-0 group-focus:opacity-0 pointer-events-none" />
+                    {/* Subtle vintage overlay that disappears on hover/active */}
+                    <div className={`absolute inset-0 bg-amber-900/10 mix-blend-overlay transition-opacity duration-700 pointer-events-none
+                      ${isActive ? 'opacity-0' : 'md:group-hover:opacity-0'}
+                    `} />
                   </div>
                 </div>
               </div>
