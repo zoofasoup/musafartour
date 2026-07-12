@@ -36,12 +36,12 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
     );
   }
 
-  // Duplicate packages to 20 items to find the sweet spot for spacing
+  // Duplicate packages to 24 items to find the sweet spot for spacing (makes them closer)
   let displayPackages = packages;
-  while (displayPackages.length < 20) {
+  while (displayPackages.length < 24) {
     displayPackages = [...displayPackages, ...packages];
   }
-  displayPackages = displayPackages.slice(0, 20);
+  displayPackages = displayPackages.slice(0, 24);
 
   const handlePanStart = () => {
     isDragging.current = true;
@@ -104,7 +104,7 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
       {/* The Spinning Wheel */}
       <div className="absolute top-[140px] md:top-[200px] left-1/2 -translate-x-1/2 w-[2400px] h-[2400px]">
         <motion.div 
-          className="w-full h-full rounded-full cursor-grab active:cursor-grabbing touch-pan-y"
+          className="w-full h-full rounded-full cursor-grab active:cursor-grabbing touch-none md:touch-pan-y"
           animate={controls}
           onPanStart={handlePanStart}
           onPan={handlePan}
@@ -135,13 +135,13 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
                     window.history.replaceState(null, '', window.location.pathname + '#packages-carousel');
                   }
                 }}>
-                  <Link to={`/paket-umroh/${pkg.slug}`} className="block transition-transform duration-500 hover:scale-105 hover:-translate-y-4" draggable={false}>
+                  <Link to={`/paket-umroh/${pkg.slug}`} className="block transition-transform duration-500 md:hover:scale-105 md:hover:-translate-y-4" draggable={false}>
                     <img 
                       src={pkg.banner_image || '/placeholder.svg'} 
                       alt={pkg.package_name}
                       draggable={false}
                       onDragStart={(e) => e.preventDefault()}
-                      className="w-[180px] md:w-[260px] h-auto object-cover shadow-2xl rounded-sm pointer-events-none"
+                      className="w-[230px] md:w-[280px] h-auto object-cover shadow-2xl rounded-sm pointer-events-none"
                     />
                   </Link>
                 </div>

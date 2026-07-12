@@ -75,12 +75,12 @@ export const JamaahCarousel = () => {
           {duplicatedPhotos.map((photo, index) => (
             <div
               key={`${photo.id}-${index}`}
-              className="relative flex-shrink-0 w-[200px] h-[200px] md:w-[280px] md:h-[280px] lg:w-[320px] lg:h-[320px] overflow-hidden cursor-pointer group transition-all duration-500 ease-out hover:scale-105 hover:rounded-2xl hover:z-10 hover:shadow-2xl"
+              className="relative flex-shrink-0 w-[200px] h-[200px] md:w-[280px] md:h-[280px] lg:w-[320px] lg:h-[320px] overflow-hidden cursor-pointer group transition-all duration-500 ease-out md:hover:scale-105 md:hover:rounded-2xl md:hover:z-10 md:hover:shadow-2xl"
             >
               <img
                 src={photo.image_url}
                 alt="Jamaah umroh Musafar Tour"
-                className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                className="w-full h-full object-cover transition-transform duration-500 ease-out md:group-hover:scale-110"
                 loading="lazy"
                 width={320}
                 height={320}
