@@ -40,7 +40,7 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
   );
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-start overflow-hidden bg-[#F9F8F6] pt-32 md:pt-40 pb-12">
+    <section className="relative w-full flex flex-col items-center justify-start pt-32 md:pt-40 pb-12 overflow-hidden bg-[#F9F8F6]">
       {isLoading ? (
         renderSkeleton()
       ) : (
