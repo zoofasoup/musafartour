@@ -99,7 +99,7 @@ export const JamaahCarousel = () => {
               <div
                 key={`${photo.id}-${index}`}
                 className={`relative flex-shrink-0 w-[180px] h-[220px] md:w-[260px] md:h-[320px] lg:w-[300px] lg:h-[360px] 
-                  ${index > 0 ? '-ml-12 md:-ml-20' : ''} 
+                  ${index > 0 ? '-ml-6 md:-ml-10' : ''} 
                   ${rotateClass} ${marginClass}
                   cursor-pointer group transition-all duration-700 ease-out 
                   hover:z-50 focus:z-50
@@ -121,10 +121,6 @@ export const JamaahCarousel = () => {
                     />
                     {/* Subtle vintage overlay that disappears on hover */}
                     <div className="absolute inset-0 bg-amber-900/10 mix-blend-overlay transition-opacity duration-700 group-hover:opacity-0 group-focus:opacity-0 pointer-events-none" />
-                  </div>
-                  {/* Handwritten looking text placeholder */}
-                  <div className="absolute bottom-2 md:bottom-3 left-0 w-full text-center opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-700 delay-100">
-                    <span className="font-serif text-slate-800 text-xs md:text-sm italic">Alhamdulillah</span>
                   </div>
                 </div>
               </div>
