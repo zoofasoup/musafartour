@@ -49,7 +49,7 @@ const JadwalUmroh = () => {
       
       {/* Header */}
       <section className="py-16 bg-card border-b">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container mx-auto px-6 md:px-8 text-center">
           <Calendar className="h-16 w-16 mx-auto mb-4 text-primary" />
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Jadwal Keberangkatan Umroh</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -59,7 +59,7 @@ const JadwalUmroh = () => {
       </section>
 
       {/* Filter Section */}
-      <section className="py-8 container mx-auto px-4">
+      <section className="py-8 container mx-auto px-6 md:px-8">
         <div className="bg-card p-6 rounded-lg shadow-md border">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <Select value={month} onValueChange={setMonth}>
@@ -131,7 +131,7 @@ const JadwalUmroh = () => {
       </section>
 
       {/* Schedule List */}
-      <section className="py-8 pb-16 container mx-auto px-4">
+      <section className="py-8 pb-16 container mx-auto px-6 md:px-8">
         {loading ? (
           <div className="space-y-4">
             {[...Array(6)].map((_, i) => (

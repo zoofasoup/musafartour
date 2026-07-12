@@ -353,7 +353,7 @@ const AgentSchedule = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 pb-6">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4">
+        <div className="max-w-6xl mx-auto px-6 md:px-8 py-4">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-xl font-bold text-foreground">Jadwal Keberangkatan 2025</h1>
@@ -427,7 +427,7 @@ const AgentSchedule = () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto px-6 md:px-8 py-6">
         <div className="flex gap-6">
           {/* Sidebar Filters (Desktop) */}
           <div className="hidden lg:block w-64 shrink-0">

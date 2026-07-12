@@ -32,7 +32,7 @@ export const WhyChooseSection = ({ sellingPoints }: WhyChooseSectionProps) => {
 
   return (
     <section className="py-24 md:py-32 bg-transparent">
-      <div className="container mx-auto px-4 max-w-6xl">
+      <div className="container mx-auto px-6 md:px-8 max-w-6xl">
         
         {/* Editorial Two Column Layout */}
         <div

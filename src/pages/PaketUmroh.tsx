@@ -105,7 +105,7 @@ const PaketUmroh = () => {
       
       {/* Header */}
       <section className="py-16 bg-card border-b">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container mx-auto px-6 md:px-8 text-center">
           <Package className="h-16 w-16 mx-auto mb-4 text-primary" />
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Paket Umroh Musafar Tour</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -123,7 +123,7 @@ const PaketUmroh = () => {
       </section>
 
       {/* Filter & Packages */}
-      <section className="py-16 container mx-auto px-4">
+      <section className="py-16 container mx-auto px-6 md:px-8">
         {/* Filter Bar */}
         <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
           <Select value={category} onValueChange={setCategory}>

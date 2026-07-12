@@ -30,7 +30,7 @@ export const FAQSection = ({ faqItems }: FAQSectionProps) => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
       />
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-6 md:px-8">
         <div className="text-center mb-16">
           <span className="text-accent uppercase tracking-[0.2em] text-xs font-bold mb-4 block">
             FAQ

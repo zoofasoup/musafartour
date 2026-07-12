@@ -28,12 +28,12 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
       <div className="w-full max-w-4xl px-4 text-center z-10">
         <div className="h-16 w-3/4 max-w-2xl mx-auto mb-6 bg-muted animate-pulse rounded" />
         <div className="h-6 w-2/3 max-w-xl mx-auto mb-10 bg-muted animate-pulse rounded" />
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full px-4 mb-10">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full px-6 md:px-8 mb-10">
           <div className="h-14 w-full sm:w-48 bg-muted animate-pulse rounded-full" />
           <div className="h-14 w-full sm:w-48 bg-muted animate-pulse rounded-full" />
         </div>
       </div>
-      <div className="mt-8 w-full max-w-[1600px] mx-auto px-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="mt-8 w-full max-w-[1600px] mx-auto px-6 md:px-8 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {[1, 2, 3, 4, 5].map(i => <div key={i} className="aspect-[3/4] bg-muted animate-pulse rounded-2xl" />)}
       </div>
     </div>
@@ -45,7 +45,7 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
         renderSkeleton()
       ) : (
         <>
-          <div className="relative z-10 container mx-auto px-4 flex flex-col items-center justify-start text-center">
+          <div className="relative z-10 container mx-auto px-6 md:px-8 flex flex-col items-center justify-start text-center">
             {/* Header Text Block - Clean typography on light background */}
             <div className="max-w-4xl mx-auto space-y-4 md:space-y-6 mb-10 animate-fade-in opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
               <h1 className="text-4xl md:text-6xl lg:text-[4.5rem] font-display font-bold text-[#1c1c1c] tracking-tight leading-[1.05]">
@@ -58,7 +58,7 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
             </div>
 
             {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-full px-4 mb-8 animate-fade-in opacity-0" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-full px-6 md:px-8 mb-8 animate-fade-in opacity-0" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
               <Button
                 size="lg"
                 className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-base md:text-lg px-8 w-full sm:w-auto h-14 rounded-full transition-all hover:scale-105 shadow-lg shadow-accent/20"

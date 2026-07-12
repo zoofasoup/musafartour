@@ -105,12 +105,12 @@ const AgentDashboard = () => {
     return (
       <div className="min-h-screen bg-muted/30">
         <header className="sticky top-0 z-50 bg-background border-b">
-          <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="container mx-auto px-6 md:px-8 py-3 flex items-center justify-between">
             <Skeleton className="h-8 w-32" />
             <Skeleton className="h-8 w-24" />
           </div>
         </header>
-        <main className="container mx-auto px-4 py-6 space-y-6">
+        <main className="container mx-auto px-6 md:px-8 py-6 space-y-6">
           <Skeleton className="h-40 w-full" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => (
@@ -153,7 +153,7 @@ const AgentDashboard = () => {
     <div className="min-h-screen bg-muted/30">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background border-b">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="container mx-auto px-6 md:px-8 py-3 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img src={musafarLogo} alt="Musafar Tour" className="h-8" />
             <span className="font-semibold text-sm text-muted-foreground">Agent Portal</span>
@@ -173,7 +173,7 @@ const AgentDashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="container mx-auto px-6 md:px-8 py-6 space-y-6">
         {/* Welcome Section */}
         <Card className="bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-0 shadow-lg">
           <CardHeader>

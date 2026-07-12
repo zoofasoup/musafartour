@@ -235,7 +235,7 @@ const PackageDetailPage = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-6 md:px-8 py-8">
           <Skeleton className="h-10 w-64 mb-6" />
           <div className="grid grid-cols-12 gap-6">
             <div className="col-span-8"><Skeleton className="h-[600px]" /></div>
@@ -251,7 +251,7 @@ const PackageDetailPage = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container mx-auto px-4 py-16 text-center">
+        <div className="container mx-auto px-6 md:px-8 py-16 text-center">
           <Package className="h-24 w-24 mx-auto mb-6 text-muted-foreground" />
           <h1 className="text-3xl font-bold mb-4 text-foreground">Paket tidak ditemukan</h1>
           <p className="text-muted-foreground mb-8">Paket yang Anda cari tidak tersedia atau sudah tidak aktif.</p>
@@ -301,7 +301,7 @@ const PackageDetailPage = () => {
       {/* Sold Out Banner */}
       {packageData.is_sold_out && (
         <div className="bg-destructive text-destructive-foreground">
-          <div className="container mx-auto px-4 py-3">
+          <div className="container mx-auto px-6 md:px-8 py-3">
             <div className="flex items-center justify-center gap-3 text-center">
               <AlertTriangle className="h-5 w-5 flex-shrink-0" />
               <p className="font-semibold text-sm ">
@@ -315,7 +315,7 @@ const PackageDetailPage = () => {
       {/* Tier selector bar */}
       {availableTiers.length > 1 && (
         <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-20">
-          <div className="container mx-auto px-4 py-2 flex items-center justify-between">
+          <div className="container mx-auto px-6 md:px-8 py-2 flex items-center justify-between">
             <h1 className="text-sm font-bold  truncate max-w-xs lg:max-w-md">{packageData.package_name}</h1>
             <div className="flex gap-1.5">
               {availableTiers.map((t) => (
@@ -338,7 +338,7 @@ const PackageDetailPage = () => {
       )}
 
       {/* Main 2-Column Layout */}
-      <div className="flex container mx-auto px-4 min-h-[calc(100vh-4rem)]">
+      <div className="flex container mx-auto px-6 md:px-8 min-h-[calc(100vh-4rem)]">
         {/* ── Column A: Brochure Content ── */}
         <main className="flex-1 py-6 lg:pr-8 space-y-6">
 

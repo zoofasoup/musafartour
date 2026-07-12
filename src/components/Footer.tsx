@@ -32,7 +32,7 @@ const Footer = () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
       />
-      <div className="container mx-auto px-4 max-w-7xl">
+      <div className="container mx-auto px-6 md:px-8 max-w-7xl">
         <div className="grid grid-cols-1 md:grid-cols-2 min-h-[400px]">
           
           {/* Left Column */}

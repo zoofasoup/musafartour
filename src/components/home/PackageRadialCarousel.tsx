@@ -79,7 +79,7 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
     <section id="packages-carousel" className="relative w-full h-[600px] md:h-[750px] overflow-hidden bg-[#FAFAFA] flex flex-col items-center justify-end pb-12 md:pb-24 pt-32">
       
       {/* Headline above carousel */}
-      <div className="absolute top-8 md:top-16 left-1/2 -translate-x-1/2 z-20 w-full px-4 text-center pointer-events-none">
+      <div className="absolute top-8 md:top-16 left-1/2 -translate-x-1/2 z-20 w-full px-6 md:px-8 text-center pointer-events-none">
         <h2 className="text-3xl md:text-[2.5rem] font-display font-semibold text-[#1c1c1c]/90 tracking-tight">
           Pilih Paketmu
         </h2>
@@ -157,7 +157,7 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
       <div className="absolute top-0 right-0 w-16 md:w-48 h-full bg-gradient-to-l from-[#FAFAFA] to-transparent z-10 pointer-events-none" />
 
       {/* CTA in the middle */}
-      <div className="relative z-20 text-center max-w-md mx-auto px-4 mt-auto py-4 rounded-3xl pointer-events-auto">
+      <div className="relative z-20 text-center max-w-md mx-auto px-6 md:px-8 mt-auto py-4 rounded-3xl pointer-events-auto">
         <Button 
           className="bg-[#1c1c1c] text-[#FAFAFA] hover:bg-[#1c1c1c]/80 rounded-full px-8 py-5 md:py-6 text-sm md:text-base shadow-xl transition-all hover:scale-105 group"
           onClick={() => window.location.href = '/paket-umroh'}

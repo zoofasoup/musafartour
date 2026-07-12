@@ -71,7 +71,7 @@ const TentangKami = () => {
           SECTION 1: HERO — The Hook
       ══════════════════════════════════════════════════════════ */}
       <section className="relative overflow-hidden bg-[#F9F8F6] text-foreground">
-        <div className="relative z-10 container mx-auto px-4 py-24 md:py-32 text-center max-w-4xl">
+        <div className="relative z-10 container mx-auto px-6 md:px-8 py-24 md:py-32 text-center max-w-4xl">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.p variants={fadeUp} className="text-accent font-semibold text-sm tracking-widest uppercase mb-6">
               Bukan Safar Biasa
@@ -110,7 +110,7 @@ const TentangKami = () => {
           SECTION 2: PROBLEM & SOLUTION — Emotional Connection
       ══════════════════════════════════════════════════════════ */}
       <section className="py-20 md:py-28">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-6 md:px-8">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -181,7 +181,7 @@ const TentangKami = () => {
           SECTION 3: WHY US — Value Proposition
       ══════════════════════════════════════════════════════════ */}
       <section className="py-20 md:py-28 bg-muted/40">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-6 md:px-8">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -253,7 +253,7 @@ const TentangKami = () => {
           SECTION 4: SOCIAL PROOF — Trust
       ══════════════════════════════════════════════════════════ */}
       <section className="py-20 md:py-28">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-6 md:px-8">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -288,7 +288,7 @@ const TentangKami = () => {
           SECTION 5: PRODUCT SHOWCASE — Packages
       ══════════════════════════════════════════════════════════ */}
       <section className="py-20 md:py-28 bg-muted/40">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-6 md:px-8">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -348,7 +348,7 @@ const TentangKami = () => {
           SECTION 6: THE EXPERIENCE — 9 Days Journey
       ══════════════════════════════════════════════════════════ */}
       <section className="py-20 md:py-28">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-6 md:px-8">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -399,7 +399,7 @@ const TentangKami = () => {
           SECTION 7: TRANSPARENCY & FOOTER
       ══════════════════════════════════════════════════════════ */}
       <section className="py-20 md:py-28 bg-muted/40">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-6 md:px-8">
           <motion.div
             initial="hidden"
             whileInView="visible"

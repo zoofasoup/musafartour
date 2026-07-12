@@ -127,7 +127,7 @@ export const PackageFilterSection = ({
   };
 
   return (
-    <section id="packages" className="py-24 md:py-32 container mx-auto px-4">
+    <section id="packages" className="py-24 md:py-32 container mx-auto px-6 md:px-8">
       <div className="mb-16 text-center">
         <span className="text-accent uppercase tracking-[0.2em] text-xs font-bold mb-4 block">
           Paket Umroh

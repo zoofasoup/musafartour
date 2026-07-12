@@ -65,7 +65,7 @@ export const JamaahCarousel = () => {
 
   return (
     <section className="py-16 md:py-20 bg-gradient-to-b from-muted/30 to-background overflow-hidden">
-      <div className="container mx-auto px-4 mb-10">
+      <div className="container mx-auto px-6 md:px-8 mb-10">
         <div className="text-center max-w-3xl mx-auto">
           <h2 ref={countRef} className="text-5xl md:text-7xl font-display font-bold text-primary mb-3 flex items-center justify-center gap-2">
             <motion.span>{rounded}</motion.span>+ Jamaah

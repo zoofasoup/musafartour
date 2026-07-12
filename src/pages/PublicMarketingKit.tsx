@@ -196,7 +196,7 @@ const PublicMarketingKit = () => {
     <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans">
       {/* HEADER */}
       <header className="bg-gradient-to-r from-red-600 via-red-500 to-yellow-500 text-white shadow-lg sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-5 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center justify-between">
               <div>
@@ -237,7 +237,7 @@ const PublicMarketingKit = () => {
       </header>
 
       {/* MAIN CONTENT */}
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex flex-col md:flex-row gap-8">
+      <main className="flex-grow max-w-7xl mx-auto px-6 md:px-8 sm:px-6 lg:px-8 py-8 w-full flex flex-col md:flex-row gap-8">
         
         {/* SIDEBAR NAVIGATION - DESKTOP ONLY */}
         <aside className="hidden md:block w-72 flex-shrink-0">

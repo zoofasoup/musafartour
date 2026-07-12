@@ -103,7 +103,7 @@ export const TestimonialsSection = ({
 
   return (
     <section className="py-24 md:py-32 bg-muted/50 overflow-hidden relative">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-6 md:px-8">
         <div className="text-center mb-4">
           <span className="text-accent uppercase tracking-[0.2em] text-xs font-bold mb-4 block">
             Testimoni

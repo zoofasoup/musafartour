@@ -119,7 +119,7 @@ const Artikel = () => {
       
       {/* Header */}
       <section className="py-16 bg-card border-b">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container mx-auto px-6 md:px-8 text-center">
           <BookOpen className="h-16 w-16 mx-auto mb-4 text-primary" />
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Artikel & Tips Umroh</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -129,7 +129,7 @@ const Artikel = () => {
       </section>
 
       {/* Articles Grid */}
-      <section className="py-16 container mx-auto px-4">
+      <section className="py-16 container mx-auto px-6 md:px-8">
         {loading && page === 1 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[...Array(6)].map((_, i) => (
@@ -218,7 +218,7 @@ const Artikel = () => {
 
       {/* Newsletter CTA */}
       <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-6 md:px-8">
           <div className="max-w-2xl mx-auto text-center bg-card p-8 rounded-lg shadow-md">
             <BookOpen className="h-12 w-12 mx-auto mb-4 text-primary" />
             <h2 className="text-2xl font-bold mb-4">Dapatkan Tips Terbaru</h2>

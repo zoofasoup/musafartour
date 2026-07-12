@@ -20,7 +20,7 @@ export const CTASection = ({ websiteSettings }: CTASectionProps) => {
       {/* Subtle radial gradient for depth */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(140,80,40,0.15)_0%,_transparent_70%)]" aria-hidden="true" />
       
-      <div className="relative container mx-auto px-4 text-center">
+      <div className="relative container mx-auto px-6 md:px-8 text-center">
         <span className="text-accent uppercase tracking-[0.3em] text-xs font-bold mb-6 block">
           Mulai Perjalanan Anda
         </span>

@@ -78,7 +78,7 @@ const Galeri = () => {
       
       {/* Header */}
       <section className="py-16 bg-card border-b">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container mx-auto px-6 md:px-8 text-center">
           <Camera className="h-16 w-16 mx-auto mb-4 text-primary" />
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Galeri Jamaah</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -88,7 +88,7 @@ const Galeri = () => {
       </section>
 
       {/* Gallery Sections */}
-      <section className="py-16 container mx-auto px-4">
+      <section className="py-16 container mx-auto px-6 md:px-8">
         {loading ? (
           <div className="space-y-16">
             {[...Array(3)].map((_, groupIndex) => (
@@ -139,7 +139,7 @@ const Galeri = () => {
 
       {/* CTA */}
       <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container mx-auto px-6 md:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">Ingin Menjadi Bagian dari Musafriends?</h2>
           <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
             Bergabunglah dengan ribuan jamaah yang telah merasakan pengalaman spiritual tak terlupakan bersama Musafar Tour

@@ -92,7 +92,7 @@ export default function UmrohCalculatorResult() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 pb-16">
+      <main className="max-w-2xl mx-auto px-6 md:px-8 pb-16">
         {loading && (
           <div className="text-center py-24" style={{ color: BRAND.muted }}>
             Memuat hasilmu…
