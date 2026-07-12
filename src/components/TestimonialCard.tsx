@@ -49,7 +49,7 @@ export const TestimonialCard = ({ name, text, location, gender = 'male', imageUr
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
           </svg>
         </div>
-        <div className="flex-grow mb-4 flex flex-col items-start overflow-hidden">
+        <div className="mb-4 flex flex-col items-start overflow-hidden">
           <p 
             ref={textRef}
             className={`text-foreground leading-relaxed ${isFullView ? '' : 'line-clamp-4'}`}
@@ -60,7 +60,7 @@ export const TestimonialCard = ({ name, text, location, gender = 'male', imageUr
             <span className="text-primary text-sm font-semibold mt-1 cursor-pointer hover:underline">Baca selengkapnya</span>
           )}
         </div>
-        <div className="flex items-center gap-3 mt-auto pt-4 border-t border-border/50">
+        <div className="flex items-center gap-3 pt-4 border-t border-border/50">
           <img
             src={avatarImage}
             alt={name}
