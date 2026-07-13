@@ -167,7 +167,7 @@ export const PackageFilterSection = ({
       <div className={`overflow-hidden transition-all duration-300 ${showFilters ? "max-h-96 opacity-100 mb-10" : "max-h-0 opacity-0"}`}>
         <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-[140px] h-9 text-sm"><SelectValue placeholder="Kategori" /></SelectTrigger>
+            <SelectTrigger className="w-[140px] h-9 text-sm rounded-full bg-white shadow-sm border-border/50"><SelectValue placeholder="Kategori" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Kategori</SelectItem>
               {filterOptions.categories.map((c) => (
@@ -177,7 +177,7 @@ export const PackageFilterSection = ({
           </Select>
 
           <Select value={month} onValueChange={setMonth}>
-            <SelectTrigger className="w-[160px] h-9 text-sm"><SelectValue placeholder="Bulan" /></SelectTrigger>
+            <SelectTrigger className="w-[160px] h-9 text-sm rounded-full bg-white shadow-sm border-border/50"><SelectValue placeholder="Bulan" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Bulan</SelectItem>
               {filterOptions.months.map((opt) => (
@@ -187,7 +187,7 @@ export const PackageFilterSection = ({
           </Select>
 
           <Select value={airline} onValueChange={setAirline}>
-            <SelectTrigger className="w-[160px] h-9 text-sm"><SelectValue placeholder="Maskapai" /></SelectTrigger>
+            <SelectTrigger className="w-[160px] h-9 text-sm rounded-full bg-white shadow-sm border-border/50"><SelectValue placeholder="Maskapai" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Maskapai</SelectItem>
               {filterOptions.airlines.map((a) => (
@@ -197,7 +197,7 @@ export const PackageFilterSection = ({
           </Select>
 
           <Select value={flightType} onValueChange={setFlightType}>
-            <SelectTrigger className="w-[140px] h-9 text-sm"><SelectValue placeholder="Penerbangan" /></SelectTrigger>
+            <SelectTrigger className="w-[140px] h-9 text-sm rounded-full bg-white shadow-sm border-border/50"><SelectValue placeholder="Penerbangan" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Tipe</SelectItem>
               <SelectItem value="direct">Direct</SelectItem>
@@ -206,7 +206,7 @@ export const PackageFilterSection = ({
           </Select>
 
           <Select value={duration} onValueChange={setDuration}>
-            <SelectTrigger className="w-[130px] h-9 text-sm"><SelectValue placeholder="Durasi" /></SelectTrigger>
+            <SelectTrigger className="w-[130px] h-9 text-sm rounded-full bg-white shadow-sm border-border/50"><SelectValue placeholder="Durasi" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Durasi</SelectItem>
               {filterOptions.durations.map((d) => (
@@ -263,7 +263,7 @@ export const PackageFilterSection = ({
             </div>
           </Carousel>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-fr">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-fr">
             {transformedPackages.map((pkg, index) => (
               <div 
                 key={pkg.id} 

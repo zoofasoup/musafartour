@@ -89,29 +89,21 @@ const Index = () => {
 
       <HeroSection heroData={heroData} websiteSettings={websiteSettings} isLoading={heroLoading} />
 
-      <div className="bg-white">
-        <TrustElements />
-      </div>
+      <TrustElements />
 
       <AirlinesCarousel />
       <JamaahCarousel />
 
       <PackageRadialCarousel packages={packages} loading={packagesLoading} />
 
-      <div className="bg-slate-50">
-        <WhyChooseSection sellingPoints={sellingPoints} />
-      </div>
+      <WhyChooseSection sellingPoints={sellingPoints} />
 
-      <div className="bg-white">
-        <TestimonialsSection
-          testimonials={testimonials}
-          websiteSettings={websiteSettings}
-        />
-      </div>
+      <TestimonialsSection
+        testimonials={testimonials}
+        websiteSettings={websiteSettings}
+      />
 
-      <div className="bg-white">
-        <FAQSection faqItems={faqItems} />
-      </div>
+      <FAQSection faqItems={faqItems} />
 
       <CTASection websiteSettings={websiteSettings} />
 

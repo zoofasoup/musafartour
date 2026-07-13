@@ -2,7 +2,7 @@ import { Award, ShieldCheck, FileCheck } from "lucide-react";
 
 export const TrustElements = () => {
   return (
-    <section className="py-16 md:py-24 bg-slate-50 border-t border-slate-100">
+    <section className="py-16 md:py-24 bg-background border-t border-border">
       <div className="container mx-auto px-6 md:px-8">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <span className="text-accent uppercase tracking-[0.2em] text-xs font-bold mb-4 flex items-center justify-center gap-2">

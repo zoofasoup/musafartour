@@ -1,10 +1,30 @@
 import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, Heart, ChevronLeft, ChevronRight, Bell, Users, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Star, Heart, ChevronLeft, ChevronRight, Bell, Users, ShieldCheck, CheckCircle2, ShoppingCart, ArrowUpRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "@/hooks/use-toast";
+import { LazyImage } from "@/components/ui/lazy-image";
+import { getPriceBadgeStyle } from "@/lib/utils";
+
+import garudaLogo from "@/assets/airlines/garuda-indonesia.svg";
+import saudiaLogo from "@/assets/airlines/saudia.svg";
+import qatarLogo from "@/assets/airlines/qatar-airways.svg";
+import emiratesLogo from "@/assets/airlines/emirates.svg";
+import omanAirLogo from "@/assets/airlines/oman-air.svg";
+import lionAirLogo from "@/assets/airlines/lion-air.svg";
+import scootLogo from "@/assets/airlines/scoot.svg";
+
+const airlineLogos: Record<string, string> = {
+  "Garuda Indonesia": garudaLogo,
+  "Saudia": saudiaLogo,
+  "Qatar Airways": qatarLogo,
+  "Emirates": emiratesLogo,
+  "Oman Air": omanAirLogo,
+  "Lion Air": lionAirLogo,
+  "Scoot": scootLogo,
+};
 
 interface PackageCardProps {
   id?: string;
@@ -30,14 +50,7 @@ interface PackageCardProps {
   imageClassName?: string;
 }
 
-const StarRating = ({ rating }: { rating: number }) => {
-  return (
-    <div className="flex items-center gap-1">
-      <Star className="w-3.5 h-3.5 fill-foreground text-foreground" />
-      <span className="text-sm font-medium">{rating}.0</span>
-    </div>
-  );
-};
+
 
 export const PackageCard = ({
   id,
@@ -50,7 +63,10 @@ export const PackageCard = ({
   duration,
   airline,
   transit,
+  hotelMakkah = "Hotel Makkah",
   hotelMakkahRating = 4,
+  hotelMadinah = "Hotel Madinah",
+  hotelMadinahRating = 4,
   category,
   seatAvailable = true,
   isSoldOut = false,
@@ -64,6 +80,24 @@ export const PackageCard = ({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   
+  // Format price "Rp 32.500.000" to "32,5 Jt"
+  const formatPriceJuta = (priceStr: string) => {
+    const numStr = priceStr.replace(/\D/g, '');
+    if (!numStr) return priceStr;
+    const num = parseInt(numStr, 10);
+    if (num >= 1000000) {
+      let jt = (num / 1000000).toFixed(1);
+      jt = jt.replace('.', ',');
+      if (jt.endsWith(',0')) {
+        jt = jt.replace(',0', '');
+      }
+      return `${jt} Jt`;
+    }
+    return priceStr;
+  };
+  
+  const displayPrice = formatPriceJuta(price);
+
   const allImages = [image, ...images].filter(Boolean);
   const hasMultipleImages = allImages.length > 1;
 
@@ -88,7 +122,8 @@ export const PackageCard = ({
       slug,
       title,
       image,
-      price,
+      price: displayPrice,
+      date,
     });
   };
 
@@ -120,10 +155,10 @@ export const PackageCard = ({
       onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`cursor-pointer group ${isSoldOut ? 'opacity-90' : ''} ${className}`}
+      className={`cursor-pointer group flex flex-col bg-card rounded-3xl border border-border shadow-sm p-2 md:p-2.5 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 ease-out ${isSoldOut ? 'opacity-90' : ''} ${className}`}
     >
       {/* Image Container */}
-      <div className={`relative rounded-xl overflow-hidden mb-3 ${imageClassName}`}>
+      <div className="relative w-full h-[160px] md:h-[170px] shrink-0 bg-muted rounded-2xl md:rounded-[20px] overflow-hidden">
         {isSoldOut && (
           <div className="absolute top-0 left-0 right-0 z-20">
             <div className="bg-destructive text-destructive-foreground text-center py-2 font-bold text-sm shadow-lg">
@@ -132,50 +167,16 @@ export const PackageCard = ({
           </div>
         )}
 
-        {!isSoldOut && seatAvailable && (
-          <Badge className="absolute top-3 left-3 z-10 bg-background text-foreground border shadow-sm rounded-full px-3 py-1 text-xs font-medium">
-            Seat Terbatas
-          </Badge>
-        )}
-        
-        <button
-          ref={heartRef}
-          onClick={handleFavoriteClick}
-          className={`absolute ${isSoldOut ? 'top-12' : 'top-3'} right-3 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-all ${
-            isAnimating ? 'animate-heart-bounce' : ''
-          }`}
-          aria-label={isFav ? "Hapus dari favorit" : "Tambah ke favorit"}
-        >
-          <Heart 
-            className={`w-5 h-5 transition-all duration-200 ${
-              isFav ? 'fill-primary text-primary' : 'text-foreground hover:text-primary'
-            } ${isAnimating ? 'scale-125' : ''}`} 
-          />
-        </button>
-        
-        {isAnimating && isFav && (
-          <div className={`absolute ${isSoldOut ? 'top-12' : 'top-3'} right-3 z-20 pointer-events-none`}>
-            <span className="absolute w-1.5 h-1.5 bg-primary rounded-full animate-particle-1" />
-            <span className="absolute w-1.5 h-1.5 bg-primary rounded-full animate-particle-2" />
-            <span className="absolute w-1 h-1 bg-primary/80 rounded-full animate-particle-3" />
-            <span className="absolute w-1 h-1 bg-primary/80 rounded-full animate-particle-4" />
-            <span className="absolute w-1.5 h-1.5 bg-primary rounded-full animate-particle-5" />
-            <span className="absolute w-1 h-1 bg-primary/60 rounded-full animate-particle-6" />
-          </div>
-        )}
-
-        <img
+        <LazyImage
           src={allImages[currentImageIndex] || '/placeholder.svg'}
           alt={`Paket Umroh ${title} - Musafar Tour`}
           loading={index < 4 ? 'eager' : 'lazy'}
           decoding="async"
           fetchPriority={index < 4 ? 'high' : 'auto'}
-          width="600"
-          height="600"
-          className={`w-full h-full object-cover transition-all duration-300 ${
-            isSoldOut ? 'grayscale-[60%] brightness-75' : 'group-hover:scale-105'
+          className={`w-full h-full object-cover object-top transition-all duration-500 ${
+            isSoldOut ? 'grayscale-[60%] brightness-75' : ''
           }`}
-          onError={(e) => {
+          onError={(e: any) => {
             const target = e.currentTarget;
             if (target.src !== window.location.origin + '/placeholder.svg') {
               target.src = '/placeholder.svg';
@@ -183,22 +184,25 @@ export const PackageCard = ({
           }}
         />
 
+        {/* Blur Gradient Overlay */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 backdrop-blur-md [mask-image:linear-gradient(to_top,black,transparent)] [-webkit-mask-image:linear-gradient(to_top,black,transparent)] pointer-events-none z-10" />
+
         {isSoldOut && (
-          <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+          <div className="absolute inset-0 bg-black/30 pointer-events-none z-10" />
         )}
 
         {hasMultipleImages && isHovered && !isSoldOut && (
           <>
             <button
-              onClick={handlePrevImage}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-background/90 hover:bg-background shadow-md transition-all opacity-0 group-hover:opacity-100"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handlePrevImage(e); }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-1.5 rounded-full bg-background/90 hover:bg-background shadow-md transition-all opacity-0 group-hover:opacity-100"
               aria-label="Previous image"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
-              onClick={handleNextImage}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-background/90 hover:bg-background shadow-md transition-all opacity-0 group-hover:opacity-100"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleNextImage(e); }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-1.5 rounded-full bg-background/90 hover:bg-background shadow-md transition-all opacity-0 group-hover:opacity-100"
               aria-label="Next image"
             >
               <ChevronRight className="w-4 h-4" />
@@ -207,15 +211,15 @@ export const PackageCard = ({
         )}
 
         {hasMultipleImages && !isSoldOut && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex gap-1.5">
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
             {allImages.slice(0, 5).map((_, idx) => (
               <button
                 key={idx}
-                onClick={(e) => handleDotClick(e, idx)}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDotClick(e, idx); }}
                 className={`w-1.5 h-1.5 rounded-full transition-all ${
                   currentImageIndex === idx 
-                    ? 'bg-background w-2' 
-                    : 'bg-background/60 hover:bg-background/80'
+                    ? 'bg-white w-3' 
+                    : 'bg-white/50 hover:bg-white/80'
                 }`}
                 aria-label={`Go to image ${idx + 1}`}
               />
@@ -223,63 +227,111 @@ export const PackageCard = ({
           </div>
         )}
 
+        {/* Cart Button Overlaid */}
+        <div className="absolute bottom-4 right-4 z-20">
+          {!isSoldOut && (
+            <button
+              ref={heartRef}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleFavoriteClick(e); }}
+              className={`p-2.5 rounded-xl backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/20 transition-all shadow-lg ${isAnimating ? 'scale-110' : ''}`}
+              aria-label={isFav ? "Keluarkan dari keranjang" : "Masukkan ke keranjang"}
+            >
+              <ShoppingCart 
+                className={`w-5 h-5 transition-all duration-300 ${
+                  isFav ? 'fill-white text-white' : 'text-white'
+                }`} 
+              />
+            </button>
+          )}
+        </div>
+
         {isSoldOut && waitlistCount > 0 && (
-          <div className="absolute bottom-3 left-3 z-10">
-            <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm text-xs">
+          <div className="absolute bottom-16 left-4 z-20">
+            <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm text-xs border-0">
               <Users className="w-3 h-3 mr-1" />
-              {waitlistCount} jamaah sudah daftar
+              {waitlistCount} jamaah daftar
             </Badge>
           </div>
         )}
       </div>
 
       {/* Content */}
-      <div className="space-y-1">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className={`font-semibold text-[15px] leading-tight line-clamp-1 ${isSoldOut ? 'text-muted-foreground' : 'text-foreground'}`}>
-            {title}
-          </h3>
-          <StarRating rating={hotelMakkahRating} />
+      <div className="flex flex-col flex-1 p-4 space-y-1 z-10">
+        
+        <div className="flex flex-col gap-2.5">
+          {/* Header: Date & Duration */}
+          <div className="flex items-baseline gap-2">
+            <h3 className="font-bold text-lg text-foreground tracking-tight">
+              {date}
+            </h3>
+            <span className="font-semibold text-sm text-muted-foreground">
+              · {duration}
+            </span>
+          </div>
+
+          {/* Details: Hotels (Left) & Airline (Right) */}
+          <div className="flex items-center justify-between mt-0.5">
+            {/* Hotels (Left) */}
+            <div className="flex flex-col gap-1.5 text-xs text-muted-foreground/80 font-semibold">
+              {hotelMakkah && (
+                <div className="flex items-center gap-1.5" title={`Makkah: ${hotelMakkah}`}>
+                  <span className="truncate max-w-[130px]">{hotelMakkah}</span>
+                  <span className="flex items-center text-amber-500/90"><Star className="w-3 h-3 fill-current mr-0.5" />{hotelMakkahRating}</span>
+                </div>
+              )}
+
+              {hotelMadinah && (
+                <div className="flex items-center gap-1.5" title={`Madinah: ${hotelMadinah}`}>
+                  <span className="truncate max-w-[130px]">{hotelMadinah}</span>
+                  <span className="flex items-center text-amber-500/90"><Star className="w-3 h-3 fill-current mr-0.5" />{hotelMadinahRating}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Airline (Right) */}
+            <div className="flex items-center shrink-0">
+              {airlineLogos[airline] ? (
+                <img src={airlineLogos[airline]} alt={airline} className="h-5 object-contain opacity-80" title={airline} />
+              ) : (
+                <span className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">{airline}</span>
+              )}
+            </div>
+          </div>
         </div>
 
-        <p className="text-sm text-muted-foreground line-clamp-1">
-          {airline}{transit ? ` · ${transit}` : ''}
-        </p>
-
-        <p className="text-sm text-muted-foreground">
-          {duration} · {date}
-        </p>
-        
-        {!isSoldOut && (
-          <div className="flex flex-wrap items-center gap-1.5 pt-0.5 pb-0.5">
-            <span className="inline-flex items-center text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
-              <ShieldCheck className="w-3 h-3 mr-1" /> Visa Terjamin
-            </span>
-            <span className="inline-flex items-center text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
-              <CheckCircle2 className="w-3 h-3 mr-1" /> All-in
-            </span>
-          </div>
-        )}
-
-        {isSoldOut ? (
-          <div className="pt-2 space-y-2">
-            <p className="text-sm text-muted-foreground line-through">{price} /orang</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full gap-2"
-              onClick={handleNotifyMe}
-            >
-              <Bell className="w-4 h-4" />
-              Notify Me
-            </Button>
-          </div>
-        ) : (
-          <p className="pt-1">
-            <span className="font-semibold text-foreground">{price}</span>
-            <span className="text-muted-foreground text-sm"> /orang</span>
-          </p>
-        )}
+        {/* Action: Price & Button */}
+        <div className="mt-auto pt-4 flex items-center justify-between">
+          {isSoldOut ? (
+            <div className="space-y-2 w-full">
+              <p className="text-sm text-muted-foreground line-through px-1">{displayPrice} Quad</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full gap-2 rounded-full h-9 text-sm font-semibold"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleNotifyMe(); }}
+              >
+                <Bell className="w-4 h-4" />
+                Notify Me
+              </Button>
+            </div>
+          ) : (
+            <>
+              {/* Price Pill */}
+              <div className={`px-3.5 py-1.5 rounded-full flex items-center shadow-sm ${getPriceBadgeStyle(title)}`}>
+                <span className="font-extrabold text-xl tracking-tight">{displayPrice}</span>
+              </div>
+              
+              {/* Action Pill */}
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/paket-umroh/${slug || id}`); }}
+                className="flex items-center justify-center bg-foreground text-background hover:bg-foreground/90 w-9 h-9 rounded-full transition-all shadow-md group/btn"
+                aria-label="Lihat Detail"
+              >
+                <ArrowUpRight className="w-5 h-5 transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </article>
   );

@@ -27,7 +27,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-[#FAFAFA] text-[#1c1c1c] pt-16 md:pt-24 pb-8 border-t border-border">
+    <footer className="bg-background text-foreground pt-16 md:pt-24 pb-8 border-t border-border">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
@@ -36,42 +36,41 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 min-h-[400px]">
           
           {/* Left Column */}
-          <div className="flex flex-col justify-between pr-0 md:pr-16 md:border-r border-[#1c1c1c]/10 pb-16 md:pb-0">
+          <div className="flex flex-col justify-between pr-0 md:pr-16 md:border-r border-border pb-16 md:pb-0">
             <div>
               {/* Dynamic color logo using CSS mask */}
               <div 
-                className="h-10 w-40 md:h-12 md:w-48 bg-[#1c1c1c] mb-20 md:mb-32 [mask-image:url('/logo.webp')] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:left] [-webkit-mask-image:url('/logo.webp')] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:left]"
+                className="h-10 w-40 md:h-12 md:w-48 bg-foreground mb-16 md:mb-24 [mask-image:url('/logo.webp')] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:left] [-webkit-mask-image:url('/logo.webp')] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:left]"
                 aria-label="Musafar Tour"
               />
 
-              <h3 className="text-3xl md:text-[2.5rem] font-medium tracking-tight mb-16 max-w-md leading-[1.1]">
-                Subscribe to our<br/>
-                newsletter<br/>
-                to stay in touch with the<br/>
-                latest.
+              <h3 className="text-3xl md:text-[2.5rem] font-medium tracking-tight mb-12 max-w-md leading-[1.1]">
+                Dapatkan Info<br/>
+                Promo Paket Umroh<br/>
+                Terbaru dari Kami.
               </h3>
 
-              <div className="flex items-center border-b border-[#1c1c1c]/20 pb-3 max-w-sm mb-16">
-                <input 
-                  type="email" 
-                  placeholder="E-mail address" 
-                  className="bg-transparent border-none outline-none flex-1 text-[#1c1c1c] placeholder:text-[#1c1c1c]/40 text-lg" 
-                />
-                <button className="text-[#1c1c1c] hover:text-[#1c1c1c]/60 transition-colors" aria-label="Subscribe">
-                  <ArrowRight className="w-5 h-5" />
-                </button>
+              <div className="flex items-center pb-3 max-w-sm mb-16">
+                <a 
+                  href="https://wa.me/6281917403797?text=Halo%20Musamin,%20saya%20ingin%20mendapatkan%20info%20promo%20paket%20umroh%20terbaru"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-primary font-semibold hover:text-primary/80 transition-colors text-lg"
+                >
+                  Hubungi via WhatsApp <ArrowRight className="w-5 h-5" />
+                </a>
               </div>
             </div>
 
             {/* Socials */}
             <div className="flex gap-4 mt-auto">
-              <a href="https://instagram.com/musafartour" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-[#1c1c1c] text-[#FAFAFA] flex items-center justify-center hover:bg-[#1c1c1c]/80 transition-colors" aria-label="Instagram">
+              <a href="https://instagram.com/musafartour" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/80 transition-colors shadow-sm" aria-label="Instagram">
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="https://facebook.com/musafartour" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-[#1c1c1c] text-[#FAFAFA] flex items-center justify-center hover:bg-[#1c1c1c]/80 transition-colors" aria-label="Facebook">
+              <a href="https://facebook.com/musafartour" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/80 transition-colors shadow-sm" aria-label="Facebook">
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href="https://youtube.com/@musafartour" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-[#1c1c1c] text-[#FAFAFA] flex items-center justify-center hover:bg-[#1c1c1c]/80 transition-colors" aria-label="YouTube">
+              <a href="https://youtube.com/@musafartour" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/80 transition-colors shadow-sm" aria-label="YouTube">
                 <Youtube className="w-5 h-5" />
               </a>
             </div>
@@ -79,23 +78,23 @@ const Footer = () => {
 
           {/* Right Column */}
           <div className="flex flex-col pl-0 md:pl-20 pt-12 md:pt-0">
-            <div className="grid grid-cols-2 gap-8 md:mt-32">
+            <div className="grid grid-cols-2 gap-8 md:mt-24">
               <div>
-                <h4 className="font-medium text-[#1c1c1c] mb-6 text-lg">Menu</h4>
-                <ul className="space-y-4 text-[#1c1c1c]/60">
-                  <li><Link to="/" className="hover:text-[#1c1c1c] transition-colors">Beranda</Link></li>
-                  <li><Link to="/paket-umroh" className="hover:text-[#1c1c1c] transition-colors">Paket Umroh</Link></li>
-                  <li><Link to="/tentang-kami" className="hover:text-[#1c1c1c] transition-colors">Tentang Kami</Link></li>
-                  <li><Link to="/galeri" className="hover:text-[#1c1c1c] transition-colors">Galeri</Link></li>
+                <h4 className="font-medium text-foreground mb-6 text-lg">Menu</h4>
+                <ul className="space-y-4 text-muted-foreground">
+                  <li><Link to="/" className="hover:text-primary transition-colors">Beranda</Link></li>
+                  <li><Link to="/paket-umroh" className="hover:text-primary transition-colors">Paket Umroh</Link></li>
+                  <li><Link to="/tentang-kami" className="hover:text-primary transition-colors">Tentang Kami</Link></li>
+                  <li><Link to="/galeri" className="hover:text-primary transition-colors">Galeri</Link></li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-[#1c1c1c] mb-6 text-lg">Support</h4>
-                <ul className="space-y-4 text-[#1c1c1c]/60">
-                  <li><Link to="/" className="hover:text-[#1c1c1c] transition-colors">FAQs</Link></li>
-                  <li><Link to="/" className="hover:text-[#1c1c1c] transition-colors">Kebijakan Privasi</Link></li>
-                  <li><Link to="/" className="hover:text-[#1c1c1c] transition-colors">Syarat & Ketentuan</Link></li>
-                  <li><Link to="/" className="hover:text-[#1c1c1c] transition-colors">Kontak</Link></li>
+                <h4 className="font-medium text-foreground mb-6 text-lg">Support</h4>
+                <ul className="space-y-4 text-muted-foreground">
+                  <li><Link to="/kontak" className="hover:text-primary transition-colors">FAQs</Link></li>
+                  <li><Link to="/tentang-kami" className="hover:text-primary transition-colors">Kebijakan Privasi</Link></li>
+                  <li><Link to="/tentang-kami" className="hover:text-primary transition-colors">Syarat & Ketentuan</Link></li>
+                  <li><Link to="/kontak" className="hover:text-primary transition-colors">Kontak</Link></li>
                 </ul>
               </div>
             </div>
@@ -104,9 +103,9 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-[#1c1c1c]/10 mt-20 pt-8 flex flex-col md:flex-row justify-between items-center text-sm font-medium text-[#1c1c1c]">
+        <div className="border-t border-border mt-16 pt-8 flex flex-col md:flex-row justify-between items-center text-sm font-medium text-foreground">
           <p>2025 © Musafar Tour</p>
-          <p className="mt-4 md:mt-0">Made by Musawara Creative</p>
+          <p className="mt-4 md:mt-0 text-muted-foreground">Made by Musawara Creative</p>
         </div>
       </div>
     </footer>

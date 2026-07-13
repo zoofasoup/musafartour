@@ -31,7 +31,7 @@ export const WhyChooseSection = ({ sellingPoints }: WhyChooseSectionProps) => {
   const videoId = "lr9-md4muys";
 
   return (
-    <section className="py-24 md:py-32 bg-transparent">
+    <section className="py-16 md:py-24 bg-transparent">
       <div className="container mx-auto px-6 md:px-8 max-w-6xl">
         
         {/* Editorial Two Column Layout */}
@@ -58,9 +58,9 @@ export const WhyChooseSection = ({ sellingPoints }: WhyChooseSectionProps) => {
             {/* Video Thumbnail - Embedded aesthetically */}
             <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl group">
               <iframe
-                src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1`}
+                src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
                 title="Musafar Tour Video"
-                className="absolute inset-0 w-full h-full transform transition-transform duration-700 group-hover:scale-105"
+                className="absolute inset-[-20%] w-[140%] h-[140%] pointer-events-none transform transition-transform duration-700 group-hover:scale-[1.05]"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 loading="lazy"
               />

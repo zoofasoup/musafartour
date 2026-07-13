@@ -7,6 +7,7 @@ interface FavoritePackage {
   title: string;
   image: string;
   price: string;
+  date?: string;
 }
 
 interface FavoritesContextType {

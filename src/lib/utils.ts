@@ -47,3 +47,19 @@ export function formatPriceJuta(price: number | null | undefined): string {
     ? `${millions} Juta`
     : `${millions.toFixed(1).replace('.', ',')} Juta`;
 }
+
+/**
+ * Get background and text color classes for price based on package classification (title)
+ */
+export function getPriceBadgeStyle(title: string | undefined): string {
+  if (!title) return 'bg-primary/10 text-primary';
+  const t = title.toLowerCase();
+  
+  if (t.includes('pelataran hemat')) return 'bg-orange-50 text-orange-700';
+  if (t.includes('hemat')) return 'bg-green-50 text-green-700';
+  if (t.includes('nyaman')) return 'bg-blue-50 text-blue-700';
+  if (t.includes('plus')) return 'bg-teal-50 text-teal-700';
+  if (t.includes('vip') || t.includes('bintang 5') || t.includes('five star') || t.includes('luxury')) return 'bg-purple-50 text-purple-700';
+  
+  return 'bg-rose-50 text-rose-700'; // Default fallback color
+}

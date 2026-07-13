@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import Papa from 'https://esm.sh/papaparse@5.4.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -269,25 +270,24 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get('GOOGLE_SHEETS_API_KEY')
-    if (!apiKey) throw new Error('GOOGLE_SHEETS_API_KEY not configured')
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    const range = encodeURIComponent(`${SHEET_NAME}!A1:AD100`)
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${apiKey}&valueRenderOption=FORMATTED_VALUE`
+    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&sheet=${encodeURIComponent(SHEET_NAME)}`
 
-    console.log('📊 Fetching Google Sheet...')
+    console.log('📊 Fetching Google Sheet via Public CSV...')
     const resp = await fetch(url)
     if (!resp.ok) {
       const errText = await resp.text()
-      throw new Error(`Sheets API ${resp.status}: ${errText}`)
+      throw new Error(`Sheets CSV Fetch ${resp.status}: ${errText}`)
     }
 
-    const data = await resp.json()
-    const rows: string[][] = data.values || []
+    const csvText = await resp.text()
+    const parsed = Papa.parse(csvText, { header: false })
+    const rows: string[][] = (parsed.data as string[][]).map(row => 
+      row.map(cell => typeof cell === 'string' ? cell : String(cell || ''))
+    )
     console.log(`📊 Got ${rows.length} rows`)
 
     if (rows.length < 2) {

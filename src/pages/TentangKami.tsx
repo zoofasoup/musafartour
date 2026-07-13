@@ -70,7 +70,7 @@ const TentangKami = () => {
       {/* ══════════════════════════════════════════════════════════
           SECTION 1: HERO — The Hook
       ══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-[#F9F8F6] text-foreground">
+      <section className="relative overflow-hidden bg-background text-foreground">
         <div className="relative z-10 container mx-auto px-6 md:px-8 py-24 md:py-32 text-center max-w-4xl">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.p variants={fadeUp} className="text-accent font-semibold text-sm tracking-widest uppercase mb-6">

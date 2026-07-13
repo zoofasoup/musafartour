@@ -34,8 +34,8 @@ export const TestimonialCard = ({ name, text, location, gender = 'male', imageUr
   }, [text, isFullView]);
 
   return (
-    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow h-full flex flex-col bg-white rounded-3xl">
-      <CardContent className="p-6 flex flex-col h-full">
+    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow flex flex-col bg-white rounded-3xl">
+      <CardContent className="p-6 flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <div className="flex gap-1">
             {[...Array(5)].map((_, i) => (

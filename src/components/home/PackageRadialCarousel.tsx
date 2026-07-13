@@ -142,6 +142,7 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
                       draggable={false}
                       onDragStart={(e) => e.preventDefault()}
                       className="w-[230px] md:w-[280px] h-auto object-cover shadow-2xl rounded-sm pointer-events-none"
+                      loading="lazy"
                     />
                   </Link>
                 </div>
@@ -152,9 +153,9 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
       </div>
 
       {/* Gradual blur/fade overlays to make the images disappear smoothly at the edges */}
-      <div className="absolute bottom-0 left-0 w-full h-32 md:h-64 bg-gradient-to-t from-[#FAFAFA] to-transparent z-10 pointer-events-none" />
-      <div className="absolute top-0 left-0 w-16 md:w-48 h-full bg-gradient-to-r from-[#FAFAFA] to-transparent z-10 pointer-events-none" />
-      <div className="absolute top-0 right-0 w-16 md:w-48 h-full bg-gradient-to-l from-[#FAFAFA] to-transparent z-10 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-full h-32 md:h-64 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+      <div className="absolute top-0 left-0 w-16 md:w-48 h-full bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-16 md:w-48 h-full bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
       {/* CTA in the middle */}
       <div className="relative z-20 text-center max-w-md mx-auto px-6 md:px-8 mt-auto py-4 rounded-3xl pointer-events-auto">

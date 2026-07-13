@@ -84,7 +84,7 @@ const SALES_SCRIPTS = {
 
 const IG_CAPTIONS = [
   "🕌 Rindu dengan panggilan-Nya? Yuk wujudkan mimpi umrohmu bersama Musafar Tour! ✨\n\nDapatkan:\n✅ Hotel bintang 5 dekat Masjidil Haram\n✅ Pesawat langsung\n✅ Bimbingan ustadz berpengalaman\n\nInfo & booking:\n📱 [NOMOR WA]\n\n#umroh2025 #paketumroh #musafartour",
-  "Ya Allah, satukanlah kami dengan Baitullah-Mu 🤲🏻\n\nMusafar Tour siap menemani perjalanan sucimu!\n\n📅 Keberangkatan: [BULAN 2025]\n💰 Mulai Rp [HARGA] juta\n\nBooking sekarang, seat terbatas!\n📱 [NOMOR WA]\n\n#umroh #baitullah #makkah #madinah",
+  "Ya Allah, satukanlah kami dengan Baitullah-Mu 🤲🏻\n\nMusafar Tour siap menemani perjalanan sucimu!\n\n📅 Keberangkatan: [BULAN 2025]\n💰 Mulai Rp [HARGA] juta\n\nBooking sekarang!\n📱 [NOMOR WA]\n\n#umroh #baitullah #makkah #madinah",
   "🌙 Umroh di bulan Ramadhan = pahala berlipat ganda!\n\nAyo booking sekarang untuk keberangkatan Ramadhan 2025 🕋\n\n✨ Fasilitas terbaik\n✨ Harga terjangkau\n✨ Pelayanan prima\n\nInfo lengkap:\n📱 [NOMOR WA]\n\n#umrohramadhan #ramadhan2025 #musafartour",
 ];
 

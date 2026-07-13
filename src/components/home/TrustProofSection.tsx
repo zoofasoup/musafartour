@@ -9,7 +9,7 @@ const photos = [
 
 export const TrustProofSection = () => {
   return (
-    <section className="py-24 md:py-32 bg-background relative overflow-hidden">
+    <section className="py-16 md:py-24 bg-background relative overflow-hidden">
       <div className="container mx-auto px-6 md:px-8 relative z-10">
         <div className="text-center mb-16">
           <span className="text-accent uppercase tracking-[0.2em] text-xs font-bold mb-4 flex items-center justify-center gap-2">

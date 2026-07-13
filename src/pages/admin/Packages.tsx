@@ -283,32 +283,12 @@ const Packages = () => {
               Pilih
             </Button>
           )}
-          <Button variant="outline" onClick={() => setImportOpen(true)}>
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Import Excel
-          </Button>
-          <Button
+          <Button 
             variant="outline"
-            disabled={syncing}
-            onClick={async () => {
-              setSyncing(true);
-              try {
-                const { data, error } = await supabase.functions.invoke('sync-google-sheets');
-                if (error) throw error;
-                toast.success(data?.message || 'Sync selesai');
-                if (data?.details?.length) {
-                  console.log('Sync details:', data.details);
-                }
-                fetchPackages();
-              } catch (e: any) {
-                toast.error('Sync gagal: ' + e.message);
-              } finally {
-                setSyncing(false);
-              }
-            }}
+            onClick={() => setImportOpen(true)}
           >
-            <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
-            {syncing ? 'Syncing...' : 'Sync Google Sheets'}
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Upload / Sync Google Sheets
           </Button>
           <Button onClick={() => navigate("/admin/packages/new")}>
             <Plus className="mr-2 h-4 w-4" />

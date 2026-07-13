@@ -24,7 +24,7 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
   };
 
   const renderSkeleton = () => (
-    <div className="w-full min-h-screen bg-[#F9F8F6] pt-32 pb-16 flex flex-col items-center justify-start relative overflow-hidden">
+    <div className="w-full min-h-screen bg-background pt-32 pb-16 flex flex-col items-center justify-start relative overflow-hidden">
       <div className="w-full max-w-4xl px-4 text-center z-10">
         <div className="h-16 w-3/4 max-w-2xl mx-auto mb-6 bg-muted animate-pulse rounded" />
         <div className="h-6 w-2/3 max-w-xl mx-auto mb-10 bg-muted animate-pulse rounded" />
@@ -40,7 +40,7 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
   );
 
   return (
-    <section className="relative w-full flex flex-col items-center justify-start pt-32 md:pt-40 pb-12 overflow-hidden bg-[#F9F8F6]">
+    <section className="relative w-full flex flex-col items-center justify-start pt-32 md:pt-40 pb-12 overflow-hidden bg-background">
       {isLoading ? (
         renderSkeleton()
       ) : (

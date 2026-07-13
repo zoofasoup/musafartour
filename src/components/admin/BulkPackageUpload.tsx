@@ -21,7 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, X } from "lucide-react";
+import { Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, X, RefreshCw } from "lucide-react";
 import { cn, formatNumber } from "@/lib/utils";
 
 interface ParsedPackage {
@@ -51,15 +51,14 @@ interface ParsedPackage {
   errors: string[];
 }
 
-const TIER_MAP: Record<string, string> = {
-  "hemat": "hemat",
-  "nyaman": "nyaman",
-  "five-star": "five-star",
-  "fivestar": "five-star",
-  "five star": "five-star",
-  "pelataran hemat": "pelataran-hemat",
-  "pelataran-hemat": "pelataran-hemat",
-};
+function fuzzyMatchTier(input: string): string {
+  const n = normalizeStr(input);
+  if (n.includes("five") || n.includes("bintang 5")) return "five-star";
+  if (n.includes("pelataran")) return "pelataran-hemat";
+  if (n.includes("nyaman")) return "nyaman";
+  if (n.includes("hemat")) return "hemat";
+  return "";
+}
 
 const TEMPLATE_COLUMNS = [
   "Tanggal Berangkat",
@@ -252,9 +251,34 @@ function parseExcelData(worksheet: XLSX.WorkSheet): ParsedPackage[] {
   const rawData = XLSX.utils.sheet_to_json<unknown[]>(worksheet, { header: 1, defval: "" });
   if (rawData.length < 2) return [];
 
-  const headers = (rawData[0] as string[]).map((h) => String(h || ""));
-  const colMap = buildColumnMap(headers);
-  const dataRows = rawData.slice(1);
+  // Find header row by scanning first 10 rows
+  let headerRowIdx = -1;
+  let colMap: Record<string, number> = {};
+  
+  for (let r = 0; r < Math.min(rawData.length, 10); r++) {
+    const row = rawData[r] as string[];
+    const headers = row.map((h) => String(h || ""));
+    const map = buildColumnMap(headers);
+    
+    // Count how many recognized columns we found
+    const matchCount = Object.values(map).filter(idx => idx !== -1).length;
+    
+    // If we matched at least 3 known columns, assume this is the header row
+    if (matchCount >= 3) {
+      headerRowIdx = r;
+      colMap = map;
+      break;
+    }
+  }
+
+  // If no header row found, fallback to row 0
+  if (headerRowIdx === -1) {
+    const headers = (rawData[0] as string[]).map((h) => String(h || ""));
+    colMap = buildColumnMap(headers);
+    headerRowIdx = 0;
+  }
+
+  const dataRows = rawData.slice(headerRowIdx + 1);
 
   return dataRows
     .filter((row) => {
@@ -265,7 +289,7 @@ function parseExcelData(worksheet: XLSX.WorkSheet): ParsedPackage[] {
     .map((rawRow, idx) => {
       const row = rawRow as unknown[];
       const tierRaw = String(getVal(row, colMap.tier) || "").toLowerCase().trim();
-      const tier = TIER_MAP[tierRaw] || "";
+      const tier = fuzzyMatchTier(tierRaw);
       const departureDateStr = parseDate(getVal(row, colMap.departure_date));
       const packageName = String(getVal(row, colMap.package_name) || "").trim();
       const rawFlight = String(getVal(row, colMap.flight) || "").trim();
@@ -444,23 +468,29 @@ function downloadTemplate() {
   toast.success("Template berhasil didownload");
 }
 
-interface BulkPackageUploadProps {
+export interface BulkPackageUploadProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
 }
+
+const GOOGLE_SHEET_ID = "11R3Dv7YNJEYj0NLCY-xm4OH2PuZ_T85jsbizPJNQsn0";
+const SHEET_NAME = "ALL PACKAGES_FIX";
+
 
 export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackageUploadProps) => {
   const [parsedData, setParsedData] = useState<ParsedPackage[]>([]);
   const [step, setStep] = useState<"upload" | "preview" | "importing">("upload");
   const [importProgress, setImportProgress] = useState({ done: 0, total: 0, errors: 0 });
   const [fileName, setFileName] = useState("");
+  const [isFetchingSheet, setIsFetchingSheet] = useState(false);
 
   const resetState = useCallback(() => {
     setParsedData([]);
     setStep("upload");
     setImportProgress({ done: 0, total: 0, errors: 0 });
     setFileName("");
+    setIsFetchingSheet(false);
   }, []);
 
   const handleClose = () => {
@@ -501,6 +531,39 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
     reader.readAsArrayBuffer(file);
   };
 
+  const handleGoogleSheetsSync = async () => {
+    setIsFetchingSheet(true);
+    try {
+      const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/export?format=xlsx`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Gagal mengunduh Google Sheet");
+      
+      const buffer = await response.arrayBuffer();
+      const data = new Uint8Array(buffer);
+      const wb = XLSX.read(data, { type: "array", cellDates: true });
+      
+      // Find the specific sheet or use the first one
+      const sheetName = wb.SheetNames.includes(SHEET_NAME) ? SHEET_NAME : wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const parsed = parseExcelData(ws);
+      
+      if (parsed.length === 0) {
+        toast.error("File kosong atau format tidak sesuai");
+        setIsFetchingSheet(false);
+        return;
+      }
+
+      setFileName("Google Sheets (Sync)");
+      setParsedData(parsed);
+      setStep("preview");
+      toast.success(`${parsed.length} baris berhasil diparsing dari Google Sheets`);
+    } catch (err) {
+      toast.error("Gagal sinkronisasi: " + (err as Error).message);
+    } finally {
+      setIsFetchingSheet(false);
+    }
+  };
+
   const handleImport = async () => {
     const validRows = parsedData.filter((r) => r.errors.length === 0);
     if (validRows.length === 0) {
@@ -522,7 +585,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
         const payload = buildUpsertPayload(row, hotels);
         const { error } = await supabase
           .from("packages")
-          .upsert(payload as any, { onConflict: "slug" });
+          .upsert(payload as any, { onConflict: "slug", ignoreDuplicates: true });
 
         if (error) throw error;
         successCount++;
@@ -590,10 +653,27 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
               </label>
             </div>
 
-            <Button variant="ghost" onClick={downloadTemplate} className="text-muted-foreground">
-              <Download className="mr-2 h-4 w-4" />
-              Download Template Excel
-            </Button>
+            <div className="flex gap-4 w-full max-w-md">
+              <Button variant="outline" onClick={downloadTemplate} className="flex-1 text-muted-foreground">
+                <Download className="mr-2 h-4 w-4" />
+                Template Excel
+              </Button>
+              <Button 
+                variant="default" 
+                onClick={handleGoogleSheetsSync} 
+                disabled={isFetchingSheet}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                {isFetchingSheet ? (
+                  "Menarik Data..."
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Tarik Langsung Google Sheets
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         )}
 
@@ -621,7 +701,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
               </Button>
             </div>
 
-            <ScrollArea className="flex-1 max-h-[50vh] border rounded-md">
+            <div className="flex-1 overflow-auto max-h-[50vh] border rounded-md">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -675,14 +755,11 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
                         </TableCell>
                         <TableCell>
                           {hasError ? (
-                            <span className="text-xs text-destructive" title={row.errors.join(", ")}>
-                              <AlertTriangle className="h-3.5 w-3.5 inline mr-1" />
-                              {row.errors[0]}
+                            <span className="text-destructive text-xs font-medium" title={row.errors.join(", ")}>
+                              Error
                             </span>
                           ) : (
-                            <span className="text-xs text-green-600 dark:text-green-400">
-                              <CheckCircle2 className="h-3.5 w-3.5 inline mr-1" />OK
-                            </span>
+                            <span className="text-green-600 dark:text-green-400 text-xs font-medium">Valid</span>
                           )}
                         </TableCell>
                       </TableRow>
@@ -690,7 +767,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
                   })}
                 </TableBody>
               </Table>
-            </ScrollArea>
+            </div>
 
             <DialogFooter className="gap-2">
               <Button variant="outline" onClick={handleClose}>Batal</Button>
