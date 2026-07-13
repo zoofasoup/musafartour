@@ -16,12 +16,85 @@ import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { ArrowLeft, X, Upload, Plus, CalendarIcon, Clipboard, Link as LinkIcon, FileUp } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { ArrowLeft, X, Upload, Plus, CalendarIcon, Clipboard, Link as LinkIcon, FileUp, Check, ChevronsUpDown } from "lucide-react";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { compressAndConvertToWebP, generateContextualFileName } from "@/lib/imageUtils";
 import { AddHotelModal } from "@/components/admin/AddHotelModal";
+
+const SearchableHotelSelect = ({ 
+  hotels, 
+  value, 
+  onValueChange, 
+  placeholder 
+}: { 
+  hotels: any[], 
+  value: string, 
+  onValueChange: (id: string) => void, 
+  placeholder: string 
+}) => {
+  const [open, setOpen] = useState(false);
+  const selectedHotel = hotels.find((h) => h.name === value);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <FormControl>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn("flex-1 min-w-0 justify-between text-left font-normal", !selectedHotel && "text-muted-foreground")}
+          >
+            <span className="truncate pr-2">
+              {selectedHotel ? `${selectedHotel.name} (${selectedHotel.star_rating}⭐)` : placeholder}
+            </span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </FormControl>
+      </PopoverTrigger>
+      <PopoverContent className="w-[300px] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Cari hotel..." />
+          <CommandList>
+            <CommandEmpty>Hotel tidak ditemukan.</CommandEmpty>
+            <CommandGroup>
+              <CommandItem
+                value="Belum dipilih"
+                onSelect={() => {
+                  onValueChange("none");
+                  setOpen(false);
+                }}
+              >
+                <Check className={cn("mr-2 h-4 w-4", !selectedHotel ? "opacity-100" : "opacity-0")} />
+                Belum dipilih
+              </CommandItem>
+              {hotels.map((hotel) => (
+                <CommandItem
+                  key={hotel.id}
+                  value={hotel.name}
+                  onSelect={() => {
+                    onValueChange(hotel.id);
+                    setOpen(false);
+                  }}
+                >
+                  <Check className={cn("mr-2 h-4 w-4", selectedHotel?.id === hotel.id ? "opacity-100" : "opacity-0")} />
+                  {hotel.name} ({hotel.star_rating}⭐)
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
+const extractNumber = (val: any) => (val ? val.toString().replace(/[^0-9]/g, '') : "");
 
 const packageSchema = z.object({
   package_name: z.string().min(1, "Nama paket wajib diisi"),
@@ -32,17 +105,17 @@ const packageSchema = z.object({
   flight_type: z.string().min(1, "Tipe penerbangan wajib diisi"),
   available_tiers: z.array(z.enum(["hemat", "nyaman", "five-star", "pelataran-hemat"])).length(1, "Pilih tepat satu tier"),
   
-  timeframe: z.string().optional(),
-  start_airport: z.string().optional(),
-  route: z.string().optional(),
-  itinerary: z.string().optional(),
-  nights_makkah: z.number().min(0).optional(),
-  nights_madinah: z.number().min(0).optional(),
+  timeframe: z.string().min(1, "Wajib diisi"),
+  start_airport: z.string().min(1, "Wajib diisi"),
+  route: z.string().min(1, "Wajib diisi"),
+  itinerary: z.string().min(1, "Wajib diisi"),
+  nights_makkah: z.number().min(1, "Minimal 1 malam"),
+  nights_madinah: z.number().min(1, "Minimal 1 malam"),
   nights_extra: z.number().min(0).optional(),
   hotel_extra: z.string().optional(),
   selling_points: z.string().optional(),
-  max_discount: z.number().min(0).optional(),
-  slots_total: z.number().min(0).optional(),
+  max_discount: z.number().min(0, "Wajib diisi"),
+  slots_total: z.number().min(1, "Wajib diisi"),
 
   // Hemat Tier
   hemat_makkah_hotel_name: z.string().optional(),
@@ -110,6 +183,25 @@ const packageSchema = z.object({
   
   is_sold_out: z.boolean().default(false),
   waitlist_count: z.number().min(0).default(0),
+}).superRefine((data, ctx) => {
+  const tiers = data.available_tiers || [];
+  
+  if (tiers.includes("hemat")) {
+    if (!data.hemat_makkah_hotel_name) ctx.addIssue({ path: ["hemat_makkah_hotel_name"], message: "Wajib diisi", code: "custom" });
+    if (!data.hemat_madinah_hotel_name) ctx.addIssue({ path: ["hemat_madinah_hotel_name"], message: "Wajib diisi", code: "custom" });
+  }
+  if (tiers.includes("nyaman")) {
+    if (!data.makkah_hotel_name) ctx.addIssue({ path: ["makkah_hotel_name"], message: "Wajib diisi", code: "custom" });
+    if (!data.madinah_hotel_name) ctx.addIssue({ path: ["madinah_hotel_name"], message: "Wajib diisi", code: "custom" });
+  }
+  if (tiers.includes("five-star")) {
+    if (!data.five_star_makkah_hotel_name) ctx.addIssue({ path: ["five_star_makkah_hotel_name"], message: "Wajib diisi", code: "custom" });
+    if (!data.five_star_madinah_hotel_name) ctx.addIssue({ path: ["five_star_madinah_hotel_name"], message: "Wajib diisi", code: "custom" });
+  }
+  if (tiers.includes("pelataran-hemat")) {
+    if (!data.pelataran_makkah_hotel_name) ctx.addIssue({ path: ["pelataran_makkah_hotel_name"], message: "Wajib diisi", code: "custom" });
+    if (!data.pelataran_madinah_hotel_name) ctx.addIssue({ path: ["pelataran_madinah_hotel_name"], message: "Wajib diisi", code: "custom" });
+  }
 });
 
 type PackageFormValues = z.infer<typeof packageSchema>;
@@ -428,8 +520,8 @@ const PackageForm = () => {
     if (hotel) {
       form.setValue(hotelNameField, hotel.name);
       form.setValue(hotelStarField, hotel.star_rating);
-      form.setValue(distField, hotel.distance);
-      form.setValue(walkField, hotel.walking_duration);
+      form.setValue(distField, extractNumber(hotel.distance));
+      form.setValue(walkField, extractNumber(hotel.walking_duration));
     }
   };
 
@@ -493,12 +585,12 @@ const PackageForm = () => {
 
           hemat_makkah_hotel_name: d.hemat_makkah_hotel_name || "",
           hemat_makkah_hotel_star: d.hemat_makkah_hotel_star || 0,
-          hemat_makkah_distance: d.hemat_makkah_distance || "",
-          hemat_makkah_duration_walk: d.hemat_makkah_duration_walk || "",
+          hemat_makkah_distance: extractNumber(d.hemat_makkah_distance),
+          hemat_makkah_duration_walk: extractNumber(d.hemat_makkah_duration_walk),
           hemat_madinah_hotel_name: d.hemat_madinah_hotel_name || "",
           hemat_madinah_hotel_star: d.hemat_madinah_hotel_star || 0,
-          hemat_madinah_distance: d.hemat_madinah_distance || "",
-          hemat_madinah_duration_walk: d.hemat_madinah_duration_walk || "",
+          hemat_madinah_distance: extractNumber(d.hemat_madinah_distance),
+          hemat_madinah_duration_walk: extractNumber(d.hemat_madinah_duration_walk),
           hemat_transport: d.hemat_transport || "Bus Eksklusif",
           hemat_price_quad: (d.hemat_package_price as any)?.quad || 0,
           hemat_price_triple: (d.hemat_package_price as any)?.triple || 0,
@@ -506,12 +598,12 @@ const PackageForm = () => {
 
           makkah_hotel_name: data.makkah_hotel_name || "",
           makkah_hotel_star: data.makkah_hotel_star || 0,
-          makkah_distance: data.makkah_distance || "",
-          makkah_duration_walk: data.makkah_duration_walk || "",
+          makkah_distance: extractNumber(data.makkah_distance),
+          makkah_duration_walk: extractNumber(data.makkah_duration_walk),
           madinah_hotel_name: data.madinah_hotel_name || "",
           madinah_hotel_star: data.madinah_hotel_star || 0,
-          madinah_distance: data.madinah_distance || "",
-          madinah_duration_walk: data.madinah_duration_walk || "",
+          madinah_distance: extractNumber(data.madinah_distance),
+          madinah_duration_walk: extractNumber(data.madinah_duration_walk),
           price_quad: priceData?.quad || 0,
           price_triple: priceData?.triple || 0,
           price_double: priceData?.double || 0,
@@ -519,12 +611,12 @@ const PackageForm = () => {
           
           five_star_makkah_hotel_name: data.five_star_makkah_hotel_name || "",
           five_star_makkah_hotel_star: data.five_star_makkah_hotel_star || 0,
-          five_star_makkah_distance: data.five_star_makkah_distance || "",
-          five_star_makkah_duration_walk: data.five_star_makkah_duration_walk || "",
+          five_star_makkah_distance: extractNumber(data.five_star_makkah_distance),
+          five_star_makkah_duration_walk: extractNumber(data.five_star_makkah_duration_walk),
           five_star_madinah_hotel_name: data.five_star_madinah_hotel_name || "",
           five_star_madinah_hotel_star: data.five_star_madinah_hotel_star || 0,
-          five_star_madinah_distance: data.five_star_madinah_distance || "",
-          five_star_madinah_duration_walk: data.five_star_madinah_duration_walk || "",
+          five_star_madinah_distance: extractNumber(data.five_star_madinah_distance),
+          five_star_madinah_duration_walk: extractNumber(data.five_star_madinah_duration_walk),
           five_star_price_quad: fiveStarPriceData?.quad || 0,
           five_star_price_triple: fiveStarPriceData?.triple || 0,
           five_star_price_double: fiveStarPriceData?.double || 0,
@@ -532,12 +624,12 @@ const PackageForm = () => {
 
           pelataran_makkah_hotel_name: d.pelataran_makkah_hotel_name || "",
           pelataran_makkah_hotel_star: d.pelataran_makkah_hotel_star || 0,
-          pelataran_makkah_distance: d.pelataran_makkah_distance || "",
-          pelataran_makkah_duration_walk: d.pelataran_makkah_duration_walk || "",
+          pelataran_makkah_distance: extractNumber(d.pelataran_makkah_distance),
+          pelataran_makkah_duration_walk: extractNumber(d.pelataran_makkah_duration_walk),
           pelataran_madinah_hotel_name: d.pelataran_madinah_hotel_name || "",
           pelataran_madinah_hotel_star: d.pelataran_madinah_hotel_star || 0,
-          pelataran_madinah_distance: d.pelataran_madinah_distance || "",
-          pelataran_madinah_duration_walk: d.pelataran_madinah_duration_walk || "",
+          pelataran_madinah_distance: extractNumber(d.pelataran_madinah_distance),
+          pelataran_madinah_duration_walk: extractNumber(d.pelataran_madinah_duration_walk),
           pelataran_transport: d.pelataran_transport || "Bus Eksklusif",
           pelataran_price_quad: (d.pelataran_package_price as any)?.quad || 0,
           pelataran_price_triple: (d.pelataran_package_price as any)?.triple || 0,
@@ -845,166 +937,239 @@ const PackageForm = () => {
     const priceDouble = `${pricePrefix}_double` as any;
     const transportFormField = transportField as any;
 
+    const selectedMakkahHotel = form.watch(makkahHotelField);
+    const selectedMadinahHotel = form.watch(madinahHotelField);
+
     return (
-      <>
-        <Card><CardHeader><CardTitle className="text-primary">{tierLabel}</CardTitle></CardHeader></Card>
-
-        {/* 1. Hotel Makkah */}
-        <Card data-form-section>
-          <CardHeader><CardTitle>Hotel Makkah - {tierLabel}</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField control={form.control} name={makkahHotelField} render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nama Hotel</FormLabel>
-                  <div className="flex gap-2">
-                    <Select onValueChange={(id) => handleHotelChange(id, "makkah", makkahPrefix)} value={makkahHotels.find((h) => h.name === field.value)?.id || "none"}>
-                      <FormControl><SelectTrigger className="flex-1"><SelectValue placeholder="Pilih hotel Makkah" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">Belum dipilih</SelectItem>
-                        {makkahHotels.map((hotel) => (
-                          <SelectItem key={hotel.id} value={hotel.id}>{hotel.name} ({hotel.star_rating}⭐)</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button type="button" variant="outline" size="icon" onClick={() => handleAddHotelClick("makkah", "best_seller")} title="Tambah Hotel Baru">
-                      <Plus className="h-4 w-4" />
-                    </Button>
+      <Card className="border-primary/30 shadow-sm overflow-hidden mb-8" data-form-section>
+        <CardHeader className="bg-primary/5 pb-4 border-b">
+          <CardTitle className="text-xl text-primary">Paket {tierLabel}</CardTitle>
+          <CardDescription>Pengaturan spesifik untuk paket {tierLabel}</CardDescription>
+        </CardHeader>
+        
+        <CardContent className="space-y-8 pt-6">
+          {/* Akomodasi (Hotel) */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">🏨 Kategori Akomodasi</h3>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {/* Hotel Makkah */}
+              <div className="space-y-4 border p-4 rounded-xl bg-card/50">
+                <h4 className="font-semibold text-primary/80 mb-2">Hotel Makkah</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField control={form.control} name={makkahHotelField} render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Hotel <span className="text-destructive">*</span></FormLabel>
+                      <div className="flex gap-2">
+                        <SearchableHotelSelect 
+                          hotels={makkahHotels}
+                          value={field.value}
+                          onValueChange={(id) => handleHotelChange(id, "makkah", makkahPrefix)}
+                          placeholder="Pilih hotel Makkah"
+                        />
+                        <Button type="button" variant="outline" size="icon" onClick={() => handleAddHotelClick("makkah", "best_seller")} title="Tambah Hotel Baru">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  {selectedMakkahHotel && (
+                    <FormField control={form.control} name={makkahStarField} render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bintang Hotel</FormLabel>
+                        <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Pilih bintang" /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            <SelectItem value="3">3 Bintang</SelectItem>
+                            <SelectItem value="4">4 Bintang</SelectItem>
+                            <SelectItem value="5">5 Bintang</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  )}
+                </div>
+                {selectedMakkahHotel && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name={makkahDistField} render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Jarak ke Masjidil Haram</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input {...field} type="number" className="pr-16" placeholder="200" onChange={(e) => field.onChange(e.target.value)} />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">meter</span>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name={makkahWalkField} render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Durasi Jalan Kaki</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input {...field} type="number" className="pr-16" placeholder="10" onChange={(e) => field.onChange(e.target.value)} />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">menit</span>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
                   </div>
-                  <FormMessage />
-                </FormItem>
+                )}
+              </div>
+
+              {/* Hotel Madinah */}
+              <div className="space-y-4 border p-4 rounded-xl bg-card/50">
+                <h4 className="font-semibold text-primary/80 mb-2">Hotel Madinah</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField control={form.control} name={madinahHotelField} render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Hotel <span className="text-destructive">*</span></FormLabel>
+                      <div className="flex gap-2">
+                        <SearchableHotelSelect 
+                          hotels={madinahHotels}
+                          value={field.value}
+                          onValueChange={(id) => handleHotelChange(id, "madinah", madinahPrefix)}
+                          placeholder="Pilih hotel Madinah"
+                        />
+                        <Button type="button" variant="outline" size="icon" onClick={() => handleAddHotelClick("madinah", "best_seller")} title="Tambah Hotel Baru">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  {selectedMadinahHotel && (
+                    <FormField control={form.control} name={madinahStarField} render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bintang Hotel</FormLabel>
+                        <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Pilih bintang" /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            <SelectItem value="3">3 Bintang</SelectItem>
+                            <SelectItem value="4">4 Bintang</SelectItem>
+                            <SelectItem value="5">5 Bintang</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  )}
+                </div>
+                {selectedMadinahHotel && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name={madinahDistField} render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Jarak ke Masjid Nabawi</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input {...field} type="number" className="pr-16" placeholder="100" onChange={(e) => field.onChange(e.target.value)} />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">meter</span>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name={madinahWalkField} render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Durasi Jalan Kaki</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input {...field} type="number" className="pr-16" placeholder="5" onChange={(e) => field.onChange(e.target.value)} />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">menit</span>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Hotel Kota + */}
+            <div className="border p-4 rounded-xl bg-card/50">
+              <FormField control={form.control} name="hotel_extra" render={({ field }) => (
+                <FormItem><FormLabel>Hotel Kota Tambahan (Opsional)</FormLabel><FormControl><Input {...field} placeholder="Hotel transit / kota tambahan" /></FormControl><FormMessage /></FormItem>
               )} />
-              <FormField control={form.control} name={makkahStarField} render={({ field }) => (
+            </div>
+          </div>
+
+          <Separator className="bg-primary/10" />
+
+          {/* Transportasi */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">🚌 Kategori Perjalanan</h3>
+            <div className="border p-4 rounded-xl bg-card/50 md:w-1/2">
+              <FormField control={form.control} name={transportFormField} render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bintang Hotel</FormLabel>
-                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
-                    <FormControl><SelectTrigger><SelectValue placeholder="Pilih bintang" /></SelectTrigger></FormControl>
+                  <FormLabel>Transportasi Makkah-Madinah</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Pilih transportasi" /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="3">3 Bintang</SelectItem>
-                      <SelectItem value="4">4 Bintang</SelectItem>
-                      <SelectItem value="5">5 Bintang</SelectItem>
+                      <SelectItem value="Bus Eksklusif">Bus Eksklusif</SelectItem>
+                      <SelectItem value="Kereta Cepat">Kereta Cepat</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )} />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField control={form.control} name={makkahDistField} render={({ field }) => (
-                <FormItem><FormLabel>Jarak ke Masjidil Haram</FormLabel><FormControl><Input {...field} placeholder="200 meter" /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name={makkahWalkField} render={({ field }) => (
-                <FormItem><FormLabel>Durasi Jalan Kaki</FormLabel><FormControl><Input {...field} placeholder="10 menit" /></FormControl><FormMessage /></FormItem>
-              )} />
-            </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* 2. Hotel Madinah */}
-        <Card data-form-section>
-          <CardHeader><CardTitle>Hotel Madinah - {tierLabel}</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField control={form.control} name={madinahHotelField} render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nama Hotel</FormLabel>
-                  <div className="flex gap-2">
-                    <Select onValueChange={(id) => handleHotelChange(id, "madinah", madinahPrefix)} value={madinahHotels.find((h) => h.name === field.value)?.id || "none"}>
-                      <FormControl><SelectTrigger className="flex-1"><SelectValue placeholder="Pilih hotel Madinah" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">Belum dipilih</SelectItem>
-                        {madinahHotels.map((hotel) => (
-                          <SelectItem key={hotel.id} value={hotel.id}>{hotel.name} ({hotel.star_rating}⭐)</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button type="button" variant="outline" size="icon" onClick={() => handleAddHotelClick("madinah", "best_seller")} title="Tambah Hotel Baru">
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <FormField control={form.control} name={madinahStarField} render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bintang Hotel</FormLabel>
-                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
-                    <FormControl><SelectTrigger><SelectValue placeholder="Pilih bintang" /></SelectTrigger></FormControl>
-                    <SelectContent>
-                      <SelectItem value="3">3 Bintang</SelectItem>
-                      <SelectItem value="4">4 Bintang</SelectItem>
-                      <SelectItem value="5">5 Bintang</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField control={form.control} name={madinahDistField} render={({ field }) => (
-                <FormItem><FormLabel>Jarak ke Masjid Nabawi</FormLabel><FormControl><Input {...field} placeholder="100 meter" /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name={madinahWalkField} render={({ field }) => (
-                <FormItem><FormLabel>Durasi Jalan Kaki</FormLabel><FormControl><Input {...field} placeholder="5 menit" /></FormControl><FormMessage /></FormItem>
-              )} />
-            </div>
-          </CardContent>
-        </Card>
+          <Separator className="bg-primary/10" />
 
-        {/* 3. Hotel Kota + */}
-        <Card data-form-section>
-          <CardHeader><CardTitle>Hotel Kota + - {tierLabel}</CardTitle></CardHeader>
-          <CardContent>
-            <FormField control={form.control} name="hotel_extra" render={({ field }) => (
-              <FormItem><FormLabel>Hotel Kota Tambahan</FormLabel><FormControl><Input {...field} placeholder="Hotel transit / kota tambahan" /></FormControl><FormMessage /></FormItem>
-            )} />
-          </CardContent>
-        </Card>
-
-        {/* 4. Transportasi */}
-        <Card data-form-section>
-          <CardHeader><CardTitle>Transportasi - {tierLabel}</CardTitle></CardHeader>
-          <CardContent>
-            <FormField control={form.control} name={transportFormField} render={({ field }) => (
-              <FormItem>
-                <FormLabel>Transportasi Makkah-Madinah</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl><SelectTrigger><SelectValue placeholder="Pilih transportasi" /></SelectTrigger></FormControl>
-                  <SelectContent>
-                    <SelectItem value="Bus Eksklusif">Bus Eksklusif</SelectItem>
-                    <SelectItem value="Kereta Cepat">Kereta Cepat</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )} />
-          </CardContent>
-        </Card>
-
-        {/* 5. Harga */}
-        <Card data-form-section>
-          <CardHeader><CardTitle>Harga - {tierLabel}</CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField control={form.control} name={priceQuad} render={({ field }) => (
-                <FormItem><FormLabel>Harga Quad (4 orang)</FormLabel><FormControl>
-                  <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="25000000" />
-                </FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name={priceTriple} render={({ field }) => (
-                <FormItem><FormLabel>Harga Triple (3 orang)</FormLabel><FormControl>
-                  <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="27000000" />
-                </FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name={priceDouble} render={({ field }) => (
-                <FormItem><FormLabel>Harga Double (2 orang)</FormLabel><FormControl>
-                  <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="30000000" />
-                </FormControl><FormMessage /></FormItem>
-              )} />
+          {/* Harga */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">💰 Kategori Harga Jual</h3>
+            <div className="border p-4 rounded-xl bg-card/50">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField control={form.control} name={priceQuad} render={({ field }) => (
+                  <FormItem><FormLabel>Harga Quad (4 orang) <span className="text-destructive">*</span></FormLabel><FormControl>
+                    <Input 
+                      type="text" 
+                      value={field.value ? `Rp ${new Intl.NumberFormat('id-ID').format(field.value)}` : ''}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/[^0-9]/g, '');
+                        field.onChange(raw ? parseInt(raw, 10) : 0);
+                      }} 
+                      placeholder="Rp 25.000.000" 
+                    />
+                  </FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name={priceTriple} render={({ field }) => (
+                  <FormItem><FormLabel>Harga Triple (3 orang) <span className="text-destructive">*</span></FormLabel><FormControl>
+                    <Input 
+                      type="text" 
+                      value={field.value ? `Rp ${new Intl.NumberFormat('id-ID').format(field.value)}` : ''}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/[^0-9]/g, '');
+                        field.onChange(raw ? parseInt(raw, 10) : 0);
+                      }} 
+                      placeholder="Rp 27.000.000" 
+                    />
+                  </FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name={priceDouble} render={({ field }) => (
+                  <FormItem><FormLabel>Harga Double (2 orang) <span className="text-destructive">*</span></FormLabel><FormControl>
+                    <Input 
+                      type="text" 
+                      value={field.value ? `Rp ${new Intl.NumberFormat('id-ID').format(field.value)}` : ''}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/[^0-9]/g, '');
+                        field.onChange(raw ? parseInt(raw, 10) : 0);
+                      }} 
+                      placeholder="Rp 30.000.000" 
+                    />
+                  </FormControl><FormMessage /></FormItem>
+                )} />
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </>
+          </div>
+        </CardContent>
+      </Card>
     );
   };
 
@@ -1053,28 +1218,44 @@ const PackageForm = () => {
             <h1 className="text-3xl font-bold">{id ? "Edit Paket" : "Tambah Paket"}</h1>
           <p className="text-muted-foreground">Lengkapi informasi paket umroh</p>
         </div>
-          {/* Package Info */}
+          <Tabs defaultValue="umum" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
+              <TabsTrigger value="umum">Informasi Umum</TabsTrigger>
+              <TabsTrigger value="harga">Harga & Akomodasi</TabsTrigger>
+              <TabsTrigger value="media">Fasilitas & Media</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="umum" className="space-y-8 mt-6">
+              {/* 1. Informasi Dasar */}
           <Card data-form-section>
             <CardHeader>
-              <CardTitle>Informasi Paket</CardTitle>
-              <CardDescription>Detail dasar paket umroh</CardDescription>
+              <CardTitle>Informasi Dasar</CardTitle>
+              <CardDescription>Identitas utama paket umroh</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField control={form.control} name="package_name" render={({ field }) => (
                 <FormItem><FormLabel>Nama Paket *</FormLabel><FormControl><Input {...field} placeholder="Umroh Hemat 9 Hari" /></FormControl><FormMessage /></FormItem>
               )} />
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="timeframe" render={({ field }) => (
-                  <FormItem><FormLabel>Timeframe</FormLabel><FormControl><Input {...field} placeholder="Bulan November" /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>Timeframe <span className="text-destructive">*</span></FormLabel><FormControl><Input {...field} placeholder="Bulan November" /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="slots_total" render={({ field }) => (
-                  <FormItem><FormLabel>Seat (Kuota)</FormLabel><FormControl>
+                  <FormItem><FormLabel>Seat (Kuota) <span className="text-destructive">*</span></FormLabel><FormControl>
                     <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="40" />
                   </FormControl><FormMessage /></FormItem>
                 )} />
               </div>
+            </CardContent>
+          </Card>
 
+          {/* 2. Jadwal & Penerbangan */}
+          <Card data-form-section>
+            <CardHeader>
+              <CardTitle>Jadwal & Penerbangan</CardTitle>
+              <CardDescription>Detail waktu dan rute penerbangan</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -1111,7 +1292,7 @@ const PackageForm = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="start_airport" render={({ field }) => (
-                  <FormItem><FormLabel>Start (Bandara)</FormLabel><FormControl><Input {...field} placeholder="CGK" /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>Start (Bandara) <span className="text-destructive">*</span></FormLabel><FormControl><Input {...field} placeholder="CGK" /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="flight" render={({ field }) => (
                   <FormItem>
@@ -1148,22 +1329,31 @@ const PackageForm = () => {
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="route" render={({ field }) => (
-                  <FormItem><FormLabel>Rute</FormLabel><FormControl><Input {...field} placeholder="JED-MED" /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>Rute <span className="text-destructive">*</span></FormLabel><FormControl><Input {...field} placeholder="JED-MED" /></FormControl><FormMessage /></FormItem>
                 )} />
               </div>
 
               <FormField control={form.control} name="itinerary" render={({ field }) => (
-                <FormItem><FormLabel>Itinerary</FormLabel><FormControl><Input {...field} placeholder="Makkah - Madinah" /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Itinerary <span className="text-destructive">*</span></FormLabel><FormControl><Input {...field} placeholder="Makkah - Madinah" /></FormControl><FormMessage /></FormItem>
               )} />
+            </CardContent>
+          </Card>
 
+          {/* 3. Durasi Menginap */}
+          <Card data-form-section>
+            <CardHeader>
+              <CardTitle>Durasi Menginap</CardTitle>
+              <CardDescription>Lama menetap di setiap kota</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField control={form.control} name="nights_makkah" render={({ field }) => (
-                  <FormItem><FormLabel>Malam Makkah</FormLabel><FormControl>
+                  <FormItem><FormLabel>Malam Makkah <span className="text-destructive">*</span></FormLabel><FormControl>
                     <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="4" />
                   </FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="nights_madinah" render={({ field }) => (
-                  <FormItem><FormLabel>Malam Madinah</FormLabel><FormControl>
+                  <FormItem><FormLabel>Malam Madinah <span className="text-destructive">*</span></FormLabel><FormControl>
                     <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="3" />
                   </FormControl><FormMessage /></FormItem>
                 )} />
@@ -1173,20 +1363,12 @@ const PackageForm = () => {
                   </FormControl><FormMessage /></FormItem>
                 )} />
               </div>
-
-              <FormField control={form.control} name="selling_points" render={({ field }) => (
-                <FormItem><FormLabel>Selling Points</FormLabel><FormControl>
-                  <Textarea {...field} placeholder="Thaif + Romansiah, Fotografer, Quba Night" rows={2} />
-                </FormControl><FormMessage /></FormItem>
-              )} />
-
-              <FormField control={form.control} name="max_discount" render={({ field }) => (
-                <FormItem><FormLabel>Maks Diskon (Rp)</FormLabel><FormControl>
-                  <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="1000000" />
-                </FormControl><FormMessage /></FormItem>
-              )} />
             </CardContent>
           </Card>
+
+            </TabsContent>
+
+            <TabsContent value="harga" className="space-y-8 mt-6">
 
           {/* Tier Selection - clickable boxes */}
           <Card data-form-section>
@@ -1241,8 +1423,39 @@ const PackageForm = () => {
           {hasFiveStar && renderTierSection("Five Star", "five_star_makkah", "five_star_madinah", "five_star_price", "five_star_transport")}
           {hasPelataranHemat && renderTierSection("Pelataran Hemat", "pelataran_makkah", "pelataran_madinah", "pelataran_price", "pelataran_transport")}
 
-          {/* Flyer, Katalog & Itinerary - Uniform layout */}
-          <Card>
+          {/* 4. Promosi & Penjualan */}
+          <Card data-form-section>
+            <CardHeader>
+              <CardTitle>Promosi & Penjualan</CardTitle>
+              <CardDescription>Fasilitas tambahan dan diskon</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField control={form.control} name="selling_points" render={({ field }) => (
+                <FormItem><FormLabel>Selling Points</FormLabel><FormControl>
+                  <Textarea {...field} placeholder="Thaif + Romansiah, Fotografer, Quba Night" rows={2} />
+                </FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="max_discount" render={({ field }) => (
+                <FormItem><FormLabel>Maks Diskon (Rp) <span className="text-destructive">*</span></FormLabel><FormControl>
+                  <Input 
+                    type="text" 
+                    value={field.value ? `Rp ${new Intl.NumberFormat('id-ID').format(field.value)}` : ''}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9]/g, '');
+                      field.onChange(raw ? parseInt(raw, 10) : 0);
+                    }} 
+                    placeholder="Rp 1.000.000" 
+                  />
+                </FormControl><FormMessage /></FormItem>
+              )} />
+            </CardContent>
+          </Card>
+
+            </TabsContent>
+
+            <TabsContent value="media" className="space-y-8 mt-6">
+              {/* Flyer, Katalog & Itinerary - Uniform layout */}
+              <Card>
             <CardHeader>
               <CardTitle>Flyer, Katalog & Itinerary</CardTitle>
               <CardDescription>Upload file dan/atau masukkan link drive</CardDescription>
@@ -1422,6 +1635,8 @@ const PackageForm = () => {
               </div>
             </CardContent>
           </Card>
+            </TabsContent>
+          </Tabs>
         <AddHotelModal
           open={hotelModalOpen}
           onOpenChange={setHotelModalOpen}

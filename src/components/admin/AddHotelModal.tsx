@@ -253,7 +253,10 @@ export const AddHotelModal = ({ open, onOpenChange, location, onSuccess }: AddHo
                   <FormItem>
                     <FormLabel>Jarak ke {location === "makkah" ? "Masjidil Haram" : "Masjid Nabawi"} *</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Contoh: 100 atau 100 meter" />
+                      <div className="relative">
+                        <Input {...field} type="number" className="pr-16" placeholder="100" onChange={(e) => field.onChange(e.target.value)} />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">meter</span>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -267,7 +270,10 @@ export const AddHotelModal = ({ open, onOpenChange, location, onSuccess }: AddHo
                   <FormItem>
                     <FormLabel>Durasi Jalan Kaki *</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Contoh: 5 atau 5 menit" />
+                      <div className="relative">
+                        <Input {...field} type="number" className="pr-16" placeholder="5" onChange={(e) => field.onChange(e.target.value)} />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">menit</span>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
