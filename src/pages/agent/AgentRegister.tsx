@@ -8,17 +8,17 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Eye, EyeOff, Loader2, UserPlus, LogIn, CheckCircle, Phone, Mail, User } from "lucide-react";
 import { toast } from "sonner";
 import musafarLogo from "@/assets/musafar-logo.svg";
+import { AuthLayout } from "@/components/layout/AuthLayout";
 
 const AgentRegister = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { signUp } = useAgentAuth();
+  const { signUp, signInWithGoogle } = useAgentAuth();
   
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    wa_number: "",
     password: "",
     confirmPassword: "",
     referral_code: searchParams.get("ref") || "",
@@ -79,7 +79,7 @@ const AgentRegister = () => {
       name: formData.name,
       email: formData.email,
       phone: formData.phone.replace(/\D/g, ''),
-      wa_number: formData.wa_number.replace(/\D/g, '') || formData.phone.replace(/\D/g, ''),
+      wa_number: formData.phone.replace(/\D/g, ''),
       password: formData.password,
       referral_code: formData.referral_code || undefined,
     });
@@ -126,37 +126,15 @@ const AgentRegister = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4 py-8">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-6">
-          <Link to="/">
-            <img 
-              src={musafarLogo} 
-              alt="Musafar Tour" 
-              className="h-12 mx-auto mb-4"
-            />
-          </Link>
-          <h1 className="text-2xl font-bold text-foreground">Agent Portal</h1>
-          <p className="text-muted-foreground">Daftar menjadi agent Musafar Tour</p>
-        </div>
-
-        <Card className="border-border/50 shadow-xl">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-2xl flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
-              Daftar Agent
-            </CardTitle>
-            <CardDescription>
-              Isi formulir di bawah untuk mendaftar sebagai agent
-            </CardDescription>
-          </CardHeader>
-          
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
+    <AuthLayout
+      title="Daftar Agent"
+      subtitle="Isi formulir di bawah untuk mendaftar sebagai mitra resmi Musafar Tour."
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-3">
               {/* Name */}
               <div className="space-y-2">
-                <Label htmlFor="name">Nama Lengkap</Label>
+                <Label htmlFor="name">Nama Lengkap <span className="text-destructive">*</span></Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -174,7 +152,7 @@ const AgentRegister = () => {
 
               {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -189,46 +167,42 @@ const AgentRegister = () => {
                   />
                 </div>
               </div>
-
               {/* Phone */}
               <div className="space-y-2">
-                <Label htmlFor="phone">Nomor Telepon</Label>
+                <Label htmlFor="phone">Nomor Telepon / WhatsApp <span className="text-destructive">*</span></Label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="phone"
                     name="phone"
                     type="tel"
-                    placeholder="08123456789"
+                    placeholder="081234567890"
                     value={formData.phone}
                     onChange={handleChange}
-                    disabled={loading}
                     className="pl-10"
+                    disabled={loading}
+                    required
                   />
                 </div>
               </div>
 
-              {/* WhatsApp */}
+              {/* Referral Code */}
               <div className="space-y-2">
-                <Label htmlFor="wa_number">Nomor WhatsApp (opsional)</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="wa_number"
-                    name="wa_number"
-                    type="tel"
-                    placeholder="Kosongkan jika sama dengan telepon"
-                    value={formData.wa_number}
-                    onChange={handleChange}
-                    disabled={loading}
-                    className="pl-10"
-                  />
-                </div>
+                <Label htmlFor="referral_code">Kode Referral (opsional)</Label>
+                <Input
+                  id="referral_code"
+                  name="referral_code"
+                  type="text"
+                  placeholder="MUS-XXXXXX"
+                  value={formData.referral_code}
+                  onChange={handleChange}
+                  disabled={loading}
+                  className="uppercase"
+                />
               </div>
-
               {/* Password */}
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -257,7 +231,7 @@ const AgentRegister = () => {
 
               {/* Confirm Password */}
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Konfirmasi Password</Label>
+                <Label htmlFor="confirmPassword">Konfirmasi Password <span className="text-destructive">*</span></Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -283,27 +257,9 @@ const AgentRegister = () => {
                   </Button>
                 </div>
               </div>
+        </div>
 
-              {/* Referral Code */}
-              <div className="space-y-2">
-                <Label htmlFor="referral_code">Kode Referral (opsional)</Label>
-                <Input
-                  id="referral_code"
-                  name="referral_code"
-                  type="text"
-                  placeholder="MUS-XXXXXX"
-                  value={formData.referral_code}
-                  onChange={handleChange}
-                  disabled={loading}
-                  className="uppercase"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Masukkan kode referral jika Anda direkomendasikan oleh agent lain
-                </p>
-              </div>
-            </CardContent>
-
-            <CardFooter className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 mt-4">
               <Button 
                 type="submit" 
                 className="w-full" 
@@ -322,7 +278,30 @@ const AgentRegister = () => {
                 )}
               </Button>
 
-              <div className="text-center text-sm">
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Atau daftar dengan
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={signInWithGoogle}
+              >
+                <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                  <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                </svg>
+                Google
+              </Button>
+
+              <div className="text-center text-sm mt-4">
                 <span className="text-muted-foreground">Sudah punya akun? </span>
                 <Link 
                   to="/agent/login" 
@@ -332,21 +311,9 @@ const AgentRegister = () => {
                   Masuk di sini
                 </Link>
               </div>
-            </CardFooter>
-          </form>
-        </Card>
-
-        {/* Back to home */}
-        <div className="text-center mt-6">
-          <Link 
-            to="/" 
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            ← Kembali ke halaman utama
-          </Link>
         </div>
-      </div>
-    </div>
+      </form>
+    </AuthLayout>
   );
 };
 

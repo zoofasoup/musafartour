@@ -23,6 +23,15 @@ interface Agent {
   status: 'pending' | 'active' | 'suspended';
   created_at: string;
   approved_at: string | null;
+  // Onboarding fields
+  agency_name?: string | null;
+  ktp_number?: string | null;
+  ktp_image_url?: string | null;
+  address?: string | null;
+  city?: string | null;
+  province?: string | null;
+  social_links?: any;
+  experience_level?: string | null;
 }
 
 interface AgentAuthContextType {
@@ -35,6 +44,7 @@ interface AgentAuthContextType {
   signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   refreshAgent: () => void;
+  updateAgentProfile: (data: Partial<Agent>) => Promise<{ success: boolean; error?: string }>;
 }
 
 interface SignUpData {
@@ -112,6 +122,31 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
+
+      // If user exists in auth but not in agents table (e.g. Google Sign In)
+      if (!data && !error && user.email) {
+        const referralCode = await generateReferralCode();
+        // Generate a random dummy phone number to satisfy the UNIQUE constraint 
+        // until they complete onboarding
+        const dummyPhone = `000${Math.floor(Math.random() * 1000000000)}`;
+        
+        const { data: newAgent, error: insertError } = await supabase
+          .from('agents')
+          .insert([{
+            user_id: user.id,
+            email: user.email,
+            phone: dummyPhone,
+            name: user.user_metadata?.full_name || user.email.split('@')[0],
+            referral_code: referralCode,
+            status: 'pending'
+          }])
+          .select()
+          .maybeSingle();
+          
+        if (!insertError && newAgent) {
+          return newAgent as Agent;
+        }
+      }
 
       if (error) {
         console.error("Error fetching agent profile:", error);
@@ -315,6 +350,25 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateAgentProfile = async (data: Partial<Agent>): Promise<{ success: boolean; error?: string }> => {
+    if (!agent?.id) return { success: false, error: 'User tidak ditemukan' };
+    
+    try {
+      const { error } = await supabase
+        .from('agents')
+        .update(data)
+        .eq('id', agent.id);
+
+      if (error) throw error;
+      
+      refreshAgent();
+      return { success: true };
+    } catch (error: any) {
+      console.error("Error updating agent profile:", error);
+      return { success: false, error: error.message || 'Gagal menyimpan profil' };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     queryClient.removeQueries({ queryKey: ['agent-profile'] });
@@ -334,7 +388,8 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
         signIn,
         signInWithGoogle,
         signOut,
-        refreshAgent: () => refreshAgent(),
+        refreshAgent,
+        updateAgentProfile,
       }}
     >
       {children}

@@ -33,8 +33,16 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
     return <Navigate to="/agent/login" state={{ from: location }} replace />;
   }
 
+  const isFullyOnboarded = !!(agent.ktp_number && agent.ktp_image_url && agent.address);
+  const isOnboardingPage = location.pathname === '/agent/onboarding';
+
+  // If not fully onboarded, force redirect to onboarding page
+  if (!isFullyOnboarded && !isOnboardingPage) {
+    return <Navigate to="/agent/onboarding" replace />;
+  }
+
   // Agent not active
-  if (agent.status === 'pending') {
+  if (agent.status === 'pending' && !isOnboardingPage) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="text-center max-w-md">
@@ -71,19 +79,14 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
           <p className="text-muted-foreground mb-6">
             Akun Anda telah dinonaktifkan. Silakan hubungi admin untuk informasi lebih lanjut.
           </p>
-          <a 
-            href="/agent/login" 
-            className="text-primary hover:underline"
-            onClick={(e) => {
-              e.preventDefault();
-              window.location.href = '/agent/login';
-            }}
-          >
-            Kembali ke halaman login
-          </a>
         </div>
       </div>
     );
+  }
+
+  // If it's the onboarding page, render without the AgentLayout sidebar
+  if (isOnboardingPage) {
+    return <>{children}</>;
   }
 
   return <AgentLayout>{children}</AgentLayout>;

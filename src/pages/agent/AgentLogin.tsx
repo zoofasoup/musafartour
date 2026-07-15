@@ -9,7 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff, Loader2, LogIn, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { Toaster } from "sonner";
 import musafarLogo from "@/assets/musafar-logo.svg";
+import { AuthLayout } from "@/components/layout/AuthLayout";
 
 const AgentLogin = () => {
   const navigate = useNavigate();
@@ -63,34 +65,12 @@ const AgentLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <Link to="/">
-            <img 
-              src={musafarLogo} 
-              alt="Musafar Tour" 
-              className="h-12 mx-auto mb-4"
-            />
-          </Link>
-          <h1 className="text-2xl font-bold text-foreground">Agent Portal</h1>
-          <p className="text-muted-foreground">Masuk ke akun agent Anda</p>
-        </div>
-
-        <Card className="border-border/50 shadow-xl">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl flex items-center gap-2">
-              <LogIn className="h-5 w-5" />
-              Login
-            </CardTitle>
-            <CardDescription>
-              Masukkan email dan password untuk melanjutkan
-            </CardDescription>
-          </CardHeader>
-          
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
+    <AuthLayout
+      title="Login Agent"
+      subtitle="Masukkan email dan password untuk melanjutkan ke dasbor Anda."
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -150,10 +130,10 @@ const AgentLogin = () => {
                   Lupa password?
                 </Link>
               </div>
-            </CardContent>
+        </div>
 
-            <CardFooter className="flex flex-col gap-4">
-              <Button 
+        <div className="flex flex-col gap-4 mt-6">
+          <Button 
                 type="submit" 
                 className="w-full" 
                 disabled={loading || googleLoading}
@@ -221,22 +201,9 @@ const AgentLogin = () => {
                   <UserPlus className="h-3 w-3" />
                   Daftar sekarang
                 </Link>
-              </div>
-            </CardFooter>
-          </form>
-        </Card>
-
-        {/* Back to home */}
-        <div className="text-center mt-6">
-          <Link 
-            to="/" 
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            ← Kembali ke halaman utama
-          </Link>
         </div>
-      </div>
-    </div>
+      </form>
+    </AuthLayout>
   );
 };
 

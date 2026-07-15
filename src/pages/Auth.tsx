@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import musafarLogo from "@/assets/musafar-logo.svg";
 import { getSafeErrorMessage } from "@/lib/errorHandler";
 import { z } from "zod";
+import { AuthLayout } from "@/components/layout/AuthLayout";
 
 // Schema untuk login - hanya validasi dasar (tidak enforce aturan password baru)
 const loginSchema = z.object({
@@ -293,143 +294,115 @@ const Auth = () => {
   // Recovery mode - show reset password form
   if (isRecoveryMode) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <img src={musafarLogo} alt="Musafar Tour" className="h-12 mx-auto mb-4" />
-            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <KeyRound className="h-6 w-6 text-primary" />
+      <AuthLayout 
+        title="Reset Password Admin"
+        subtitle="Masukkan password baru Anda di bawah ini."
+      >
+        <form onSubmit={handleUpdatePassword} className="space-y-4">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">Password Baru</Label>
+              <Input
+                id="new-password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="pr-10"
+                placeholder="Minimal 8 karakter"
+              />
             </div>
-            <CardTitle>Reset Password</CardTitle>
-            <CardDescription>Masukkan password baru untuk akun Anda</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleUpdatePassword} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-password">Password Baru</Label>
-                <div className="relative">
-                  <Input
-                    id="new-password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="pr-10"
-                    placeholder="Min. 8 karakter, huruf besar, kecil, angka"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Konfirmasi Password</Label>
-                <div className="relative">
-                  <Input
-                    id="confirm-password"
-                    type={showPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    className="pr-10"
-                    placeholder="Ulangi password baru"
-                  />
-                </div>
-              </div>
-              
-              <div className="text-xs text-muted-foreground space-y-1">
-                <p>Password harus memenuhi kriteria:</p>
-                <ul className="list-disc list-inside space-y-0.5">
-                  <li className={password.length >= 8 ? "text-green-600" : ""}>Minimal 8 karakter</li>
-                  <li className={/[A-Z]/.test(password) ? "text-green-600" : ""}>Mengandung huruf besar</li>
-                  <li className={/[a-z]/.test(password) ? "text-green-600" : ""}>Mengandung huruf kecil</li>
-                  <li className={/[0-9]/.test(password) ? "text-green-600" : ""}>Mengandung angka</li>
-                </ul>
-              </div>
-              
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Konfirmasi Password</Label>
+              <Input
+                id="confirm-password"
+                type={showPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="pr-10"
+                placeholder="Ulangi password baru"
+              />
+            </div>
+          </div>
+          
+          <div className="text-xs text-muted-foreground space-y-1 my-4">
+            <p>Password harus memenuhi kriteria:</p>
+            <ul className="list-disc list-inside space-y-0.5">
+              <li className={password.length >= 8 ? "text-green-600" : ""}>Minimal 8 karakter</li>
+              <li className={/[A-Z]/.test(password) ? "text-green-600" : ""}>Mengandung huruf besar</li>
+              <li className={/[a-z]/.test(password) ? "text-green-600" : ""}>Mengandung huruf kecil</li>
+              <li className={/[0-9]/.test(password) ? "text-green-600" : ""}>Mengandung angka</li>
+            </ul>
+          </div>
+          
+          <div className="flex flex-col gap-3 mt-6">
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Simpan Password Baru
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={() => {
+                setIsRecoveryMode(false);
+                setPassword("");
+                setConfirmPassword("");
+                window.history.replaceState(null, '', window.location.pathname);
+              }}
+            >
+              Batal
+            </Button>
+          </div>
+        </form>
+      </AuthLayout>
+    );
+  }
+
+  return (
+    <AuthLayout
+      title="Admin Portal"
+      subtitle="Kelola paket umroh dan konten website Musafar Tour."
+    >
+      {showForgotPassword ? (
+        <div className="space-y-4">
+          <form onSubmit={handleForgotPassword} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="reset-email">Email</Label>
+              <Input
+                id="reset-email"
+                type="email"
+                placeholder="admin@musafartour.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="flex flex-col gap-3">
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Simpan Password Baru
+                Kirim Link Reset
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 className="w-full"
-                onClick={() => {
-                  setIsRecoveryMode(false);
-                  setPassword("");
-                  setConfirmPassword("");
-                  window.history.replaceState(null, '', window.location.pathname);
-                }}
+                onClick={() => setShowForgotPassword(false)}
               >
-                Batal
+                Kembali ke Login
               </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <img src={musafarLogo} alt="Musafar Tour" className="h-12 mx-auto mb-4" />
-          <CardTitle>Admin Portal</CardTitle>
-          <CardDescription>Kelola paket umroh dan konten website</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {showForgotPassword ? (
-            <div className="space-y-4">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold">Reset Password</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Masukkan email Anda untuk menerima link reset password
-                </p>
-              </div>
-              <form onSubmit={handleForgotPassword} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="reset-email">Email</Label>
-                  <Input
-                    id="reset-email"
-                    type="email"
-                    placeholder="admin@musafartour.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Kirim Link Reset
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full"
-                  onClick={() => setShowForgotPassword(false)}
-                >
-                  Kembali ke Login
-                </Button>
-              </form>
             </div>
-          ) : (
-            <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
+          </form>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <Tabs defaultValue="signin" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="signin">Sign In</TabsTrigger>
+              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            </TabsList>
               
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
@@ -532,11 +505,9 @@ const Auth = () => {
                 </form>
               </TabsContent>
             </Tabs>
-          )}
-
-          <div className="mt-4 pt-4 border-t text-center">
+          <div className="mt-8 pt-6 border-t text-center animate-fade-in">
             <Link to="/admin/setup">
-              <Button variant="ghost" size="sm" className="gap-2">
+              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-primary">
                 <ShieldCheck className="h-4 w-4" />
                 Setup Admin Pertama
               </Button>
@@ -545,9 +516,9 @@ const Auth = () => {
               Belum ada admin? Setup admin pertama dengan kode rahasia
             </p>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      )}
+    </AuthLayout>
   );
 };
 

@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 import { useMarketingPixels } from "./hooks/useMarketingPixels";
@@ -66,6 +66,7 @@ const PublicMarketingKit = lazy(() => import("./pages/PublicMarketingKit"));
 // Agent Portal
 const AgentLogin = lazy(() => import("./pages/agent/AgentLogin"));
 const AgentRegister = lazy(() => import("./pages/agent/AgentRegister"));
+const AgentOnboarding = lazy(() => import("./pages/agent/AgentOnboarding"));
 const AgentDashboard = lazy(() => import("./pages/agent/AgentDashboard"));
 const AgentPackages = lazy(() => import("./pages/agent/AgentPackages"));
 const AgentPackageDetail = lazy(() => import("./pages/agent/AgentPackageDetail"));
@@ -179,8 +180,23 @@ const App = () => (
                   <Route path="/packages" element={<PublicMarketingKit />} />
                   
                   {/* Agent Portal Routes */}
+                  <Route path="/agent" element={
+                    <AgentProtectedRoute>
+                      <Navigate to="/agent/dashboard" replace />
+                    </AgentProtectedRoute>
+                  } />
                   <Route path="/agent/login" element={<AgentLogin />} />
                   <Route path="/agent/register" element={<AgentRegister />} />
+                  <Route
+                    path="/agent/onboarding"
+                    element={
+                      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+                        <AgentProtectedRoute>
+                          <AgentOnboarding />
+                        </AgentProtectedRoute>
+                      </Suspense>
+                    }
+                  />
                   <Route
                     path="/agent/dashboard"
                     element={
