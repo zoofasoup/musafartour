@@ -22,7 +22,8 @@ import {
   Phone,
   Calendar,
   Award,
-  Loader2
+  Loader2,
+  Key
 } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
@@ -68,6 +69,33 @@ const AgentManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  const handleChangePassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("Password minimal 6 karakter");
+      return;
+    }
+    if (!selectedAgent) return;
+    
+    setIsChangingPassword(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-update-password', {
+        body: { userId: selectedAgent.user_id, newPassword }
+      });
+      
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success("Password agent berhasil diubah!");
+      setNewPassword("");
+    } catch (error: any) {
+      toast.error("Gagal mengubah password: Pastikan Edge Function telah ter-deploy (" + error.message + ")");
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
 
   // Fetch agents
   const { data: agents = [], isLoading } = useQuery({
@@ -478,6 +506,48 @@ const AgentManagement = () => {
                     <span>{format(new Date(selectedAgent.approved_at), "dd MMM yyyy HH:mm", { locale: id })}</span>
                   </div>
                 )}
+              </div>
+
+              {/* Account Actions */}
+              <div className="pt-4 border-t">
+                <h4 className="font-medium mb-4">Ubah Password Agent (Super Admin)</h4>
+                <div className="flex gap-2 max-w-md">
+                  <Input 
+                    type="password" 
+                    placeholder="Masukkan password baru..." 
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                  <Button 
+                    onClick={handleChangePassword}
+                    disabled={isChangingPassword || !newPassword}
+                  >
+                    {isChangingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ubah Password"}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  *Catatan: Fitur ini membutuhkan <code>admin-update-password</code> Edge Function yang sudah di-deploy ke Supabase. Jika belum, Anda masih bisa menggunakan fungsi 'Kirim Link Reset Password' atau mendesploy fungsi tersebut.
+                </p>
+                <div className="mt-4 pt-4 border-t flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center gap-2 text-sm h-8"
+                    onClick={async () => {
+                      try {
+                        const { error } = await supabase.auth.resetPasswordForEmail(selectedAgent.email, {
+                          redirectTo: `${window.location.origin}/agent/login?reset=true`,
+                        });
+                        if (error) throw error;
+                        toast.success("Link reset password telah dikirim ke email agent");
+                      } catch (error: any) {
+                        toast.error("Gagal mengirim email reset: " + error.message);
+                      }
+                    }}
+                  >
+                    <Mail className="h-3 w-3" />
+                    Kirim Link Reset
+                  </Button>
+                </div>
               </div>
             </div>
           )}
