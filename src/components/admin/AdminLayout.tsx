@@ -171,7 +171,7 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
           </SidebarMenu>
         </SidebarHeader>
 
-        <SidebarContent>
+        <SidebarContent className="px-2 py-2">
           {menuSections.map((section: any, idx: number) => (
             <SidebarGroup key={idx}>
               {section.label && (
@@ -209,7 +209,7 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
           ))}
         </SidebarContent>
 
-        <SidebarFooter className="p-2 flex flex-col gap-2 border-t border-slate-200/50">
+        <SidebarFooter className="px-4 py-2 flex flex-col gap-2 border-t border-slate-200/50">
           <SidebarMenu>
             <SidebarMenuItem>
               <NotificationDropdown />
