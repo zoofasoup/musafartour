@@ -79,9 +79,9 @@ Deno.serve(async (req) => {
 
     // --- HANDLE POST (Invite Team Member) ---
     if (req.method === 'POST') {
-      const { email, fullName, role } = await req.json();
+      const { email, fullName, role, isResend } = await req.json();
       
-      if (!email || !fullName || !role) {
+      if (!email || (!isResend && !fullName) || !role) {
         return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
@@ -91,13 +91,13 @@ Deno.serve(async (req) => {
       
       let newUserId;
 
-      if (userExists) {
+      if (userExists && !isResend) {
         // If user already exists, just assign the role
         newUserId = userExists.id;
       } else {
-        // Invite new user
+        // Invite new user OR resend invite
         const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-          data: { full_name: fullName, name: fullName }
+          data: { full_name: fullName || userExists?.user_metadata?.full_name, name: fullName || userExists?.user_metadata?.name }
         });
         if (inviteError) throw inviteError;
         newUserId = inviteData.user.id;

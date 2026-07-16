@@ -43,6 +43,7 @@ export default function Team() {
   const [inviting, setInviting] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   // Selected member for actions
   const [selectedMember, setSelectedMember] = useState<any>(null);
@@ -130,6 +131,29 @@ export default function Team() {
       toast.error("Gagal mengubah jabatan", { description: err.message });
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleResendInvite = async (member: any) => {
+    if (!session?.access_token) return;
+
+    try {
+      setResendingId(member.id);
+      const { data, error } = await supabase.functions.invoke('manage-team', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        method: 'POST',
+        body: { email: member.email, role: member.role, isResend: true }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      toast.success("Email terkirim ulang!", { description: `Undangan baru telah dikirim ke ${member.email}` });
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Gagal mengirim ulang email", { description: err.message });
+    } finally {
+      setResendingId(null);
     }
   };
 
@@ -306,6 +330,20 @@ export default function Team() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Aksi</DropdownMenuLabel>
                               <DropdownMenuSeparator />
+                              {!member.confirmed_at && (
+                                <DropdownMenuItem 
+                                  onClick={() => handleResendInvite(member)}
+                                  className="cursor-pointer"
+                                  disabled={resendingId === member.id}
+                                >
+                                  {resendingId === member.id ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <Mail className="h-4 w-4 mr-2" />
+                                  )}
+                                  Kirim Ulang Undangan
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem 
                                 onClick={() => {
                                   setSelectedMember(member);
