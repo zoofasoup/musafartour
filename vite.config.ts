@@ -78,19 +78,19 @@ export default defineConfig(({ mode }) => ({
           'query': ['@tanstack/react-query'],
         },
         assetFileNames: (assetInfo) => {
-          if (!assetInfo.name) return `assets/[name]-[hash][extname]`;
+          if (!assetInfo.name) return `assets/[name]-[hash]-v2[extname]`;
           const info = assetInfo.name.split('.');
           const extType = info[info.length - 1];
           if (/\.(png|jpe?g|webp|svg|gif|tiff|bmp|ico)$/i.test(assetInfo.name)) {
-            return `assets/images/[name]-[hash][extname]`;
+            return `assets/images/[name]-[hash]-v2[extname]`;
           }
           if (/\.(woff2?|eot|ttf|otf)$/i.test(assetInfo.name)) {
-            return `assets/fonts/[name]-[hash][extname]`;
+            return `assets/fonts/[name]-[hash]-v2[extname]`;
           }
-          return `assets/[name]-[hash][extname]`;
+          return `assets/[name]-[hash]-v2[extname]`;
         },
-        chunkFileNames: 'assets/js/[name]-[hash].js',
-        entryFileNames: 'assets/js/[name]-[hash].js',
+        chunkFileNames: 'assets/js/[name]-[hash]-v2.js',
+        entryFileNames: 'assets/js/[name]-[hash]-v2.js',
       },
     },
     cssCodeSplit: true,
