@@ -209,7 +209,7 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
           ))}
         </SidebarContent>
 
-        <SidebarFooter className="px-4 py-2 flex flex-col gap-2 border-t border-slate-200/50">
+        <SidebarFooter className="px-4 pt-2 pb-4 flex flex-col gap-2 border-t border-slate-200/50">
           <SidebarMenu>
             <SidebarMenuItem>
               <NotificationDropdown />
