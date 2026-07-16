@@ -67,7 +67,9 @@ Deno.serve(async (req) => {
           full_name: u.user_metadata?.full_name || u.user_metadata?.name || 'Unknown',
           role: roleMap.get(u.id),
           created_at: u.created_at,
-          last_sign_in_at: u.last_sign_in_at
+          last_sign_in_at: u.last_sign_in_at,
+          confirmed_at: u.confirmed_at,
+          invited_at: u.invited_at
         }));
 
       return new Response(JSON.stringify({ team: teamMembers }), { 

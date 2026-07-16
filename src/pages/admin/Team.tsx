@@ -253,6 +253,7 @@ export default function Team() {
                     <TableHead>Nama</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Terakhir Login</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
@@ -273,6 +274,17 @@ export default function Team() {
                           <Badge variant="outline" className={roleColors[member.role] || "bg-slate-100"}>
                             {roleOptions.find(r => r.value === member.role)?.label || member.role}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {member.confirmed_at ? (
+                            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                              Aktif
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                              Menunggu
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {member.last_sign_in_at ? (
