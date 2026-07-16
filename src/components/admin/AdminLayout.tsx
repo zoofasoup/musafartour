@@ -22,6 +22,7 @@ import {
   SidebarFooter,
   SidebarTrigger,
   useSidebar,
+  SidebarMenuAction,
 } from "@/components/ui/sidebar";
 
 import { AdminHeader as NotificationDropdown } from "./AdminHeader";
@@ -217,40 +218,28 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
 
           <SidebarMenu>
             <SidebarMenuItem>
-              <div className="flex items-center gap-2 hover:bg-slate-200/50 p-1.5 rounded-lg transition-all duration-300 ease-in-out group">
-                 <div 
-                   onClick={(e) => { 
-                     e.preventDefault(); 
-                     const avatars = ["bg-blue-500", "bg-emerald-500", "bg-purple-500", "bg-amber-500", "bg-pink-500", "bg-rose-500", "bg-indigo-500"];
-                     const currentIndex = avatars.indexOf(avatarColor);
-                     setAvatarColor(avatars[(currentIndex + 1) % avatars.length]); 
-                   }}
-                   className={`w-7 h-7 ml-0.5 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 cursor-pointer transition-colors ${avatarColor}`}
-                   title="Ganti Avatar"
-                 >
-                   {(user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email || 'A').charAt(0).toUpperCase()}
-                 </div>
-                 
-                 {open && (
-                   <>
-                     <div className="flex-1 overflow-hidden flex flex-col">
-                       <p className="text-sm font-semibold text-slate-700 truncate w-full group-hover:text-slate-900 leading-tight">
-                         {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email}
-                       </p>
-                       <p className="text-[10px] text-slate-500 leading-tight">Super Admin</p>
-                     </div>
-                     <Button 
-                       variant="ghost" 
-                       size="icon" 
-                       onClick={handleSignOut} 
-                       className="shrink-0 text-slate-400 hover:text-red-600 hover:bg-red-50 h-7 w-7"
-                       title="Log Out"
-                     >
-                       <LogOut className="h-4 w-4" />
-                     </Button>
-                   </>
-                 )}
-              </div>
+              <SidebarMenuButton size="lg" asChild tooltip="Profil" className="hover:bg-slate-200/50 transition-all duration-300">
+                <Link to="/admin/profile">
+                  <div className={`h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${avatarColor}`}>
+                    {(user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email || 'A').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight overflow-hidden">
+                    <span className="truncate font-semibold text-slate-700 group-hover:text-slate-900 leading-tight">
+                      {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email}
+                    </span>
+                    <span className="truncate text-[10px] text-slate-500 leading-tight">Super Admin</span>
+                  </div>
+                </Link>
+              </SidebarMenuButton>
+              {open && (
+                <SidebarMenuAction 
+                  onClick={handleSignOut} 
+                  title="Log Out" 
+                  className="mr-1 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="h-4 w-4" />
+                </SidebarMenuAction>
+              )}
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
