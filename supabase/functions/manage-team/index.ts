@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
         // Invite new user OR resend invite
         const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
           data: { full_name: fullName || userExists?.user_metadata?.full_name, name: fullName || userExists?.user_metadata?.name },
-          redirectTo: 'https://musafartour.com/admin/setup'
+          redirectTo: 'https://musafartour.com/set-password'
         });
         if (inviteError) throw inviteError;
         newUserId = inviteData.user.id;

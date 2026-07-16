@@ -194,6 +194,7 @@ const App = () => (
                   <Route path="/kalkulator/hasil/:id" element={<UmrohCalculatorResult />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/admin/setup" element={<AdminSetup />} />
+                  <Route path="/set-password" element={<SetPassword />} />
                   <Route path="/packages" element={<PublicMarketingKit />} />
                   
                   {/* Agent Portal Routes */}
