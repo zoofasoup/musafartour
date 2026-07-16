@@ -32,13 +32,15 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const { data: userRoleData, error: roleError } = await supabaseAdmin
+    // Verify caller is admin
+    const { data: roleData, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
+      .in('role', ['admin', 'superadmin'])
       .maybeSingle();
-      
-    if (roleError || (userRoleData?.role !== 'superadmin' && userRoleData?.role !== 'admin')) {
+
+    if (roleError || !roleData) {
       return new Response(JSON.stringify({ error: 'Forbidden: Only superadmins can manage team' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 

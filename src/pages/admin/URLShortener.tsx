@@ -573,7 +573,7 @@ const URLShortener = () => {
               <Label htmlFor="original_url">URL Tujuan *</Label>
               <Input
                 id="original_url"
-                placeholder="https://musafar.lovable.app/paket-umroh/..."
+                placeholder="https://musafartour.com/paket-umroh/..."
                 value={formData.original_url}
                 onChange={(e) => setFormData({ ...formData, original_url: e.target.value })}
               />

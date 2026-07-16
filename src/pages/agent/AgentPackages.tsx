@@ -57,6 +57,7 @@ interface Package {
   slots_filled: number | null;
   commission_rate: number | null;
   catalog_link: string | null;
+  tiers_data?: any;
 }
 
 const AgentPackages = () => {
@@ -90,7 +91,11 @@ const AgentPackages = () => {
   };
 
   const getAvgHotelStars = (pkg: Package) => {
-    const stars = [pkg.makkah_hotel_star, pkg.madinah_hotel_star].filter(Boolean) as number[];
+    const baseTier = pkg.tiers_data?.best_seller || {};
+    const stars = [
+      baseTier.makkah_hotel_star || pkg.makkah_hotel_star,
+      baseTier.madinah_hotel_star || pkg.madinah_hotel_star
+    ].filter(Boolean) as number[];
     if (stars.length === 0) return 0;
     return Math.round(stars.reduce((a, b) => a + b, 0) / stars.length);
   };

@@ -25,6 +25,18 @@ serve(async (req) => {
       throw new Error('Unauthorized')
     }
 
+    // Verify caller is admin
+    const { data: roleData, error: roleError } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .in('role', ['admin', 'superadmin'])
+      .maybeSingle()
+
+    if (roleError || !roleData) {
+      throw new Error('Forbidden: Requires admin role')
+    }
+
     const { userId, newPassword } = await req.json()
     if (!userId || !newPassword) {
       throw new Error('Missing required fields')

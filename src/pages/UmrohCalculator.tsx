@@ -1,58 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useCalculatorTiers } from "@/hooks/useCalculatorPackages";
 import {
   buildTierResult,
-  earliestMonthsToDepart,
-  formatIDR,
   formatMonthYear,
   monthlyTargetForGoal,
   pickRecommended,
-  speedUpImpact,
   type CalcInput,
   type TierOption,
   type TierResult,
 } from "@/lib/umrohCalc";
-import {
-  DAILY_MOTIVATION,
-  PRICING_FOOTNOTE,
-  dailyEquivalent,
-  parseTrackingParams,
-} from "@/lib/calcConfig";
+import { parseTrackingParams } from "@/lib/calcConfig";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
 
-// Brand
-const BRAND = {
-  red: "#C8102E",
-  gold: "#FFB100",
-  ink: "#262626",
-  bg: "#F2F3F3",
-  muted: "#989999",
-};
-
-const SAVING_CHIPS = [500_000, 1_000_000, 2_000_000, 3_000_000];
-const TIMEFRAME_CHIPS = [6, 12, 18, 24, 36];
-
-type Mode = "A" | "B";
-
-type Step =
-  | { kind: "intro" }
-  | { kind: "mode" }
-  // Mode A
-  | { kind: "a-q1" }
-  | { kind: "a-q2" }
-  | { kind: "a-q3" }
-  // Mode B
-  | { kind: "b-q1" } // target months
-  | { kind: "b-q2" } // pick package
-  | { kind: "b-q3" } // pilgrims
-  | { kind: "b-q4" } // existing savings
-  | { kind: "computing" }
-  | { kind: "wrapped"; index: number }
-  | { kind: "submitting" };
+import { BRAND, WRAPPED_COUNT, type Mode, type Step } from "@/components/calculator/shared";
+import { Computing } from "@/components/calculator/steps/CommonSteps";
+import { IntroStep, ModePicker } from "@/components/calculator/steps/IntroStep";
+import { Q_Monthly, Q_Pilgrims, Q_Savings, Q_Timeframe, Q_PickPackage } from "@/components/calculator/steps/QuestionSteps";
+import { Wrapped } from "@/components/calculator/steps/WrappedResults";
 
 const leadSchema = z.object({
   name: z.string().trim().min(2, "Nama minimal 2 karakter").max(100),
@@ -63,8 +31,6 @@ const leadSchema = z.object({
     .max(15)
     .regex(/^[0-9+]+$/, "Hanya angka & tanda +"),
 });
-
-const WRAPPED_COUNT = 10;
 
 export default function UmrohCalculator() {
   const navigate = useNavigate();
@@ -180,13 +146,8 @@ export default function UmrohCalculator() {
             return formatMonthYear(d.toISOString());
           })();
 
-    // Unified results array so the result page renders for both modes.
-    const unifiedResults: TierResult[] =
-      mode === "A" ? resultsA : recommendedDisplay ? [recommendedDisplay] : [];
-
-    // monthly_saving is NOT NULL in DB — always send a number.
-    const monthlySavingValue =
-      mode === "A" ? monthly : Math.round(calcB?.monthly ?? 0);
+    const unifiedResults: TierResult[] = mode === "A" ? resultsA : recommendedDisplay ? [recommendedDisplay] : [];
+    const monthlySavingValue = mode === "A" ? monthly : Math.round(calcB?.monthly ?? 0);
 
     const { data, error } = await supabase
       .from("umroh_calculator_leads")
@@ -237,7 +198,6 @@ export default function UmrohCalculator() {
       return;
     }
 
-    // Fire Meta Pixel Lead event (same event_id for CAPI dedup)
     try {
       const fbq = (window as any).fbq;
       if (typeof fbq === "function") {
@@ -248,7 +208,6 @@ export default function UmrohCalculator() {
     navigate(`/kalkulator/hasil/${(data as any).share_token ?? data.id}`);
   };
 
-  // Navigation
   const goNext = () => {
     if (step.kind === "intro") return setStep({ kind: "mode" });
     if (step.kind === "mode") return setStep({ kind: mode === "A" ? "a-q1" : "b-q1" });
@@ -276,7 +235,6 @@ export default function UmrohCalculator() {
       return setStep({ kind: "wrapped", index: step.index - 1 });
   };
 
-  // For Mode B reveal, we need a synthetic recommended TierResult-like object
   const recommendedDisplay: TierResult | null = useMemo(() => {
     if (mode === "A") return recommendedA;
     if (!selectedTier || !calcB) return null;
@@ -328,7 +286,7 @@ export default function UmrohCalculator() {
       <main className="flex-1 flex items-center justify-center px-4 py-2">
         <div className="w-full max-w-2xl">
           <AnimatePresence mode="wait">
-            {step.kind === "intro" && <Intro key="intro" onStart={goNext} />}
+            {step.kind === "intro" && <IntroStep key="intro" onStart={goNext} />}
 
             {step.kind === "mode" && (
               <ModePicker
@@ -345,7 +303,7 @@ export default function UmrohCalculator() {
                 key="a-q1"
                 value={monthly}
                 customOn={customOn}
-                onChange={(v, c) => { setMonthly(v); setCustomOn(c); }}
+                onChange={(v: number, c: boolean) => { setMonthly(v); setCustomOn(c); }}
                 onNext={goNext}
                 onBack={goBack}
                 stepIdx={1} total={3}
@@ -355,7 +313,7 @@ export default function UmrohCalculator() {
               <Q_Pilgrims key="a-q2" value={pilgrims} onChange={setPilgrims} onNext={goNext} onBack={goBack} stepIdx={2} total={3} />
             )}
             {step.kind === "a-q3" && (
-              <Q_Savings key="a-q3" hasSavings={hasSavings} amount={existing} onChange={(h, a) => { setHasSavings(h); setExisting(a); }} onNext={goNext} onBack={goBack} stepIdx={3} total={3} />
+              <Q_Savings key="a-q3" hasSavings={hasSavings} amount={existing} onChange={(h: boolean, a: number) => { setHasSavings(h); setExisting(a); }} onNext={goNext} onBack={goBack} stepIdx={3} total={3} />
             )}
 
             {step.kind === "b-q1" && (
@@ -363,7 +321,7 @@ export default function UmrohCalculator() {
                 key="b-q1"
                 value={targetMonths}
                 customOn={customMonthsOn}
-                onChange={(v, c) => { setTargetMonths(v); setCustomMonthsOn(c); }}
+                onChange={(v: number, c: boolean) => { setTargetMonths(v); setCustomMonthsOn(c); }}
                 onNext={goNext}
                 onBack={goBack}
               />
@@ -383,7 +341,7 @@ export default function UmrohCalculator() {
               <Q_Pilgrims key="b-q3" value={pilgrims} onChange={setPilgrims} onNext={goNext} onBack={goBack} stepIdx={3} total={4} />
             )}
             {step.kind === "b-q4" && (
-              <Q_Savings key="b-q4" hasSavings={hasSavings} amount={existing} onChange={(h, a) => { setHasSavings(h); setExisting(a); }} onNext={goNext} onBack={goBack} stepIdx={4} total={4} />
+              <Q_Savings key="b-q4" hasSavings={hasSavings} amount={existing} onChange={(h: boolean, a: number) => { setHasSavings(h); setExisting(a); }} onNext={goNext} onBack={goBack} stepIdx={4} total={4} />
             )}
 
             {step.kind === "computing" && <Computing key="computing" />}
@@ -422,792 +380,6 @@ export default function UmrohCalculator() {
       <footer className="text-center py-4 text-[11px] tracking-wider uppercase" style={{ color: BRAND.muted }}>
         Musafar · musafartour.com
       </footer>
-    </div>
-  );
-}
-
-/* ---------------- Common ---------------- */
-
-const fade = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
-  transition: { duration: 0.45, ease: "easeOut" as const },
-};
-
-function PrimaryBtn({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean; }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="w-full h-14 rounded-2xl font-semibold text-base transition-transform active:scale-[0.98] disabled:opacity-50"
-      style={{ background: BRAND.red, color: "white", letterSpacing: "-0.01em" }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function GhostBtn({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
-  return (
-    <button onClick={onClick} className="text-sm font-medium underline-offset-4 hover:underline" style={{ color: BRAND.muted }}>
-      {children}
-    </button>
-  );
-}
-
-function Footnote() {
-  return (
-    <div className="text-[10px] leading-snug pt-3" style={{ color: BRAND.muted }}>
-      * {PRICING_FOOTNOTE}
-    </div>
-  );
-}
-
-function Intro({ onStart }: { onStart: () => void }) {
-  return (
-    <motion.div {...fade} className="text-center space-y-8 py-8">
-      <div className="inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest" style={{ background: BRAND.gold + "22", color: BRAND.red }}>
-        Umroh Financial Planner · 60 detik
-      </div>
-      <h1 className="text-5xl md:text-7xl font-black leading-[0.95]" style={{ letterSpacing: "-0.045em", color: BRAND.ink }}>
-        Kapan kamu <br /><span style={{ color: BRAND.red }}>siap umroh?</span>
-      </h1>
-      <p className="text-base md:text-lg max-w-md mx-auto" style={{ color: BRAND.muted, letterSpacing: "-0.015em" }}>
-        Perencana finansial umroh — hitung kapan kamu bisa berangkat, atau berapa harus nabung tiap bulan untuk target tanggalmu.
-      </p>
-      <div className="max-w-xs mx-auto pt-2">
-        <PrimaryBtn onClick={onStart}>Mulai Hitung →</PrimaryBtn>
-      </div>
-    </motion.div>
-  );
-}
-
-function ModePicker({
-  value, onChange, onNext, onBack,
-}: { value: Mode; onChange: (m: Mode) => void; onNext: () => void; onBack: () => void; }) {
-  return (
-    <motion.div {...fade} className="space-y-6 py-4">
-      <div className="flex items-center justify-between">
-        <GhostBtn onClick={onBack}>← Kembali</GhostBtn>
-      </div>
-      <div className="space-y-2">
-        <h2 className="text-3xl md:text-4xl font-black" style={{ letterSpacing: "-0.045em" }}>
-          Pilih cara hitungmu
-        </h2>
-        <p style={{ color: BRAND.muted, letterSpacing: "-0.015em" }}>
-          Dua arah berbeda, hasil sama akuratnya.
-        </p>
-      </div>
-      <div className="grid gap-3">
-        {[
-          { key: "A" as const, title: "Hitung dari Tabungan", desc: "Aku tahu berapa bisa nabung tiap bulan. Kasih tahu kapan bisa berangkat." },
-          { key: "B" as const, title: "Hitung dari Target Tanggal", desc: "Aku mau berangkat dalam waktu tertentu. Hitung berapa harus nabung." },
-        ].map((opt) => {
-          const active = value === opt.key;
-          return (
-            <button
-              key={opt.key}
-              onClick={() => onChange(opt.key)}
-              className="text-left rounded-2xl p-5 transition-all active:scale-[0.99]"
-              style={{
-                background: active ? BRAND.ink : "white",
-                color: active ? "white" : BRAND.ink,
-                border: `2px solid ${active ? BRAND.ink : "#e5e5e5"}`,
-              }}
-            >
-              <div className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-1">Mode {opt.key}</div>
-              <div className="text-xl font-black" style={{ letterSpacing: "-0.03em" }}>{opt.title}</div>
-              <div className="text-sm mt-1 opacity-80">{opt.desc}</div>
-            </button>
-          );
-        })}
-      </div>
-      <PrimaryBtn onClick={onNext}>Lanjut →</PrimaryBtn>
-    </motion.div>
-  );
-}
-
-function StepFrame({
-  step, total, title, subtitle, children, onNext, onBack, canNext = true, nextLabel = "Lanjut →",
-}: any) {
-  return (
-    <motion.div {...fade} className="space-y-6 py-4">
-      <div className="flex items-center justify-between">
-        <GhostBtn onClick={onBack}>← Kembali</GhostBtn>
-        <div className="text-xs font-semibold" style={{ color: BRAND.muted }}>{step}/{total}</div>
-      </div>
-      <div className="space-y-2">
-        <h2 className="text-3xl md:text-4xl font-black" style={{ letterSpacing: "-0.045em" }}>{title}</h2>
-        {subtitle && <p style={{ color: BRAND.muted, letterSpacing: "-0.015em" }}>{subtitle}</p>}
-      </div>
-      <div>{children}</div>
-      <PrimaryBtn onClick={onNext} disabled={!canNext}>{nextLabel}</PrimaryBtn>
-    </motion.div>
-  );
-}
-
-function Q_Monthly({ value, customOn, onChange, onNext, onBack, stepIdx, total }: any) {
-  return (
-    <StepFrame step={stepIdx} total={total} title="Berapa yang bisa kamu sisihkan tiap bulan?" subtitle="Pilih cepat, atau geser slider untuk angka custom." onNext={onNext} onBack={onBack}>
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        {SAVING_CHIPS.map((v) => {
-          const active = !customOn && value === v;
-          return (
-            <button key={v} onClick={() => onChange(v, false)} className="h-16 rounded-2xl font-bold text-lg transition-all active:scale-[0.98]"
-              style={{ background: active ? BRAND.ink : "white", color: active ? "white" : BRAND.ink, border: `2px solid ${active ? BRAND.ink : "#e5e5e5"}`, letterSpacing: "-0.02em" }}>
-              {formatIDR(v)}
-            </button>
-          );
-        })}
-      </div>
-      <button onClick={() => onChange(value, true)} className="w-full h-12 rounded-xl text-sm font-semibold mb-3"
-        style={{ background: customOn ? BRAND.gold + "33" : "transparent", color: BRAND.ink, border: `1.5px dashed ${BRAND.muted}` }}>
-        {customOn ? `Custom: ${formatIDR(value)}` : "Pakai angka custom"}
-      </button>
-      {customOn && (
-        <div className="px-1 pt-2">
-          <input type="range" min={100_000} max={10_000_000} step={100_000} value={value} onChange={(e) => onChange(Number(e.target.value), true)} className="w-full accent-[#C8102E]" />
-          <div className="flex justify-between text-xs mt-2" style={{ color: BRAND.muted }}>
-            <span>Rp 100rb</span><span>Rp 10jt</span>
-          </div>
-        </div>
-      )}
-    </StepFrame>
-  );
-}
-
-function Q_Pilgrims({ value, onChange, onNext, onBack, stepIdx, total }: any) {
-  const opts = [{ v: 1, label: "Saya sendiri" }, { v: 2, label: "Saya + 1 orang" }, { v: -1, label: "Keluarga" }];
-  const isFamily = value >= 3 || (value !== 1 && value !== 2);
-  return (
-    <StepFrame step={stepIdx} total={total} title="Siapa yang berangkat bareng kamu?" subtitle="Total biaya disesuaikan dengan jumlah jamaah." onNext={onNext} onBack={onBack}>
-      <div className="grid grid-cols-1 gap-3 mb-4">
-        {opts.map((o) => {
-          const active = (o.v === 1 && value === 1) || (o.v === 2 && value === 2) || (o.v === -1 && isFamily);
-          return (
-            <button key={o.label} onClick={() => onChange(o.v === -1 ? Math.max(3, value) : o.v)}
-              className="h-16 rounded-2xl font-semibold text-base text-left px-5 transition-all active:scale-[0.98]"
-              style={{ background: active ? BRAND.ink : "white", color: active ? "white" : BRAND.ink, border: `2px solid ${active ? BRAND.ink : "#e5e5e5"}` }}>
-              {o.label}
-            </button>
-          );
-        })}
-      </div>
-      {isFamily && (
-        <div className="rounded-2xl p-4 bg-white border" style={{ borderColor: "#e5e5e5" }}>
-          <div className="text-sm font-semibold mb-3">Total jamaah keluarga</div>
-          <div className="flex items-center gap-4 justify-center">
-            <button onClick={() => onChange(Math.max(3, value - 1))} className="w-12 h-12 rounded-full text-2xl font-black" style={{ background: BRAND.bg, color: BRAND.ink }}>−</button>
-            <div className="text-4xl font-black w-16 text-center" style={{ letterSpacing: "-0.05em" }}>{value}</div>
-            <button onClick={() => onChange(Math.min(20, value + 1))} className="w-12 h-12 rounded-full text-2xl font-black" style={{ background: BRAND.red, color: "white" }}>+</button>
-          </div>
-        </div>
-      )}
-    </StepFrame>
-  );
-}
-
-function Q_Savings({ hasSavings, amount, onChange, onNext, onBack, stepIdx, total }: any) {
-  return (
-    <StepFrame step={stepIdx} total={total} title="Sudah ada tabungan tersisih?" subtitle="Tabungan awal mempercepat keberangkatanmu." onNext={onNext} onBack={onBack}
-      canNext={hasSavings !== null} nextLabel="Lihat Hasilku ✨">
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        {[{ val: false, label: "Belum ada" }, { val: true, label: "Sudah ada" }].map((o) => {
-          const active = hasSavings === o.val;
-          return (
-            <button key={o.label} onClick={() => onChange(o.val, o.val ? amount : 0)} className="h-16 rounded-2xl font-bold text-base transition-all active:scale-[0.98]"
-              style={{ background: active ? BRAND.ink : "white", color: active ? "white" : BRAND.ink, border: `2px solid ${active ? BRAND.ink : "#e5e5e5"}` }}>
-              {o.label}
-            </button>
-          );
-        })}
-      </div>
-      {hasSavings && (
-        <div className="rounded-2xl p-4 bg-white border" style={{ borderColor: "#e5e5e5" }}>
-          <label className="text-sm font-semibold block mb-2">Berapa total tabunganmu saat ini?</label>
-          <div className="flex items-center gap-2">
-            <span className="font-bold" style={{ color: BRAND.muted }}>Rp</span>
-            <input type="number" inputMode="numeric" value={amount || ""} onChange={(e) => onChange(true, Number(e.target.value) || 0)} placeholder="5.000.000"
-              className="w-full h-12 text-2xl font-bold bg-transparent outline-none" style={{ letterSpacing: "-0.02em" }} />
-          </div>
-        </div>
-      )}
-    </StepFrame>
-  );
-}
-
-function Q_Timeframe({ value, customOn, onChange, onNext, onBack }: any) {
-  return (
-    <StepFrame step={1} total={4} title="Mau berangkat dalam berapa lama?" subtitle="Pilih cepat, atau geser slider untuk custom." onNext={onNext} onBack={onBack}>
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        {TIMEFRAME_CHIPS.map((m) => {
-          const active = !customOn && value === m;
-          return (
-            <button key={m} onClick={() => onChange(m, false)} className="h-16 rounded-2xl font-bold transition-all active:scale-[0.98]"
-              style={{ background: active ? BRAND.ink : "white", color: active ? "white" : BRAND.ink, border: `2px solid ${active ? BRAND.ink : "#e5e5e5"}`, letterSpacing: "-0.02em" }}>
-              <div className="text-2xl font-black leading-none">{m}</div>
-              <div className="text-[10px] uppercase tracking-widest mt-1 opacity-80">bulan</div>
-            </button>
-          );
-        })}
-      </div>
-      <button onClick={() => onChange(value, true)} className="w-full h-12 rounded-xl text-sm font-semibold mb-3"
-        style={{ background: customOn ? BRAND.gold + "33" : "transparent", color: BRAND.ink, border: `1.5px dashed ${BRAND.muted}` }}>
-        {customOn ? `Custom: ${value} bulan` : "Pakai durasi custom"}
-      </button>
-      {customOn && (
-        <div className="px-1 pt-2">
-          <input type="range" min={3} max={60} step={1} value={value} onChange={(e) => onChange(Number(e.target.value), true)} className="w-full accent-[#C8102E]" />
-          <div className="flex justify-between text-xs mt-2" style={{ color: BRAND.muted }}>
-            <span>3 bln</span><span>60 bln</span>
-          </div>
-        </div>
-      )}
-    </StepFrame>
-  );
-}
-
-function Q_PickPackage({ tiers, selected, onSelect, onNext, onBack, loading }: any) {
-  return (
-    <StepFrame step={2} total={4} title="Mau paket yang mana?" subtitle="Pilih tier yang sesuai impianmu." onNext={onNext} onBack={onBack} canNext={!!selected}>
-      <div className="grid gap-3">
-        {loading && <div className="text-sm" style={{ color: BRAND.muted }}>Memuat paket…</div>}
-        {!loading && tiers.length === 0 && <div className="text-sm" style={{ color: BRAND.muted }}>Belum ada paket tersedia.</div>}
-        {tiers.map((t: TierOption) => {
-          const active = selected?.tier === t.tier;
-          return (
-            <button key={t.tier} onClick={() => onSelect(t)}
-              className="text-left rounded-2xl p-4 transition-all active:scale-[0.99] flex items-center justify-between gap-3"
-              style={{ background: active ? BRAND.red : "white", color: active ? "white" : BRAND.ink, border: `2px solid ${active ? BRAND.red : "#e5e5e5"}` }}>
-              <div>
-                <div className="text-base font-black uppercase tracking-wide" style={{ letterSpacing: "-0.02em" }}>{t.label}</div>
-                <div className="text-xs opacity-80 mt-0.5">{formatIDR(t.pricePerPerson)}/jamaah</div>
-              </div>
-              <div className="text-[10px] uppercase tracking-widest opacity-70">{active ? "Dipilih" : "Pilih"}</div>
-            </button>
-          );
-        })}
-      </div>
-      <Footnote />
-    </StepFrame>
-  );
-}
-
-function Computing({ label = "Menghitung rencanamu…" }: { label?: string }) {
-  return (
-    <motion.div {...fade} className="text-center py-24 space-y-6">
-      <div className="flex justify-center">
-        <div className="w-16 h-16 rounded-full border-4 animate-spin" style={{ borderColor: BRAND.bg, borderTopColor: BRAND.red }} />
-      </div>
-      <div className="text-lg font-semibold" style={{ letterSpacing: "-0.02em" }}>{label}</div>
-    </motion.div>
-  );
-}
-
-/* ---------------- Wrapped slides ---------------- */
-
-function Wrapped(props: {
-  index: number; total: number; mode: Mode;
-  perDay: number; perWeek: number; perMonth: number;
-  results: TierResult[]; recommended: TierResult;
-  input: CalcInput;
-  leadName: string; leadWa: string; companion: string;
-  errors: { name?: string; whatsapp?: string };
-  onNameChange: (s: string) => void; onWaChange: (s: string) => void; onCompanionChange: (s: string) => void;
-  onNext: () => void; onBack: () => void; onSubmit: () => void; onReset: () => void;
-}) {
-  const { index, total, mode, perDay, perWeek, perMonth, results, recommended, input,
-    leadName, leadWa, companion, errors, onNameChange, onWaChange, onCompanionChange,
-    onNext, onBack, onSubmit, onReset } = props;
-
-  return (
-    <motion.div key={index} {...fade} className="relative">
-      <div className="flex gap-1.5 mb-6">
-        {Array.from({ length: total }).map((_, i) => (
-          <div key={i} className="flex-1 h-1 rounded-full" style={{ background: i <= index ? BRAND.red : "#e5e5e5" }} />
-        ))}
-      </div>
-
-      <div className="rounded-3xl p-8 md:p-10 min-h-[440px] flex flex-col justify-center relative overflow-hidden"
-        style={{ background: "white", boxShadow: "0 20px 60px -20px rgba(0,0,0,0.15)" }}>
-        {index === 0 && <CardHero perDay={perDay} perWeek={perWeek} perMonth={perMonth} mode={mode} />}
-        {index === 1 && <CardReframe perDay={perDay} />}
-        {index === 2 && <CardHabitSim input={input} recommended={recommended} />}
-        {index === 3 && (mode === "A"
-          ? <CardLadder results={results} recommended={recommended} />
-          : <CardTargetDate recommended={recommended} perMonth={perMonth} />)}
-        {index === 4 && <CardTimeline recommended={recommended} />}
-        {index === 5 && <CardLockPrice />}
-        {index === 6 && <CardVsMusafar perMonth={perMonth} />}
-        {index === 7 && <CardCountdown recommended={recommended} />}
-        {index === 8 && <CardShare recommended={recommended} perDay={perDay} leadName={leadName} companion={companion} onCompanionChange={onCompanionChange} />}
-        {index === 9 && (
-          <CardLead recommended={recommended} leadName={leadName} leadWa={leadWa} errors={errors}
-            onNameChange={onNameChange} onWaChange={onWaChange} onSubmit={onSubmit} onReset={onReset} />
-        )}
-      </div>
-
-      <div className="flex items-center justify-between mt-6 px-1">
-        <GhostBtn onClick={onBack}>← Kembali</GhostBtn>
-        {index < total - 1 ? (
-          <button onClick={onNext} className="h-12 px-6 rounded-full font-semibold text-sm active:scale-[0.98] transition-transform"
-            style={{ background: BRAND.ink, color: "white" }}>
-            Lanjut →
-          </button>
-        ) : (
-          <span className="text-xs" style={{ color: BRAND.muted }}>Isi data untuk simpan</span>
-        )}
-      </div>
-    </motion.div>
-  );
-}
-
-function CardHero({ perDay, perWeek, perMonth, mode }: { perDay: number; perWeek: number; perMonth: number; mode: Mode }) {
-  return (
-    <div className="space-y-6 text-center">
-      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>
-        {mode === "A" ? "Targetmu, dibagi per hari" : "Kamu harus nabung"}
-      </div>
-      <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.7, ease: "easeOut" as const }}>
-        <div className="text-6xl md:text-8xl font-black" style={{ color: BRAND.red, letterSpacing: "-0.055em", lineHeight: 0.9 }}>
-          {formatIDR(perDay)}
-        </div>
-        <div className="text-sm font-semibold mt-1" style={{ color: BRAND.muted }}>per hari</div>
-      </motion.div>
-      <div className="flex justify-center gap-6 pt-4">
-        <Stat label="Per minggu" value={formatIDR(perWeek)} />
-        <div className="w-px bg-neutral-200" />
-        <Stat label="Per bulan" value={formatIDR(perMonth)} />
-      </div>
-      <Footnote />
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div className="text-xs uppercase tracking-wider" style={{ color: BRAND.muted }}>{label}</div>
-      <div className="text-lg font-bold" style={{ letterSpacing: "-0.02em" }}>{value}</div>
-    </div>
-  );
-}
-
-function CardReframe({ perDay }: { perDay: number }) {
-  return (
-    <div className="space-y-6 text-center">
-      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>Konteksnya begini…</div>
-      <div className="text-3xl md:text-5xl font-black leading-tight" style={{ letterSpacing: "-0.04em" }}>
-        {dailyEquivalent(perDay)}
-      </div>
-      <div className="text-base mt-4" style={{ color: BRAND.muted, letterSpacing: "-0.015em" }}>{DAILY_MOTIVATION}</div>
-    </div>
-  );
-}
-
-function CardLadder({ results, recommended }: { results: TierResult[]; recommended: TierResult }) {
-  return (
-    <div className="space-y-5">
-      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>Tangga keberangkatanmu</div>
-      <div className="text-2xl md:text-3xl font-black" style={{ letterSpacing: "-0.04em" }}>
-        Insya Allah, kamu bisa berangkat di tanggal ini:
-      </div>
-      <div className="space-y-2.5 pt-2">
-        {results.map((r) => {
-          const isRec = r.tier === recommended.tier;
-          return (
-            <div key={r.tier} className="rounded-2xl px-4 py-3.5 flex items-center justify-between gap-3"
-              style={{ background: isRec ? BRAND.red : "white", color: isRec ? "white" : BRAND.ink, border: `2px solid ${isRec ? BRAND.red : "#eee"}` }}>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold uppercase tracking-wide">{r.label}</span>
-                  {isRec && <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full" style={{ background: BRAND.gold, color: BRAND.ink }}>Cocok</span>}
-                </div>
-                <div className="text-xs opacity-80 mt-0.5 truncate">
-                  {r.monthsRequired >= 999 ? "Perlu tambahan tabungan" : `${r.monthsRequired} bulan menabung`}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-base md:text-lg font-black" style={{ letterSpacing: "-0.03em" }}>
-                  {r.monthsRequired >= 999 ? "—" : r.feasibleLabel}
-                </div>
-                <div className="text-[10px] uppercase tracking-widest opacity-75">{formatIDR(r.pricePerPerson)}/jamaah</div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <Footnote />
-    </div>
-  );
-}
-
-function CardTargetDate({ recommended, perMonth }: { recommended: TierResult; perMonth: number }) {
-  return (
-    <div className="space-y-5 text-center">
-      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>Target keberangkatanmu</div>
-      <div className="text-4xl md:text-6xl font-black" style={{ color: BRAND.red, letterSpacing: "-0.05em", lineHeight: 0.95 }}>
-        {recommended.feasibleLabel}
-      </div>
-      <div className="inline-block px-4 py-1.5 rounded-full text-sm font-bold" style={{ background: BRAND.gold + "33", color: BRAND.ink }}>
-        Paket {recommended.label} · {formatIDR(recommended.pricePerPerson)}/jamaah
-      </div>
-      <div className="text-base pt-2" style={{ color: BRAND.ink }}>
-        Dengan menabung <b>{formatIDR(perMonth)}</b>/bulan, kamu akan siap berangkat tepat waktu insya Allah.
-      </div>
-      <Footnote />
-    </div>
-  );
-}
-
-function CardTimeline({ recommended }: { recommended: TierResult }) {
-  const months = recommended.monthsRequired >= 999 ? 24 : recommended.monthsRequired;
-  const milestones = [
-    { pct: 25, label: `Bulan ke-${Math.max(1, Math.round(months * 0.25))}`, note: "Mulai konsisten 💪" },
-    { pct: 50, label: `Bulan ke-${Math.round(months * 0.5)}`, note: "Setengah jalan ✨" },
-    { pct: 75, label: `Bulan ke-${Math.round(months * 0.75)}`, note: "Pelunasan dimulai 📦" },
-    { pct: 100, label: recommended.feasibleLabel, note: "Berangkat insya Allah 🕋" },
-  ];
-  return (
-    <div className="space-y-5">
-      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>Timeline tabunganmu</div>
-      <div className="text-2xl md:text-3xl font-black" style={{ letterSpacing: "-0.04em" }}>
-        Dari hari ini sampai berangkat
-      </div>
-      <div className="relative h-2 rounded-full bg-neutral-200 my-4">
-        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: "100%", background: `linear-gradient(90deg, ${BRAND.gold}, ${BRAND.red})` }} />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        {milestones.map((m) => (
-          <div key={m.pct} className="rounded-2xl p-3" style={{ background: BRAND.bg }}>
-            <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: BRAND.red }}>{m.pct}%</div>
-            <div className="text-sm font-bold mt-1" style={{ letterSpacing: "-0.02em" }}>{m.label}</div>
-            <div className="text-xs mt-0.5" style={{ color: BRAND.muted }}>{m.note}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function CardLockPrice() {
-  return (
-    <div className="space-y-5 text-center">
-      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>Kenapa mulai sekarang?</div>
-      <div className="text-3xl md:text-4xl font-black leading-tight" style={{ letterSpacing: "-0.04em" }}>
-        Harga umroh cenderung <span style={{ color: BRAND.red }}>naik tiap tahun</span>.
-      </div>
-      <div className="text-base max-w-md mx-auto" style={{ color: BRAND.muted, letterSpacing: "-0.015em" }}>
-        Mulai sedini mungkin = harga lebih terkunci, dan kamu lebih terlindungi dari kenaikan biaya tiket, hotel, dan kurs USD.
-      </div>
-      <Footnote />
-    </div>
-  );
-}
-
-function CardVsMusafar({ perMonth }: { perMonth: number }) {
-  return (
-    <div className="space-y-5">
-      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>Nabung sendiri vs Program Musafar</div>
-      <div className="text-2xl md:text-3xl font-black" style={{ letterSpacing: "-0.04em" }}>
-        Lebih ringan kalau terstruktur.
-      </div>
-      <div className="grid grid-cols-2 gap-3 pt-2">
-        <div className="rounded-2xl p-4" style={{ background: BRAND.bg }}>
-          <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: BRAND.muted }}>Sendiri</div>
-          <div className="text-base font-bold mt-2">Nabung manual, harga ikut pasar saat lunas.</div>
-        </div>
-        <div className="rounded-2xl p-4" style={{ background: BRAND.red, color: "white" }}>
-          <div className="text-[10px] font-black uppercase tracking-widest opacity-80">Program Musafar</div>
-          <div className="text-base font-bold mt-2">Setoran terjadwal, harga lebih terjaga, dibimbing tim CS.</div>
-        </div>
-      </div>
-      <div className="text-sm pt-2" style={{ color: BRAND.muted }}>
-        Target nabungmu {formatIDR(perMonth)}/bulan bisa diatur otomatis lewat program kami.
-      </div>
-    </div>
-  );
-}
-
-function CardShare({ recommended, perDay, leadName, companion, onCompanionChange }: {
-  recommended: TierResult; perDay: number; leadName: string; companion: string; onCompanionChange: (s: string) => void;
-}) {
-  const dedicatedTo = companion.trim() || "Diri sendiri & keluarga";
-
-  return (
-    <div className="space-y-5">
-      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>
-        Niatkan perjalananmu
-      </div>
-      <div className="text-2xl md:text-3xl font-black leading-tight" style={{ letterSpacing: "-0.04em" }}>
-        Untuk siapa kamu niatkan umroh ini?
-      </div>
-      <input
-        value={companion}
-        onChange={(e) => onCompanionChange(e.target.value.slice(0, 60))}
-        placeholder="cth. Ayah, Ibu, atau diri sendiri"
-        className="w-full h-12 rounded-2xl px-4 text-sm font-semibold bg-neutral-50 outline-none border-2 border-transparent focus:border-neutral-900 transition"
-      />
-
-      <div className="flex justify-center pt-2">
-        <div
-          style={{
-            width: 290, height: 510,
-            background: `
-              radial-gradient(circle at 20% 0%, ${BRAND.red}55 0%, transparent 45%),
-              radial-gradient(circle at 90% 100%, ${BRAND.gold}40 0%, transparent 50%),
-              linear-gradient(160deg, #1a1a1a 0%, ${BRAND.ink} 60%, #0a0a0a 100%)
-            `,
-            color: "white",
-            fontFamily: "'Onest', system-ui, sans-serif",
-            padding: 24,
-            borderRadius: 28,
-            display: "flex", flexDirection: "column", justifyContent: "space-between",
-            boxShadow: "0 30px 80px -20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          {/* Decorative ring */}
-          <div style={{
-            position: "absolute", top: -60, right: -60,
-            width: 180, height: 180, borderRadius: "50%",
-            border: `1px solid ${BRAND.gold}33`,
-          }} />
-          <div style={{
-            position: "absolute", top: -90, right: -90,
-            width: 240, height: 240, borderRadius: "50%",
-            border: `1px solid ${BRAND.gold}1a`,
-          }} />
-
-          <div style={{ position: "relative" }}>
-            <div style={{
-              display: "inline-block",
-              fontSize: 9, fontWeight: 900, letterSpacing: 2.5,
-              color: BRAND.gold, textTransform: "uppercase",
-              padding: "5px 10px", borderRadius: 999,
-              background: `${BRAND.gold}1a`,
-              border: `1px solid ${BRAND.gold}33`,
-            }}>
-              ✦ Niat Perjalanan
-            </div>
-            <div style={{ fontSize: 11, fontWeight: 600, marginTop: 18, opacity: 0.55, letterSpacing: 1.2, textTransform: "uppercase" }}>
-              Atas nama
-            </div>
-            <div style={{ fontSize: 16, fontWeight: 800, marginTop: 2, letterSpacing: "-0.02em" }}>
-              {leadName || "Calon Tamu Allah"}
-            </div>
-          </div>
-
-          <div style={{ position: "relative", textAlign: "center", padding: "8px 0" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", opacity: 0.55, marginBottom: 8 }}>
-              Diniatkan untuk
-            </div>
-            <div style={{
-              fontSize: 32, fontWeight: 900, lineHeight: 1.05,
-              letterSpacing: "-0.035em", color: BRAND.gold,
-              padding: "0 4px",
-              textShadow: `0 2px 20px ${BRAND.gold}33`,
-            }}>
-              {dedicatedTo}
-            </div>
-            <div style={{
-              width: 40, height: 2, background: BRAND.gold,
-              margin: "14px auto 0", borderRadius: 2, opacity: 0.6,
-            }} />
-          </div>
-
-          <div style={{ position: "relative" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.55 }}>
-              Insya Allah berangkat
-            </div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: "white", lineHeight: 0.95, letterSpacing: "-0.04em", marginTop: 4 }}>
-              {recommended.feasibleLabel}
-            </div>
-            <div style={{
-              marginTop: 10, paddingTop: 12,
-              borderTop: `1px solid rgba(255,255,255,0.1)`,
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-            }}>
-              <div style={{ fontSize: 10, opacity: 0.6 }}>
-                Paket {recommended.label}
-              </div>
-              <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.5, opacity: 0.5, textTransform: "uppercase" }}>
-                musafartour.com
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <p className="text-xs text-center pt-1" style={{ color: BRAND.muted, letterSpacing: "-0.01em" }}>
-        Niatkan dengan tulus — Allah Maha Mendengar setiap doa. 🤍
-      </p>
-    </div>
-  );
-}
-
-/* ---------------- Habit Simulator ---------------- */
-const HABITS = [
-  { key: "kopi", label: "Kopi kekinian", emoji: "☕", perMonth: 25_000 * 12 }, // ~3x/week
-  { key: "rokok", label: "Rokok harian", emoji: "🚬", perMonth: 25_000 * 30 },
-  { key: "ojol", label: "Ojol harian", emoji: "🛵", perMonth: 30_000 * 22 },
-  { key: "stream", label: "Streaming", emoji: "📺", perMonth: 50_000 },
-];
-
-function CardHabitSim({ input, recommended }: { input: CalcInput; recommended: TierResult }) {
-  const [picked, setPicked] = useState<Record<string, boolean>>({});
-  const bonus = HABITS.reduce((s, h) => s + (picked[h.key] ? h.perMonth : 0), 0);
-
-  const totalNeeded = recommended.pricePerPerson * input.pilgrimCount;
-  const baseline = recommended.monthsRequired;
-  const boosted = bonus > 0
-    ? earliestMonthsToDepart(totalNeeded, input.monthlySaving + bonus, input.existingSavings, input.pilgrimCount)
-    : baseline;
-  const saved = Math.max(0, baseline - boosted);
-  const newDate = (() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() + boosted);
-    return formatMonthYear(d.toISOString());
-  })();
-
-  return (
-    <div className="space-y-5">
-      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>
-        Geser kebiasaanmu, lihat keajaibannya
-      </div>
-      <div className="text-2xl md:text-3xl font-black leading-tight" style={{ letterSpacing: "-0.04em" }}>
-        Skip 1 kebiasaan, berangkat lebih cepat.
-      </div>
-      <div className="grid grid-cols-2 gap-2.5">
-        {HABITS.map((h) => {
-          const on = !!picked[h.key];
-          return (
-            <button
-              key={h.key}
-              onClick={() => setPicked((p) => ({ ...p, [h.key]: !p[h.key] }))}
-              className="rounded-2xl p-3 text-left transition-all active:scale-[0.98]"
-              style={{
-                background: on ? BRAND.ink : "white",
-                color: on ? "white" : BRAND.ink,
-                border: `2px solid ${on ? BRAND.ink : "#e5e5e5"}`,
-              }}
-            >
-              <div className="text-xl">{h.emoji}</div>
-              <div className="text-xs font-bold mt-1" style={{ letterSpacing: "-0.01em" }}>{h.label}</div>
-              <div className="text-[10px] opacity-70 mt-0.5">+{formatIDR(h.perMonth)}/bln</div>
-            </button>
-          );
-        })}
-      </div>
-      <div className="rounded-2xl p-4" style={{ background: bonus > 0 ? BRAND.gold + "33" : BRAND.bg }}>
-        {bonus > 0 ? (
-          <>
-            <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: BRAND.red }}>
-              Berangkat {saved} bulan lebih cepat ✨
-            </div>
-            <div className="text-2xl font-black mt-1" style={{ letterSpacing: "-0.03em", color: BRAND.ink }}>
-              {newDate}
-            </div>
-            <div className="text-xs mt-1" style={{ color: BRAND.muted }}>
-              Niat baik berbuah jalan ke Baitullah.
-            </div>
-          </>
-        ) : (
-          <div className="text-sm" style={{ color: BRAND.muted }}>
-            Pilih satu kebiasaan untuk lihat dampaknya ke tanggal berangkatmu.
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ---------------- Live Countdown ---------------- */
-function CardCountdown({ recommended }: { recommended: TierResult }) {
-  const target = useMemo(() => new Date(recommended.feasibleDate).getTime(), [recommended.feasibleDate]);
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  const diff = Math.max(0, target - now);
-  const days = Math.floor(diff / 86400000);
-  const hours = Math.floor((diff % 86400000) / 3600000);
-  const mins = Math.floor((diff % 3600000) / 60000);
-  const secs = Math.floor((diff % 60000) / 1000);
-  const pad = (n: number) => String(n).padStart(2, "0");
-
-  return (
-    <div className="space-y-5 text-center relative" style={{
-      background: `radial-gradient(circle at 50% 30%, ${BRAND.gold}22 0%, transparent 60%)`,
-      margin: -32, padding: 32, borderRadius: 24,
-    }}>
-      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>
-        Hitung mundur ke Baitullah
-      </div>
-      <div className="text-5xl md:text-7xl font-black" style={{ color: BRAND.red, letterSpacing: "-0.05em", lineHeight: 0.95 }}>
-        {days.toLocaleString("id-ID")}
-      </div>
-      <div className="text-sm font-bold uppercase tracking-widest" style={{ color: BRAND.ink }}>
-        hari lagi
-      </div>
-      <div className="flex justify-center gap-2 pt-2">
-        {[
-          { v: hours, l: "Jam" }, { v: mins, l: "Menit" }, { v: secs, l: "Detik" },
-        ].map((u) => (
-          <div key={u.l} className="rounded-xl px-3 py-2" style={{ background: BRAND.ink, color: "white", minWidth: 64 }}>
-            <div className="text-2xl font-black tabular-nums" style={{ letterSpacing: "-0.03em" }}>{pad(u.v)}</div>
-            <div className="text-[9px] uppercase tracking-widest opacity-70 mt-0.5">{u.l}</div>
-          </div>
-        ))}
-      </div>
-      <div className="text-sm pt-3" style={{ color: BRAND.muted, letterSpacing: "-0.015em" }}>
-        Tiap detik yang lewat = satu langkah lebih dekat. InsyaAllah {recommended.feasibleLabel}.
-      </div>
-    </div>
-  );
-}
-
-function CardLead({ recommended, leadName, leadWa, errors, onNameChange, onWaChange, onSubmit, onReset }: any) {
-  return (
-    <div className="space-y-5">
-      <div className="text-xs font-bold uppercase tracking-widest" style={{ color: BRAND.muted }}>Simpan & terima detail paket</div>
-      <div className="text-2xl md:text-3xl font-black leading-tight" style={{ letterSpacing: "-0.04em" }}>
-        Mau kami kirim rencana ini ke WhatsApp kamu?
-      </div>
-      <p className="text-sm" style={{ color: BRAND.muted, letterSpacing: "-0.015em" }}>
-        Plus detail paket <b>{recommended.label}</b> & link hasilmu yang bisa dibuka kapan saja.
-      </p>
-      <div className="space-y-3 pt-2">
-        <div>
-          <input value={leadName} onChange={(e) => onNameChange(e.target.value)} placeholder="Nama lengkap"
-            className="w-full h-14 rounded-2xl px-4 text-base font-semibold bg-neutral-50 outline-none border-2 border-transparent focus:border-neutral-900 transition" />
-          {errors.name && <div className="text-xs mt-1 px-1" style={{ color: BRAND.red }}>{errors.name}</div>}
-        </div>
-        <div>
-          <input value={leadWa} onChange={(e) => onWaChange(e.target.value)} placeholder="Nomor WhatsApp (08…)" inputMode="tel"
-            className="w-full h-14 rounded-2xl px-4 text-base font-semibold bg-neutral-50 outline-none border-2 border-transparent focus:border-neutral-900 transition" />
-          {errors.whatsapp && <div className="text-xs mt-1 px-1" style={{ color: BRAND.red }}>{errors.whatsapp}</div>}
-        </div>
-        <button onClick={onSubmit} className="w-full h-14 rounded-2xl font-bold text-base active:scale-[0.98] transition-transform"
-          style={{ background: BRAND.red, color: "white" }}>
-          Simpan Rencanaku →
-        </button>
-        <button
-          onClick={() => {
-            if (window.confirm("Hitung untuk orang baru? Data yang belum dikirim akan hilang.")) onReset();
-          }}
-          className="w-full h-12 rounded-2xl font-semibold text-sm active:scale-[0.98] transition-transform"
-          style={{ background: "white", color: BRAND.ink, border: `1.5px solid #e5e5e5` }}
-        >
-          ↻ Hitung untuk orang lain
-        </button>
-        <div className="text-[11px] text-center pt-1" style={{ color: BRAND.muted }}>
-          Data kamu aman. Kami tidak spam.
-        </div>
-      </div>
     </div>
   );
 }

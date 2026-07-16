@@ -76,7 +76,7 @@ const ShortLinkRedirect = () => {
         // Check if it's an internal or external link
         if (redirectUrl.startsWith('/')) {
           navigate(redirectUrl, { replace: true });
-        } else if (redirectUrl.includes('musafar.lovable.app')) {
+        } else if (redirectUrl.includes('musafartour.com')) {
           // Internal link with full URL
           const url = new URL(redirectUrl);
           navigate(url.pathname + url.search, { replace: true });

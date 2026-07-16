@@ -970,6 +970,7 @@ export type Database = {
           sold_out_date: string | null
           start_airport: string | null
           status: string
+          tiers_data: Json | null
           timeframe: string | null
           updated_at: string
           waitlist_count: number | null
@@ -1053,6 +1054,7 @@ export type Database = {
           sold_out_date?: string | null
           start_airport?: string | null
           status?: string
+          tiers_data?: Json | null
           timeframe?: string | null
           updated_at?: string
           waitlist_count?: number | null
@@ -1136,6 +1138,7 @@ export type Database = {
           sold_out_date?: string | null
           start_airport?: string | null
           status?: string
+          tiers_data?: Json | null
           timeframe?: string | null
           updated_at?: string
           waitlist_count?: number | null

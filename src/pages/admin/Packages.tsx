@@ -36,6 +36,7 @@ interface Package {
   pelataran_package_price: any;
   status: string;
   is_sold_out: boolean;
+  tiers_data?: any;
 }
 
 type SortField = 'package_name' | 'departure_date' | 'duration_days' | 'flight' | 'package_price' | 'status';
@@ -43,12 +44,14 @@ type SortDirection = 'asc' | 'desc';
 
 /** Extract the best quad price from tier-specific or default price columns */
 const getDisplayPrice = (pkg: Package): number => {
-  // Check tier-specific prices first, then fallback to package_price
+  // Check tier-specific prices from JSONB first, then fallback to package_price
+  const tiers = pkg.tiers_data || {};
   const candidates = [
     pkg.package_price,
-    pkg.hemat_package_price,
-    pkg.five_star_package_price,
-    pkg.pelataran_package_price,
+    tiers.hemat?.price,
+    tiers.best_seller?.price,
+    tiers.five_star?.price,
+    tiers.pelataran?.price,
   ];
   for (const price of candidates) {
     if (price && typeof price === 'object' && price.quad && price.quad > 0) {
@@ -140,7 +143,7 @@ const Packages = () => {
     try {
       const { data, error } = await supabase
         .from("packages")
-        .select("*");
+        .select("id, slug, package_name, departure_date, duration_days, flight, package_price, status, is_sold_out, tiers_data");
 
       if (error) throw error;
       setPackages(data || []);

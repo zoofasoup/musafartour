@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
+
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === "development" && componentTagger(),
+
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "android-chrome-192x192.png", "android-chrome-512x512.png"],
@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => ({
         navigateFallbackDenylist: [/^\/~oauth/],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/gmcbpcazyeaulwlmgmot\.supabase\.co\/rest\/v1\/(packages|gallery_images|hero_section|testimonials|faq_items|selling_points)/,
+            urlPattern: /^https:\/\/lcpjuaxiwbdzdozitwzi\.supabase\.co\/rest\/v1\/(packages|gallery_images|hero_section|testimonials|faq_items|selling_points)/,
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "supabase-api-cache",
@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
-            urlPattern: /^https:\/\/gmcbpcazyeaulwlmgmot\.supabase\.co\/storage\/v1\/object\/public\//,
+            urlPattern: /^https:\/\/lcpjuaxiwbdzdozitwzi\.supabase\.co\/storage\/v1\/object\/public\//,
             handler: "CacheFirst",
             options: {
               cacheName: "supabase-images-cache",

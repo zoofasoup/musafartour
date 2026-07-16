@@ -609,7 +609,7 @@ const AgentMarketingKit = () => {
                 <Label htmlFor="url">URL</Label>
                 <Input
                   id="url"
-                  placeholder="https://musafar.lovable.app/paket-umroh/..."
+                  placeholder="https://musafartour.com/paket-umroh/..."
                   value={newLinkUrl}
                   onChange={(e) => setNewLinkUrl(e.target.value)}
                 />
