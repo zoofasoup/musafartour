@@ -24,9 +24,9 @@ import {
   useSidebar,
   SidebarMenuAction,
 } from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 import { AdminHeader as NotificationDropdown } from "./AdminHeader";
-import { useState } from "react";
 
 const AdminLayout = () => {
   const location = useLocation();
@@ -132,7 +132,7 @@ const AdminLayout = () => {
 
 const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => {
   const { open, toggleSidebar } = useSidebar();
-  const [avatarColor, setAvatarColor] = useState("bg-blue-500");
+  const avatarColor = user?.user_metadata?.avatar_color || "bg-blue-500";
 
   return (
     <div className="h-svh flex w-full bg-[#F1F5F9] overflow-hidden" style={{ "--sidebar-background": "transparent" } as React.CSSProperties}>
@@ -220,9 +220,11 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild tooltip="Profil" className="hover:bg-slate-200/50 transition-all duration-300">
                 <Link to="/admin/profile">
-                  <div className={`h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${avatarColor}`}>
-                    {(user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email || 'A').charAt(0).toUpperCase()}
-                  </div>
+                  <Avatar className="h-8 w-8 rounded-full">
+                    <AvatarFallback className={`text-white text-xs font-bold ${avatarColor}`}>
+                      {(user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email || 'A').charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight overflow-hidden">
                     <span className="truncate font-semibold text-slate-700 group-hover:text-slate-900 leading-tight">
                       {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email}

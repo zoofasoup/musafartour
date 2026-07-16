@@ -24,19 +24,17 @@ export const AdminHeader = () => {
       <DropdownMenuTrigger asChild>
         <SidebarMenuButton 
           tooltip="Notifikasi" 
-          className="text-slate-500 hover:bg-slate-200/50 hover:text-slate-800 rounded-lg transition-all duration-300 ease-in-out"
+          className="text-slate-500 hover:bg-slate-200/50 hover:text-slate-800 rounded-lg transition-all duration-300 ease-in-out relative"
         >
-          <div className="relative flex items-center justify-center">
-            <Bell className="h-4 w-4" />
-            {unreadCount > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-1.5 -right-1.5 h-3 w-3 flex items-center justify-center p-0 text-[8px] rounded-full"
-              >
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </Badge>
-            )}
-          </div>
+          <Bell />
+          {unreadCount > 0 && (
+            <Badge 
+              variant="destructive" 
+              className="absolute left-5 top-1 h-3 w-3 flex items-center justify-center p-0 text-[8px] rounded-full"
+            >
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Badge>
+          )}
           <span className="font-medium">Notifikasi</span>
         </SidebarMenuButton>
       </DropdownMenuTrigger>

@@ -25,6 +25,9 @@ const Profile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState(user?.user_metadata?.full_name || user?.user_metadata?.name || "");
+  const [avatarColor, setAvatarColor] = useState(user?.user_metadata?.avatar_color || "bg-blue-500");
+
+  const avatars = ["bg-blue-500", "bg-emerald-500", "bg-purple-500", "bg-amber-500", "bg-pink-500", "bg-rose-500", "bg-indigo-500"];
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +79,7 @@ const Profile = () => {
     setProfileLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({
-        data: { full_name: fullName }
+        data: { full_name: fullName, avatar_color: avatarColor }
       });
       if (error) throw error;
       toast({
@@ -149,10 +152,29 @@ const Profile = () => {
                     placeholder="Masukkan nama Anda"
                     className="flex-1"
                   />
-                  <Button type="submit" disabled={profileLoading || fullName === (user?.user_metadata?.full_name || user?.user_metadata?.name || "")} className="gap-2">
-                    {profileLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                    Simpan
-                  </Button>
+                  <div className="space-y-4">
+                      <Label>Warna Avatar</Label>
+                      <div className="flex flex-wrap gap-3">
+                        {avatars.map((color) => (
+                          <div
+                            key={color}
+                            onClick={() => setAvatarColor(color)}
+                            className={`w-12 h-12 rounded-full cursor-pointer transition-all flex items-center justify-center text-white font-bold
+                              ${color} 
+                              ${avatarColor === color ? 'ring-4 ring-offset-2 ring-slate-400 scale-110' : 'hover:scale-105'}
+                            `}
+                          >
+                            {(fullName || user?.email || 'A').charAt(0).toUpperCase()}
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-2">Pilih warna untuk ikon profil Anda di sidebar.</p>
+                    </div>
+
+                    <Button type="submit" disabled={profileLoading} className="w-full">
+                      {profileLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                      Simpan Perubahan Profil
+                    </Button>
                 </div>
               </div>
             </form>
