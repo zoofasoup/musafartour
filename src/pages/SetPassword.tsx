@@ -18,9 +18,21 @@ const SetPassword = () => {
   const [verifying, setVerifying] = useState(true);
 
   useEffect(() => {
-    // When clicking an invite or recovery link, Supabase sets the session in the URL hash.
-    // We just wait for the session to be established.
-    const checkSession = async () => {
+    // Listen for auth state changes (Supabase parsing the URL hash)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        setVerifying(false);
+      }
+    });
+
+    const checkInitialSession = async () => {
+      // If URL has access_token, wait for onAuthStateChange to handle it
+      if (window.location.hash.includes('access_token')) {
+        // Just wait, don't redirect yet
+        return;
+      }
+      
+      // If no token in URL, check if they already have a valid session
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({
@@ -29,11 +41,16 @@ const SetPassword = () => {
           variant: "destructive"
         });
         navigate("/auth");
+      } else {
+        setVerifying(false);
       }
-      setVerifying(false);
     };
     
-    checkSession();
+    checkInitialSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate, toast]);
 
   const handleSetPassword = async (e: React.FormEvent) => {
