@@ -118,6 +118,22 @@ const RedirectsHandler = () => {
   return null;
 };
 
+// Auth Hash Redirect Handler (for invites/recoveries)
+const AuthHashRedirectHandler = () => {
+  const location = useLocation();
+  
+  useEffect(() => {
+    // If there's an invite or recovery token and we're at the root, redirect to /auth
+    if (location.pathname === '/' && window.location.hash.includes('access_token=')) {
+      if (window.location.hash.includes('type=invite') || window.location.hash.includes('type=recovery')) {
+        window.location.href = '/auth' + window.location.hash;
+      }
+    }
+  }, [location]);
+
+  return null;
+};
+
 // Conditional FloatingWhatsApp (hide on admin/agent pages)
 const ConditionalFloatingWhatsApp = () => {
   const location = useLocation();
@@ -153,6 +169,7 @@ const App = () => (
               <TikTokPixelTracker />
               <MarketingPixelsLoader />
               <RedirectsHandler />
+              <AuthHashRedirectHandler />
               <Suspense
                 fallback={
                   <div className="min-h-screen flex items-center justify-center">

@@ -68,7 +68,7 @@ const Auth = () => {
     const accessToken = hashParams.get('access_token');
     const type = hashParams.get('type');
     
-    if (accessToken && type === 'recovery') {
+    if (accessToken && (type === 'recovery' || type === 'invite')) {
       setIsRecoveryMode(true);
     }
 
