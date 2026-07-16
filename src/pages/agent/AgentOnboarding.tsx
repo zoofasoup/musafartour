@@ -11,16 +11,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Loader2, UploadCloud, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { compressImage } from "@/utils/imageCompression";
+import { RegionSelector } from "@/components/agent/RegionSelector";
 
 const AgentOnboarding = () => {
-  const { agent, user, updateAgentProfile, loading: authLoading } = useAgentAuth();
+  const { agent, user, updateAgentProfile, loading: authLoading, signOut } = useAgentAuth();
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   
   const [formData, setFormData] = useState({
-    agency_name: "",
+    name: "",
     ktp_number: "",
     phone: "",
     address: "",
@@ -29,6 +30,8 @@ const AgentOnboarding = () => {
     social_links: { instagram: "", facebook: "" },
     experience_level: "",
   });
+  
+  const [selectedProvinceId, setSelectedProvinceId] = useState<string>("");
   
   const [ktpFile, setKtpFile] = useState<File | null>(null);
   const [ktpPreview, setKtpPreview] = useState<string | null>(null);
@@ -42,6 +45,7 @@ const AgentOnboarding = () => {
       } else {
         setFormData(prev => ({
           ...prev,
+          name: agent.name || '',
           phone: agent.phone?.startsWith('000') ? '' : (agent.phone || '')
         }));
       }
@@ -145,7 +149,7 @@ const AgentOnboarding = () => {
     }
     
     const result = await updateAgentProfile({
-      agency_name: formData.agency_name,
+      name: formData.name,
       ktp_number: formData.ktp_number,
       phone: formData.phone.replace(/\D/g, ''),
       wa_number: formData.phone.replace(/\D/g, ''),
@@ -172,11 +176,23 @@ const AgentOnboarding = () => {
   return (
     <div className="min-h-screen bg-muted/30 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Lengkapi Profil Agent</h1>
-          <p className="text-muted-foreground mt-2">
-            Langkah terakhir sebelum Anda bisa mulai berjualan paket umroh
-          </p>
+        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4 mb-8">
+          <div className="text-center sm:text-left">
+            <h1 className="text-3xl font-bold text-foreground">Lengkapi Profil Agent</h1>
+            <p className="text-muted-foreground mt-2">
+              Langkah terakhir sebelum Anda bisa mulai berjualan paket umroh
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={async () => {
+              await signOut();
+              navigate("/agent/login");
+            }}
+          >
+            Keluar (Logout)
+          </Button>
         </div>
         
         <Card>
@@ -191,13 +207,14 @@ const AgentOnboarding = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="agency_name">Nama Travel / Agensi (Opsional)</Label>
+                  <Label htmlFor="name">Nama Lengkap <span className="text-destructive">*</span></Label>
                   <Input 
-                    id="agency_name" 
-                    name="agency_name"
-                    placeholder="Mis. Berkah Umroh (Kosongkan jika agen pribadi)"
-                    value={formData.agency_name}
+                    id="name" 
+                    name="name"
+                    placeholder="Nama Lengkap Anda"
+                    value={formData.name}
                     onChange={handleChange}
+                    required
                   />
                 </div>
                 
@@ -277,26 +294,26 @@ const AgentOnboarding = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="city">Kota / Kabupaten <span className="text-destructive">*</span></Label>
-                  <Input 
-                    id="city" 
-                    name="city"
-                    placeholder="Mis. Jakarta Selatan"
-                    value={formData.city}
-                    onChange={handleChange}
-                    required
+                  <Label>Provinsi <span className="text-destructive">*</span></Label>
+                  <RegionSelector
+                    type="province"
+                    value={formData.province}
+                    onChange={(val, id) => {
+                      setFormData((prev) => ({ ...prev, province: val, city: "" }));
+                      if (id) setSelectedProvinceId(id);
+                    }}
+                    placeholder="Pilih Provinsi"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="province">Provinsi <span className="text-destructive">*</span></Label>
-                  <Input 
-                    id="province" 
-                    name="province"
-                    placeholder="Mis. DKI Jakarta"
-                    value={formData.province}
-                    onChange={handleChange}
-                    required
+                  <Label>Kota / Kabupaten <span className="text-destructive">*</span></Label>
+                  <RegionSelector
+                    type="city"
+                    provinceId={selectedProvinceId}
+                    value={formData.city}
+                    onChange={(val) => setFormData((prev) => ({ ...prev, city: val }))}
+                    placeholder="Pilih Kota/Kabupaten"
                   />
                 </div>
               </div>

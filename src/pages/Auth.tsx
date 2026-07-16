@@ -98,24 +98,7 @@ const Auth = () => {
       if (error) throw error;
 
       if (data.session && data.user) {
-        // Check if user is an agent - agents should use agent portal
-        const { data: agentData } = await supabase
-          .from('agents')
-          .select('id')
-          .eq('user_id', data.user.id)
-          .maybeSingle();
-
-        if (agentData) {
-          await supabase.auth.signOut();
-          toast({
-            title: "Akun Agent",
-            description: "Ini adalah akun Agent. Silakan login di halaman Agent Portal (/agent/login)",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Check if user has admin role
+        // Check if user has admin role first
         const { data: adminRole } = await supabase
           .from('user_roles')
           .select('role')
@@ -123,7 +106,26 @@ const Auth = () => {
           .eq('role', 'admin')
           .maybeSingle();
 
+        // If they are an admin, allow login (skip agent check)
         if (!adminRole) {
+          // If not admin, check if user is an agent - agents should use agent portal
+          const { data: agentData } = await supabase
+            .from('agents')
+            .select('id')
+            .eq('user_id', data.user.id)
+            .maybeSingle();
+
+          if (agentData) {
+            await supabase.auth.signOut();
+            toast({
+              title: "Dialihkan ke Portal Agent",
+              description: "Ini adalah akun Agent. Mengalihkan ke halaman login Agent...",
+            });
+            navigate('/agent/login');
+            return;
+          }
+
+          // If neither admin nor agent
           await supabase.auth.signOut();
           toast({
             title: "Akses Ditolak",

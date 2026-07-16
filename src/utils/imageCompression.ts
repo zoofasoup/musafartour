@@ -48,15 +48,15 @@ export const compressImage = (file: File, maxWidth = 1200, quality = 0.8): Promi
               resolve(file);
               return;
             }
-            // Create a new file with the original name but potentially changed extension (to .jpg)
-            const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+            // Create a new file with the original name but potentially changed extension (to .webp)
+            const newName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
             const compressedFile = new File([blob], newName, {
-              type: 'image/jpeg',
+              type: 'image/webp',
               lastModified: Date.now(),
             });
             resolve(compressedFile);
           },
-          'image/jpeg',
+          'image/webp',
           quality
         );
       };

@@ -27,9 +27,7 @@ const AgentLogin = () => {
   // Handle redirect after Google OAuth
   useEffect(() => {
     if (!authLoading && user && agent) {
-      if (agent.status === 'active') {
-        navigate("/agent/dashboard");
-      }
+      navigate("/agent/dashboard");
     }
   }, [authLoading, user, agent, navigate]);
 
@@ -201,6 +199,7 @@ const AgentLogin = () => {
                   <UserPlus className="h-3 w-3" />
                   Daftar sekarang
                 </Link>
+              </div>
         </div>
       </form>
     </AuthLayout>

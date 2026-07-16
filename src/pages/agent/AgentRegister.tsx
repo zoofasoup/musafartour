@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { AuthLayout } from "@/components/layout/AuthLayout";
 const AgentRegister = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { signUp, signInWithGoogle } = useAgentAuth();
+  const { signUp, signInWithGoogle, user, agent, loading: authLoading } = useAgentAuth();
   
   const [formData, setFormData] = useState({
     name: "",
@@ -27,6 +27,13 @@ const AgentRegister = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // Handle redirect if user is already logged in (e.g. via Google OAuth)
+  useEffect(() => {
+    if (!authLoading && user && agent) {
+      navigate("/agent/dashboard");
+    }
+  }, [authLoading, user, agent, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

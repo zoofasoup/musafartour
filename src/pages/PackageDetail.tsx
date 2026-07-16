@@ -189,9 +189,7 @@ const PackageDetailPage = () => {
     : null;
 
   const handleBooking = () => {
-    if (!packageData) return;
-    const message = `Halo Musafar Tour, saya tertarik dengan paket ${packageData.package_name}. Mohon info lebih lanjut untuk pendaftaran.`;
-    redirectToWhatsApp(message);
+    document.getElementById("kalkulator-harga")?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleWhatsApp = () => {
@@ -338,9 +336,9 @@ const PackageDetailPage = () => {
       )}
 
       {/* Main 2-Column Layout */}
-      <div className="flex container mx-auto px-6 md:px-8 min-h-[calc(100vh-4rem)]">
+      <div className="flex flex-col lg:flex-row container mx-auto px-6 md:px-8 min-h-[calc(100vh-4rem)] gap-6">
         {/* ── Column A: Brochure Content ── */}
-        <main className="flex-1 py-6 lg:pr-8 space-y-6">
+        <main className="flex-1 py-6 lg:pr-2 space-y-6">
 
             {/* Hero: Flyer + Summary */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -687,13 +685,12 @@ const PackageDetailPage = () => {
               )}
             </div>
 
-            <div className="pb-24 lg:pb-8" />
+            <div className="pb-8" />
         </main>
 
-        {/* ── Column B: Sticky Sales Calculator (Temporarily Hidden) ── */}
-        {false && (
-        <aside className="w-[340px] shrink-0 border-l bg-card/50 backdrop-blur-sm overflow-y-auto hidden lg:block">
-          <div className="p-4 space-y-4 sticky top-0">
+        {/* ── Column B: Sticky Sales Calculator ── */}
+        <aside id="kalkulator-harga" className="w-full lg:w-[360px] shrink-0 border rounded-2xl bg-card/80 backdrop-blur-sm lg:overflow-y-auto shadow-sm h-fit">
+          <div className="p-4 space-y-4 lg:sticky lg:top-0">
             <div className="flex items-center gap-2 mb-1">
               <BedDouble className="h-4 w-4 text-primary" />
               <h3 className="text-sm font-bold ">Kalkulator Harga</h3>
@@ -861,7 +858,6 @@ const PackageDetailPage = () => {
             )}
           </div>
         </aside>
-        )}
       </div>
 
       {/* Sticky Mobile CTA */}

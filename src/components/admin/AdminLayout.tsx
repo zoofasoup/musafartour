@@ -24,6 +24,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
+import { AdminHeader as NotificationDropdown } from "./AdminHeader";
+import { useState } from "react";
+
 const AdminLayout = () => {
   const location = useLocation();
   const { user, loading, isAdmin, signOut } = useAuth();
@@ -128,6 +131,7 @@ const AdminLayout = () => {
 
 const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => {
   const { open, toggleSidebar } = useSidebar();
+  const [avatarColor, setAvatarColor] = useState("bg-blue-500");
 
   return (
     <div className="h-svh flex w-full bg-[#F1F5F9] overflow-hidden" style={{ "--sidebar-background": "transparent" } as React.CSSProperties}>
@@ -204,33 +208,56 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
           ))}
         </SidebarContent>
 
-        <SidebarFooter className="p-4">
-          {open && (
-            <Link to="/admin/profile" className="px-2 mb-4 flex flex-col hover:bg-slate-200/50 p-2 rounded-lg transition-all duration-300 ease-in-out cursor-pointer group">
-              <p className="text-sm font-semibold text-slate-700 truncate w-full group-hover:text-slate-900">
-                {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email}
-              </p>
-              <p className="text-xs text-slate-500">Administrator</p>
-            </Link>
-          )}
+        <SidebarFooter className="p-4 flex flex-col gap-2 border-t border-slate-200/50">
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={handleSignOut}
-                tooltip="Sign Out"
-                className="text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-300 ease-in-out"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="font-medium">Sign Out</span>
+              <SidebarMenuButton asChild tooltip="Notifikasi" className="hover:bg-slate-200/50 rounded-lg transition-all duration-300 ease-in-out mx-2 text-slate-600 mb-2">
+                <div>
+                  <NotificationDropdown />
+                </div>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
+
+          <div className="flex items-center gap-3 hover:bg-slate-200/50 p-2 rounded-lg transition-all duration-300 ease-in-out group mx-2">
+             <div 
+               onClick={(e) => { 
+                 e.preventDefault(); 
+                 const avatars = ["bg-blue-500", "bg-emerald-500", "bg-purple-500", "bg-amber-500", "bg-pink-500", "bg-rose-500", "bg-indigo-500"];
+                 const currentIndex = avatars.indexOf(avatarColor);
+                 setAvatarColor(avatars[(currentIndex + 1) % avatars.length]); 
+               }}
+               className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold shrink-0 cursor-pointer transition-colors ${avatarColor}`}
+               title="Ganti Avatar"
+             >
+               {(user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email || 'A').charAt(0).toUpperCase()}
+             </div>
+             
+             {open && (
+               <>
+                 <div className="flex-1 overflow-hidden flex flex-col">
+                   <p className="text-sm font-semibold text-slate-700 truncate w-full group-hover:text-slate-900">
+                     {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email}
+                   </p>
+                   <p className="text-[10px] text-slate-500">Super Admin</p>
+                 </div>
+                 <Button 
+                   variant="ghost" 
+                   size="icon" 
+                   onClick={handleSignOut} 
+                   className="shrink-0 text-slate-400 hover:text-red-600 hover:bg-red-50 h-8 w-8"
+                   title="Log Out"
+                 >
+                   <LogOut className="h-4 w-4" />
+                 </Button>
+               </>
+             )}
+          </div>
         </SidebarFooter>
       </Sidebar>
 
       <div className="flex-1 h-svh p-2 sm:p-4">
         <main className="h-full w-full overflow-auto bg-[#F8FAFC] flex flex-col rounded-xl border border-slate-200/60 relative shadow-sm">
-
           <div className="p-6 sm:p-8 md:p-10 flex-1">
             <Suspense
               fallback={

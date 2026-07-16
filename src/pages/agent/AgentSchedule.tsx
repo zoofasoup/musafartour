@@ -350,10 +350,10 @@ const AgentSchedule = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 pb-6">
+    <div className="space-y-6 max-w-7xl mx-auto w-full pb-6">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b">
-        <div className="max-w-6xl mx-auto px-6 md:px-8 py-4">
+      <div className="bg-background/95 border-b rounded-xl p-2">
+        <div className="px-4 md:px-6 py-4">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-xl font-bold text-foreground">Jadwal Keberangkatan 2025</h1>

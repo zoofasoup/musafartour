@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Pencil, Trash2, Hotel, MapPin, Star, ExternalLink, ChevronLeft, ChevronRight, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -20,7 +21,8 @@ interface HotelData {
   id: string;
   name: string;
   star_rating: number;
-  location: "makkah" | "madinah";
+  location: "makkah" | "madinah" | "lainnya";
+  city_name: string | null;
   distance: string;
   walking_duration: string;
   created_at: string;
@@ -108,6 +110,9 @@ const HotelCard = ({
           <Hotel className="h-5 w-5 mt-0.5 text-primary shrink-0" />
           <div>
             <div className="font-bold leading-tight">{hotel.name}</div>
+            {hotel.location === "lainnya" && hotel.city_name && (
+              <div className="text-xs text-muted-foreground">{hotel.city_name}</div>
+            )}
             <div className="flex gap-0.5 mt-1">
               {[...Array(hotel.star_rating)].map((_, i) => (
                 <Star
@@ -214,6 +219,27 @@ const Hotels = () => {
 
   const makkahHotels = hotels.filter((h) => h.location === "makkah");
   const madinahHotels = hotels.filter((h) => h.location === "madinah");
+  const lainnyaHotels = hotels.filter((h) => h.location !== "makkah" && h.location !== "madinah");
+
+  const renderHotelGrid = (hotelList: HotelData[]) => (
+    hotelList.length === 0 ? (
+      <div className="text-center py-12 text-muted-foreground">
+        <Hotel className="h-12 w-12 mx-auto mb-3 opacity-40" />
+        <p>Belum ada hotel di kategori ini</p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {hotelList.map((hotel) => (
+          <HotelCard
+            key={hotel.id}
+            hotel={hotel}
+            onEdit={() => navigate(`/admin/hotels/${hotel.id}`)}
+            onDelete={() => setDeleteId(hotel.id)}
+          />
+        ))}
+      </div>
+    )
+  );
 
   return (
     <div className="space-y-6">
@@ -221,7 +247,7 @@ const Hotels = () => {
         <div>
           <h1 className="text-3xl font-bold">Manajemen Hotel</h1>
           <p className="text-muted-foreground">
-            Kelola data hotel Makkah dan Madinah
+            Kelola data hotel Makkah, Madinah, dan kota lainnya
           </p>
         </div>
         <Button onClick={() => navigate("/admin/hotels/new")}>
@@ -230,41 +256,32 @@ const Hotels = () => {
         </Button>
       </div>
 
-      {/* Makkah Hotels */}
-      <div>
-        <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-          <MapPin className="h-6 w-6" />
-          Hotel Makkah ({makkahHotels.length})
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {makkahHotels.map((hotel) => (
-            <HotelCard
-              key={hotel.id}
-              hotel={hotel}
-              onEdit={() => navigate(`/admin/hotels/${hotel.id}`)}
-              onDelete={() => setDeleteId(hotel.id)}
-            />
-          ))}
-        </div>
-      </div>
+      <Tabs defaultValue="makkah" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-4">
+          <TabsTrigger value="makkah" className="gap-2">
+            <MapPin className="h-4 w-4" />
+            Makkah ({makkahHotels.length})
+          </TabsTrigger>
+          <TabsTrigger value="madinah" className="gap-2">
+            <MapPin className="h-4 w-4" />
+            Madinah ({madinahHotels.length})
+          </TabsTrigger>
+          <TabsTrigger value="lainnya" className="gap-2">
+            <MapPin className="h-4 w-4" />
+            Lainnya ({lainnyaHotels.length})
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Madinah Hotels */}
-      <div>
-        <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-          <MapPin className="h-6 w-6" />
-          Hotel Madinah ({madinahHotels.length})
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {madinahHotels.map((hotel) => (
-            <HotelCard
-              key={hotel.id}
-              hotel={hotel}
-              onEdit={() => navigate(`/admin/hotels/${hotel.id}`)}
-              onDelete={() => setDeleteId(hotel.id)}
-            />
-          ))}
-        </div>
-      </div>
+        <TabsContent value="makkah">
+          {renderHotelGrid(makkahHotels)}
+        </TabsContent>
+        <TabsContent value="madinah">
+          {renderHotelGrid(madinahHotels)}
+        </TabsContent>
+        <TabsContent value="lainnya">
+          {renderHotelGrid(lainnyaHotels)}
+        </TabsContent>
+      </Tabs>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>

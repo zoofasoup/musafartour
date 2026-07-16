@@ -197,7 +197,7 @@ export default function AgentLeaderboard() {
   };
 
   return (
-    <div className="space-y-6 pb-20 md:pb-6">
+    <div className="space-y-6 max-w-7xl mx-auto w-full pb-20 md:pb-6">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold">Leaderboard & Gamification</h1>

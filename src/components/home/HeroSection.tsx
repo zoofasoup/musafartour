@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Star, Heart } from "lucide-react";
+import { MessageCircle, Star, Heart, ShieldCheck } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo.svg";
 import type { HeroData, WebsiteSettings } from "@/hooks/useHomepageData";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
+import { useNavigate } from "react-router-dom";
 
 interface HeroSectionProps {
   heroData: HeroData | null | undefined;
@@ -19,6 +20,8 @@ const mosaicPhotos = [
 ];
 
 export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectionProps) => {
+  const navigate = useNavigate();
+
   const handleWhatsAppClick = () => {
     redirectToWhatsApp("Halo Musamin, saya tertarik untuk berkonsultasi mengenai paket Umroh.");
   };
@@ -49,7 +52,7 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
             {/* Header Text Block - Clean typography on light background */}
             <div className="max-w-4xl mx-auto space-y-4 md:space-y-6 mb-10 animate-fade-in opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
               <h1 className="text-4xl md:text-6xl lg:text-[4.5rem] font-display font-bold text-[#1c1c1c] tracking-tight leading-[1.05]">
-                Musafar, Bukan Safar Biasa.
+                Umroh & Haji Nyaman, Bukan Sekadar Safar Biasa.
               </h1>
               
               <p className="text-lg md:text-2xl text-[#1c1c1c]/70 max-w-2xl mx-auto font-medium">
@@ -62,9 +65,7 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
               <Button
                 size="lg"
                 className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-base md:text-lg px-8 w-full sm:w-auto h-14 rounded-full transition-all hover:scale-105 shadow-lg shadow-accent/20"
-                onClick={() =>
-                  document.getElementById("packages-carousel")?.scrollIntoView({ behavior: "smooth" })
-                }
+                onClick={() => navigate("/paket")}
               >
                 Lihat Semua Paket
               </Button>
@@ -75,25 +76,43 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
                 onClick={handleWhatsAppClick}
               >
                 <MessageCircle className="mr-2 h-5 w-5 text-destructive group-hover:scale-110 transition-transform" />
-                <span>Konsultasi Now</span>
+                <span>Tanya CS (Gratis)</span>
                 <Heart className="ml-2 h-4 w-4 text-destructive/70" />
               </Button>
             </div>
 
             {/* Trust Signals Badge */}
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 justify-center mb-16 animate-fade-in opacity-0" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 justify-center mb-10 animate-fade-in opacity-0" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
               <div className="flex gap-1 text-accent">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
                 ))}
               </div>
-              <p className="text-sm sm:text-base text-[#1c1c1c]/60 font-medium">Berizin Resmi Kemenag PPIU: 17102200953750002</p>
+              <div className="flex items-center gap-1.5 bg-green-500/10 text-green-700 px-3 py-1 rounded-full border border-green-500/20">
+                <ShieldCheck className="h-4 w-4" />
+                <p className="text-sm sm:text-base font-semibold">Berizin Resmi Kemenag PPIU: 17102200953750002</p>
+              </div>
             </div>
             
             {/* Scroll Indicator */}
             <div className="animate-bounce opacity-40 flex flex-col items-center gap-2 mb-10">
               <span className="text-[#1c1c1c]/50 text-xs font-semibold tracking-widest uppercase">Scroll</span>
               <div className="w-[1px] h-8 bg-gradient-to-b from-[#1c1c1c]/50 to-transparent" />
+            </div>
+
+            {/* Mosaic Photo Grid */}
+            <div className="w-full max-w-[1600px] mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 animate-fade-in opacity-0" style={{ animationDelay: '0.8s', animationFillMode: 'forwards' }}>
+              {mosaicPhotos.map((photo, i) => (
+                <div key={i} className="aspect-[3/4] rounded-2xl overflow-hidden bg-muted group relative shadow-md">
+                  <img
+                    src={photo}
+                    alt={`Jamaah Musafar Tour ${i + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    loading={i < 2 ? "eager" : "lazy"}
+                  />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500" />
+                </div>
+              ))}
             </div>
           </div>
 

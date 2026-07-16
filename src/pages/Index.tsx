@@ -39,6 +39,15 @@ const Index = () => {
     },
   });
 
+  const minPrice = packages?.length 
+    ? Math.min(...packages.map(p => p.package_price.quad))
+    : 20000000;
+  const maxPrice = packages?.length 
+    ? Math.max(...packages.map(p => p.package_price.double)) // Double is usually highest
+    : 60000000;
+    
+  const fmtShort = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
+
   // Dynamic structured data from settings
   const structuredData = {
     "@context": "https://schema.org",
@@ -66,7 +75,7 @@ const Index = () => {
       websiteSettings?.youtube_url,
       `https://wa.me/${websiteSettings?.whatsapp_number || "6281917403797"}`,
     ].filter(Boolean),
-    priceRange: "Rp 20.000.000 - Rp 60.000.000",
+    priceRange: `${fmtShort(minPrice)} - ${fmtShort(maxPrice)}`,
   };
 
   return (

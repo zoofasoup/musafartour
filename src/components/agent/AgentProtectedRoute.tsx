@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { Loader2 } from "lucide-react";
-import { AgentLayout } from "./AgentLayout";
+import AgentLayout from "./AgentLayout";
 
 interface AgentProtectedRouteProps {
   children: ReactNode;

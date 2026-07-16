@@ -165,42 +165,30 @@ const AgentPackages = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-4 md:p-6">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <Skeleton className="h-12 w-64" />
-          <div className="grid gap-4 md:grid-cols-3">
-            <Skeleton className="h-10" />
-            <Skeleton className="h-10" />
-            <Skeleton className="h-10" />
-          </div>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-64" />
-            ))}
-          </div>
+      <div className="space-y-6 max-w-7xl mx-auto w-full pb-20 md:pb-6">
+        <Skeleton className="h-8 w-64" />
+        <div className="grid gap-4 md:grid-cols-3">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-48 w-full" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-6 md:p-8">
-        <div className="max-w-6xl mx-auto">
-          <Button
-            variant="ghost"
-            className="text-white/80 hover:text-white mb-4 -ml-2"
-            onClick={() => navigate("/agent/dashboard")}
-          >
-            ← Kembali ke Dashboard
-          </Button>
-          <h1 className="text-2xl md:text-3xl font-bold">Paket Umroh</h1>
-          <p className="text-emerald-100 mt-2">Browse dan share paket ke prospek kamu</p>
-        </div>
+    <div className="space-y-6 max-w-7xl mx-auto w-full pb-20 md:pb-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold">Paket Umroh</h1>
+        <p className="text-muted-foreground">Browse dan share paket ke prospek kamu</p>
       </div>
 
-      <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+      <div className="space-y-6">
         {/* Filters */}
         <Card>
           <CardContent className="p-4">

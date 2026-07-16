@@ -11,11 +11,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Upload, X, Image, Building2, DoorOpen, Bed, Clipboard, MapPin } from "lucide-react";
+import { compressImage } from "@/utils/imageCompression";
 
 const hotelSchema = z.object({
   name: z.string().min(1, "Nama hotel wajib diisi"),
   star_rating: z.number().min(1).max(5),
-  location: z.enum(["makkah", "madinah"]),
+  location: z.enum(["makkah", "madinah", "lainnya"]),
+  city_name: z.string().nullable().optional(),
   distance: z.string().min(1, "Jarak wajib diisi"),
   walking_duration: z.string().min(1, "Waktu tempuh wajib diisi"),
   exterior_photo: z.string().nullable().optional(),
@@ -44,6 +46,7 @@ const HotelForm = () => {
     defaultValues: {
       star_rating: 4,
       location: "makkah",
+      city_name: "",
       exterior_photo: null,
       lobby_photo: null,
       room_photo: null,
@@ -79,7 +82,8 @@ const HotelForm = () => {
       if (data) {
         setValue("name", data.name);
         setValue("star_rating", data.star_rating);
-        setValue("location", data.location as "makkah" | "madinah");
+        setValue("location", data.location as "makkah" | "madinah" | "lainnya");
+        setValue("city_name", data.city_name || "");
         setValue("distance", data.distance);
         setValue("walking_duration", data.walking_duration);
         setValue("exterior_photo", data.exterior_photo);
@@ -118,13 +122,16 @@ const HotelForm = () => {
     try {
       setUploadingField(fieldName);
 
-      const fileExt = file.name.split(".").pop();
+      const fileExt = "webp"; // Compressed images are forced to .webp
       const fileName = `hotel-${fieldName}-${Date.now()}.${fileExt}`;
       const filePath = `hotels/${fileName}`;
 
+      // Compress image before upload
+      const compressedFile = await compressImage(file);
+
       const { error: uploadError } = await supabase.storage
         .from("package-images")
-        .upload(filePath, file);
+        .upload(filePath, compressedFile);
 
       if (uploadError) throw uploadError;
 
@@ -164,6 +171,7 @@ const HotelForm = () => {
         name: data.name,
         star_rating: data.star_rating,
         location: data.location,
+        city_name: data.location === "lainnya" ? data.city_name : null,
         distance: distance,
         walking_duration: walkingDuration,
         exterior_photo: data.exterior_photo || null,
@@ -363,19 +371,31 @@ const HotelForm = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="location">Lokasi</Label>
-                <Select value={location} onValueChange={(value: "makkah" | "madinah") => setValue("location", value)}>
+                <Select value={location} onValueChange={(value: "makkah" | "madinah" | "lainnya") => setValue("location", value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih lokasi" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="makkah">Makkah</SelectItem>
                     <SelectItem value="madinah">Madinah</SelectItem>
+                    <SelectItem value="lainnya">Lainnya</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.location && (
                   <p className="text-sm text-destructive">{errors.location.message}</p>
                 )}
               </div>
+
+              {location === "lainnya" && (
+                <div className="space-y-2">
+                  <Label htmlFor="city_name">Nama Kota / Negara</Label>
+                  <Input
+                    id="city_name"
+                    placeholder="Contoh: Thaif, Turki, Dubai"
+                    {...register("city_name")}
+                  />
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="star_rating">Bintang Hotel</Label>

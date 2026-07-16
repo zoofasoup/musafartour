@@ -307,8 +307,7 @@ const AgentCommission = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 py-6 px-4">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto w-full">
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-foreground">Komisi & Penarikan</h1>
@@ -658,8 +657,6 @@ const AgentCommission = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-
       {/* Withdrawal Modal */}
       <Dialog open={showWithdrawModal} onOpenChange={setShowWithdrawModal}>
         <DialogContent>

@@ -729,6 +729,7 @@ export type Database = {
           id: string
           lobby_photo: string | null
           location: string
+          city_name: string | null
           name: string
           room_photo: string | null
           star_rating: number
@@ -743,6 +744,7 @@ export type Database = {
           id?: string
           lobby_photo?: string | null
           location: string
+          city_name?: string | null
           name: string
           room_photo?: string | null
           star_rating: number
@@ -757,6 +759,7 @@ export type Database = {
           id?: string
           lobby_photo?: string | null
           location?: string
+          city_name?: string | null
           name?: string
           room_photo?: string | null
           star_rating?: number
