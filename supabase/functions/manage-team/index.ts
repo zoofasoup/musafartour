@@ -127,6 +127,55 @@ Deno.serve(async (req) => {
       });
     }
 
+    // --- HANDLE PUT (Change Role) ---
+    if (req.method === 'PUT') {
+      const { userId, role } = await req.json();
+      
+      if (!userId || !role) {
+        return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      // Ensure they cannot demote themselves accidentally
+      if (userId === user.id && role !== 'superadmin' && userRoleData?.role === 'superadmin') {
+        return new Response(JSON.stringify({ error: 'You cannot remove your own Super Admin access' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const { error: updateError } = await supabaseAdmin
+        .from('user_roles')
+        .update({ role: role })
+        .eq('user_id', userId);
+        
+      if (updateError) throw updateError;
+
+      return new Response(JSON.stringify({ success: true, message: 'Role updated successfully' }), { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      });
+    }
+
+    // --- HANDLE DELETE (Remove Access) ---
+    if (req.method === 'DELETE') {
+      const { userId } = await req.json();
+      
+      if (!userId) {
+        return new Response(JSON.stringify({ error: 'Missing user ID' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      if (userId === user.id) {
+        return new Response(JSON.stringify({ error: 'You cannot remove yourself' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const { error: deleteError } = await supabaseAdmin
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+        
+      if (deleteError) throw deleteError;
+
+      return new Response(JSON.stringify({ success: true, message: 'User access removed successfully' }), { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      });
+    }
+
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error: any) {
