@@ -103,7 +103,6 @@ const Auth = () => {
           .from('user_roles')
           .select('role')
           .eq('user_id', data.user.id)
-          .eq('role', 'admin')
           .maybeSingle();
 
         // If they are an admin, allow login (skip agent check)
