@@ -140,62 +140,62 @@ const Profile = () => {
             </CardTitle>
             <CardDescription>Detail akun Anda saat ini</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <form onSubmit={handleUpdateProfile} className="space-y-4">
+          <CardContent className="space-y-6">
+            <form onSubmit={handleUpdateProfile} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="fullName" className="text-muted-foreground text-sm">Nama Lengkap</Label>
-                <div className="flex gap-2">
-                  <Input 
-                    id="fullName"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Masukkan nama Anda"
-                    className="flex-1"
-                  />
-                  <div className="space-y-4">
-                      <Label>Warna Avatar</Label>
-                      <div className="flex flex-wrap gap-3">
-                        {avatars.map((color) => (
-                          <div
-                            key={color}
-                            onClick={() => setAvatarColor(color)}
-                            className={`w-12 h-12 rounded-full cursor-pointer transition-all flex items-center justify-center text-white font-bold
-                              ${color} 
-                              ${avatarColor === color ? 'ring-4 ring-offset-2 ring-slate-400 scale-110' : 'hover:scale-105'}
-                            `}
-                          >
-                            {(fullName || user?.email || 'A').charAt(0).toUpperCase()}
-                          </div>
-                        ))}
-                      </div>
-                      <p className="text-xs text-slate-500 mt-2">Pilih warna untuk ikon profil Anda di sidebar.</p>
-                    </div>
-
-                    <Button type="submit" disabled={profileLoading} className="w-full">
-                      {profileLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                      Simpan Perubahan Profil
-                    </Button>
+                <Label htmlFor="fullName" className="text-sm font-semibold text-slate-700">Nama Lengkap</Label>
+                <Input 
+                  id="fullName"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Masukkan nama Anda"
+                  className="max-w-md"
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold text-slate-700">Warna Ikon Profil</Label>
+                <div className="flex flex-wrap gap-2.5">
+                  {avatars.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setAvatarColor(color)}
+                      className={`w-9 h-9 rounded-full cursor-pointer transition-all flex items-center justify-center text-white text-xs font-bold
+                        ${color} 
+                        ${avatarColor === color ? 'ring-2 ring-offset-2 ring-slate-800 scale-110' : 'hover:scale-110 opacity-80 hover:opacity-100'}
+                      `}
+                      title="Pilih warna"
+                    >
+                      {(fullName || user?.email || 'A').charAt(0).toUpperCase()}
+                    </button>
+                  ))}
                 </div>
+                <p className="text-[11px] text-slate-500">Ikon profil ini akan ditampilkan pada bagian bawah sidebar.</p>
               </div>
+
+              <Button type="submit" disabled={profileLoading} className="w-full max-w-md">
+                {profileLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                Simpan Perubahan
+              </Button>
             </form>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground text-sm">Email</Label>
-              <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{user?.email}</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground text-sm">Role</Label>
-              <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
-                <Shield className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Administrator</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground text-sm">User ID</Label>
-              <div className="p-3 bg-muted rounded-md">
-                <span className="font-mono text-xs text-muted-foreground break-all">{user?.id}</span>
+
+            <div className="pt-5 border-t border-slate-100 space-y-4">
+              <div className="grid grid-cols-2 gap-4 max-w-md">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Email Terdaftar</Label>
+                  <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
+                    <Mail className="h-3.5 w-3.5 text-slate-400" />
+                    {user?.email}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Hak Akses</Label>
+                  <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
+                    <Shield className="h-3.5 w-3.5 text-slate-400" />
+                    Administrator
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
