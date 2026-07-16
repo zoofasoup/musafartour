@@ -148,12 +148,12 @@ const AdminLayout = () => {
 
   return (
     <SidebarProvider>
-      <SidebarLayout menuSections={menuSections} isActive={isActive} user={user} handleSignOut={handleSignOut} />
+      <SidebarLayout menuSections={menuSections} isActive={isActive} user={user} userRole={userRole} handleSignOut={handleSignOut} />
     </SidebarProvider>
   );
 };
 
-const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => {
+const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }: any) => {
   const { open, toggleSidebar } = useSidebar();
   const avatarEmoji = user?.user_metadata?.avatar_emoji || "😎";
 
