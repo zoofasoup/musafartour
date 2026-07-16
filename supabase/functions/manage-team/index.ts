@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
       .eq('user_id', user.id)
       .maybeSingle();
       
-    if (roleError || userRoleData?.role !== 'superadmin') {
+    if (roleError || (userRoleData?.role !== 'superadmin' && userRoleData?.role !== 'admin')) {
       return new Response(JSON.stringify({ error: 'Forbidden: Only superadmins can manage team' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
