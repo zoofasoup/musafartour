@@ -28,25 +28,24 @@ export const useAuth = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Use React Query for admin role check with caching
-  const { data: isAdmin, status: adminQueryStatus } = useQuery({
-    queryKey: ['admin-role', user?.id],
+  // Use React Query for user role check with caching
+  const { data: userRole, status: roleQueryStatus } = useQuery({
+    queryKey: ['user-role', user?.id],
     queryFn: async () => {
-      if (!user?.id) return false;
+      if (!user?.id) return null;
       
       const { data, error } = await (supabase as any)
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
-        .eq("role", "admin")
         .maybeSingle();
 
       if (error) {
-        console.error("Error checking admin role:", error);
-        return false;
+        console.error("Error checking user role:", error);
+        return null;
       }
 
-      return !!data;
+      return data?.role || null;
     },
     enabled: !!user?.id,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
@@ -55,8 +54,8 @@ export const useAuth = () => {
 
   // Only show loading on initial fetch when there's no cached data (status: 'pending')
   // Once we have data (status: 'success'), don't show loading even during background refetches
-  const isAdminPending = !!user?.id && adminQueryStatus === 'pending';
-  const isFullyLoaded = !loading && !isAdminPending;
+  const userRolePending = !!user?.id && roleQueryStatus === 'pending';
+  const isFullyLoaded = !loading && !userRolePending;
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -66,7 +65,8 @@ export const useAuth = () => {
     user,
     session,
     loading: !isFullyLoaded,
-    isAdmin: isAdmin ?? false,
+    userRole: userRole ?? null,
+    isAdmin: userRole === 'admin' || userRole === 'superadmin',
     signOut,
   };
 };

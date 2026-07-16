@@ -30,7 +30,7 @@ import { AdminHeader as NotificationDropdown } from "./AdminHeader";
 
 const AdminLayout = () => {
   const location = useLocation();
-  const { user, loading, isAdmin, signOut } = useAuth();
+  const { user, loading, userRole, signOut } = useAuth();
 
   if (loading) {
     return (
@@ -44,12 +44,12 @@ const AdminLayout = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!isAdmin) {
+  if (!userRole) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
-          <p className="text-muted-foreground mb-4">Anda tidak memiliki akses admin</p>
+          <p className="text-muted-foreground mb-4">Anda tidak memiliki akses ke panel ini.</p>
           <div className="flex gap-3 justify-center">
             <Button asChild variant="outline">
               <Link to="/">Kembali ke Home</Link>
@@ -64,58 +64,81 @@ const AdminLayout = () => {
     );
   }
 
-  const menuSections = [
+  const menuSectionsRaw = [
     {
       items: [
-        { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
+        { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin", "superadmin", "product_admin", "content_admin", "agent_admin"] },
       ]
     },
     {
       label: "CONTENT MANAGEMENT",
       items: [
-        { icon: Image, label: "Hero Section", path: "/admin/hero" },
-        { icon: Target, label: "Selling Points", path: "/admin/selling-points" },
-        { icon: MessageSquare, label: "Testimonials", path: "/admin/testimonials" },
-        { icon: Images, label: "Gallery", path: "/admin/gallery" },
+        { icon: Image, label: "Hero Section", path: "/admin/hero", roles: ["admin", "superadmin", "content_admin"] },
+        { icon: Target, label: "Selling Points", path: "/admin/selling-points", roles: ["admin", "superadmin", "content_admin"] },
+        { icon: MessageSquare, label: "Testimonials", path: "/admin/testimonials", roles: ["admin", "superadmin", "content_admin"] },
+        { icon: Images, label: "Gallery", path: "/admin/gallery", roles: ["admin", "superadmin", "content_admin"] },
       ]
     },
     {
       label: "PRODUCTS & SERVICES",
       items: [
-        { icon: Package, label: "Paket Umroh", path: "/admin/packages" },
-        { icon: Hotel, label: "Hotel", path: "/admin/hotels" },
-        { icon: ListChecks, label: "Fasilitas Paket", path: "/admin/package-items" },
-        { icon: Calendar, label: "Jadwal Keberangkatan", path: "/admin/jadwal" },
-        { icon: Calculator, label: "Kalkulator Harga", path: "/admin/calculator" },
-        { icon: Sparkles, label: "Calculator Leads", path: "/admin/calculator-leads" },
+        { icon: Package, label: "Paket Umroh", path: "/admin/packages", roles: ["admin", "superadmin", "product_admin"] },
+        { icon: Hotel, label: "Hotel", path: "/admin/hotels", roles: ["admin", "superadmin", "product_admin"] },
+        { icon: ListChecks, label: "Fasilitas Paket", path: "/admin/package-items", roles: ["admin", "superadmin", "product_admin"] },
+        { icon: Calendar, label: "Jadwal Keberangkatan", path: "/admin/jadwal", roles: ["admin", "superadmin", "product_admin"] },
+        { icon: Calculator, label: "Kalkulator Harga", path: "/admin/calculator", roles: ["admin", "superadmin", "product_admin"] },
+        { icon: Sparkles, label: "Calculator Leads", path: "/admin/calculator-leads", roles: ["admin", "superadmin", "product_admin"] },
       ]
     },
     {
       label: "CONTENT & BLOG",
       items: [
-        { icon: FileText, label: "Artikel", path: "/admin/articles" },
-        { icon: HelpCircle, label: "FAQ", path: "/admin/faq" },
+        { icon: FileText, label: "Artikel", path: "/admin/articles", roles: ["admin", "superadmin", "content_admin"] },
+        { icon: HelpCircle, label: "FAQ", path: "/admin/faq", roles: ["admin", "superadmin", "content_admin"] },
       ]
     },
     {
       label: "AGENTS",
       items: [
-        { icon: UserCog, label: "Kelola Agent", path: "/admin/agents" },
-        { icon: Trophy, label: "Gamification", path: "/admin/gamification" },
+        { icon: UserCog, label: "Kelola Agent", path: "/admin/agents", roles: ["admin", "superadmin", "agent_admin"] },
+        { icon: Trophy, label: "Gamification", path: "/admin/gamification", roles: ["admin", "superadmin", "agent_admin"] },
       ]
     },
     {
       label: "SETTINGS",
       items: [
-        { icon: Settings, label: "Website Settings", path: "/admin/settings" },
-        { icon: TrendingUp, label: "Marketing Settings", path: "/admin/settings/marketing" },
-        { icon: MessageCircleMore, label: "Chat Rotation", path: "/admin/chat-rotation" },
-        { icon: Link2, label: "URL Shortener", path: "/admin/url-shortener" },
-        { icon: Search, label: "SEO", path: "/admin/seo" },
-        { icon: Users, label: "Team", path: "/admin/team" },
+        { icon: Settings, label: "Website Settings", path: "/admin/settings", roles: ["admin", "superadmin"] },
+        { icon: TrendingUp, label: "Marketing Settings", path: "/admin/settings/marketing", roles: ["admin", "superadmin"] },
+        { icon: MessageCircleMore, label: "Chat Rotation", path: "/admin/chat-rotation", roles: ["admin", "superadmin"] },
+        { icon: Link2, label: "URL Shortener", path: "/admin/url-shortener", roles: ["admin", "superadmin"] },
+        { icon: Search, label: "SEO", path: "/admin/seo", roles: ["admin", "superadmin", "content_admin"] },
+        { icon: Users, label: "Team", path: "/admin/team", roles: ["admin", "superadmin"] },
       ]
     }
   ];
+
+  // Filter menu sections based on user role
+  const role = userRole || "";
+  const menuSections = menuSectionsRaw
+    .map(section => ({
+      ...section,
+      items: section.items.filter(item => item.roles.includes(role))
+    }))
+    .filter(section => section.items.length > 0);
+
+  // Route protection
+  const allAllowedPaths = menuSections.flatMap(section => section.items.map(item => item.path));
+  
+  // Also allow sub-routes of allowed paths (e.g. if /admin/packages is allowed, /admin/packages/new is allowed)
+  const isPathAllowed = (path: string) => {
+    if (path === "/admin/profile") return true; // Everyone can access their own profile
+    if (path === "/admin") return true; // Everyone can access dashboard
+    return allAllowedPaths.some(allowedPath => path === allowedPath || path.startsWith(`${allowedPath}/`));
+  };
+
+  if (!isPathAllowed(location.pathname)) {
+    return <Navigate to="/admin" replace />;
+  }
 
   const isActive = (path: string) => location.pathname === path;
 
