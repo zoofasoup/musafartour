@@ -132,7 +132,7 @@ const AdminLayout = () => {
 
 const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => {
   const { open, toggleSidebar } = useSidebar();
-  const avatarColor = user?.user_metadata?.avatar_color || "bg-blue-500";
+  const avatarEmoji = user?.user_metadata?.avatar_emoji || "😎";
 
   return (
     <div className="h-svh flex w-full bg-[#F1F5F9] overflow-hidden" style={{ "--sidebar-background": "transparent" } as React.CSSProperties}>
@@ -221,8 +221,8 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
               <SidebarMenuButton size="lg" asChild tooltip="Profil" className="hover:bg-slate-200/50 transition-all duration-300">
                 <Link to="/admin/profile">
                   <Avatar className="h-8 w-8 rounded-full">
-                    <AvatarFallback className={`text-white text-xs font-bold ${avatarColor}`}>
-                      {(user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email || 'A').charAt(0).toUpperCase()}
+                    <AvatarFallback className="bg-slate-100 text-lg">
+                      {avatarEmoji}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight overflow-hidden">

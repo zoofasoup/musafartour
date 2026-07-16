@@ -25,9 +25,9 @@ const Profile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState(user?.user_metadata?.full_name || user?.user_metadata?.name || "");
-  const [avatarColor, setAvatarColor] = useState(user?.user_metadata?.avatar_color || "bg-blue-500");
+  const [avatarEmoji, setAvatarEmoji] = useState(user?.user_metadata?.avatar_emoji || "😎");
 
-  const avatars = ["bg-blue-500", "bg-emerald-500", "bg-purple-500", "bg-amber-500", "bg-pink-500", "bg-rose-500", "bg-indigo-500"];
+  const emojis = ["😎", "🤠", "🤖", "👽", "👻", "🦊", "🦁", "🐯", "🐼", "🐨", "🐸", "🚀", "👑", "💎", "🎯", "🎲"];
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +79,7 @@ const Profile = () => {
     setProfileLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({
-        data: { full_name: fullName, avatar_color: avatarColor }
+        data: { full_name: fullName, avatar_emoji: avatarEmoji }
       });
       if (error) throw error;
       toast({
@@ -154,24 +154,23 @@ const Profile = () => {
               </div>
               
               <div className="space-y-3">
-                <Label className="text-sm font-semibold text-slate-700">Warna Ikon Profil</Label>
+                <Label className="text-sm font-semibold text-slate-700">Emoji Profil</Label>
                 <div className="flex flex-wrap gap-2.5">
-                  {avatars.map((color) => (
+                  {emojis.map((emoji) => (
                     <button
-                      key={color}
+                      key={emoji}
                       type="button"
-                      onClick={() => setAvatarColor(color)}
-                      className={`w-9 h-9 rounded-full cursor-pointer transition-all flex items-center justify-center text-white text-xs font-bold
-                        ${color} 
-                        ${avatarColor === color ? 'ring-2 ring-offset-2 ring-slate-800 scale-110' : 'hover:scale-110 opacity-80 hover:opacity-100'}
+                      onClick={() => setAvatarEmoji(emoji)}
+                      className={`w-10 h-10 rounded-xl cursor-pointer transition-all flex items-center justify-center text-xl
+                        ${avatarEmoji === emoji ? 'bg-slate-100 ring-2 ring-slate-800 scale-110 shadow-sm' : 'hover:bg-slate-50 hover:scale-110'}
                       `}
-                      title="Pilih warna"
+                      title="Pilih emoji"
                     >
-                      {(fullName || user?.email || 'A').charAt(0).toUpperCase()}
+                      {emoji}
                     </button>
                   ))}
                 </div>
-                <p className="text-[11px] text-slate-500">Ikon profil ini akan ditampilkan pada bagian bawah sidebar.</p>
+                <p className="text-[11px] text-slate-500">Emoji ini akan ditampilkan sebagai ikon profil Anda di sidebar.</p>
               </div>
 
               <Button type="submit" disabled={profileLoading} className="w-full max-w-md">
