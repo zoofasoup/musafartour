@@ -167,14 +167,18 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: 'You cannot remove yourself' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      const { error: deleteError } = await supabaseAdmin
+      // Hapus data dari tabel user_roles
+      await supabaseAdmin
         .from('user_roles')
         .delete()
         .eq('user_id', userId);
         
+      // Hapus akun mereka secara permanen dari sistem Auth Supabase
+      // sehingga jika diundang lagi, mereka harus membuat password dari awal.
+      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
       if (deleteError) throw deleteError;
 
-      return new Response(JSON.stringify({ success: true, message: 'User access removed successfully' }), { 
+      return new Response(JSON.stringify({ success: true, message: 'User deleted permanently' }), { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       });
     }
