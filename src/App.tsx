@@ -40,7 +40,6 @@ const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const Packages = lazy(() => import("./pages/admin/Packages"));
 const PackageForm = lazy(() => import("./pages/admin/PackageForm"));
 const ArticlesPage = lazy(() => import("./pages/admin/Articles"));
-const MigrateArticles = lazy(() => import("./pages/admin/MigrateArticles"));
 const ArticleForm = lazy(() => import("./pages/admin/ArticleForm"));
 const Hotels = lazy(() => import("./pages/admin/Hotels"));
 const HotelForm = lazy(() => import("./pages/admin/HotelForm"));
@@ -300,7 +299,6 @@ const App = () => (
                     <Route path="package-items" element={<PackageItems />} />
 
                     {/* Content & Blog */}
-                    <Route path="migrate-articles" element={<MigrateArticles />} />
                     <Route path="articles" element={<ArticlesPage />} />
                     <Route path="articles/new" element={<ArticleForm />} />
                     <Route path="articles/:id" element={<ArticleForm />} />

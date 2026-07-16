@@ -93,7 +93,6 @@ const AdminLayout = () => {
       label: "CONTENT & BLOG",
       items: [
         { icon: FileText, label: "Artikel", path: "/admin/articles" },
-        { icon: FileText, label: "Migrasi Artikel", path: "/admin/migrate-articles" },
         { icon: HelpCircle, label: "FAQ", path: "/admin/faq" },
       ]
     },
