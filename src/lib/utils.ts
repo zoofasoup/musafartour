@@ -63,3 +63,18 @@ export function getPriceBadgeStyle(title: string | undefined): string {
   
   return 'bg-rose-50 text-rose-700'; // Default fallback color
 }
+
+/**
+ * Safely parse list strings or arrays from Supabase
+ */
+export function parseListItems(items: string | string[] | null | undefined): string[] {
+  if (!items) return [];
+  if (Array.isArray(items)) return items;
+  try {
+    const parsed = JSON.parse(items);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    // If not JSON, split by newlines as fallback
+    return items.split('\n').filter(Boolean);
+  }
+}
