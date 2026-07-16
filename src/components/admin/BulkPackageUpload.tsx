@@ -534,17 +534,15 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
   const handleGoogleSheetsSync = async () => {
     setIsFetchingSheet(true);
     try {
-      const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/export?format=xlsx`;
+      const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error("Gagal mengunduh Google Sheet");
       
-      const buffer = await response.arrayBuffer();
-      const data = new Uint8Array(buffer);
-      const wb = XLSX.read(data, { type: "array", cellDates: true });
+      const csvText = await response.text();
+      const wb = XLSX.read(csvText, { type: "string", cellDates: true });
       
-      // Find the specific sheet or use the first one
-      const sheetName = wb.SheetNames.includes(SHEET_NAME) ? SHEET_NAME : wb.SheetNames[0];
-      const ws = wb.Sheets[sheetName];
+      // Since it's a direct CSV export of that sheet, there is only one sheet named "Sheet1"
+      const ws = wb.Sheets[wb.SheetNames[0]];
       const parsed = parseExcelData(ws);
       
       if (parsed.length === 0) {
