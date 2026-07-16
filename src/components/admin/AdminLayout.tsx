@@ -171,7 +171,7 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
           </SidebarMenu>
         </SidebarHeader>
 
-        <SidebarContent className="px-2 py-2">
+        <SidebarContent>
           {menuSections.map((section: any, idx: number) => (
             <SidebarGroup key={idx}>
               {section.label && (
