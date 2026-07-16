@@ -36,6 +36,7 @@ const JadwalUmroh = lazy(() => import("./pages/JadwalUmroh"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Auth = lazy(() => import("./pages/Auth"));
 const AdminSetup = lazy(() => import("./pages/AdminSetup"));
+const SetPassword = lazy(() => import("./pages/SetPassword"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const Packages = lazy(() => import("./pages/admin/Packages"));
 const PackageForm = lazy(() => import("./pages/admin/PackageForm"));
