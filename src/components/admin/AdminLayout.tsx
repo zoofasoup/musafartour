@@ -252,7 +252,9 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
                     <span className="truncate font-semibold text-slate-700 group-hover:text-slate-900 leading-tight">
                       {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email}
                     </span>
-                    <span className="truncate text-[10px] text-slate-500 leading-tight">Super Admin</span>
+                    <span className="truncate text-[10px] text-slate-500 leading-tight capitalize">
+                      {userRole ? userRole.replace('_', ' ') : 'Loading...'}
+                    </span>
                   </div>
                 </Link>
               </SidebarMenuButton>

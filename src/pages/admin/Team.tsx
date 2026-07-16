@@ -62,7 +62,7 @@ export default function Team() {
   };
 
   useEffect(() => {
-    if (userRole === "superadmin") {
+    if (userRole === "superadmin" || userRole === "admin") {
       fetchTeam();
     } else {
       setLoading(false);
@@ -101,7 +101,7 @@ export default function Team() {
     }
   };
 
-  if (userRole !== "superadmin") {
+  if (userRole !== "superadmin" && userRole !== "admin") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <Shield className="h-16 w-16 text-slate-300 mb-4" />
