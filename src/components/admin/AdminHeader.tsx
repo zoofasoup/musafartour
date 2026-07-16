@@ -1,5 +1,6 @@
 import { Bell } from "lucide-react";
 import { useAdminNotifications } from "@/hooks/useAdminNotifications";
+import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,20 +22,23 @@ export const AdminHeader = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="w-full flex justify-start items-center gap-2 text-slate-500 hover:text-slate-700 hover:bg-transparent">
-          <div className="relative">
-            <Bell className="h-5 w-5" />
+        <SidebarMenuButton 
+          tooltip="Notifikasi" 
+          className="text-slate-500 hover:bg-slate-200/50 hover:text-slate-800 rounded-lg transition-all duration-300 ease-in-out"
+        >
+          <div className="relative flex items-center justify-center">
+            <Bell className="h-4 w-4" />
             {unreadCount > 0 && (
               <Badge 
                 variant="destructive" 
-                className="absolute -top-1.5 -right-1.5 h-4 w-4 flex items-center justify-center p-0 text-[10px] rounded-full"
+                className="absolute -top-1.5 -right-1.5 h-3 w-3 flex items-center justify-center p-0 text-[8px] rounded-full"
               >
                 {unreadCount > 99 ? '99+' : unreadCount}
               </Badge>
             )}
           </div>
           <span className="font-medium">Notifikasi</span>
-        </Button>
+        </SidebarMenuButton>
       </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80 max-h-[80vh] overflow-y-auto">
           <div className="flex items-center justify-between px-4 py-2">

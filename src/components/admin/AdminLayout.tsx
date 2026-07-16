@@ -208,51 +208,51 @@ const SidebarLayout = ({ menuSections, isActive, user, handleSignOut }: any) => 
           ))}
         </SidebarContent>
 
-        <SidebarFooter className="p-4 flex flex-col gap-2 border-t border-slate-200/50">
+        <SidebarFooter className="p-2 flex flex-col gap-2 border-t border-slate-200/50">
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Notifikasi" className="hover:bg-slate-200/50 rounded-lg transition-all duration-300 ease-in-out mx-2 text-slate-600 mb-2">
-                <div>
-                  <NotificationDropdown />
-                </div>
-              </SidebarMenuButton>
+              <NotificationDropdown />
             </SidebarMenuItem>
           </SidebarMenu>
 
-          <div className="flex items-center gap-3 hover:bg-slate-200/50 p-2 rounded-lg transition-all duration-300 ease-in-out group mx-2">
-             <div 
-               onClick={(e) => { 
-                 e.preventDefault(); 
-                 const avatars = ["bg-blue-500", "bg-emerald-500", "bg-purple-500", "bg-amber-500", "bg-pink-500", "bg-rose-500", "bg-indigo-500"];
-                 const currentIndex = avatars.indexOf(avatarColor);
-                 setAvatarColor(avatars[(currentIndex + 1) % avatars.length]); 
-               }}
-               className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold shrink-0 cursor-pointer transition-colors ${avatarColor}`}
-               title="Ganti Avatar"
-             >
-               {(user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email || 'A').charAt(0).toUpperCase()}
-             </div>
-             
-             {open && (
-               <>
-                 <div className="flex-1 overflow-hidden flex flex-col">
-                   <p className="text-sm font-semibold text-slate-700 truncate w-full group-hover:text-slate-900">
-                     {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email}
-                   </p>
-                   <p className="text-[10px] text-slate-500">Super Admin</p>
-                 </div>
-                 <Button 
-                   variant="ghost" 
-                   size="icon" 
-                   onClick={handleSignOut} 
-                   className="shrink-0 text-slate-400 hover:text-red-600 hover:bg-red-50 h-8 w-8"
-                   title="Log Out"
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <div className="flex items-center gap-2 hover:bg-slate-200/50 p-1.5 rounded-lg transition-all duration-300 ease-in-out group">
+                 <div 
+                   onClick={(e) => { 
+                     e.preventDefault(); 
+                     const avatars = ["bg-blue-500", "bg-emerald-500", "bg-purple-500", "bg-amber-500", "bg-pink-500", "bg-rose-500", "bg-indigo-500"];
+                     const currentIndex = avatars.indexOf(avatarColor);
+                     setAvatarColor(avatars[(currentIndex + 1) % avatars.length]); 
+                   }}
+                   className={`w-7 h-7 ml-0.5 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 cursor-pointer transition-colors ${avatarColor}`}
+                   title="Ganti Avatar"
                  >
-                   <LogOut className="h-4 w-4" />
-                 </Button>
-               </>
-             )}
-          </div>
+                   {(user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email || 'A').charAt(0).toUpperCase()}
+                 </div>
+                 
+                 {open && (
+                   <>
+                     <div className="flex-1 overflow-hidden flex flex-col">
+                       <p className="text-sm font-semibold text-slate-700 truncate w-full group-hover:text-slate-900 leading-tight">
+                         {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email}
+                       </p>
+                       <p className="text-[10px] text-slate-500 leading-tight">Super Admin</p>
+                     </div>
+                     <Button 
+                       variant="ghost" 
+                       size="icon" 
+                       onClick={handleSignOut} 
+                       className="shrink-0 text-slate-400 hover:text-red-600 hover:bg-red-50 h-7 w-7"
+                       title="Log Out"
+                     >
+                       <LogOut className="h-4 w-4" />
+                     </Button>
+                   </>
+                 )}
+              </div>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
 
