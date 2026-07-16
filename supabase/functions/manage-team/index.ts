@@ -100,12 +100,27 @@ Deno.serve(async (req) => {
         newUserId = inviteData.user.id;
       }
 
-      // Upsert role
-      const { error: upsertError } = await supabaseAdmin
+      // Update or insert role safely without relying on UNIQUE constraints
+      const { data: existingRole, error: checkError } = await supabaseAdmin
         .from('user_roles')
-        .upsert({ user_id: newUserId, role: role }, { onConflict: 'user_id' });
-        
-      if (upsertError) throw upsertError;
+        .select('id')
+        .eq('user_id', newUserId)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (existingRole) {
+        const { error: updateError } = await supabaseAdmin
+          .from('user_roles')
+          .update({ role: role })
+          .eq('user_id', newUserId);
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await supabaseAdmin
+          .from('user_roles')
+          .insert({ user_id: newUserId, role: role });
+        if (insertError) throw insertError;
+      }
 
       return new Response(JSON.stringify({ success: true, message: 'User invited successfully' }), { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -116,8 +131,9 @@ Deno.serve(async (req) => {
 
   } catch (error: any) {
     console.error('Manage team error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Internal server error' }), { 
-      status: 500, 
+    // Return 200 OK so the frontend can read the JSON error body
+    return new Response(JSON.stringify({ success: false, error: error.message || 'Internal server error' }), { 
+      status: 200, 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     });
   }
