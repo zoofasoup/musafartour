@@ -39,14 +39,20 @@ interface ParsedPackage {
   itinerary: string;
   nights_makkah: number;
   nights_madinah: number;
+  nights_extra: number;
   hotel_makkah: string;
   hotel_madinah: string;
   hotel_extra: string;
+  facilities: string;
   selling_points: string;
   price_quad: number;
   price_triple: number;
   price_double: number;
   max_discount: number;
+  slots_remaining: number;
+  banner_image: string;
+  catalog_link: string;
+  itinerary_link: string;
   slug: string;
   errors: string[];
 }
@@ -61,27 +67,32 @@ function fuzzyMatchTier(input: string): string {
 }
 
 const TEMPLATE_COLUMNS = [
-  "Tanggal Berangkat",
-  "Durasi",
-  "Klasifikasi Paket",
-  "Seat",
   "Judul Paket",
+  "Klasifikasi Paket",
   "Timeframe",
-  "Start (Bandara)",
-  "Maskapai",
+  "Start",
+  "Maskapai Berangkat",
+  "Durasi",
   "Direct/Transit",
   "Rute",
   "Itinerary",
   "Malam Makkah",
   "Malam Madinah",
+  "Malam Kota +",
   "Hotel Makkah",
   "Hotel Madinah",
   "Hotel Kota +",
-  "Selling Points",
   "Harga Quad",
-  "Harga Triple",
-  "Harga Double",
+  "Triple",
+  "Double",
   "Maks Diskon",
+  "Seat Sisa",
+  "Seat",
+  "Fasilitas (Include & Exclude)",
+  "Selling Points",
+  "File Flyer",
+  "File Katalog",
+  "File Itinerary",
 ];
 
 // ─── Fuzzy matching utilities ───────────────────────────────────────────
@@ -162,23 +173,29 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   duration_days: ["durasi", "duration", "hari"],
   tier: ["klasifikasi paket", "klasifikasi", "tier", "paket"],
   slots_total: ["seat", "kuota", "slots"],
+  slots_remaining: ["seat sisa", "sisa seat", "sisa"],
   package_name: ["judul paket", "judul", "nama paket", "package name"],
   timeframe: ["timeframe", "time frame", "waktu"],
   start_airport: ["start bandara", "start", "bandara", "airport"],
-  flight: ["maskapai", "airline", "penerbangan"],
+  flight: ["maskapai berangkat", "maskapai", "airline", "penerbangan"],
   flight_type: ["direct transit", "direct/transit", "tipe penerbangan", "flight type"],
   route: ["rute", "route"],
   itinerary: ["itinerary", "jadwal"],
   nights_makkah: ["malam makkah", "makkah"],
   nights_madinah: ["malam madinah", "madinah"],
+  nights_extra: ["malam kota +", "malam kota", "malam extra", "malam plus"],
   hotel_makkah: ["hotel makkah"],
   hotel_madinah: ["hotel madinah"],
-  hotel_extra: ["hotel kota", "hotel kota +", "hotel extra"],
+  hotel_extra: ["hotel kota +", "hotel kota", "hotel extra", "hotel plus"],
+  facilities: ["fasilitas (include & exclude)", "fasilitas", "include exclude", "include"],
   selling_points: ["selling points", "selling point", "keunggulan"],
   price_quad: ["harga quad", "quad"],
   price_triple: ["harga triple", "triple"],
   price_double: ["harga double", "double"],
   max_discount: ["maks diskon", "max diskon", "diskon"],
+  banner_image: ["file flyer", "flyer", "banner"],
+  catalog_link: ["file katalog", "katalog", "catalog"],
+  itinerary_link: ["file itinerary", "file jadwal", "link itinerary"],
 };
 
 function buildColumnMap(headers: string[]): Record<string, number> {
@@ -310,14 +327,20 @@ function parseExcelData(worksheet: XLSX.WorkSheet): ParsedPackage[] {
         itinerary: String(getVal(row, colMap.itinerary) || "").trim(),
         nights_makkah: parseInt(String(getVal(row, colMap.nights_makkah) || "0"), 10) || 0,
         nights_madinah: parseInt(String(getVal(row, colMap.nights_madinah) || "0"), 10) || 0,
+        nights_extra: parseInt(String(getVal(row, colMap.nights_extra) || "0"), 10) || 0,
         hotel_makkah: String(getVal(row, colMap.hotel_makkah) || "").trim(),
         hotel_madinah: String(getVal(row, colMap.hotel_madinah) || "").trim(),
         hotel_extra: String(getVal(row, colMap.hotel_extra) || "").trim(),
+        facilities: String(getVal(row, colMap.facilities) || "").trim(),
         selling_points: String(getVal(row, colMap.selling_points) || "").trim(),
         price_quad: parsePrice(getVal(row, colMap.price_quad)),
         price_triple: parsePrice(getVal(row, colMap.price_triple)),
         price_double: parsePrice(getVal(row, colMap.price_double)),
         max_discount: parsePrice(getVal(row, colMap.max_discount)),
+        slots_remaining: parseInt(String(getVal(row, colMap.slots_remaining) || "0"), 10) || 0,
+        banner_image: String(getVal(row, colMap.banner_image) || "").trim(),
+        catalog_link: String(getVal(row, colMap.catalog_link) || "").trim(),
+        itinerary_link: String(getVal(row, colMap.itinerary_link) || "").trim(),
         slug: slugify(packageName, departureDateStr),
         errors: [],
       };
@@ -406,15 +429,22 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[]) {
     }
   };
 
+  const slots_total = row.slots_total || 0;
+  let slots_filled = 0;
+  if (row.slots_remaining > 0 && slots_total > 0) {
+    slots_filled = Math.max(0, slots_total - row.slots_remaining);
+  }
+
   const payload: Record<string, unknown> = {
     package_name: row.package_name,
     slug: row.slug,
-    departure_date: row.departure_date,
+    departure_date: row.departure_date || new Date().toISOString().split('T')[0],
     duration_days: row.duration_days,
     flight: row.flight,
     flight_type: row.flight_type,
     available_tiers: [row.tier],
-    slots_total: row.slots_total || null,
+    slots_total: slots_total > 0 ? slots_total : null,
+    slots_filled: slots_filled,
     status: "draft",
     timeframe: row.timeframe || null,
     start_airport: row.start_airport || null,
@@ -422,9 +452,14 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[]) {
     itinerary: row.itinerary || null,
     nights_makkah: row.nights_makkah || null,
     nights_madinah: row.nights_madinah || null,
+    nights_extra: row.nights_extra || null,
     hotel_extra: row.hotel_extra || null,
+    included_items: row.facilities || null,
     selling_points: row.selling_points || null,
     max_discount: row.max_discount || 0,
+    banner_image: row.banner_image || null,
+    catalog_link: row.catalog_link || null,
+    itinerary_link: row.itinerary_link || null,
     package_price: row.tier === "nyaman" ? priceJson : { quad: 0, triple: 0, double: 0 },
     [priceField(row.tier)]: priceJson,
     [transportField(row.tier)]: defaultTransport(row.tier),
@@ -437,29 +472,32 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[]) {
 function downloadTemplate() {
   const wb = XLSX.utils.book_new();
   const sampleData = [
-    {
-      "Tanggal Berangkat": "2026-07-03",
-      "Durasi": 12,
-      "Klasifikasi Paket": "Hemat",
-      "Seat": 40,
       "Judul Paket": "Umroh Hemat",
+      "Klasifikasi Paket": "Hemat",
       "Timeframe": "Bulan Juli",
-      "Start (Bandara)": "CGK",
-      "Maskapai": "Garuda",
+      "Start": "CGK",
+      "Maskapai Berangkat": "Garuda",
+      "Durasi": 12,
       "Direct/Transit": "Direct",
       "Rute": "JED-MED",
       "Itinerary": "Makkah - Madinah",
       "Malam Makkah": 7,
       "Malam Madinah": 3,
+      "Malam Kota +": 0,
       "Hotel Makkah": "Nada Ajyad",
       "Hotel Madinah": "Manazeel Safia",
       "Hotel Kota +": "-",
-      "Selling Points": "Thaif + Romansiah, Fotografer",
       "Harga Quad": 30900000,
-      "Harga Triple": 32900000,
-      "Harga Double": 34900000,
+      "Triple": 32900000,
+      "Double": 34900000,
       "Maks Diskon": 1000000,
-    },
+      "Seat Sisa": 10,
+      "Seat": 40,
+      "Fasilitas (Include & Exclude)": "Visa, Tiket, Hotel",
+      "Selling Points": "Thaif + Romansiah, Fotografer",
+      "File Flyer": "https://link-ke-flyer.com/image.jpg",
+      "File Katalog": "https://link-ke-katalog.com/katalog.pdf",
+      "File Itinerary": "https://link-ke-itinerary.com/itinerary.pdf",
   ];
   const ws = XLSX.utils.json_to_sheet(sampleData, { header: TEMPLATE_COLUMNS });
   ws["!cols"] = TEMPLATE_COLUMNS.map((col) => ({ wch: Math.max(col.length + 2, 16) }));

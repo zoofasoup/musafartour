@@ -29,14 +29,6 @@ const PublicMarketingKit = () => {
           
         if (packagesError) throw packagesError;
 
-        // Fetch active marketing materials
-        const { data: materials, error: materialsError } = await supabase
-          .from('marketing_materials')
-          .select('*')
-          .eq('is_active', true);
-
-        if (materialsError) throw materialsError;
-
         let finalData: Campaign[] = [];
 
         // Helper function to format date (e.g., "15 Agu 2025")
@@ -58,8 +50,6 @@ const PublicMarketingKit = () => {
             itineraryDays: []
           };
 
-          const pkgMaterials = materials?.filter(m => m.package_id === pkg.id) || [];
-          
           // Add native package materials
           if (pkg.banner_image) {
             campaign.items.push({ id: `${pkg.id}-banner`, name: 'Flyer Paket', url: pkg.banner_image, content: '', folder: 'type:flyer' });
@@ -71,58 +61,11 @@ const PublicMarketingKit = () => {
             campaign.items.push({ id: `${pkg.id}-itinerary`, name: 'Itinerary Perjalanan', url: pkg.itinerary_link, content: '', folder: 'type:katalog' });
           }
 
-          pkgMaterials.forEach((material, index) => {
-            // Map Supabase 'category' to 'type' used in MaterialsList
-            let mappedType: 'flyer' | 'katalog' | 'copy' | 'foto' | 'pricelist' | 'unknown' = 'unknown';
-            const cat = material.category.toLowerCase();
-            if (cat.includes('visual') || cat.includes('flyer')) mappedType = 'flyer';
-            else if (cat.includes('katalog') || cat.includes('document')) mappedType = 'katalog';
-            else if (cat.includes('copy')) mappedType = 'copy';
-            else if (cat.includes('video')) mappedType = 'foto'; // Using foto for generic media
-            
-            campaign.items.push({
-              id: material.id,
-              name: material.title,
-              url: mappedType !== 'copy' ? material.file_url : '#',
-              content: mappedType === 'copy' ? (material.description || '') : '',
-              folder: `type:${mappedType}`,
-            });
-          });
-
           // Only add packages that have at least one material
           if (campaign.items.length > 0) {
             finalData.push(campaign);
           }
         });
-
-        // Handle generic/global materials (package_id is null)
-        const globalMaterials = materials?.filter(m => !m.package_id) || [];
-        if (globalMaterials.length > 0) {
-          const globalCampaign: Campaign = {
-            id: 'general',
-            name: 'Materi General',
-            items: [],
-          };
-          
-          globalMaterials.forEach((material) => {
-            let mappedType: 'flyer' | 'katalog' | 'copy' | 'foto' | 'pricelist' | 'unknown' = 'unknown';
-            const cat = material.category.toLowerCase();
-            if (cat.includes('visual') || cat.includes('flyer')) mappedType = 'flyer';
-            else if (cat.includes('katalog') || cat.includes('document')) mappedType = 'katalog';
-            else if (cat.includes('copy')) mappedType = 'copy';
-            else if (cat.includes('video')) mappedType = 'foto';
-            
-            globalCampaign.items.push({
-              id: material.id,
-              name: material.title,
-              url: mappedType !== 'copy' ? material.file_url : '#',
-              content: mappedType === 'copy' ? (material.description || '') : '',
-              folder: `type:${mappedType}`,
-            });
-          });
-          
-          finalData.unshift(globalCampaign); // Add to beginning
-        }
 
         setData(finalData);
 

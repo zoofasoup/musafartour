@@ -95,7 +95,6 @@ const AdminLayout = () => {
       items: [
         { icon: FileText, label: "Artikel", path: "/admin/articles", roles: ["admin", "superadmin", "content_admin"] },
         { icon: HelpCircle, label: "FAQ", path: "/admin/faq", roles: ["admin", "superadmin", "content_admin"] },
-        { icon: Sparkles, label: "Marketing Materials", path: "/admin/marketing-materials", roles: ["admin", "superadmin", "content_admin", "agent_admin"] },
       ]
     },
     {

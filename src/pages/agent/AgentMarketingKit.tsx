@@ -34,17 +34,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 
-interface MarketingMaterial {
+interface NativeMaterial {
   id: string;
   package_id: string | null;
   category: string;
-  type: string;
   title: string;
-  description: string | null;
   file_url: string;
-  file_size: string | null;
   format: string | null;
-  created_at: string;
 }
 
 interface ShortLink {
@@ -59,6 +55,9 @@ interface ShortLink {
 interface PackageOption {
   id: string;
   package_name: string;
+  banner_image: string | null;
+  catalog_link: string | null;
+  itinerary_link: string | null;
 }
 
 // Sales scripts data (placeholder until database has content)
@@ -111,34 +110,36 @@ const AgentMarketingKit = () => {
   const [newLinkUrl, setNewLinkUrl] = useState('');
   const [newLinkTitle, setNewLinkTitle] = useState('');
 
-  // Fetch marketing materials
-  const { data: materials = [], isLoading: materialsLoading } = useQuery({
-    queryKey: ['marketing-materials'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('marketing_materials')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as MarketingMaterial[];
-    },
-  });
+  // No longer fetching from marketing_materials
+  const materialsLoading = false;
 
-  // Fetch packages for dropdown
-  const { data: packages = [] } = useQuery({
+  // Fetch packages for dropdown and materials
+  const { data: packages = [], isLoading: packagesLoading } = useQuery({
     queryKey: ['packages-for-marketing'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('packages')
-        .select('id, package_name')
+        .select('id, package_name, banner_image, catalog_link, itinerary_link')
         .eq('status', 'published')
         .order('departure_date', { ascending: true });
       
       if (error) throw error;
       return data as PackageOption[];
     },
+  });
+
+  // Synthesize materials from packages
+  const materials: NativeMaterial[] = [];
+  packages.forEach(pkg => {
+    if (pkg.banner_image) {
+      materials.push({ id: `${pkg.id}-banner`, package_id: pkg.id, category: 'visual', title: 'Flyer Paket', file_url: pkg.banner_image, format: 'Image' });
+    }
+    if (pkg.catalog_link) {
+      materials.push({ id: `${pkg.id}-catalog`, package_id: pkg.id, category: 'visual', title: 'Katalog Paket', file_url: pkg.catalog_link, format: 'PDF' });
+    }
+    if (pkg.itinerary_link) {
+      materials.push({ id: `${pkg.id}-itinerary`, package_id: pkg.id, category: 'visual', title: 'Itinerary Perjalanan', file_url: pkg.itinerary_link, format: 'PDF' });
+    }
   });
 
   // Fetch agent's short links
@@ -257,7 +258,7 @@ const AgentMarketingKit = () => {
 
   const agentPageUrl = `${window.location.origin}/r/${agent?.referral_code || ''}`;
 
-  if (materialsLoading) {
+  if (packagesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -371,7 +372,7 @@ const AgentMarketingKit = () => {
                             <div>
                               <p className="font-medium text-sm">{material.title}</p>
                               <p className="text-xs text-muted-foreground">
-                                {material.format} • {material.file_size}
+                                {material.format}
                               </p>
                             </div>
                           </div>
@@ -570,7 +571,7 @@ const AgentMarketingKit = () => {
                         <div>
                           <p className="font-medium text-sm">{material.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            {material.format} • {material.file_size}
+                            {material.format}
                           </p>
                         </div>
                       </div>
