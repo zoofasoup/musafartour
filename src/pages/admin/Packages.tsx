@@ -330,11 +330,11 @@ const Packages = () => {
                     const availabilityPercent = Math.min(100, (filled / total) * 100);
                     
                     return (
-                      <TableRow
-                        key={pkg.id}
-                        className={`${isSelected(pkg.id) ? "bg-primary/5" : ""} ${selectionMode ? "cursor-pointer select-none" : ""}`}
-                        onClick={(e) => handleRowClick(pkg, index, e)}
-                      >
+                      <Fragment key={pkg.id}>
+                        <TableRow
+                          className={`${isSelected(pkg.id) ? "bg-primary/5" : ""} ${selectionMode ? "cursor-pointer select-none" : ""}`}
+                          onClick={(e) => handleRowClick(pkg, index, e)}
+                        >
                         {selectionMode && (
                           <TableCell>
                             <Checkbox
@@ -439,7 +439,7 @@ const Packages = () => {
                           </TableCell>
                         </TableRow>
                       )}
-                    </React.Fragment>
+                    </Fragment>
                   );
                 })
               )}
