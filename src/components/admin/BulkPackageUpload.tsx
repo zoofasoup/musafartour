@@ -33,6 +33,13 @@ export interface HotelRecord {
   location: string;
 }
 
+export interface ExistingPackage {
+  slug: string;
+  banner_image: string | null;
+  catalog_link: string | null;
+  itinerary_link: string | null;
+}
+
 interface ParsedPackage {
   rowIndex: number;
   departure_date: string;
@@ -70,6 +77,7 @@ interface ParsedPackage {
   hotel_makkah_record?: HotelRecord;
   hotel_madinah_record?: HotelRecord;
   hotel_extra_record?: HotelRecord;
+  isUpdate?: boolean;
 }
 
 function fuzzyMatchTier(input: string): string {
@@ -275,7 +283,8 @@ function validateRow(row: ParsedPackage): string[] {
 function parseExcelData(
   worksheet: XLSX.WorkSheet,
   referenceData?: { flights: string[]; airports: string[]; routes: string[] },
-  hotels?: HotelRecord[]
+  hotels?: HotelRecord[],
+  existingPackages?: Record<string, ExistingPackage>
 ): ParsedPackage[] {
   const rawData = XLSX.utils.sheet_to_json<unknown[]>(worksheet, { header: 1, defval: "" });
   if (rawData.length < 2) return [];
@@ -321,6 +330,8 @@ function parseExcelData(
       const tier = fuzzyMatchTier(tierRaw);
       const departureDateStr = parseDate(getVal(row, colMap.departure_date));
       const packageName = String(getVal(row, colMap.package_name) || "").trim();
+      const slug = slugify(packageName, departureDateStr);
+      const isUpdate = existingPackages ? !!existingPackages[slug] : false;
       
       const rawFlight = String(getVal(row, colMap.flight) || "").trim();
       const flight = referenceData ? findClosestString(rawFlight, referenceData.flights) : rawFlight;
@@ -373,7 +384,7 @@ function parseExcelData(
         banner_image: String(getVal(row, colMap.banner_image) || "").trim(),
         catalog_link: String(getVal(row, colMap.catalog_link) || "").trim(),
         itinerary_link: String(getVal(row, colMap.itinerary_link) || "").trim(),
-        slug: "",
+        slug,
         errors: [],
         matched_flight,
         matched_airport,
@@ -381,6 +392,7 @@ function parseExcelData(
         hotel_makkah_record,
         hotel_madinah_record,
         hotel_extra_record,
+        isUpdate,
       };
 
       parsed.errors = validateRow(parsed);
@@ -402,9 +414,10 @@ function findHotel(hotels: HotelRecord[], name: string, location: string): Hotel
   );
 }
 
-function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[]) {
+function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingPackages: Record<string, ExistingPackage>) {
   const makkahHotel = row.hotel_makkah_record;
   const madinahHotel = row.hotel_madinah_record;
+  const existingPkg = existingPackages[row.slug];
 
   const priceJson = { quad: row.price_quad, triple: row.price_triple, double: row.price_double };
 
@@ -462,7 +475,7 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[]) {
 
   const payload: Record<string, unknown> = {
     package_name: row.package_name,
-    slug: slugify(row.package_name, row.departure_date),
+    slug: row.slug,
     departure_date: row.departure_date || new Date().toISOString().split('T')[0],
     duration_days: row.duration_days,
     flight: row.flight,
@@ -482,9 +495,9 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[]) {
     included_items: row.facilities || null,
     selling_points: row.selling_points || null,
     max_discount: row.max_discount || 0,
-    banner_image: row.banner_image || null,
-    catalog_link: row.catalog_link || null,
-    itinerary_link: row.itinerary_link || null,
+    banner_image: existingPkg ? existingPkg.banner_image : (row.banner_image || null),
+    catalog_link: existingPkg ? existingPkg.catalog_link : (row.catalog_link || null),
+    itinerary_link: existingPkg ? existingPkg.itinerary_link : (row.itinerary_link || null),
     package_price: row.tier === "nyaman" ? priceJson : { quad: 0, triple: 0, double: 0 },
     [priceField(row.tier)]: priceJson,
     [transportField(row.tier)]: defaultTransport(row.tier),
@@ -549,6 +562,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
   const [fileName, setFileName] = useState("");
   const [isFetchingSheet, setIsFetchingSheet] = useState(false);
   const [hotels, setHotels] = useState<HotelRecord[]>([]);
+  const [existingPackages, setExistingPackages] = useState<Record<string, ExistingPackage>>({});
   const [selectedRowIndices, setSelectedRowIndices] = useState<Set<number>>(new Set());
   const [referenceData, setReferenceData] = useState<{ flights: string[]; airports: string[]; routes: string[] }>({
     flights: [],
@@ -559,16 +573,26 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
   useEffect(() => {
     if (open) {
       const fetchRef = async () => {
-        const { data } = await supabase.from("packages").select("flight, start_airport, route");
+        const { data } = await supabase.from("packages").select("flight, start_airport, route, slug, banner_image, catalog_link, itinerary_link");
         if (data) {
           const flights = new Set<string>();
           const airports = new Set<string>();
           const routes = new Set<string>();
+          const exMap: Record<string, ExistingPackage> = {};
           data.forEach((p) => {
+            if (p.slug) {
+              exMap[p.slug] = {
+                slug: p.slug,
+                banner_image: p.banner_image,
+                catalog_link: p.catalog_link,
+                itinerary_link: p.itinerary_link,
+              };
+            }
             if (p.flight) flights.add(p.flight.trim());
             if (p.start_airport) airports.add(p.start_airport.trim());
             if (p.route) routes.add(p.route.trim());
           });
+          setExistingPackages(exMap);
           setReferenceData({
             flights: Array.from(flights).filter(Boolean),
             airports: Array.from(airports).filter(Boolean),
@@ -612,7 +636,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
         const data = new Uint8Array(evt.target?.result as ArrayBuffer);
         const wb = XLSX.read(data, { type: "array", cellDates: true });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const parsed = parseExcelData(ws, referenceData, hotels);
+        const parsed = parseExcelData(ws, referenceData, hotels, existingPackages);
         
         if (parsed.length === 0) {
           toast.error("File kosong atau format tidak sesuai");
@@ -641,7 +665,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
       const wb = XLSX.read(csvText, { type: "string", cellDates: true });
       
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const parsed = parseExcelData(ws, referenceData, hotels);
+      const parsed = parseExcelData(ws, referenceData, hotels, existingPackages);
       
       if (parsed.length === 0) {
         toast.error("File kosong atau format tidak sesuai");
@@ -676,10 +700,10 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
 
     for (const row of validRows) {
       try {
-        const payload = buildUpsertPayload(row, hotels);
+        const payload = buildUpsertPayload(row, hotels, existingPackages);
         const { error } = await supabase
           .from("packages")
-          .upsert(payload as any, { onConflict: "slug", ignoreDuplicates: true });
+          .upsert(payload as any, { onConflict: "slug", ignoreDuplicates: false });
 
         if (error) throw error;
         successCount++;
@@ -939,7 +963,11 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
                               ))}
                             </div>
                           ) : (
-                            <span className="text-green-600 dark:text-green-400 text-xs font-medium">Valid</span>
+                            row.isUpdate ? (
+                              <span className="text-blue-600 dark:text-blue-400 text-xs font-medium">Update</span>
+                            ) : (
+                              <span className="text-green-600 dark:text-green-400 text-xs font-medium">Baru</span>
+                            )
                           )}
                         </TableCell>
                       </TableRow>
@@ -953,7 +981,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
               <Button variant="outline" onClick={handleClose}>Batal</Button>
               <Button onClick={handleImport} disabled={selectedRowIndices.size === 0}>
                 <Upload className="mr-2 h-4 w-4" />
-                Import {selectedRowIndices.size} Paket
+                Simpan {selectedRowIndices.size} Paket
               </Button>
             </DialogFooter>
           </>
