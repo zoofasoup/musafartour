@@ -220,7 +220,10 @@ const Packages = () => {
     }}
   ];
 
-  const handleBulkAction = async (action: any) => {
+  const handleBulkAction = async (actionId: string, selectedIds: string[]) => {
+    const action = bulkActions.find(a => a.id === actionId);
+    if (!action || !action.handler) return;
+
     try {
       await action.handler(selectedIds);
       toast.success(`Aksi ${action.label} berhasil dijalankan`);
