@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { Campaign } from '../marketing-types';
 import { MaterialsList } from '../components/MaterialsList';
-import { Search, Loader2, Menu, ChevronDown } from 'lucide-react';
+import { Search, Loader2, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 

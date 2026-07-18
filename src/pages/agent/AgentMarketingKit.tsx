@@ -110,8 +110,6 @@ const AgentMarketingKit = () => {
   const [newLinkUrl, setNewLinkUrl] = useState('');
   const [newLinkTitle, setNewLinkTitle] = useState('');
 
-  // No longer fetching from marketing_materials
-  const materialsLoading = false;
 
   // Fetch packages for dropdown and materials
   const { data: packages = [], isLoading: packagesLoading } = useQuery({

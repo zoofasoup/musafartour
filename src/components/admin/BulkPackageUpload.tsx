@@ -472,6 +472,7 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[]) {
 function downloadTemplate() {
   const wb = XLSX.utils.book_new();
   const sampleData = [
+    {
       "Judul Paket": "Umroh Hemat",
       "Klasifikasi Paket": "Hemat",
       "Timeframe": "Bulan Juli",
@@ -498,6 +499,7 @@ function downloadTemplate() {
       "File Flyer": "https://link-ke-flyer.com/image.jpg",
       "File Katalog": "https://link-ke-katalog.com/katalog.pdf",
       "File Itinerary": "https://link-ke-itinerary.com/itinerary.pdf",
+    }
   ];
   const ws = XLSX.utils.json_to_sheet(sampleData, { header: TEMPLATE_COLUMNS });
   ws["!cols"] = TEMPLATE_COLUMNS.map((col) => ({ wch: Math.max(col.length + 2, 16) }));
