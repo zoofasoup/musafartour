@@ -43,9 +43,8 @@ interface Package {
 type SortField = 'package_name' | 'departure_date' | 'slots_filled' | 'package_price' | 'status';
 type SortDirection = 'asc' | 'desc';
 
-/** Extract the best quad price from tier-specific or default price columns */
-const getDisplayPrice = (pkg: Package): number => {
-  // Check tier-specific prices from JSONB first, then fallback to package_price
+/** Extract the full price object for the cheapest/best tier */
+const getPrices = (pkg: Package): { quad?: number; triple?: number; double?: number } | null => {
   const tiers = pkg.tiers_data || {};
   const candidates = [
     pkg.package_price,
@@ -56,10 +55,21 @@ const getDisplayPrice = (pkg: Package): number => {
   ];
   for (const price of candidates) {
     if (price && typeof price === 'object' && price.quad && price.quad > 0) {
-      return price.quad;
+      return price;
     }
   }
-  return 0;
+  return null;
+};
+
+/** Used for sorting */
+const getDisplayPrice = (pkg: Package): number => {
+  const prices = getPrices(pkg);
+  return prices?.quad || 0;
+};
+
+const formatJt = (amount: number | undefined) => {
+  if (!amount) return "-";
+  return `${(amount / 1000000).toFixed(1).replace(/\.0$/, '')} Jt`;
 };
 
 const Packages = () => {
@@ -327,7 +337,7 @@ const Packages = () => {
                   </TableHead>
                   <TableHead>
                     <Button variant="ghost" onClick={() => handleSort('package_price')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'package_price' ? 'text-primary' : ''}`}>
-                      Harga Mulai {getSortIcon('package_price')}
+                      Harga {getSortIcon('package_price')}
                     </Button>
                   </TableHead>
                   <TableHead>
@@ -417,8 +427,27 @@ const Packages = () => {
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell className="font-medium whitespace-nowrap">
-                            Rp {formatNumber(getDisplayPrice(pkg))}
+                          <TableCell>
+                            {(() => {
+                              const prices = getPrices(pkg);
+                              if (!prices) return <span className="text-muted-foreground">-</span>;
+                              return (
+                                <div className="flex flex-col text-xs gap-0.5">
+                                  <div className="flex justify-between gap-3">
+                                    <span className="text-slate-500">Quad</span>
+                                    <span className="font-medium text-slate-700">{formatJt(prices.quad)}</span>
+                                  </div>
+                                  <div className="flex justify-between gap-3">
+                                    <span className="text-slate-500">Triple</span>
+                                    <span className="font-medium text-slate-700">{formatJt(prices.triple)}</span>
+                                  </div>
+                                  <div className="flex justify-between gap-3">
+                                    <span className="text-slate-500">Double</span>
+                                    <span className="font-medium text-slate-700">{formatJt(prices.double)}</span>
+                                  </div>
+                                </div>
+                              );
+                            })()}
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col items-start gap-1">
