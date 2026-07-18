@@ -66,8 +66,8 @@ const Packages = () => {
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [sortField, setSortField] = useState<SortField>('departure_date');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [sortField, setSortField] = useState<SortField>('package_name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [selectionMode, setSelectionMode] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
