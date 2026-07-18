@@ -240,6 +240,26 @@ const Packages = () => {
     );
   }
 
+  const getAirlineLogo = (flight: string) => {
+    if (!flight) return null;
+    const f = flight.toLowerCase();
+    if (f.includes("garuda")) return "https://logo.clearbit.com/garuda-indonesia.com";
+    if (f.includes("saudia")) return "https://logo.clearbit.com/saudia.com";
+    if (f.includes("qatar")) return "https://logo.clearbit.com/qatarairways.com";
+    if (f.includes("oman")) return "https://logo.clearbit.com/omanair.com";
+    if (f.includes("emirates")) return "https://logo.clearbit.com/emirates.com";
+    if (f.includes("etihad")) return "https://logo.clearbit.com/etihad.com";
+    if (f.includes("turkish")) return "https://logo.clearbit.com/turkishairlines.com";
+    if (f.includes("lion")) return "https://logo.clearbit.com/lionair.co.id";
+    if (f.includes("batik")) return "https://logo.clearbit.com/batikair.com";
+    if (f.includes("citilink")) return "https://logo.clearbit.com/citilink.co.id";
+    if (f.includes("airasia")) return "https://logo.clearbit.com/airasia.com";
+    if (f.includes("scoot")) return "https://logo.clearbit.com/flyscoot.com";
+    if (f.includes("malaysia")) return "https://logo.clearbit.com/malaysiaairlines.com";
+    if (f.includes("singapore")) return "https://logo.clearbit.com/singaporeair.com";
+    return null;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -282,24 +302,27 @@ const Packages = () => {
             />
           )}
 
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader className="bg-muted/50">
                 <TableRow>
                   {selectionMode && <TableHead className="w-12"></TableHead>}
-                  <TableHead className="w-[300px]">
-                    <Button variant="ghost" onClick={() => handleSort('package_name')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'package_name' ? 'text-primary' : ''}`}>
-                      Paket & Maskapai {getSortIcon('package_name')}
+                  <TableHead className="w-[140px]">
+                    <Button variant="ghost" onClick={() => handleSort('slots_filled')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'slots_filled' ? 'text-primary' : ''}`}>
+                      Sisa Seat {getSortIcon('slots_filled')}
                     </Button>
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="w-[60px] text-center">
+                    Maskapai
+                  </TableHead>
+                  <TableHead className="min-w-[200px]">
+                    <Button variant="ghost" onClick={() => handleSort('package_name')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'package_name' ? 'text-primary' : ''}`}>
+                      Nama Paket {getSortIcon('package_name')}
+                    </Button>
+                  </TableHead>
+                  <TableHead className="min-w-[180px]">
                     <Button variant="ghost" onClick={() => handleSort('departure_date')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'departure_date' ? 'text-primary' : ''}`}>
                       Jadwal Keberangkatan {getSortIcon('departure_date')}
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button variant="ghost" onClick={() => handleSort('slots_filled')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'slots_filled' ? 'text-primary' : ''}`}>
-                      Ketersediaan Kursi {getSortIcon('slots_filled')}
                     </Button>
                   </TableHead>
                   <TableHead>
@@ -318,7 +341,7 @@ const Packages = () => {
               <TableBody>
                 {sortedPackages.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={selectionMode ? 7 : 6} className="text-center py-10 text-muted-foreground">
+                    <TableCell colSpan={selectionMode ? 8 : 7} className="text-center py-10 text-muted-foreground">
                       Belum ada paket umroh
                     </TableCell>
                   </TableRow>
@@ -335,115 +358,125 @@ const Packages = () => {
                           className={`${isSelected(pkg.id) ? "bg-primary/5" : ""} ${selectionMode ? "cursor-pointer select-none" : ""}`}
                           onClick={(e) => handleRowClick(pkg, index, e)}
                         >
-                        {selectionMode && (
-                          <TableCell>
-                            <Checkbox
-                              checked={isSelected(pkg.id)}
-                              onCheckedChange={() => {
-                                toggleSelect(pkg.id);
-                                lastSelectedIndex.current = index;
-                              }}
-                              aria-label={`Select ${pkg.package_name}`}
-                            />
-                          </TableCell>
-                        )}
-                        <TableCell>
-                          <div className="flex flex-col gap-1.5">
-                            <span className="font-semibold">{pkg.package_name}</span>
-                            <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                              <span className="text-muted-foreground flex items-center bg-slate-100 px-1.5 py-0.5 rounded border">
-                                ✈️ {pkg.flight}
-                              </span>
-                              {pkg.available_tiers && pkg.available_tiers.map(tier => (
-                                <span key={tier} className={`px-1.5 py-0.5 rounded border text-[10px] font-medium ${getTierColor(tier)}`}>
-                                  {formatTierName(tier)}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{format(new Date(pkg.departure_date), "dd MMM yyyy")}</span>
-                            <span className="text-xs text-muted-foreground">{pkg.duration_days} Hari Perjalanan</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col gap-1 w-[120px]">
-                            <div className="flex justify-between text-xs items-center">
-                              <span className={`font-semibold ${sisa <= 5 ? "text-destructive" : "text-emerald-600"}`}>
-                                Sisa {sisa}
-                              </span>
-                              <span className="text-muted-foreground">{filled}/{total}</span>
-                            </div>
-                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                              <div 
-                                className={`h-full rounded-full transition-all ${sisa <= 5 ? 'bg-destructive' : 'bg-emerald-500'}`}
-                                style={{ width: `${availabilityPercent}%` }}
+                          {selectionMode && (
+                            <TableCell>
+                              <Checkbox
+                                checked={isSelected(pkg.id)}
+                                onCheckedChange={() => {
+                                  toggleSelect(pkg.id);
+                                  lastSelectedIndex.current = index;
+                                }}
+                                aria-label={`Select ${pkg.package_name}`}
                               />
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            <div className="flex flex-col gap-1 w-[120px]">
+                              <div className="flex justify-between text-xs items-center">
+                                <span className={`font-semibold ${sisa <= 5 ? "text-destructive" : "text-emerald-600"}`}>
+                                  Sisa {sisa}
+                                </span>
+                                <span className="text-muted-foreground">{filled}/{total}</span>
+                              </div>
+                              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full rounded-full transition-all ${sisa <= 5 ? 'bg-destructive' : 'bg-emerald-500'}`}
+                                  style={{ width: `${availabilityPercent}%` }}
+                                />
+                              </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium whitespace-nowrap">
-                          Rp {formatNumber(getDisplayPrice(pkg))}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col items-start gap-1">
-                            <Badge 
-                              variant={pkg.status === "published" ? "default" : "secondary"}
-                              className={pkg.status === "published" ? "bg-emerald-500 hover:bg-emerald-600 border-transparent" : ""}
-                            >
-                              {pkg.status === "published" ? "Published" : "Draft"}
-                            </Badge>
-                            {pkg.is_sold_out && (
-                              <Badge variant="destructive" className="text-[10px] px-1 py-0 h-4">Sold Out</Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {getAirlineLogo(pkg.flight) ? (
+                              <div className="mx-auto h-8 w-8 rounded-md bg-white border shadow-sm p-1 flex items-center justify-center overflow-hidden" title={pkg.flight}>
+                                <img src={getAirlineLogo(pkg.flight)!} alt={pkg.flight} className="w-full h-full object-contain" />
+                              </div>
+                            ) : (
+                              <div className="mx-auto h-8 w-8 rounded-md bg-slate-100 border flex items-center justify-center text-[10px] font-bold text-slate-500 text-center leading-none" title={pkg.flight}>
+                                {(pkg.flight || "AIR").substring(0, 3).toUpperCase()}
+                              </div>
                             )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-slate-500 hover:text-primary hover:bg-primary/10"
-                              onClick={() => navigate(`/admin/brochure/${pkg.slug}`)}
-                              title="Digital Brochure"
-                            >
-                              <Presentation className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-slate-500 hover:text-blue-600 hover:bg-blue-50"
-                              onClick={() => navigate(`/admin/packages/${pkg.id}`)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-slate-500 hover:text-destructive hover:bg-destructive/10"
-                              onClick={() => setDeleteId(pkg.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      {expandedId === pkg.id && (
-                        <TableRow className="hover:bg-transparent bg-slate-50/50">
-                          <TableCell colSpan={selectionMode ? 7 : 6} className="p-0 border-b">
-                            <div className="p-6 shadow-inner border-y animate-in fade-in slide-in-from-top-2 duration-200">
-                              <ExpandedPackageDetails pkg={pkg} />
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-1.5">
+                              <span className="font-semibold">{pkg.package_name}</span>
+                              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                                {pkg.available_tiers && pkg.available_tiers.map(tier => (
+                                  <span key={tier} className={`px-1.5 py-0.5 rounded border text-[10px] font-medium ${getTierColor(tier)}`}>
+                                    {formatTierName(tier)}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium whitespace-nowrap">{format(new Date(pkg.departure_date), "dd MMM yyyy")}</span>
+                              <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border text-xs font-semibold whitespace-nowrap">
+                                {pkg.duration_days}D
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium whitespace-nowrap">
+                            Rp {formatNumber(getDisplayPrice(pkg))}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col items-start gap-1">
+                              <Badge 
+                                variant={pkg.status === "published" ? "default" : "secondary"}
+                                className={pkg.status === "published" ? "bg-emerald-500 hover:bg-emerald-600 border-transparent" : ""}
+                              >
+                                {pkg.status === "published" ? "Published" : "Draft"}
+                              </Badge>
+                              {pkg.is_sold_out && (
+                                <Badge variant="destructive" className="text-[10px] px-1 py-0 h-4">Sold Out</Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-slate-500 hover:text-primary hover:bg-primary/10"
+                                onClick={(e) => { e.stopPropagation(); navigate(`/admin/brochure/${pkg.slug}`); }}
+                                title="Digital Brochure"
+                              >
+                                <Presentation className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-slate-500 hover:text-blue-600 hover:bg-blue-50"
+                                onClick={(e) => { e.stopPropagation(); navigate(`/admin/packages/${pkg.id}`); }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-slate-500 hover:text-destructive hover:bg-destructive/10"
+                                onClick={(e) => { e.stopPropagation(); setDeleteId(pkg.id); }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
-                      )}
-                    </Fragment>
-                  );
-                })
-              )}
-            </TableBody>
+                        {expandedId === pkg.id && (
+                          <TableRow className="hover:bg-transparent bg-slate-50/50">
+                            <TableCell colSpan={selectionMode ? 8 : 7} className="p-0 border-b">
+                              <div className="p-6 shadow-inner border-y animate-in fade-in slide-in-from-top-2 duration-200">
+                                <ExpandedPackageDetails pkg={pkg} />
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </Fragment>
+                    );
+                  })
+                )}
+              </TableBody>
           </Table>
           </div>
         </CardContent>
