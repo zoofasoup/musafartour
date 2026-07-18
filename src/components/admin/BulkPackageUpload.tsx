@@ -499,6 +499,14 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingP
     banner_image: existingPkg ? existingPkg.banner_image : (row.banner_image || null),
     catalog_link: existingPkg ? existingPkg.catalog_link : (row.catalog_link || null),
     itinerary_link: existingPkg ? existingPkg.itinerary_link : (row.itinerary_link || null),
+    
+    // Explicitly add fields that PackageForm sends
+    is_sold_out: false,
+    waitlist_count: 0,
+    gallery_images: [],
+    excluded_items: "",
+    equipment_list: "Perlengkapan Lengkap",
+
     package_price: row.tier === "nyaman" ? priceJson : { quad: 0, triple: 0, double: 0 },
     [priceField(row.tier)]: priceJson,
     [transportField(row.tier)]: defaultTransport(row.tier),
