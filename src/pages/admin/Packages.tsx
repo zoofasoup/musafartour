@@ -335,10 +335,16 @@ const Packages = () => {
                       Jadwal Keberangkatan {getSortIcon('departure_date')}
                     </Button>
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="min-w-[100px]">
                     <Button variant="ghost" onClick={() => handleSort('package_price')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'package_price' ? 'text-primary' : ''}`}>
-                      Harga {getSortIcon('package_price')}
+                      Quad {getSortIcon('package_price')}
                     </Button>
+                  </TableHead>
+                  <TableHead className="min-w-[100px]">
+                    <span className="font-semibold text-muted-foreground">Triple</span>
+                  </TableHead>
+                  <TableHead className="min-w-[100px]">
+                    <span className="font-semibold text-muted-foreground">Double</span>
                   </TableHead>
                   <TableHead>
                     <Button variant="ghost" onClick={() => handleSort('status')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'status' ? 'text-primary' : ''}`}>
@@ -351,7 +357,7 @@ const Packages = () => {
               <TableBody>
                 {sortedPackages.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={selectionMode ? 8 : 7} className="text-center py-10 text-muted-foreground">
+                    <TableCell colSpan={selectionMode ? 10 : 9} className="text-center py-10 text-muted-foreground">
                       Belum ada paket umroh
                     </TableCell>
                   </TableRow>
@@ -427,26 +433,22 @@ const Packages = () => {
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="font-medium whitespace-nowrap">
                             {(() => {
                               const prices = getPrices(pkg);
-                              if (!prices) return <span className="text-muted-foreground">-</span>;
-                              return (
-                                <div className="flex flex-col text-xs gap-0.5">
-                                  <div className="flex justify-between gap-3">
-                                    <span className="text-slate-500">Quad</span>
-                                    <span className="font-medium text-slate-700">{formatJt(prices.quad)}</span>
-                                  </div>
-                                  <div className="flex justify-between gap-3">
-                                    <span className="text-slate-500">Triple</span>
-                                    <span className="font-medium text-slate-700">{formatJt(prices.triple)}</span>
-                                  </div>
-                                  <div className="flex justify-between gap-3">
-                                    <span className="text-slate-500">Double</span>
-                                    <span className="font-medium text-slate-700">{formatJt(prices.double)}</span>
-                                  </div>
-                                </div>
-                              );
+                              return prices ? formatJt(prices.quad) : <span className="text-muted-foreground">-</span>;
+                            })()}
+                          </TableCell>
+                          <TableCell className="font-medium whitespace-nowrap">
+                            {(() => {
+                              const prices = getPrices(pkg);
+                              return prices ? formatJt(prices.triple) : <span className="text-muted-foreground">-</span>;
+                            })()}
+                          </TableCell>
+                          <TableCell className="font-medium whitespace-nowrap">
+                            {(() => {
+                              const prices = getPrices(pkg);
+                              return prices ? formatJt(prices.double) : <span className="text-muted-foreground">-</span>;
                             })()}
                           </TableCell>
                           <TableCell>
@@ -485,7 +487,7 @@ const Packages = () => {
                         </TableRow>
                         {expandedId === pkg.id && (
                           <TableRow className="hover:bg-transparent bg-slate-50/50">
-                            <TableCell colSpan={selectionMode ? 8 : 7} className="p-0 border-b">
+                            <TableCell colSpan={selectionMode ? 10 : 9} className="p-0 border-b">
                               <div className="p-6 shadow-inner border-y animate-in fade-in slide-in-from-top-2 duration-200">
                                 <ExpandedPackageDetails pkg={pkg} />
                               </div>
