@@ -697,6 +697,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
 
     let successCount = 0;
     let errorCount = 0;
+    let lastError = "";
 
     for (const row of validRows) {
       try {
@@ -710,14 +711,15 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
       } catch (err) {
         console.error(`Row ${row.rowIndex} error:`, err);
         errorCount++;
+        lastError = (err as Error).message || "Unknown error";
       }
       setImportProgress({ done: successCount + errorCount, total: validRows.length, errors: errorCount });
     }
 
     if (errorCount === 0) {
-      toast.success(`${successCount} paket berhasil diimport!`);
+      toast.success(`${successCount} paket berhasil disimpan!`);
     } else {
-      toast.warning(`${successCount} berhasil, ${errorCount} gagal`);
+      toast.error(`${successCount} berhasil, ${errorCount} gagal. Pesan error: ${lastError}`);
     }
 
     onSuccess();
