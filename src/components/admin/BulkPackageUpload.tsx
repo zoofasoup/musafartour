@@ -676,7 +676,12 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
           .eq("is_active", true)
           .order("display_order", { ascending: true });
         if (itemsData) {
-          const includes = itemsData.filter((i: any) => i.type === "include").map((i: any) => i.name);
+          // Default to STANDARD includes only (is_essential). Optional items are
+          // opt-in per package, so a package with no facilities in the sheet gets
+          // the standard set, never the optional extras.
+          const includes = itemsData
+            .filter((i: any) => i.type === "include" && i.is_essential)
+            .map((i: any) => i.name);
           const excludes = itemsData.filter((i: any) => i.type === "exclude").map((i: any) => i.name);
           setDefaultIncludes(includes.join(", "));
           setDefaultExcludes(excludes.join(", "));
