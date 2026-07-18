@@ -9,7 +9,7 @@ interface Props {
 export const ExpandedPackageDetails = ({ pkg }: Props) => {
   const tiers = pkg.available_tiers || [];
 
-  const getTierName = (tier: string) => {
+  const formatTierName = (tier: string) => {
     if (tier === 'five-star') return 'Bintang 5';
     if (tier === 'pelataran-hemat') return 'Pelataran';
     return tier.charAt(0).toUpperCase() + tier.slice(1);
