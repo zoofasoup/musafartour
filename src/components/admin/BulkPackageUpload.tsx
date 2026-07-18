@@ -487,6 +487,7 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingP
     flight_type: row.flight_type,
     available_tiers: [row.tier],
     slots_total: slots_total > 0 ? slots_total : 40,
+    slots_filled,
     status: "draft",
     timeframe: row.timeframe || null,
     start_airport: row.start_airport || null,
