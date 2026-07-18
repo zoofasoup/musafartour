@@ -325,13 +325,13 @@ const Packages = () => {
                   <TableHead className="w-[60px] text-center">
                     Maskapai
                   </TableHead>
+                  <TableHead className="w-[120px]">
+                    Kategori
+                  </TableHead>
                   <TableHead className="min-w-[200px]">
                     <Button variant="ghost" onClick={() => handleSort('package_name')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'package_name' ? 'text-primary' : ''}`}>
                       Nama Paket {getSortIcon('package_name')}
                     </Button>
-                  </TableHead>
-                  <TableHead className="w-[120px]">
-                    Kategori
                   </TableHead>
                   <TableHead className="min-w-[180px]">
                     <Button variant="ghost" onClick={() => handleSort('departure_date')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'departure_date' ? 'text-primary' : ''}`}>
@@ -417,9 +417,6 @@ const Packages = () => {
                             )}
                           </TableCell>
                           <TableCell>
-                            <span className="font-semibold">{pkg.package_name}</span>
-                          </TableCell>
-                          <TableCell>
                             <div className="flex flex-wrap items-center gap-1.5 text-xs">
                               {pkg.available_tiers && pkg.available_tiers.map(tier => (
                                 <span key={tier} className={`px-1.5 py-0.5 rounded border text-[10px] font-medium ${getTierColor(tier)}`}>
@@ -427,6 +424,9 @@ const Packages = () => {
                                 </span>
                               ))}
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-semibold">{pkg.package_name}</span>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
