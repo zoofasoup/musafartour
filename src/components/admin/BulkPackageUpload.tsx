@@ -34,6 +34,7 @@ export interface HotelRecord {
 }
 
 export interface ExistingPackage {
+  id: string;
   slug: string;
   banner_image: string | null;
   catalog_link: string | null;
@@ -573,7 +574,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
   useEffect(() => {
     if (open) {
       const fetchRef = async () => {
-        const { data } = await supabase.from("packages").select("flight, start_airport, route, slug, banner_image, catalog_link, itinerary_link");
+        const { data } = await supabase.from("packages").select("id, flight, start_airport, route, slug, banner_image, catalog_link, itinerary_link");
         if (data) {
           const flights = new Set<string>();
           const airports = new Set<string>();
@@ -582,6 +583,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
           data.forEach((p) => {
             if (p.slug) {
               exMap[p.slug] = {
+                id: p.id,
                 slug: p.slug,
                 banner_image: p.banner_image,
                 catalog_link: p.catalog_link,
@@ -702,9 +704,21 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
     for (const row of validRows) {
       try {
         const payload = buildUpsertPayload(row, hotels, existingPackages);
-        const { error } = await supabase
-          .from("packages")
-          .upsert(payload as any, { onConflict: "slug", ignoreDuplicates: false });
+        const existingPkg = existingPackages[row.slug];
+        let error;
+
+        if (existingPkg) {
+          const { error: updateErr } = await supabase
+            .from("packages")
+            .update(payload as any)
+            .eq("id", existingPkg.id);
+          error = updateErr;
+        } else {
+          const { error: insertErr } = await supabase
+            .from("packages")
+            .insert(payload as any);
+          error = insertErr;
+        }
 
         if (error) throw error;
         successCount++;
