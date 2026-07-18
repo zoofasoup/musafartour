@@ -554,12 +554,21 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingP
     pelataran_makkah_duration_walk: row.tier === "pelataran-hemat" ? (makkahHotel?.walking_duration || null) : null,
 
     pelataran_madinah_hotel_name: row.tier === "pelataran-hemat" ? (madinahHotel?.name || row.hotel_madinah || null) : null,
-    pelataran_madinah_hotel_star: row.tier === "pelataran-hemat" ? (madinahHotel?.star_rating || null) : null,
+        pelataran_madinah_hotel_star: row.tier === "pelataran-hemat" ? (madinahHotel?.star_rating || null) : null,
     pelataran_madinah_distance: row.tier === "pelataran-hemat" ? (madinahHotel?.distance || null) : null,
     pelataran_madinah_duration_walk: row.tier === "pelataran-hemat" ? (madinahHotel?.walking_duration || null) : null,
   };
 
-  return payload;
+  // Hapus semua field yang bernilai null agar database menggunakan nilai bawaan (default)
+  // Ini sama persis dengan kelakuan PackageForm yang tidak mengirimkan field kosong
+  const cleanedPayload: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(payload)) {
+    if (value !== null) {
+      cleanedPayload[key] = value;
+    }
+  }
+
+  return cleanedPayload;
 }
 
 function downloadTemplate() {
