@@ -322,9 +322,6 @@ const Packages = () => {
                       Sisa Seat {getSortIcon('slots_filled')}
                     </Button>
                   </TableHead>
-                  <TableHead className="w-[60px] text-center">
-                    Maskapai
-                  </TableHead>
                   <TableHead className="w-[120px]">
                     Kategori
                   </TableHead>
@@ -332,6 +329,9 @@ const Packages = () => {
                     <Button variant="ghost" onClick={() => handleSort('package_name')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'package_name' ? 'text-primary' : ''}`}>
                       Nama Paket {getSortIcon('package_name')}
                     </Button>
+                  </TableHead>
+                  <TableHead className="w-[60px] text-center">
+                    Maskapai
                   </TableHead>
                   <TableHead className="min-w-[180px]">
                     <Button variant="ghost" onClick={() => handleSort('departure_date')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'departure_date' ? 'text-primary' : ''}`}>
@@ -405,17 +405,6 @@ const Packages = () => {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="text-center">
-                            {getAirlineLogo(pkg.flight) ? (
-                              <div className="mx-auto h-8 w-8 rounded-md bg-white border shadow-sm p-1 flex items-center justify-center overflow-hidden" title={pkg.flight}>
-                                <img src={getAirlineLogo(pkg.flight)!} alt={pkg.flight} className="w-full h-full object-contain" />
-                              </div>
-                            ) : (
-                              <div className="mx-auto h-8 w-8 rounded-md bg-slate-100 border flex items-center justify-center text-[10px] font-bold text-slate-500 text-center leading-none" title={pkg.flight}>
-                                {(pkg.flight || "AIR").substring(0, 3).toUpperCase()}
-                              </div>
-                            )}
-                          </TableCell>
                           <TableCell>
                             <div className="flex flex-wrap items-center gap-1.5 text-xs">
                               {pkg.available_tiers && pkg.available_tiers.map(tier => (
@@ -427,6 +416,17 @@ const Packages = () => {
                           </TableCell>
                           <TableCell>
                             <span className="font-semibold">{pkg.package_name}</span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {getAirlineLogo(pkg.flight) ? (
+                              <div className="mx-auto h-8 w-8 rounded-md bg-white border shadow-sm p-1 flex items-center justify-center overflow-hidden" title={pkg.flight}>
+                                <img src={getAirlineLogo(pkg.flight)!} alt={pkg.flight} className="w-full h-full object-contain" />
+                              </div>
+                            ) : (
+                              <div className="mx-auto h-8 w-8 rounded-md bg-slate-100 border flex items-center justify-center text-[10px] font-bold text-slate-500 text-center leading-none" title={pkg.flight}>
+                                {(pkg.flight || "AIR").substring(0, 3).toUpperCase()}
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
