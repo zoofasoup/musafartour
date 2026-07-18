@@ -32,9 +32,11 @@ interface Package {
   duration_days: number;
   flight: string;
   package_price: any;
+  hemat_package_price?: any;
+  five_star_package_price?: any;
+  pelataran_package_price?: any;
   status: string;
   is_sold_out: boolean;
-  tiers_data?: any;
   slots_total: number | null;
   slots_filled: number | null;
   available_tiers: string[] | null;
@@ -43,15 +45,27 @@ interface Package {
 type SortField = 'package_name' | 'departure_date' | 'slots_filled' | 'package_price' | 'status';
 type SortDirection = 'asc' | 'desc';
 
-/** Extract the full price object for the cheapest/best tier */
+/** Price column for a given tier slug */
+const priceForTier = (pkg: Package, tier: string) => {
+  switch (tier) {
+    case 'hemat': return pkg.hemat_package_price;
+    case 'five-star':
+    case 'five_star': return pkg.five_star_package_price;
+    case 'pelataran':
+    case 'pelataran-hemat': return pkg.pelataran_package_price;
+    default: return pkg.package_price; // nyaman / best_seller
+  }
+};
+
+/** Extract the price object, preferring the package's primary tier and falling
+ *  back to any tier that actually has a price set. */
 const getPrices = (pkg: Package): { quad?: number; triple?: number; double?: number } | null => {
-  const tiers = pkg.tiers_data || {};
   const candidates = [
+    ...(pkg.available_tiers || []).map(t => priceForTier(pkg, t)),
     pkg.package_price,
-    tiers.hemat?.price,
-    tiers.best_seller?.price,
-    tiers.five_star?.price,
-    tiers.pelataran?.price,
+    pkg.hemat_package_price,
+    pkg.five_star_package_price,
+    pkg.pelataran_package_price,
   ];
   for (const price of candidates) {
     if (price && typeof price === 'object' && price.quad && price.quad > 0) {

@@ -51,14 +51,30 @@ interface Package {
   makkah_hotel_star: number | null;
   makkah_distance: string | null;
   package_price: PackagePrice;
+  hemat_package_price?: PackagePrice | null;
+  five_star_package_price?: PackagePrice | null;
+  pelataran_package_price?: PackagePrice | null;
   banner_image: string | null;
   status: string;
   slots_total: number | null;
   slots_filled: number | null;
   commission_rate: number | null;
   catalog_link: string | null;
-  tiers_data?: any;
+  available_tiers?: string[] | null;
 }
+
+/** Lowest quad price across whichever tier(s) this package actually has set. */
+const getLowestQuad = (pkg: Package): number => {
+  const prices = [
+    pkg.package_price,
+    pkg.hemat_package_price,
+    pkg.five_star_package_price,
+    pkg.pelataran_package_price,
+  ]
+    .map((p) => p?.quad)
+    .filter((q): q is number => typeof q === "number" && q > 0);
+  return prices.length ? Math.min(...prices) : 0;
+};
 
 const AgentPackages = () => {
   const { agent } = useAgentAuth();
@@ -91,10 +107,9 @@ const AgentPackages = () => {
   };
 
   const getAvgHotelStars = (pkg: Package) => {
-    const baseTier = pkg.tiers_data?.best_seller || {};
     const stars = [
-      baseTier.makkah_hotel_star || pkg.makkah_hotel_star,
-      baseTier.madinah_hotel_star || pkg.madinah_hotel_star
+      pkg.makkah_hotel_star,
+      pkg.madinah_hotel_star
     ].filter(Boolean) as number[];
     if (stars.length === 0) return 0;
     return Math.round(stars.reduce((a, b) => a + b, 0) / stars.length);
@@ -144,9 +159,9 @@ const AgentPackages = () => {
       case "departure_asc":
         return new Date(a.departure_date).getTime() - new Date(b.departure_date).getTime();
       case "price_asc":
-        return a.package_price.quad - b.package_price.quad;
+        return getLowestQuad(a) - getLowestQuad(b);
       case "price_desc":
-        return b.package_price.quad - a.package_price.quad;
+        return getLowestQuad(b) - getLowestQuad(a);
       default:
         return 0;
     }
@@ -250,7 +265,7 @@ const AgentPackages = () => {
           {sortedPackages?.map((pkg) => {
             const slotStatus = getSlotStatus(pkg);
             const avgStars = getAvgHotelStars(pkg);
-            const lowestPrice = pkg.package_price.quad;
+            const lowestPrice = getLowestQuad(pkg);
             const commission = calculateCommission(lowestPrice, pkg.commission_rate);
 
             return (
