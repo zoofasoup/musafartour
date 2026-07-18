@@ -17,7 +17,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function test() {
   const payload = {
     package_name: "Test Package",
-    slug: "test-package",
+    slug: "test-package-2",
     departure_date: "2026-09-16",
     duration_days: 9,
     flight: "Garuda Indonesia",
@@ -28,9 +28,9 @@ async function test() {
   
   const { data, error } = await supabase
     .from("packages")
-    .upsert(payload, { onConflict: "slug" });
+    .insert(payload);
     
-  console.log("Upsert result:", { data, error });
+  console.log("Insert result:", { data, error });
 }
 
 test();

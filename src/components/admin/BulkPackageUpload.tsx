@@ -687,6 +687,8 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
     }
   };
 
+  const [lastErrorMsg, setLastErrorMsg] = useState<string>("");
+
   const handleImport = async () => {
     const validRows = parsedData.filter((row) => row.errors.length === 0 && selectedRowIndices.has(row.rowIndex));
     if (validRows.length === 0) {
@@ -696,10 +698,11 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
 
     setStep("importing");
     setImportProgress({ done: 0, total: validRows.length, errors: 0 });
+    setLastErrorMsg("");
 
     let successCount = 0;
     let errorCount = 0;
-    let lastError = "";
+    let lastErr = "";
 
     for (const row of validRows) {
       try {
@@ -725,19 +728,20 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
       } catch (err) {
         console.error(`Row ${row.rowIndex} error:`, err);
         errorCount++;
-        lastError = (err as Error).message || "Unknown error";
+        lastErr = (err as Error).message || JSON.stringify(err);
+        setLastErrorMsg(lastErr);
       }
       setImportProgress({ done: successCount + errorCount, total: validRows.length, errors: errorCount });
     }
 
     if (errorCount === 0) {
       toast.success(`${successCount} paket berhasil disimpan!`);
+      onSuccess();
+      setTimeout(handleClose, 1500);
     } else {
-      toast.error(`${successCount} berhasil, ${errorCount} gagal. Pesan error: ${lastError}`);
+      toast.error(`${successCount} berhasil, ${errorCount} gagal. Pesan error: ${lastErr}`);
+      // Do not auto-close so user can read the error!
     }
-
-    onSuccess();
-    setTimeout(handleClose, 1500);
   };
 
   const validCount = parsedData.filter((r) => r.errors.length === 0).length;
@@ -1010,7 +1014,14 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
               Mengimport {importProgress.done} / {importProgress.total} paket...
             </p>
             {importProgress.errors > 0 && (
-              <p className="text-sm text-destructive">{importProgress.errors} gagal</p>
+              <div className="flex flex-col items-center justify-center space-y-2 w-full max-w-sm text-center">
+                <p className="text-sm font-bold text-destructive">{importProgress.errors} gagal</p>
+                {lastErrorMsg && (
+                  <p className="text-xs text-destructive/80 font-mono bg-destructive/10 p-2 rounded-md break-words w-full">
+                    {lastErrorMsg}
+                  </p>
+                )}
+              </div>
             )}
             <div className="w-64 h-2 bg-muted rounded-full overflow-hidden">
               <div
@@ -1018,6 +1029,11 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
                 style={{ width: `${(importProgress.done / importProgress.total) * 100}%` }}
               />
             </div>
+            {importProgress.done === importProgress.total && importProgress.errors > 0 && (
+              <Button variant="outline" className="mt-4" onClick={() => setStep("preview")}>
+                Kembali ke Tabel
+              </Button>
+            )}
           </div>
         )}
       </DialogContent>
