@@ -147,7 +147,7 @@ const AdminLayout = () => {
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <SidebarLayout menuSections={menuSections} isActive={isActive} user={user} userRole={userRole} handleSignOut={handleSignOut} />
     </SidebarProvider>
   );

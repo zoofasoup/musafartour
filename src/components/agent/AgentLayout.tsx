@@ -82,7 +82,7 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex w-full">
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={false}>
         <Sidebar className="border-r border-slate-200/60 bg-slate-50">
           <SidebarHeader className="p-4 border-b border-slate-200/60 h-[72px] flex items-center justify-center">
             <Link to="/agent/dashboard" className="flex items-center gap-2 transition-transform hover:scale-105">
