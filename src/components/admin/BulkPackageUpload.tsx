@@ -740,18 +740,33 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
             <div className="flex-1 overflow-auto max-h-[50vh] border rounded-md">
               <Table>
                 <TableHeader>
-                  <TableRow>
                     <TableHead className="w-10">#</TableHead>
                     <TableHead>Judul Paket</TableHead>
                     <TableHead>Tanggal</TableHead>
+                    <TableHead>Timeframe</TableHead>
+                    <TableHead>Start</TableHead>
+                    <TableHead>Maskapai</TableHead>
                     <TableHead>Durasi</TableHead>
                     <TableHead>Tier</TableHead>
-                    <TableHead>Maskapai</TableHead>
+                    <TableHead>Direct/Transit</TableHead>
+                    <TableHead>Rute</TableHead>
+                    <TableHead>Itinerary</TableHead>
+                    <TableHead>Malam Makkah</TableHead>
+                    <TableHead>Malam Madinah</TableHead>
+                    <TableHead>Malam Kota +</TableHead>
                     <TableHead>Hotel Makkah</TableHead>
                     <TableHead>Hotel Madinah</TableHead>
+                    <TableHead>Hotel Kota +</TableHead>
                     <TableHead className="text-right">Quad</TableHead>
                     <TableHead className="text-right">Triple</TableHead>
                     <TableHead className="text-right">Double</TableHead>
+                    <TableHead className="text-right">Maks Diskon</TableHead>
+                    <TableHead className="text-right">Sisa / Total Seat</TableHead>
+                    <TableHead>Fasilitas</TableHead>
+                    <TableHead>Selling Points</TableHead>
+                    <TableHead>Flyer</TableHead>
+                    <TableHead>Katalog</TableHead>
+                    <TableHead>Itinerary PDF</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -762,32 +777,58 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
                       <TableRow key={row.rowIndex} className={hasError ? "bg-destructive/5" : ""}>
                         <TableCell className="text-muted-foreground">{row.rowIndex}</TableCell>
                         <TableCell className={cn("font-medium", !row.package_name && "text-destructive")}>
-                          {row.package_name || "—"}
+                          <div className="min-w-[150px]">{row.package_name || "—"}</div>
                         </TableCell>
-                        <TableCell className={cn(!row.departure_date && "text-destructive")}>
+                        <TableCell className={cn(!row.departure_date && "text-destructive", "whitespace-nowrap")}>
                           {row.departure_date || "—"}
                         </TableCell>
+                        <TableCell className="whitespace-nowrap">{row.timeframe || "—"}</TableCell>
+                        <TableCell>{row.start_airport || "—"}</TableCell>
+                        <TableCell className="whitespace-nowrap">{row.flight || "—"}</TableCell>
                         <TableCell>{row.duration_days || "—"}</TableCell>
                         <TableCell>
                           {row.tier ? (
-                            <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", tierBadgeColor(row.tier))}>
+                            <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap", tierBadgeColor(row.tier))}>
                               {row.tier}
                             </span>
                           ) : (
                             <span className="text-destructive text-xs">invalid</span>
                           )}
                         </TableCell>
-                        <TableCell>{row.flight || "—"}</TableCell>
-                        <TableCell>{row.hotel_makkah || "—"}</TableCell>
-                        <TableCell>{row.hotel_madinah || "—"}</TableCell>
-                        <TableCell className={cn("text-right tabular-nums", !row.price_quad && "text-destructive")}>
+                        <TableCell>{row.flight_type || "—"}</TableCell>
+                        <TableCell>{row.route || "—"}</TableCell>
+                        <TableCell><div className="max-w-[150px] truncate" title={row.itinerary}>{row.itinerary || "—"}</div></TableCell>
+                        <TableCell className="text-center">{row.nights_makkah || "—"}</TableCell>
+                        <TableCell className="text-center">{row.nights_madinah || "—"}</TableCell>
+                        <TableCell className="text-center">{row.nights_extra || "—"}</TableCell>
+                        <TableCell><div className="min-w-[120px]">{row.hotel_makkah || "—"}</div></TableCell>
+                        <TableCell><div className="min-w-[120px]">{row.hotel_madinah || "—"}</div></TableCell>
+                        <TableCell><div className="min-w-[120px]">{row.hotel_extra || "—"}</div></TableCell>
+                        <TableCell className={cn("text-right tabular-nums whitespace-nowrap", !row.price_quad && "text-destructive")}>
                           {row.price_quad ? `Rp ${formatNumber(row.price_quad)}` : "—"}
                         </TableCell>
-                        <TableCell className="text-right tabular-nums">
+                        <TableCell className="text-right tabular-nums whitespace-nowrap">
                           {row.price_triple ? `Rp ${formatNumber(row.price_triple)}` : "—"}
                         </TableCell>
-                        <TableCell className="text-right tabular-nums">
+                        <TableCell className="text-right tabular-nums whitespace-nowrap">
                           {row.price_double ? `Rp ${formatNumber(row.price_double)}` : "—"}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums whitespace-nowrap">
+                          {row.max_discount ? `Rp ${formatNumber(row.max_discount)}` : "—"}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums whitespace-nowrap">
+                          {row.slots_remaining} / {row.slots_total || "—"}
+                        </TableCell>
+                        <TableCell><div className="max-w-[150px] truncate" title={row.facilities}>{row.facilities || "—"}</div></TableCell>
+                        <TableCell><div className="max-w-[150px] truncate" title={row.selling_points}>{row.selling_points || "—"}</div></TableCell>
+                        <TableCell>
+                          {row.banner_image ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : "—"}
+                        </TableCell>
+                        <TableCell>
+                          {row.catalog_link ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : "—"}
+                        </TableCell>
+                        <TableCell>
+                          {row.itinerary_link ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : "—"}
                         </TableCell>
                         <TableCell>
                           {hasError ? (
