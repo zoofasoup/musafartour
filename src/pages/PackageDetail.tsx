@@ -9,6 +9,7 @@ import { Package, ArrowLeft, ExternalLink, Download } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { usePackageBySlug, type PublishedPackage } from "@/hooks/usePackages";
 import { parsePackagePrice, type PackagePrice, type PackageHotels as PackageHotelsType } from "@/lib/packageSchema";
+import { isPackageUnavailable } from "@/lib/utils";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 
@@ -236,7 +237,7 @@ const PackageDetailPage = () => {
       "url": typeof window !== 'undefined' ? window.location.href : '',
       "priceCurrency": "IDR",
       "price": price?.quad || 0,
-      "availability": packageData.is_sold_out ? "https://schema.org/SoldOut" : "https://schema.org/InStock"
+      "availability": isPackageUnavailable(packageData) ? "https://schema.org/SoldOut" : "https://schema.org/InStock"
     }
   };
 

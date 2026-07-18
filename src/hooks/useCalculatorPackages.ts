@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TierKey, TierOption } from "@/lib/umrohCalc";
 import { TIER_PRICE_OVERRIDE } from "@/lib/calcConfig";
+import { isPackageUnavailable } from "@/lib/utils";
 
 const TIER_LABELS: Record<TierKey, string> = {
   hemat: "Hemat",
@@ -23,13 +24,12 @@ export const useCalculatorTiers = () => {
       const { data, error } = await supabase
         .from("packages")
         .select(
-          "id, package_name, departure_date, package_price, hemat_package_price, five_star_package_price, pelataran_package_price, available_tiers, is_sold_out",
+          "id, package_name, departure_date, package_price, hemat_package_price, five_star_package_price, pelataran_package_price, available_tiers, is_sold_out, slots_total, slots_filled",
         )
         .eq("status", "published")
         .order("departure_date", { ascending: true });
       if (error) throw error;
 
-      const today = new Date();
       const tierField: Record<TierKey, string> = {
         hemat: "hemat_package_price",
         nyaman: "package_price",
@@ -41,8 +41,7 @@ export const useCalculatorTiers = () => {
       (Object.keys(TIER_LABELS) as TierKey[]).forEach((tier) => {
         let best: TierOption | undefined;
         for (const row of data || []) {
-          if (row.is_sold_out) continue;
-          if (new Date(row.departure_date) < today) continue;
+          if (isPackageUnavailable(row)) continue;
           const price = priceOf((row as any)[tierField[tier]]);
           if (price <= 0) continue;
           // ensure tier is offered

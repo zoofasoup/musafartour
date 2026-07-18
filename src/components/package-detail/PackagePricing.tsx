@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { BedDouble, Users, PersonStanding, Baby, Sparkles, Crown, MessageCircle, Bell, Minus, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, isPackageUnavailable } from "@/lib/utils";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackagePrice } from "@/lib/packageSchema";
 
@@ -239,7 +239,7 @@ export function PackagePricing({
 
         {/* Simple booking CTA */}
         <Separator />
-        {packageData.is_sold_out ? (
+        {isPackageUnavailable(packageData) ? (
           <Button onClick={handleNotifyMe} className="w-full gap-2 text-xs" variant="outline" size="sm">
             <Bell className="h-3.5 w-3.5" /> Notify Me
           </Button>

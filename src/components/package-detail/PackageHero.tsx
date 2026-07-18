@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Clock, Plane } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, isPackageUnavailable } from "@/lib/utils";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackagePrice } from "@/lib/packageSchema";
 
@@ -23,7 +23,7 @@ export function PackageHero({ packageData, price, children }: PackageHeroProps) 
             loading="eager"
             fetchPriority="high"
           />
-          {packageData.is_sold_out && (
+          {isPackageUnavailable(packageData) && (
             <div className="absolute top-4 right-4 z-10">
               <Badge className="bg-destructive text-destructive-foreground border-0 shadow text-sm px-3 py-1">
                 SOLD OUT

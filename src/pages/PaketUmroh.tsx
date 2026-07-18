@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Package, Calendar, Plane, Clock, X, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { formatPriceJuta, getTierPrice } from "@/lib/utils";
+import { formatPriceJuta, getTierPrice, isPackageUnavailable } from "@/lib/utils";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { usePublishedPackages } from "@/hooks/usePackages";
 
@@ -49,9 +49,6 @@ const PaketUmroh = () => {
     return format(new Date(date), "MMMM yyyy", { locale: localeId }).toLowerCase();
   };
 
-  const isEffectivelySoldOut = (pkg: (typeof packages)[number]) =>
-    pkg.is_sold_out || (!!pkg.slots_total && (pkg.slots_filled || 0) >= pkg.slots_total);
-
   const filteredPackages = packages.filter((pkg) => {
     const pkgMonth = getMonthFromDate(pkg.departure_date);
     const pkgTiers = (pkg as any).available_tiers || [];
@@ -68,7 +65,7 @@ const PaketUmroh = () => {
   // Available packages first (soonest departure first, already the base query order),
   // sold-out packages pushed to the end. Stable sort preserves date order within each group.
   const sortedPackages = [...filteredPackages].sort(
-    (a, b) => Number(isEffectivelySoldOut(a)) - Number(isEffectivelySoldOut(b))
+    (a, b) => Number(isPackageUnavailable(a)) - Number(isPackageUnavailable(b))
   );
 
   const isFiltered = category !== "all" || airline !== "all" || month !== "all" || flightType !== "all" || duration !== "all";
@@ -96,8 +93,8 @@ const PaketUmroh = () => {
     hotelMadinah: pkg.madinah_hotel_name || undefined,
     hotelMadinahRating: pkg.madinah_hotel_star || undefined,
     category: (pkg as any).available_tiers?.[0] || "nyaman",
-    seatAvailable: !isEffectivelySoldOut(pkg),
-    isSoldOut: isEffectivelySoldOut(pkg),
+    seatAvailable: !isPackageUnavailable(pkg),
+    isSoldOut: isPackageUnavailable(pkg),
     waitlistCount: pkg.waitlist_count || 0,
   }));
 

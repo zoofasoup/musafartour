@@ -86,6 +86,30 @@ export function getTierPrice(pkg: PackageWithTierPrices): { quad: number; triple
   return { quad: found?.quad || 0, triple: found?.triple || 0, double: found?.double || 0 };
 }
 
+interface PackageAvailability {
+  is_sold_out?: boolean | null;
+  slots_total?: number | null;
+  slots_filled?: number | null;
+  departure_date?: string | null;
+}
+
+/**
+ * A package is unbookable if it's manually flagged sold out, its seats are
+ * full (slots_filled >= slots_total), or its departure date has already
+ * passed - a package can go stale on a public listing without anyone
+ * flipping is_sold_out or the sheet ever reporting 0 seats left.
+ */
+export function isPackageUnavailable(pkg: PackageAvailability): boolean {
+  if (pkg.is_sold_out) return true;
+  if (pkg.slots_total && (pkg.slots_filled || 0) >= pkg.slots_total) return true;
+  if (pkg.departure_date) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (new Date(pkg.departure_date) < today) return true;
+  }
+  return false;
+}
+
 /**
  * Get background and text color classes for price based on package classification (title)
  */

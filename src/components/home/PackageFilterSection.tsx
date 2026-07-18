@@ -22,7 +22,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import type { PackageData } from "@/hooks/useHomepageData";
-import { formatPriceJuta, getTierPrice } from "@/lib/utils";
+import { formatPriceJuta, getTierPrice, isPackageUnavailable } from "@/lib/utils";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 
 interface PackageFilterSectionProps {
@@ -83,8 +83,14 @@ export const PackageFilterSection = ({
     return categoryMatch && airlineMatch && monthMatch && flightTypeMatch && durationMatch;
   });
 
+  // Available packages first (soonest departure first, already the base query order),
+  // sold-out/already-departed packages pushed to the end.
+  const sortedPackages = [...filteredPackages].sort(
+    (a, b) => Number(isPackageUnavailable(a)) - Number(isPackageUnavailable(b))
+  );
+
   const isFiltered = category !== "all" || airline !== "all" || month !== "all" || flightType !== "all" || duration !== "all";
-  const displayPackages = !isFiltered && !isMobile ? filteredPackages.slice(0, 4) : filteredPackages;
+  const displayPackages = !isFiltered && !isMobile ? sortedPackages.slice(0, 4) : sortedPackages;
   const activeFilterCount = [category, airline, month, flightType, duration].filter(v => v !== "all").length;
 
   const transformedPackages = displayPackages.map((pkg) => {
@@ -105,7 +111,7 @@ export const PackageFilterSection = ({
       hotelMadinah: pkg.madinah_hotel_name || undefined,
       hotelMadinahRating: pkg.madinah_hotel_star || undefined,
       category: displayCategory,
-      seatAvailable: !pkg.is_sold_out,
+      seatAvailable: !isPackageUnavailable(pkg),
       fiveStarPrice: pkg.five_star_package_price?.quad ? formatPrice(pkg.five_star_package_price.quad) : undefined,
       fiveStarHotelMakkah: pkg.five_star_makkah_hotel_name || undefined,
       fiveStarHotelMakkahRating: pkg.five_star_makkah_hotel_star || undefined,
@@ -113,7 +119,7 @@ export const PackageFilterSection = ({
       fiveStarHotelMadinahRating: pkg.five_star_madinah_hotel_star || undefined,
       fiveStarTransport: pkg.five_star_transport || undefined,
       bestSellerTransport: pkg.best_seller_transport || undefined,
-      isSoldOut: pkg.is_sold_out || false,
+      isSoldOut: isPackageUnavailable(pkg),
       waitlistCount: pkg.waitlist_count || 0,
     };
   });

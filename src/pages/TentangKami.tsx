@@ -5,7 +5,7 @@ import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { useHomepageData } from "@/hooks/useHomepageData";
 import { PackageCard } from "@/components/PackageCard";
-import { getTierPrice } from "@/lib/utils";
+import { getTierPrice, isPackageUnavailable } from "@/lib/utils";
 import {
   Heart,
   Shield,
@@ -320,7 +320,10 @@ const TentangKami = () => {
                 <Skeleton className="h-[300px] w-full rounded-2xl" />
               </div>
             ) : packages && packages.length > 0 ? (
-              packages.slice(0, 3).map((pkg, i) => (
+              [...packages]
+                .sort((a, b) => Number(isPackageUnavailable(a)) - Number(isPackageUnavailable(b)))
+                .slice(0, 3)
+                .map((pkg, i) => (
                 <motion.div key={pkg.id} variants={fadeUp} className="h-full">
                   <PackageCard
                     id={pkg.id}
@@ -336,8 +339,8 @@ const TentangKami = () => {
                     hotelMadinah={pkg.madinah_hotel_name || ""}
                     hotelMadinahRating={pkg.madinah_hotel_star || 4}
                     category={pkg.available_tiers?.[0] || "nyaman"}
-                    seatAvailable={!pkg.is_sold_out}
-                    isSoldOut={pkg.is_sold_out || false}
+                    seatAvailable={!isPackageUnavailable(pkg)}
+                    isSoldOut={isPackageUnavailable(pkg)}
                     waitlistCount={pkg.waitlist_count || 0}
                     className="h-full"
                   />
