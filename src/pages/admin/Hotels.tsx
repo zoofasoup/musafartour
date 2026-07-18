@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Pencil, Trash2, Hotel, MapPin, Star, ExternalLink, ChevronLeft, ChevronRight, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { getOptimizedImageUrl } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,11 +57,19 @@ const ImageCarousel = ({ images }: { images: (string | null)[] }) => {
 
   return (
     <div className="relative w-full h-32 rounded-lg overflow-hidden group">
-      <img
-        src={validImages[currentIndex]}
-        alt="Hotel"
-        className="w-full h-full object-cover"
-      />
+      <div
+        className="flex h-full transition-transform duration-300 ease-out"
+        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+      >
+        {validImages.map((img, idx) => (
+          <img
+            key={idx}
+            src={img}
+            alt={`Hotel view ${idx + 1}`}
+            className="w-full h-full object-cover bg-muted flex-shrink-0"
+          />
+        ))}
+      </div>
       {validImages.length > 1 && (
         <>
           <button
@@ -79,7 +88,7 @@ const ImageCarousel = ({ images }: { images: (string | null)[] }) => {
             {validImages.map((_, idx) => (
               <div
                 key={idx}
-                className={`w-1.5 h-1.5 rounded-full ${idx === currentIndex ? "bg-white" : "bg-white/50"}`}
+                className={`w-1.5 h-1.5 rounded-full transition-colors ${idx === currentIndex ? "bg-white" : "bg-white/50"}`}
               />
             ))}
           </div>

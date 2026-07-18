@@ -321,7 +321,7 @@ const ChatRotation = () => {
                     min={1}
                     max={10}
                     placeholder="1"
-                    value={formData.weight}
+                    value={formData.weight || ""}
                     onChange={(e) => setFormData({ ...formData, weight: Math.max(1, parseInt(e.target.value) || 1) })}
                   />
                   <p className="text-xs text-muted-foreground">

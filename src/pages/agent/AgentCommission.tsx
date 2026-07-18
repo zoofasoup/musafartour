@@ -679,7 +679,7 @@ const AgentCommission = () => {
                 id="amount"
                 type="number"
                 placeholder="100000"
-                value={withdrawAmount}
+                value={withdrawAmount || ""}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
                 min={100000}
                 max={availableBalance}

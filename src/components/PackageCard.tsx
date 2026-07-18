@@ -308,7 +308,7 @@ export const PackageCard = ({
                 variant="outline" 
                 size="sm" 
                 className="w-full gap-2 rounded-full h-9 text-sm font-semibold"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleNotifyMe(); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleNotifyMe(e); }}
               >
                 <Bell className="w-4 h-4" />
                 Notify Me

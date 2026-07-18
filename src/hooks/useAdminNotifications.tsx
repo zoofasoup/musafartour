@@ -27,7 +27,7 @@ export const useAdminNotifications = () => {
         .limit(50);
         
       if (error) {
-        console.error("Error fetching notifications:", error);
+        console.error("Error fetching notifications:", error.message, error);
         return [];
       }
       return data as AdminNotification[];

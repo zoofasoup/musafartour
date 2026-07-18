@@ -4,9 +4,12 @@ import { Button } from "@/components/ui/button";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import { ChevronRight } from "lucide-react";
 import { motion, useAnimation } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
+
+type CarouselPackage = Pick<PublishedPackage, "id" | "slug" | "banner_image" | "package_name">;
 
 interface PackageRadialCarouselProps {
-  packages: PublishedPackage[] | null;
+  packages: CarouselPackage[] | null;
   loading: boolean;
 }
 
@@ -31,7 +34,11 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
   if (loading || !packages || packages.length === 0) {
     return (
       <section id="packages-carousel" className="relative w-full h-[600px] md:h-[750px] overflow-hidden bg-[#FAFAFA] flex items-center justify-center">
-        <div className="text-muted-foreground animate-pulse">Memuat paket...</div>
+        <div className="flex space-x-4 p-4">
+          <Skeleton className="h-48 w-64 rounded-xl" />
+          <Skeleton className="h-48 w-64 rounded-xl" />
+          <Skeleton className="h-48 w-64 rounded-xl" />
+        </div>
       </section>
     );
   }

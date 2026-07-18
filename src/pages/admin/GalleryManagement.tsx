@@ -392,8 +392,8 @@ const GalleryManagement = () => {
                     <Input
                       id="display_order"
                       type="number"
-                      value={formData.display_order}
-                      onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
+                      value={formData.display_order || ""}
+                      onChange={(e) => setFormData({ ...formData, display_order: e.target.value ? parseInt(e.target.value) : 0 })}
                     />
                   </div>
                 </div>

@@ -16,8 +16,8 @@ const hotelSchema = z.object({
   name: z.string().min(1, "Nama hotel wajib diisi"),
   location: z.enum(["makkah", "madinah", "extra"]),
   star_rating: z.number().min(1).max(5),
-  distance: z.string().min(1, "Jarak wajib diisi"),
-  walking_duration: z.string().min(1, "Durasi jalan kaki wajib diisi"),
+  distance: z.string().optional(),
+  walking_duration: z.string().optional(),
   google_maps_url: z.string().optional(),
 });
 
@@ -135,6 +135,16 @@ export const AddHotelModal = ({ open, onOpenChange, location, onSuccess }: AddHo
   };
 
   const onSubmit = async (values: HotelFormValues) => {
+    if (location !== "extra") {
+      if (!values.distance) {
+        form.setError("distance", { message: "Jarak wajib diisi" });
+        return;
+      }
+      if (!values.walking_duration) {
+        form.setError("walking_duration", { message: "Durasi jalan kaki wajib diisi" });
+        return;
+      }
+    }
     setLoading(true);
     try {
       // Upload photos
@@ -145,14 +155,14 @@ export const AddHotelModal = ({ open, onOpenChange, location, onSuccess }: AddHo
       ]);
 
       // Format distance and walking_duration
-      let distance = values.distance;
-      if (!distance.toLowerCase().includes('meter') && !distance.toLowerCase().includes('m')) {
-        distance = `${distance} meter`;
+      let distance = values.distance || "-";
+      if (values.distance && !distance.toLowerCase().includes('meter') && !distance.toLowerCase().includes('m')) {
+        distance = `${values.distance} meter`;
       }
 
-      let walkingDuration = values.walking_duration;
-      if (!walkingDuration.toLowerCase().includes('menit') && !walkingDuration.toLowerCase().includes('min')) {
-        walkingDuration = `${walkingDuration} menit`;
+      let walkingDuration = values.walking_duration || "-";
+      if (values.walking_duration && !walkingDuration.toLowerCase().includes('menit') && !walkingDuration.toLowerCase().includes('min')) {
+        walkingDuration = `${values.walking_duration} menit`;
       }
 
       const { data, error } = await supabase
@@ -245,7 +255,8 @@ export const AddHotelModal = ({ open, onOpenChange, location, onSuccess }: AddHo
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {location !== "extra" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="distance"
@@ -254,7 +265,7 @@ export const AddHotelModal = ({ open, onOpenChange, location, onSuccess }: AddHo
                     <FormLabel>Jarak ke {location === "makkah" ? "Masjidil Haram" : "Masjid Nabawi"} *</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input {...field} type="number" className="pr-16" placeholder="100" onChange={(e) => field.onChange(e.target.value)} />
+                        <Input {...field} value={field.value || ""} type="number" className="pr-16" placeholder="100" onChange={(e) => field.onChange(e.target.value)} />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">meter</span>
                       </div>
                     </FormControl>
@@ -271,7 +282,7 @@ export const AddHotelModal = ({ open, onOpenChange, location, onSuccess }: AddHo
                     <FormLabel>Durasi Jalan Kaki *</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input {...field} type="number" className="pr-16" placeholder="5" onChange={(e) => field.onChange(e.target.value)} />
+                        <Input {...field} value={field.value || ""} type="number" className="pr-16" placeholder="5" onChange={(e) => field.onChange(e.target.value)} />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">menit</span>
                       </div>
                     </FormControl>
@@ -279,7 +290,9 @@ export const AddHotelModal = ({ open, onOpenChange, location, onSuccess }: AddHo
                   </FormItem>
                 )}
               />
-            </div>
+              </div>
+            )}
+
 
             <FormField
               control={form.control}

@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
@@ -312,27 +313,31 @@ const TentangKami = () => {
             className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto"
           >
             {packagesLoading ? (
-              <div className="col-span-full text-center text-muted-foreground py-10">Memuat paket...</div>
+              <div className="col-span-full py-10 flex gap-4">
+                <Skeleton className="h-[300px] w-full rounded-2xl" />
+                <Skeleton className="h-[300px] w-full rounded-2xl" />
+                <Skeleton className="h-[300px] w-full rounded-2xl" />
+              </div>
             ) : packages && packages.length > 0 ? (
               packages.slice(0, 3).map((pkg, i) => (
                 <motion.div key={pkg.id} variants={fadeUp} className="h-full">
                   <PackageCard
                     id={pkg.id}
                     slug={pkg.slug}
-                    image={pkg.image_url || ""}
-                    title={pkg.name}
+                    image={pkg.banner_image || "/placeholder.svg"}
+                    title={pkg.package_name}
                     price={pkg.package_price?.quad ? `Rp ${pkg.package_price.quad.toLocaleString("id-ID")}` : "Harga tidak tersedia"}
                     date={new Date(pkg.departure_date).toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
                     duration={`${pkg.duration_days} Hari`}
-                    airline={pkg.airline || "Saudia Airlines"}
-                    hotelMakkah={pkg.hotel_makkah || ""}
-                    hotelMakkahRating={pkg.hotel_makkah_rating || 4}
-                    hotelMadinah={pkg.hotel_madinah || ""}
-                    hotelMadinahRating={pkg.hotel_madinah_rating || 4}
-                    category={pkg.category}
-                    seatAvailable={pkg.available_seats > 0}
-                    isSoldOut={pkg.available_seats <= 0}
-                    waitlistCount={pkg.waitlist_count}
+                    airline={pkg.flight || "Saudia Airlines"}
+                    hotelMakkah={pkg.makkah_hotel_name || ""}
+                    hotelMakkahRating={pkg.makkah_hotel_star || 4}
+                    hotelMadinah={pkg.madinah_hotel_name || ""}
+                    hotelMadinahRating={pkg.madinah_hotel_star || 4}
+                    category={pkg.available_tiers?.[0] || "nyaman"}
+                    seatAvailable={!pkg.is_sold_out}
+                    isSoldOut={pkg.is_sold_out || false}
+                    waitlistCount={pkg.waitlist_count || 0}
                     className="h-full"
                   />
                 </motion.div>

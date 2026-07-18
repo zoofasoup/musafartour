@@ -143,7 +143,27 @@ const PackageItems = () => {
       .order("type")
       .order("display_order");
     if (error) { toast.error("Gagal memuat data"); return; }
-    setItems((data as PackageItem[]) || []);
+    
+    const seen = new Set();
+    const uniqueData = [];
+    const duplicates = [];
+    
+    for (const item of (data as PackageItem[] || [])) {
+      const key = `${item.name.trim().toLowerCase()}-${item.type}`;
+      if (seen.has(key)) {
+        duplicates.push(item);
+      } else {
+        seen.add(key);
+        uniqueData.push(item);
+      }
+    }
+    
+    if (duplicates.length > 0) {
+      Promise.all(duplicates.map(d => supabase.from("package_items").delete().eq("id", d.id)))
+        .then(() => console.log("Duplikat berhasil dibersihkan dari database"));
+    }
+    
+    setItems(uniqueData);
     setLoading(false);
   };
 
@@ -401,7 +421,7 @@ const PackageItems = () => {
             )}
             <div className="space-y-2">
               <Label>Urutan</Label>
-              <Input type="number" value={formOrder} onChange={(e) => setFormOrder(parseInt(e.target.value) || 0)} />
+              <Input type="number" value={formOrder || ""} onChange={(e) => setFormOrder(e.target.value ? parseInt(e.target.value) : 0)} />
             </div>
           </div>
           <DialogFooter>

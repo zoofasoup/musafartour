@@ -415,7 +415,7 @@ function findHotel(hotels: HotelRecord[], name: string, location: string): Hotel
   );
 }
 
-function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingPackages: Record<string, ExistingPackage>) {
+function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingPackages: Record<string, ExistingPackage>, defaultIncludes: string, defaultExcludes: string) {
   const makkahHotel = row.hotel_makkah_record;
   const madinahHotel = row.hotel_madinah_record;
   const existingPkg = existingPackages[row.departure_date];
@@ -492,7 +492,7 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingP
     nights_madinah: row.nights_madinah || 0,
     nights_extra: row.nights_extra || 0,
     hotel_extra: row.hotel_extra || null,
-    included_items: row.facilities || "",
+    included_items: row.facilities || defaultIncludes,
     selling_points: row.selling_points || "",
     max_discount: row.max_discount || 0,
     banner_image: existingPkg ? existingPkg.banner_image : (row.banner_image || null),
@@ -502,7 +502,7 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingP
     is_sold_out: false,
     waitlist_count: 0,
     gallery_images: [],
-    excluded_items: "",
+    excluded_items: defaultExcludes,
     equipment_list: "Perlengkapan Lengkap",
 
     // Default transports for all tiers (matches PackageForm defaults)
@@ -633,6 +633,8 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
     airports: [],
     routes: [],
   });
+  const [defaultIncludes, setDefaultIncludes] = useState<string>("");
+  const [defaultExcludes, setDefaultExcludes] = useState<string>("");
 
   useEffect(() => {
     if (open) {
@@ -666,6 +668,19 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
         }
         const { data: hotelsData } = await supabase.from("hotels").select("name, star_rating, distance, walking_duration, location");
         if (hotelsData) setHotels(hotelsData as HotelRecord[]);
+
+        // Fetch default includes/excludes from package_items
+        const { data: itemsData } = await supabase
+          .from("package_items")
+          .select("name, type, is_essential")
+          .eq("is_active", true)
+          .order("display_order", { ascending: true });
+        if (itemsData) {
+          const includes = itemsData.filter((i: any) => i.type === "include").map((i: any) => i.name);
+          const excludes = itemsData.filter((i: any) => i.type === "exclude").map((i: any) => i.name);
+          setDefaultIncludes(includes.join(", "));
+          setDefaultExcludes(excludes.join(", "));
+        }
       };
       fetchRef();
     }
@@ -772,7 +787,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
 
     for (const row of validRows) {
       try {
-        const payload = buildUpsertPayload(row, hotels, existingPackages);
+        const payload = buildUpsertPayload(row, hotels, existingPackages, defaultIncludes, defaultExcludes);
         const existingPkg = existingPackages[row.departure_date];
         let error;
 

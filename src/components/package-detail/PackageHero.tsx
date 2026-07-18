@@ -56,9 +56,9 @@ export function PackageHero({ packageData, price, children }: PackageHeroProps) 
             <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-sm py-1">
               <Plane className="h-4 w-4 mr-1.5" /> {packageData.flight}
             </Badge>
-            {packageData.hotel_makkah_rating && (
+            {packageData.makkah_hotel_star && (
               <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-sm py-1">
-                Hotel ⭐️ {packageData.hotel_makkah_rating}
+                Hotel ⭐️ {packageData.makkah_hotel_star}
               </Badge>
             )}
           </div>

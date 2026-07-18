@@ -28,6 +28,8 @@ import { AddHotelModal } from "@/components/admin/AddHotelModal";
 import { BasicInfoTab } from "@/components/admin/package-form/BasicInfoTab";
 import { PricingTab } from "@/components/admin/package-form/PricingTab";
 import { MediaContentTab } from "@/components/admin/package-form/MediaContentTab";
+import { FasilitasTab } from "@/components/admin/package-form/FasilitasTab";
+import { VerticalStepper } from "@/components/admin/package-form/VerticalStepper";
 
 const SearchableHotelSelect = ({ 
   hotels, 
@@ -51,12 +53,12 @@ const SearchableHotelSelect = ({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className={cn("flex-1 min-w-0 justify-between text-left font-normal", !selectedHotel && "text-muted-foreground")}
+            className={cn("w-full flex-1 justify-between text-left font-normal bg-white rounded-lg border-primary/20 hover:bg-slate-50 transition-colors focus:ring-2 focus:ring-primary/50 focus:border-primary", !selectedHotel && "text-muted-foreground/50")}
           >
             <span className="truncate pr-2">
               {selectedHotel ? `${selectedHotel.name} (${selectedHotel.star_rating}⭐)` : placeholder}
             </span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0" />
           </Button>
         </FormControl>
       </PopoverTrigger>
@@ -394,6 +396,13 @@ interface PackageItemRecord {
 const PackageForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [currentStep, setCurrentStep] = useState(1);
+  const steps = [
+    { id: 1, title: "Informasi Dasar", description: "Nama, tanggal, penerbangan" },
+    { id: 2, title: "Harga & Hotel", description: "Akomodasi dan transportasi" },
+    { id: 3, title: "Fasilitas", description: "Includes & Excludes" },
+    { id: 4, title: "Media & Konten", description: "Foto, flyer, dan katalog" }
+  ];
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(!!id);
   const [bannerPreview, setBannerPreview] = useState<string>("");
@@ -414,8 +423,8 @@ const PackageForm = () => {
   const [dbExcludeItems, setDbExcludeItems] = useState<PackageItemRecord[]>([]);
   
   const [hotelModalOpen, setHotelModalOpen] = useState(false);
-  const [hotelModalLocation, setHotelModalLocation] = useState<"makkah" | "madinah">("madinah");
-  const [hotelModalTier, setHotelModalTier] = useState<"best_seller" | "five_star">("best_seller");
+  const [hotelModalLocation, setHotelModalLocation] = useState<"makkah" | "madinah" | "extra">("madinah");
+  const [hotelModalTier, setHotelModalTier] = useState<"best_seller" | "five_star" | "">("best_seller");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const form = useForm<PackageFormValues>({
@@ -425,7 +434,7 @@ const PackageForm = () => {
       departure_date: "",
       duration_days: 10,
       flight: "",
-      flight_type: "Direct",
+      flight_type: "",
       available_tiers: ["nyaman"],
       timeframe: "",
       start_airport: "",
@@ -458,7 +467,7 @@ const PackageForm = () => {
   useEffect(() => {
     fetchHotels();
     fetchPackageItems();
-    if (id) {
+    if (id && id !== 'new' && id !== 'add') {
       fetchPackage();
     }
   }, [id]);
@@ -515,19 +524,18 @@ const PackageForm = () => {
     const walkField = `${prefix}_duration_walk` as any;
 
     if (hotelId === "none") {
-      form.setValue(hotelNameField, "");
-      form.setValue(hotelStarField, 0);
-      form.setValue(distField, "");
-      form.setValue(walkField, "");
+      form.setValue(hotelNameField, "", { shouldValidate: true });
+      form.setValue(hotelStarField, 0, { shouldValidate: true });
+      form.setValue(distField, "", { shouldValidate: true });
+      form.setValue(walkField, "", { shouldValidate: true });
       return;
     }
     const hotel = hotels.find((h) => h.id === hotelId);
     if (hotel) {
-      form.setValue(hotelNameField, hotel.name);
-      form.setValue(hotelStarField, hotel.star_rating);
-      if (hotelStarField in form.getValues()) form.setValue(hotelStarField, hotel.star_rating);
-      if (distField in form.getValues()) form.setValue(distField, extractNumber(hotel.distance));
-      if (walkField in form.getValues()) form.setValue(walkField, extractNumber(hotel.walking_duration));
+      form.setValue(hotelNameField, hotel.name, { shouldValidate: true });
+      if (hotelStarField in form.getValues()) form.setValue(hotelStarField, hotel.star_rating, { shouldValidate: true });
+      if (distField in form.getValues()) form.setValue(distField, extractNumber(hotel.distance), { shouldValidate: true });
+      if (walkField in form.getValues()) form.setValue(walkField, extractNumber(hotel.walking_duration), { shouldValidate: true });
     }
   };
 
@@ -880,7 +888,7 @@ const PackageForm = () => {
         waitlist_count: values.waitlist_count,
       };
 
-      if (id) {
+      if (id && id !== 'new' && id !== 'add') {
         const { error } = await supabase.from("packages").update(packageData).eq("id", id);
         if (error) throw error;
         toast.success("Paket berhasil diupdate");
@@ -946,24 +954,23 @@ const PackageForm = () => {
     const selectedMadinahHotel = form.watch(madinahHotelField);
 
     return (
-      <Card className="border-primary/30 shadow-sm overflow-hidden mb-8" data-form-section>
-        <CardHeader className="bg-primary/5 pb-4 border-b">
-          <CardTitle className="text-xl text-primary">Paket {tierLabel}</CardTitle>
-          <CardDescription>Pengaturan spesifik untuk paket {tierLabel}</CardDescription>
+      <Card className="shadow-sm border-primary/10 overflow-hidden mb-10 rounded-lg" data-form-section>
+        <CardHeader className="bg-primary/5 px-8 py-6 border-b border-primary/10">
+          <CardTitle className="text-2xl text-primary font-bold tracking-tight">Paket {tierLabel}</CardTitle>
+          <CardDescription className="text-base mt-1">Pengaturan spesifik untuk paket {tierLabel}</CardDescription>
         </CardHeader>
         
-        <CardContent className="space-y-8 pt-6">
+        <CardContent className="space-y-8 p-8">
           {/* Akomodasi (Hotel) */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg">🏨 Kategori Akomodasi</h3>
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* Hotel Makkah */}
-              <div className="space-y-4 border p-4 rounded-xl bg-card/50">
-                <h4 className="font-semibold text-primary/80 mb-2">Hotel Makkah</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-6">
+            <h3 className="font-semibold text-xl tracking-tight">Hotel</h3>
+            <div className="grid gap-6">
+              <div className="border border-primary/10 p-6 rounded-lg bg-white shadow-sm flex flex-col gap-3">
+                <h4 className="font-semibold text-primary/80 flex items-center gap-1">Hotel Makkah <span className="text-destructive">*</span></h4>
+                <div className={cn("grid gap-6", selectedMakkahHotel ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}>
                   <FormField control={form.control} name={makkahHotelField} render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nama Hotel <span className="text-destructive">*</span></FormLabel>
+                      {selectedMakkahHotel && <FormLabel>Nama Hotel</FormLabel>}
                       <div className="flex gap-2">
                         <SearchableHotelSelect 
                           hotels={makkahHotels}
@@ -996,13 +1003,13 @@ const PackageForm = () => {
                   )}
                 </div>
                 {selectedMakkahHotel && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className={cn("grid gap-4", selectedMakkahHotel ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}>
                     <FormField control={form.control} name={makkahDistField} render={({ field }) => (
                       <FormItem>
                         <FormLabel>Jarak ke Masjidil Haram</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Input {...field} type="number" className="pr-16" placeholder="200" onChange={(e) => field.onChange(e.target.value)} />
+                            <Input {...field} value={field.value || ""} type="number" className="pr-16" placeholder="200" onChange={(e) => field.onChange(e.target.value)} />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">meter</span>
                           </div>
                         </FormControl>
@@ -1014,7 +1021,7 @@ const PackageForm = () => {
                         <FormLabel>Durasi Jalan Kaki</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Input {...field} type="number" className="pr-16" placeholder="10" onChange={(e) => field.onChange(e.target.value)} />
+                            <Input {...field} value={field.value || ""} type="number" className="pr-16" placeholder="10" onChange={(e) => field.onChange(e.target.value)} />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">menit</span>
                           </div>
                         </FormControl>
@@ -1026,12 +1033,12 @@ const PackageForm = () => {
               </div>
 
               {/* Hotel Madinah */}
-              <div className="space-y-4 border p-4 rounded-xl bg-card/50">
-                <h4 className="font-semibold text-primary/80 mb-2">Hotel Madinah</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border border-primary/10 p-6 rounded-lg bg-white shadow-sm flex flex-col gap-3">
+                <h4 className="font-semibold text-primary/80 flex items-center gap-1">Hotel Madinah <span className="text-destructive">*</span></h4>
+                <div className={cn("grid gap-6", selectedMadinahHotel ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}>
                   <FormField control={form.control} name={madinahHotelField} render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nama Hotel <span className="text-destructive">*</span></FormLabel>
+                      {selectedMadinahHotel && <FormLabel>Nama Hotel</FormLabel>}
                       <div className="flex gap-2">
                         <SearchableHotelSelect 
                           hotels={madinahHotels}
@@ -1064,13 +1071,13 @@ const PackageForm = () => {
                   )}
                 </div>
                 {selectedMadinahHotel && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className={cn("grid gap-6", selectedMadinahHotel ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}>
                     <FormField control={form.control} name={madinahDistField} render={({ field }) => (
                       <FormItem>
                         <FormLabel>Jarak ke Masjid Nabawi</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Input {...field} type="number" className="pr-16" placeholder="100" onChange={(e) => field.onChange(e.target.value)} />
+                            <Input {...field} value={field.value || ""} type="number" className="pr-16" placeholder="100" onChange={(e) => field.onChange(e.target.value)} />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">meter</span>
                           </div>
                         </FormControl>
@@ -1082,7 +1089,7 @@ const PackageForm = () => {
                         <FormLabel>Durasi Jalan Kaki</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Input {...field} type="number" className="pr-16" placeholder="5" onChange={(e) => field.onChange(e.target.value)} />
+                            <Input {...field} value={field.value || ""} type="number" className="pr-16" placeholder="5" onChange={(e) => field.onChange(e.target.value)} />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">menit</span>
                           </div>
                         </FormControl>
@@ -1095,10 +1102,10 @@ const PackageForm = () => {
             </div>
             
             {/* Hotel Kota + */}
-            <div className="border p-4 rounded-xl bg-card/50">
+            <div className="border border-primary/10 p-6 rounded-lg bg-white shadow-sm flex flex-col gap-3">
+              <h4 className="font-semibold text-primary/80">Hotel Kota Tambahan (Opsional)</h4>
               <FormField control={form.control} name="hotel_extra" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Hotel Kota Tambahan (Opsional)</FormLabel>
                   <div className="flex gap-2">
                     <SearchableHotelSelect 
                       hotels={extraHotels}
@@ -1126,12 +1133,12 @@ const PackageForm = () => {
           <Separator className="bg-primary/10" />
 
           {/* Transportasi */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg">🚌 Kategori Perjalanan</h3>
-            <div className="border p-4 rounded-xl bg-card/50 md:w-1/2">
+          <div className="space-y-6">
+            <h3 className="font-semibold text-xl tracking-tight">Transportasi</h3>
+            <div className="border border-primary/10 p-6 rounded-lg bg-white shadow-sm flex flex-col gap-3">
+              <h4 className="font-semibold text-primary/80">Transportasi Makkah-Madinah</h4>
               <FormField control={form.control} name={transportFormField} render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Transportasi Makkah-Madinah</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Pilih transportasi" /></SelectTrigger></FormControl>
                     <SelectContent>
@@ -1148,10 +1155,10 @@ const PackageForm = () => {
           <Separator className="bg-primary/10" />
 
           {/* Harga */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg">💰 Kategori Harga Jual</h3>
-            <div className="border p-4 rounded-xl bg-card/50">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-6">
+            <h3 className="font-semibold text-xl tracking-tight">Harga</h3>
+            <div className="border border-primary/10 p-6 rounded-lg bg-white shadow-sm">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField control={form.control} name={priceQuad} render={({ field }) => (
                   <FormItem><FormLabel>Harga Quad (4 orang) <span className="text-destructive">*</span></FormLabel><FormControl>
                     <Input 
@@ -1191,6 +1198,19 @@ const PackageForm = () => {
                     />
                   </FormControl><FormMessage /></FormItem>
                 )} />
+                <FormField control={form.control} name="max_discount" render={({ field }) => (
+                  <FormItem className="md:col-span-3"><FormLabel>Diskon Maksimal (Rp) <span className="text-destructive">*</span></FormLabel><FormControl>
+                    <Input 
+                      type="text" 
+                      value={field.value ? `Rp ${new Intl.NumberFormat('id-ID').format(field.value)}` : ''}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/[^0-9]/g, '');
+                        field.onChange(raw ? parseInt(raw, 10) : 0);
+                      }} 
+                      placeholder="Rp 1.000.000" 
+                    />
+                  </FormControl><FormMessage /></FormItem>
+                )} />
               </div>
             </div>
           </div>
@@ -1201,15 +1221,15 @@ const PackageForm = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit, handleValidationError)} className="space-y-6 pb-12 bg-slate-50/50 min-h-[calc(100vh-4rem)] -m-6 p-6 md:-m-8 md:p-8">
+      <form onSubmit={form.handleSubmit(onSubmit, handleValidationError)} className="space-y-6 pb-12 bg-background min-h-[calc(100vh-4rem)] -m-6 p-6 md:-m-8 md:p-8">
         {/* Sticky top action bar */}
         <div className="sticky top-0 z-40 -mx-6 -mt-6 px-6 py-3 md:-mx-8 md:-mt-8 md:px-8 bg-white/95 backdrop-blur border-b shadow-sm mb-8">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" type="button" onClick={() => safeNavigate("/admin/packages")}>
+              <Button variant="ghost" size="sm" type="button" onClick={() => safeNavigate("/admin/packages")} className="rounded-full">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <span className="font-semibold text-sm">{id ? "Edit Paket" : "Tambah Paket"}</span>
+              <span className="font-serif text-lg tracking-tight font-medium">{id ? "Edit Paket" : "Tambah Paket"}</span>
             </div>
             <div className="flex items-center gap-3">
               <FormField control={form.control} name="status" render={({ field }) => (
@@ -1239,34 +1259,134 @@ const PackageForm = () => {
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold">{id ? "Edit Paket" : "Tambah Paket"}</h1>
-          <p className="text-muted-foreground">Lengkapi informasi paket umroh</p>
-        </div>
-          <div className="space-y-12">
-            <BasicInfoTab form={form} />
-            
-            <PricingTab 
-              form={form} 
-              hasHemat={hasHemat} 
-              hasNyaman={hasNyaman} 
-              hasFiveStar={hasFiveStar} 
-              hasPelataranHemat={hasPelataranHemat} 
-              renderTierSection={renderTierSection} 
-            />
-
-            <MediaContentTab 
-              form={form}
-              loading={loading}
-              bannerPreview={bannerPreview} handleBannerFiles={handleBannerFiles} removeBanner={removeBanner}
-              katalogPreview={katalogPreview} setKatalogFile={setKatalogFile} setKatalogPreview={setKatalogPreview}
-              itineraryPreview={itineraryPreview} setItineraryFile={setItineraryFile} setItineraryPreview={setItineraryPreview}
-              galleryPreviews={galleryPreviews} handleGalleryFiles={handleGalleryFiles} removeGalleryImage={removeGalleryImage}
-              dbStandardItems={dbStandardItems} dbOptionalItems={dbOptionalItems} dbExcludeItems={dbExcludeItems}
-              ImageDropZone={ImageDropZone} DocDropZone={DocDropZone} AddItemInput={AddItemInput}
-            />
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight">{id ? "Edit Paket" : "Tambah Paket"}</h1>
+            <p className="text-muted-foreground mt-1">Lengkapi informasi paket umroh langkah demi langkah</p>
           </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-10 items-start">
+            {/* Sidebar Stepper */}
+            <div className="sticky top-24 hidden lg:block border border-primary/10 bg-white p-6 rounded-lg shadow-sm">
+              <VerticalStepper steps={steps} currentStep={currentStep} onStepClick={setCurrentStep} />
+            </div>
+
+            {/* Form Content */}
+            <div className="flex flex-col gap-8">
+              {/* Mobile Stepper (optional, hidden on desktop) */}
+              <div className="lg:hidden mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-semibold text-primary">Langkah {currentStep} dari 4</span>
+                  <span className="text-sm text-muted-foreground">
+                    - {steps.find(s => s.id === currentStep)?.title}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-primary h-full transition-all" 
+                    style={{ width: `${(currentStep / 4) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className={currentStep === 1 ? "block" : "hidden"}>
+                <BasicInfoTab form={form} />
+              </div>
+              
+              <div className={currentStep === 2 ? "block" : "hidden"}>
+                <PricingTab 
+                  form={form} 
+                  hasHemat={hasHemat} 
+                  hasNyaman={hasNyaman} 
+                  hasFiveStar={hasFiveStar} 
+                  hasPelataranHemat={hasPelataranHemat} 
+                  renderTierSection={renderTierSection} 
+                />
+              </div>
+
+              <div className={currentStep === 3 ? "block" : "hidden"}>
+                <FasilitasTab 
+                  form={form}
+                  dbStandardItems={dbStandardItems} 
+                  dbOptionalItems={dbOptionalItems} 
+                  dbExcludeItems={dbExcludeItems}
+                  AddItemInput={AddItemInput}
+                />
+              </div>
+
+              <div className={currentStep === 4 ? "block" : "hidden"}>
+                <MediaContentTab 
+                  form={form}
+                  loading={loading}
+                  bannerPreview={bannerPreview} handleBannerFiles={handleBannerFiles} removeBanner={removeBanner}
+                  katalogPreview={katalogPreview} setKatalogFile={setKatalogFile} setKatalogPreview={setKatalogPreview}
+                  itineraryPreview={itineraryPreview} setItineraryFile={setItineraryFile} setItineraryPreview={setItineraryPreview}
+                  galleryPreviews={galleryPreviews} handleGalleryFiles={handleGalleryFiles} removeGalleryImage={removeGalleryImage}
+                  ImageDropZone={ImageDropZone} DocDropZone={DocDropZone}
+                />
+              </div>
+              
+              {/* Navigation Buttons */}
+              <div className="flex items-center justify-between pt-6 border-t border-primary/10">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => currentStep > 1 ? setCurrentStep(currentStep - 1) : safeNavigate("/admin/packages")}
+                  className="rounded-md border-primary/20 hover:bg-slate-50"
+                >
+                  {currentStep > 1 ? "Sebelumnya" : "Batal"}
+                </Button>
+                
+                {currentStep < 4 ? (
+                  <Button 
+                    type="button" 
+                    onClick={async () => {
+                      // Trigger validation based on step (simplified, we just proceed for now or you can add specific field validation)
+                      setCurrentStep(currentStep + 1);
+                      const mainScrollContainer = document.querySelector('main');
+                      if (mainScrollContainer) {
+                        mainScrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                      } else {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    }}
+                    className="rounded-md px-8"
+                  >
+                    Selanjutnya
+                  </Button>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={async () => {
+                        const data = form.getValues();
+                        if (!data.package_name) {
+                          import("sonner").then(m => m.toast.error("Judul paket wajib diisi untuk menyimpan draft"));
+                          return;
+                        }
+                        await onSubmit({ ...data, status: "draft" } as any);
+                      }}
+                      disabled={loading || uploadingImages}
+                      className="rounded-md px-6 border-primary/20 hover:bg-slate-50"
+                    >
+                      {loading ? "Menyimpan..." : "Simpan Draft"}
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={loading || uploadingImages}
+                      data-save-btn
+                      className="rounded-md px-8"
+                      onClick={() => form.setValue("status", "published")}
+                    >
+                      {uploadingImages ? "Uploading..." : loading ? "Memproses..." : "Publish Paket"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
         <AddHotelModal
           open={hotelModalOpen}
           onOpenChange={setHotelModalOpen}

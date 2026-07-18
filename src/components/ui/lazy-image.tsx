@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { cn } from "@/lib/utils";
+import { cn, getOptimizedImageUrl } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const LazyImage = ({ className, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => {
+export const LazyImage = ({ className, alt, src, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => {
   const [loaded, setLoaded] = useState(false);
+
+  const defaultSrc = getOptimizedImageUrl(src);
 
   return (
     <div className={cn("relative overflow-hidden isolate", className, !loaded && "bg-muted")}>
@@ -12,6 +14,7 @@ export const LazyImage = ({ className, alt, ...props }: React.ImgHTMLAttributes<
       )}
       <img
         alt={alt}
+        src={defaultSrc}
         className={cn(
           "w-full h-full transition-opacity duration-500",
           loaded ? "opacity-100" : "opacity-0",

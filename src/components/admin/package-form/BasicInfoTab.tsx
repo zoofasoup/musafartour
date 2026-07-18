@@ -12,24 +12,24 @@ import { cn } from "@/lib/utils";
 
 export const BasicInfoTab = ({ form }: { form: any }) => {
   return (
-    <div className="space-y-8 mt-6">
+    <div className="space-y-8">
       {/* 1. Informasi Dasar */}
-      <Card data-form-section className="border-t-8 border-t-primary shadow-sm">
-        <CardHeader>
-          <CardTitle>Informasi Dasar</CardTitle>
-          <CardDescription>Identitas utama paket umroh</CardDescription>
+      <Card data-form-section className="border-t-4 border-t-primary shadow-sm overflow-hidden mb-10 rounded-lg">
+        <CardHeader className="bg-primary/5 border-b border-primary/10 px-8 py-6">
+          <CardTitle className="text-2xl text-primary font-bold tracking-tight">Informasi Dasar</CardTitle>
+          <CardDescription className="text-base mt-1">Identitas utama paket umroh</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6 p-8">
           <FormField control={form.control} name="package_name" render={({ field }) => (
             <FormItem><FormLabel>Nama Paket *</FormLabel><FormControl><Input {...field} placeholder="Umroh Hemat 9 Hari" /></FormControl><FormMessage /></FormItem>
           )} />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
             <FormField control={form.control} name="timeframe" render={({ field }) => (
               <FormItem><FormLabel>Timeframe <span className="text-destructive">*</span></FormLabel><FormControl><Input {...field} placeholder="Bulan November" /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="slots_total" render={({ field }) => (
               <FormItem><FormLabel>Seat (Kuota) <span className="text-destructive">*</span></FormLabel><FormControl>
-                <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="40" />
+                <Input type="number" {...field} value={field.value || ""} onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : "")} placeholder="40" />
               </FormControl><FormMessage /></FormItem>
             )} />
           </div>
@@ -37,13 +37,13 @@ export const BasicInfoTab = ({ form }: { form: any }) => {
       </Card>
 
       {/* 2. Jadwal & Penerbangan */}
-      <Card data-form-section>
-        <CardHeader>
-          <CardTitle>Jadwal & Penerbangan</CardTitle>
-          <CardDescription>Detail waktu dan rute penerbangan</CardDescription>
+      <Card data-form-section className="shadow-sm border-primary/10 overflow-hidden mb-10 rounded-xl">
+        <CardHeader className="bg-primary/5 px-8 py-6 border-b border-primary/10">
+          <CardTitle className="text-2xl text-primary font-bold tracking-tight">Jadwal & Penerbangan</CardTitle>
+          <CardDescription className="text-base mt-1">Detail waktu dan rute penerbangan</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="space-y-6 p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
               name="departure_date"
@@ -55,14 +55,14 @@ export const BasicInfoTab = ({ form }: { form: any }) => {
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
-                          <Button variant="outline" className={cn("w-full pl-3 text-left font-normal h-10", !field.value && "text-muted-foreground")}>
+                          <Button variant="outline" className={cn("w-full pl-3 text-left font-normal h-10 bg-white rounded-md border-primary/20 hover:bg-slate-50 transition-colors focus:ring-2 focus:ring-primary/50 focus:border-primary", !field.value && "text-muted-foreground/50")}>
                             {field.value ? format(new Date(field.value), "dd MMMM yyyy", { locale: idLocale }) : <span>Pilih tanggal</span>}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            <CalendarIcon className="ml-auto h-4 w-4" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={selectedDate} defaultMonth={selectedDate || new Date()} onSelect={(date) => { if (date) field.onChange(format(date, "yyyy-MM-dd")); }} disabled={(date) => date < new Date("2024-01-01")} initialFocus className="p-3 pointer-events-auto" />
+                        <Calendar mode="single" selected={selectedDate} defaultMonth={selectedDate || new Date()} onSelect={(date) => { if (date) field.onChange(format(date, "yyyy-MM-dd")); }} disabled={(date) => date < new Date("2024-01-01")} initialFocus className="p-3 pointer-events-auto" captionLayout="dropdown-buttons" fromYear={2024} toYear={2030} />
                       </PopoverContent>
                     </Popover>
                     <FormMessage />
@@ -72,16 +72,16 @@ export const BasicInfoTab = ({ form }: { form: any }) => {
             />
             <FormField control={form.control} name="duration_days" render={({ field }) => (
               <FormItem className="flex flex-col"><FormLabel>Durasi (Hari) *</FormLabel><FormControl>
-                <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} className="h-10" placeholder="9" />
+                <Input type="number" {...field} value={field.value || ""} onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : "")} className="h-10" placeholder="9" />
               </FormControl><FormMessage /></FormItem>
             )} />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
             <FormField control={form.control} name="start_airport" render={({ field }) => (
               <FormItem>
                 <FormLabel>Start (Bandara) <span className="text-destructive">*</span></FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Pilih bandara" /></SelectTrigger></FormControl>
                   <SelectContent>
                     <SelectItem value="CGK">CGK - Jakarta</SelectItem>
@@ -98,7 +98,7 @@ export const BasicInfoTab = ({ form }: { form: any }) => {
             <FormField control={form.control} name="flight" render={({ field }) => (
               <FormItem>
                 <FormLabel>Maskapai *</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Pilih maskapai" /></SelectTrigger></FormControl>
                   <SelectContent>
                     <SelectItem value="Garuda Indonesia">Garuda Indonesia</SelectItem>
@@ -115,12 +115,12 @@ export const BasicInfoTab = ({ form }: { form: any }) => {
             )} />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
             <FormField control={form.control} name="flight_type" render={({ field }) => (
               <FormItem>
                 <FormLabel>Tipe Penerbangan *</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl><SelectTrigger><SelectValue placeholder="Pilih tipe" /></SelectTrigger></FormControl>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Pilih tipe penerbangan" /></SelectTrigger></FormControl>
                   <SelectContent>
                     <SelectItem value="direct">Direct</SelectItem>
                     <SelectItem value="transit">Transit</SelectItem>
@@ -137,7 +137,7 @@ export const BasicInfoTab = ({ form }: { form: any }) => {
           <FormField control={form.control} name="itinerary" render={({ field }) => (
             <FormItem>
               <FormLabel>Itinerary <span className="text-destructive">*</span></FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} value={field.value || undefined}>
                 <FormControl><SelectTrigger><SelectValue placeholder="Pilih rute itinerary" /></SelectTrigger></FormControl>
                 <SelectContent>
                   <SelectItem value="Makkah - Madinah">Makkah - Madinah</SelectItem>
@@ -151,26 +151,26 @@ export const BasicInfoTab = ({ form }: { form: any }) => {
       </Card>
 
       {/* 3. Durasi Menginap */}
-      <Card data-form-section>
-        <CardHeader>
-          <CardTitle>Durasi Menginap</CardTitle>
-          <CardDescription>Lama menetap di setiap kota</CardDescription>
+      <Card data-form-section className="shadow-sm border-primary/10 overflow-hidden mb-10 rounded-lg">
+        <CardHeader className="bg-primary/5 border-b border-primary/10 px-8 py-6">
+          <CardTitle className="text-2xl text-primary font-bold tracking-tight">Durasi Menginap</CardTitle>
+          <CardDescription className="text-base mt-1">Lama menetap di setiap kota</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="space-y-6 p-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <FormField control={form.control} name="nights_makkah" render={({ field }) => (
               <FormItem><FormLabel>Malam Makkah <span className="text-destructive">*</span></FormLabel><FormControl>
-                <Input type="number" {...field} onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : "")} placeholder="4" />
+                <Input type="number" {...field} value={field.value || ""} onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : "")} placeholder="0" />
               </FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="nights_madinah" render={({ field }) => (
               <FormItem><FormLabel>Malam Madinah <span className="text-destructive">*</span></FormLabel><FormControl>
-                <Input type="number" {...field} onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : "")} placeholder="3" />
+                <Input type="number" {...field} value={field.value || ""} onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : "")} placeholder="0" />
               </FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="nights_extra" render={({ field }) => (
               <FormItem><FormLabel>Malam Kota +</FormLabel><FormControl>
-                <Input type="number" {...field} onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : "")} placeholder="1" />
+                <Input type="number" {...field} value={field.value || ""} onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : "")} placeholder="0" />
               </FormControl><FormMessage /></FormItem>
             )} />
           </div>

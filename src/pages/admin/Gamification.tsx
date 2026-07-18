@@ -444,8 +444,8 @@ const Gamification = () => {
                       <Input
                         type="number"
                         min={1}
-                        value={challengeForm.target_value}
-                        onChange={(e) => setChallengeForm({ ...challengeForm, target_value: parseInt(e.target.value) || 1 })}
+                        value={challengeForm.target_value || ""}
+                        onChange={(e) => setChallengeForm({ ...challengeForm, target_value: e.target.value ? parseInt(e.target.value) : 1 })}
                       />
                     </div>
                   </div>
@@ -687,7 +687,7 @@ const Gamification = () => {
                       <Input
                         type="number"
                         min={1}
-                        value={badgeForm.requirement_value}
+                        value={badgeForm.requirement_value || ""}
                         onChange={(e) => setBadgeForm({ ...badgeForm, requirement_value: parseInt(e.target.value) || 1 })}
                       />
                     </div>
@@ -697,7 +697,7 @@ const Gamification = () => {
                     <Input
                       type="number"
                       min={0}
-                      value={badgeForm.points_reward}
+                      value={badgeForm.points_reward || ""}
                       onChange={(e) => setBadgeForm({ ...badgeForm, points_reward: parseInt(e.target.value) || 0 })}
                     />
                   </div>
@@ -857,7 +857,7 @@ const Gamification = () => {
                       <Input
                         type="number"
                         min={1}
-                        value={rewardForm.points_cost}
+                        value={rewardForm.points_cost || ""}
                         onChange={(e) => setRewardForm({ ...rewardForm, points_cost: parseInt(e.target.value) || 1 })}
                       />
                     </div>

@@ -13,3 +13,15 @@ export const parsePackagePrice = (raw: unknown): PackagePrice => {
   if (result.success) return result.data;
   return { quad: 0, triple: 0, double: 0 };
 };
+
+export interface PackageHotelInfo {
+  name: string;
+  star: number;
+  distance: string;
+  walk: string;
+}
+
+export interface PackageHotels {
+  makkah: PackageHotelInfo;
+  madinah: PackageHotelInfo;
+}

@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -214,7 +215,11 @@ export default function CalculatorLeads() {
         <CardHeader><CardTitle>Lead List · {filtered.length}</CardTitle></CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">Memuat…</div>
+            <div className="py-12 space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">Tidak ada lead.</div>
           ) : (

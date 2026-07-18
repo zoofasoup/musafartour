@@ -78,3 +78,13 @@ export function parseListItems(items: string | string[] | null | undefined): str
     return items.split('\n').filter(Boolean);
   }
 }
+
+/**
+ * Returns the image URL as-is. Previously used Supabase's /render/image/public/
+ * endpoint for on-the-fly WebP conversion, but that applies resizing_type:fill
+ * by default which crops/zooms images. Images are now served directly.
+ */
+export function getOptimizedImageUrl(url: string | null | undefined, _width?: number, _quality = 80): string {
+  if (!url) return '';
+  return url;
+}

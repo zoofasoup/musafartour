@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
@@ -17,7 +18,7 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <p className="mt-4 text-muted-foreground">Memuat...</p>
+          <Skeleton className="h-4 w-32 mt-4" />
         </div>
       </div>
     );

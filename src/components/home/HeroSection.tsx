@@ -65,7 +65,7 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
               <Button
                 size="lg"
                 className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-base md:text-lg px-8 w-full sm:w-auto h-14 rounded-full transition-all hover:scale-105 shadow-lg shadow-accent/20"
-                onClick={() => navigate("/paket")}
+                onClick={() => navigate("/paket-umroh")}
               >
                 Lihat Semua Paket
               </Button>

@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Package, ArrowLeft, ExternalLink, Download } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { usePackageBySlug, type PublishedPackage } from "@/hooks/usePackages";
-import { parsePackagePrice, type PackagePrice } from "@/lib/packageSchema";
+import { parsePackagePrice, type PackagePrice, type PackageHotels as PackageHotelsType } from "@/lib/packageSchema";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 
@@ -35,50 +35,46 @@ const parseListItems = (items?: string | null) => {
 };
 
 function getTierPrice(pkg: PublishedPackage, tier: string): PackagePrice {
-  const tierMap: Record<string, string> = {
-    "five-star": "five_star",
-    "hemat": "hemat",
-    "pelataran-hemat": "pelataran",
-    "nyaman": "best_seller"
-  };
-  const mappedTier = tierMap[tier] || "best_seller";
-  const tierData = (pkg.tiers_data as any)?.[mappedTier];
-
-  if (tierData?.pricing) {
-    return parsePackagePrice(tierData.pricing);
+  switch (tier) {
+    case "five-star": return parsePackagePrice(pkg.five_star_package_price);
+    case "hemat": return parsePackagePrice(pkg.hemat_package_price);
+    case "pelataran-hemat": return parsePackagePrice(pkg.pelataran_package_price);
+    default: return parsePackagePrice(pkg.package_price);
   }
-  return parsePackagePrice(pkg.pricing);
 }
 
-function getTierHotels(pkg: PublishedPackage, tier: string) {
-  const tierMap: Record<string, string> = {
-    "five-star": "five_star",
-    "hemat": "hemat",
-    "pelataran-hemat": "pelataran",
-    "nyaman": "best_seller"
+function getTierHotels(pkg: PublishedPackage, tier: string): PackageHotelsType {
+  const prefixMap: Record<string, string> = {
+    "five-star": "five_star_",
+    "hemat": "hemat_",
+    "pelataran-hemat": "pelataran_",
+    "nyaman": ""
   };
-  const mappedTier = tierMap[tier] || "best_seller";
-  const tierData = (pkg.tiers_data as any)?.[mappedTier];
-
-  if (tierData?.hotels) {
-    return tierData.hotels;
-  }
+  const p = prefixMap[tier] ?? "";
+  const get = (field: string) => (pkg as any)[`${p}${field}`];
   return {
-    makkah: { name: pkg.hotel_makkah || "", star: pkg.hotel_makkah_rating || 0, distance: "", walk: "" },
-    madinah: { name: pkg.hotel_madinah || "", star: pkg.hotel_madinah_rating || 0, distance: "", walk: "" }
+    makkah: {
+      name: get("makkah_hotel_name") || "",
+      star: get("makkah_hotel_star") || 0,
+      distance: get("makkah_distance") || "",
+      walk: get("makkah_duration_walk") || ""
+    },
+    madinah: {
+      name: get("madinah_hotel_name") || "",
+      star: get("madinah_hotel_star") || 0,
+      distance: get("madinah_distance") || "",
+      walk: get("madinah_duration_walk") || ""
+    }
   };
 }
 
 function getTierTransport(pkg: PublishedPackage, tier: string) {
-  const tierMap: Record<string, string> = {
-    "five-star": "five_star",
-    "hemat": "hemat",
-    "pelataran-hemat": "pelataran",
-    "nyaman": "best_seller"
-  };
-  const mappedTier = tierMap[tier] || "best_seller";
-  const tierData = (pkg.tiers_data as any)?.[mappedTier];
-  return tierData?.transport || pkg.best_seller_transport;
+  switch (tier) {
+    case "five-star": return pkg.five_star_transport || pkg.best_seller_transport;
+    case "hemat": return pkg.hemat_transport || pkg.best_seller_transport;
+    case "pelataran-hemat": return pkg.pelataran_transport || pkg.best_seller_transport;
+    default: return pkg.best_seller_transport;
+  }
 }
 
 function generateRoomCombos(adults: number, price: PackagePrice, discount: number): RoomCombo[] {

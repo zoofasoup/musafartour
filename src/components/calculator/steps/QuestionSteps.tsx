@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import { BRAND, SAVING_CHIPS, TIMEFRAME_CHIPS } from "../shared";
 import { StepFrame, Footnote } from "./CommonSteps";
 import { formatIDR } from "@/lib/umrohCalc";
@@ -128,7 +129,7 @@ export function Q_PickPackage({ tiers, selected, onSelect, onNext, onBack, loadi
   return (
     <StepFrame step={2} total={4} title="Mau paket yang mana?" subtitle="Pilih tier yang sesuai impianmu." onNext={onNext} onBack={onBack} canNext={!!selected}>
       <div className="grid gap-3">
-        {loading && <div className="text-sm" style={{ color: BRAND.muted }}>Memuat paket…</div>}
+        {loading && <Skeleton className="h-4 w-32" />}
         {!loading && tiers.length === 0 && <div className="text-sm" style={{ color: BRAND.muted }}>Belum ada paket tersedia.</div>}
         {tiers.map((t: TierOption) => {
           const active = selected?.tier === t.tier;

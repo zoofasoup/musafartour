@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { cn } from '@/lib/utils';
+import { cn, getOptimizedImageUrl } from '@/lib/utils';
 
 interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -24,37 +24,56 @@ export const LazyImage = ({
   ...props 
 }: LazyImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isInView, setIsInView] = useState(isHero); // Hero images load immediately
+  const [isInView, setIsInView] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    if (!imgRef.current || isHero) return;
+    // If it's a hero image, we load it immediately without IntersectionObserver
+    if (isHero) {
+      setIsInView(true);
+      return;
+    }
 
+    const currentImgRef = imgRef.current;
+    
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsInView(true);
-          observer.disconnect();
+          if (currentImgRef) {
+            observer.unobserve(currentImgRef);
+          }
         }
       },
-      { rootMargin: '100px' }
+      {
+        rootMargin: '100px', // Start loading when image is 100px near viewport
+        threshold: 0.1
+      }
     );
 
-    observer.observe(imgRef.current);
+    if (currentImgRef) {
+      observer.observe(currentImgRef);
+    }
 
-    return () => observer.disconnect();
+    return () => {
+      if (currentImgRef) {
+        observer.unobserve(currentImgRef);
+      }
+    };
   }, [isHero]);
 
-  // Generate responsive srcSet if enabled
+  // Handle responsive images if enabled
+  const optimizedSrc = getOptimizedImageUrl(src, 800);
+  
   const srcSet = responsive 
-    ? `${src}?width=640 640w, ${src}?width=1024 1024w, ${src}?width=1920 1920w`
+    ? `${getOptimizedImageUrl(src, 640)} 640w, ${getOptimizedImageUrl(src, 1024)} 1024w, ${getOptimizedImageUrl(src, 1920)} 1920w`
     : undefined;
   
   const responsiveSizes = responsive 
     ? sizes || '(max-width: 640px) 640px, (max-width: 1024px) 1024px, 1920px'
     : sizes;
 
-  const defaultSrc = src;
+  const defaultSrc = optimizedSrc;
 
   return (
     <div className="relative overflow-hidden">

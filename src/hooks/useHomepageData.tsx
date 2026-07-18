@@ -66,7 +66,8 @@ const fallbackReviews: Testimonial[] = [
     rating: 5,
     is_active: true,
     display_order: 1,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: "2",
@@ -78,7 +79,8 @@ const fallbackReviews: Testimonial[] = [
     rating: 5,
     is_active: true,
     display_order: 2,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: "3",
@@ -90,7 +92,8 @@ const fallbackReviews: Testimonial[] = [
     rating: 5,
     is_active: true,
     display_order: 3,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: "4",
@@ -102,7 +105,8 @@ const fallbackReviews: Testimonial[] = [
     rating: 5,
     is_active: true,
     display_order: 4,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: "5",
@@ -114,7 +118,8 @@ const fallbackReviews: Testimonial[] = [
     rating: 5,
     is_active: true,
     display_order: 5,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   }
 ];
 
@@ -135,42 +140,52 @@ const fallbackFaqs: FAQItem[] = [
   {
     id: "1",
     question: "Apakah jadwal keberangkatan sudah pasti?",
+    category: "general",
     answer: "Ya, InsyaAllah 100% PASTI BERANGKAT. Kami menggunakan sistem block seat pesawat sejak awal, sehingga tiket pesawat dan jadwal sudah terjamin tidak akan berubah-ubah atau tertunda.",
     is_active: true,
     display_order: 1,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: "2",
     question: "Apa saja fasilitas yang termasuk dalam harga paket?",
+    category: "general",
     answer: "Harga sudah All-In meliputi: Tiket Pesawat PP, Visa Umroh, Hotel Bintang 4/5 (sangat dekat dengan masjid), Katering 3x sehari dengan menu khas Nusantara, Bus AC eksklusif selama di Arab Saudi, Muthawwif bersertifikat, perlengkapan umroh (koper, ihram/mukena, seragam), asuransi, dan air Zam-zam 5 liter.",
     is_active: true,
     display_order: 2,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: "3",
     question: "Bagaimana jika ada jamaah lansia atau yang menggunakan kursi roda?",
+    category: "general",
     answer: "Musafar Tour sangat dikenal sebagai Travel Umroh Ramah Lansia dan Keluarga. Muthawwif kami akan memberikan pendampingan khusus. Jika membutuhkan kursi roda, kami bisa menyediakannya beserta jasa pendorong selama tawaf dan sa'i (biaya tambahan berlaku untuk jasa pendorong dari pihak Masjidil Haram).",
     is_active: true,
     display_order: 3,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: "4",
     question: "Berapa jarak hotel ke Masjidil Haram dan Masjid Nabawi?",
+    category: "general",
     answer: "Kami menjamin lokasi hotel yang sangat strategis. Untuk paket Premium, jarak hotel di Mekkah (seperti Zamzam Tower) dan Madinah berada tepat di pelataran masjid (0-100 meter). Anda cukup turun lift dan langsung berada di area masjid.",
     is_active: true,
     display_order: 4,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: "5",
     question: "Bagaimana prosedur pendaftaran dan sistem pembayarannya?",
+    category: "general",
     answer: "Sangat mudah! Anda cukup membayar Uang Muka (DP) mulai dari Rp 3.000.000 untuk booking seat. Pelunasan dapat dilakukan secara bertahap dan maksimal dibayarkan 1 bulan sebelum tanggal keberangkatan. Demi keamanan, SEMUA transaksi hanya ditransfer ke Rekening Resmi Perusahaan (PT Musa Amanah Wisata).",
     is_active: true,
     display_order: 5,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   }
 ];
 

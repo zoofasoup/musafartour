@@ -195,6 +195,12 @@ export const commonBulkActions = {
     icon: <EyeOff className="h-4 w-4" />,
     confirmMessage: "Unpublish {count} item yang dipilih?",
   },
+  draft: {
+    id: "draft",
+    label: "Jadikan Draft",
+    icon: <EyeOff className="h-4 w-4" />,
+    confirmMessage: "Jadikan {count} item yang dipilih sebagai draft?",
+  },
   activate: {
     id: "activate",
     label: "Aktifkan Semua",
