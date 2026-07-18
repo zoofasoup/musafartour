@@ -54,6 +54,8 @@ const FAQAdmin = lazy(() => import("./pages/admin/FAQ"));
 const WebsiteSettings = lazy(() => import("./pages/admin/WebsiteSettings"));
 const Team = lazy(() => import("./pages/admin/Team"));
 const MarketingSettings = lazy(() => import("./pages/admin/MarketingSettings"));
+const MarketingMaterials = lazy(() => import("./pages/admin/MarketingMaterials"));
+const MarketingMaterialForm = lazy(() => import("./pages/admin/MarketingMaterialForm"));
 const SEO = lazy(() => import("./pages/admin/SEO"));
 const Profile = lazy(() => import("./pages/admin/Profile"));
 const Chat = lazy(() => import("./pages/Chat"));
@@ -327,6 +329,8 @@ const App = () => (
                     {/* Settings */}
                     <Route path="settings" element={<WebsiteSettings />} />
                     <Route path="settings/marketing" element={<MarketingSettings />} />
+                    <Route path="marketing-materials" element={<MarketingMaterials />} />
+                    <Route path="marketing-materials/:id" element={<MarketingMaterialForm />} />
                     <Route path="seo" element={<SEO />} />
                     <Route path="profile" element={<Profile />} />
                     <Route path="team" element={<Team />} />

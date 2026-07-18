@@ -198,10 +198,6 @@ const AdminDashboard = () => {
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
           <p className="text-muted-foreground mt-1">Pusat komando Admin Musafar Tour.</p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-500 bg-white px-3 py-1.5 rounded border shadow-sm max-w-xl overflow-auto max-h-32">
-          <Activity className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-          <pre>{JSON.stringify(upcomingPackages?.map(p => ({ n: p.package_name, d: p.departure_date, f: p.flight })), null, 2)}</pre>
-        </div>
       </div>
 
       {/* Musafar Insights - AI Powered Assistant */}
