@@ -207,9 +207,11 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   hotel_extra: ["hotel kota +", "hotel kota", "hotel extra", "hotel plus"],
   facilities: ["fasilitas (include & exclude)", "fasilitas", "include exclude", "include"],
   selling_points: ["selling points", "selling point", "keunggulan"],
-  price_quad: ["harga quad", "quad"],
-  price_triple: ["harga triple", "triple"],
-  price_double: ["harga double", "double"],
+  // Prefer the marked-up selling-price columns ("Quad + 3.5" etc); fall back to
+  // the base columns only when the +3.5 columns are absent.
+  price_quad: ["harga quad + 3.5", "quad + 3.5", "harga quad", "quad"],
+  price_triple: ["harga triple + 3.5", "triple + 3.5", "harga triple", "triple"],
+  price_double: ["harga double + 3.5", "double + 3.5", "harga double", "double"],
   max_discount: ["maks diskon", "max diskon", "diskon"],
   banner_image: ["file flyer", "flyer", "banner"],
   catalog_link: ["file katalog", "katalog", "catalog"],
