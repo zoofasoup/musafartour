@@ -330,6 +330,9 @@ const Packages = () => {
                       Nama Paket {getSortIcon('package_name')}
                     </Button>
                   </TableHead>
+                  <TableHead className="w-[120px]">
+                    Kategori
+                  </TableHead>
                   <TableHead className="min-w-[180px]">
                     <Button variant="ghost" onClick={() => handleSort('departure_date')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'departure_date' ? 'text-primary' : ''}`}>
                       Jadwal Keberangkatan {getSortIcon('departure_date')}
@@ -357,7 +360,7 @@ const Packages = () => {
               <TableBody>
                 {sortedPackages.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={selectionMode ? 10 : 9} className="text-center py-10 text-muted-foreground">
+                    <TableCell colSpan={selectionMode ? 11 : 10} className="text-center py-10 text-muted-foreground">
                       Belum ada paket umroh
                     </TableCell>
                   </TableRow>
@@ -414,15 +417,15 @@ const Packages = () => {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex flex-col gap-1.5">
-                              <span className="font-semibold">{pkg.package_name}</span>
-                              <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                                {pkg.available_tiers && pkg.available_tiers.map(tier => (
-                                  <span key={tier} className={`px-1.5 py-0.5 rounded border text-[10px] font-medium ${getTierColor(tier)}`}>
-                                    {formatTierName(tier)}
-                                  </span>
-                                ))}
-                              </div>
+                            <span className="font-semibold">{pkg.package_name}</span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                              {pkg.available_tiers && pkg.available_tiers.map(tier => (
+                                <span key={tier} className={`px-1.5 py-0.5 rounded border text-[10px] font-medium ${getTierColor(tier)}`}>
+                                  {formatTierName(tier)}
+                                </span>
+                              ))}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -487,7 +490,7 @@ const Packages = () => {
                         </TableRow>
                         {expandedId === pkg.id && (
                           <TableRow className="hover:bg-transparent bg-slate-50/50">
-                            <TableCell colSpan={selectionMode ? 10 : 9} className="p-0 border-b">
+                            <TableCell colSpan={selectionMode ? 11 : 10} className="p-0 border-b">
                               <div className="p-6 shadow-inner border-y animate-in fade-in slide-in-from-top-2 duration-200">
                                 <ExpandedPackageDetails pkg={pkg} />
                               </div>
