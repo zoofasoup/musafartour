@@ -36,14 +36,6 @@ export const MediaContentTab = ({
                 onRemove={removeBanner}
                 disabled={loading}
               />
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Link Drive</p>
-                <FormField control={form.control} name="banner_link" render={({ field }) => (
-                  <FormItem>
-                    <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs h-8" /></FormControl>
-                  </FormItem>
-                )} />
-              </div>
             </div>
 
             {/* Katalog */}
@@ -54,14 +46,6 @@ export const MediaContentTab = ({
                 onFile={(f: any) => { setKatalogFile(f); setKatalogPreview(f.name); }}
                 onRemove={() => { setKatalogFile(null); setKatalogPreview(""); }}
               />
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Link Drive</p>
-                <FormField control={form.control} name="catalog_link" render={({ field }) => (
-                  <FormItem>
-                    <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs h-8" /></FormControl>
-                  </FormItem>
-                )} />
-              </div>
             </div>
 
             {/* Itinerary */}
@@ -72,14 +56,6 @@ export const MediaContentTab = ({
                 onFile={(f: any) => { setItineraryFile(f); setItineraryPreview(f.name); }}
                 onRemove={() => { setItineraryFile(null); setItineraryPreview(""); }}
               />
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Link Drive</p>
-                <FormField control={form.control} name="itinerary_link" render={({ field }) => (
-                  <FormItem>
-                    <FormControl><Input {...field} placeholder="https://drive.google.com/..." className="text-xs h-8" /></FormControl>
-                  </FormItem>
-                )} />
-              </div>
             </div>
           </div>
         </CardContent>
@@ -114,7 +90,7 @@ export const MediaContentTab = ({
         <CardContent className="space-y-6">
           <div className="space-y-3">
             <FormLabel className="text-base font-semibold">Termasuk (Standard)</FormLabel>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-lg bg-muted/50">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-3 rounded-lg bg-muted/50">
               {dbStandardItems?.map((item: any) => (
                 <div key={item.id} className="flex items-center gap-2">
                   <span className="text-sm">✓ {item.name}</span>
@@ -133,7 +109,7 @@ export const MediaContentTab = ({
               <FormItem>
                 <div className="space-y-3">
                   <FormLabel className="text-base font-semibold">Termasuk (Opsional)</FormLabel>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-lg border">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-3 rounded-lg border">
                     {dbOptionalItems?.map((item: any) => (
                       <div key={item.id} className="flex items-center gap-2">
                         <Checkbox
@@ -184,7 +160,7 @@ export const MediaContentTab = ({
 
           <div className="space-y-3">
             <FormLabel className="text-base font-semibold">Tidak Termasuk</FormLabel>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-lg bg-muted/50">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-3 rounded-lg bg-muted/50">
               {dbExcludeItems?.map((item: any) => (
                 <div key={item.id} className="flex items-center gap-2">
                   <X className="w-4 h-4 text-destructive flex-shrink-0" />

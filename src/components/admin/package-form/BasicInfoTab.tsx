@@ -79,7 +79,21 @@ export const BasicInfoTab = ({ form }: { form: any }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField control={form.control} name="start_airport" render={({ field }) => (
-              <FormItem><FormLabel>Start (Bandara) <span className="text-destructive">*</span></FormLabel><FormControl><Input {...field} placeholder="CGK" /></FormControl><FormMessage /></FormItem>
+              <FormItem>
+                <FormLabel>Start (Bandara) <span className="text-destructive">*</span></FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Pilih bandara" /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value="CGK">CGK - Jakarta</SelectItem>
+                    <SelectItem value="SUB">SUB - Surabaya</SelectItem>
+                    <SelectItem value="KNO">KNO - Medan</SelectItem>
+                    <SelectItem value="UPG">UPG - Makassar</SelectItem>
+                    <SelectItem value="YIA">YIA - Yogyakarta</SelectItem>
+                    <SelectItem value="KJT">KJT - Kertajati</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
             )} />
             <FormField control={form.control} name="flight" render={({ field }) => (
               <FormItem>
@@ -121,7 +135,17 @@ export const BasicInfoTab = ({ form }: { form: any }) => {
           </div>
 
           <FormField control={form.control} name="itinerary" render={({ field }) => (
-            <FormItem><FormLabel>Itinerary <span className="text-destructive">*</span></FormLabel><FormControl><Input {...field} placeholder="Makkah - Madinah" /></FormControl><FormMessage /></FormItem>
+            <FormItem>
+              <FormLabel>Itinerary <span className="text-destructive">*</span></FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl><SelectTrigger><SelectValue placeholder="Pilih rute itinerary" /></SelectTrigger></FormControl>
+                <SelectContent>
+                  <SelectItem value="Makkah - Madinah">Makkah - Madinah</SelectItem>
+                  <SelectItem value="Madinah - Makkah">Madinah - Makkah</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
           )} />
         </CardContent>
       </Card>
@@ -136,17 +160,17 @@ export const BasicInfoTab = ({ form }: { form: any }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField control={form.control} name="nights_makkah" render={({ field }) => (
               <FormItem><FormLabel>Malam Makkah <span className="text-destructive">*</span></FormLabel><FormControl>
-                <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="4" />
+                <Input type="number" {...field} onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : "")} placeholder="4" />
               </FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="nights_madinah" render={({ field }) => (
               <FormItem><FormLabel>Malam Madinah <span className="text-destructive">*</span></FormLabel><FormControl>
-                <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="3" />
+                <Input type="number" {...field} onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : "")} placeholder="3" />
               </FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="nights_extra" render={({ field }) => (
               <FormItem><FormLabel>Malam Kota +</FormLabel><FormControl>
-                <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} placeholder="1" />
+                <Input type="number" {...field} onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : "")} placeholder="1" />
               </FormControl><FormMessage /></FormItem>
             )} />
           </div>

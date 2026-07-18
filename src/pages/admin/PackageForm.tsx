@@ -407,6 +407,7 @@ const PackageForm = () => {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [makkahHotels, setMakkahHotels] = useState<any[]>([]);
   const [madinahHotels, setMadinahHotels] = useState<any[]>([]);
+  const [extraHotels, setExtraHotels] = useState<any[]>([]);
   
   const [dbStandardItems, setDbStandardItems] = useState<PackageItemRecord[]>([]);
   const [dbOptionalItems, setDbOptionalItems] = useState<PackageItemRecord[]>([]);
@@ -499,6 +500,7 @@ const PackageForm = () => {
       if (error) throw error;
       setMakkahHotels(data?.filter((h: any) => h.location === "makkah") || []);
       setMadinahHotels(data?.filter((h: any) => h.location === "madinah") || []);
+      setExtraHotels(data?.filter((h: any) => h.location === "extra") || []);
     } catch (error) {
       console.error("Error fetching hotels:", error);
       toast.error("Gagal memuat data hotel");
@@ -523,14 +525,14 @@ const PackageForm = () => {
     if (hotel) {
       form.setValue(hotelNameField, hotel.name);
       form.setValue(hotelStarField, hotel.star_rating);
-      form.setValue(distField, extractNumber(hotel.distance));
-      form.setValue(walkField, extractNumber(hotel.walking_duration));
+      if (hotelStarField in form.getValues()) form.setValue(hotelStarField, hotel.star_rating);
+      if (distField in form.getValues()) form.setValue(distField, extractNumber(hotel.distance));
+      if (walkField in form.getValues()) form.setValue(walkField, extractNumber(hotel.walking_duration));
     }
   };
 
-  const handleAddHotelClick = (location: "makkah" | "madinah", tier: "best_seller" | "five_star") => {
-    setHotelModalLocation(location);
-    setHotelModalTier(tier);
+  const handleAddHotelClick = (location: "makkah" | "madinah" | "extra", tier: "best_seller" | "five_star" | "") => {
+    setHotelModalLocation(location); setHotelModalTier(tier);
     setHotelModalOpen(true);
   };
 
@@ -1095,7 +1097,28 @@ const PackageForm = () => {
             {/* Hotel Kota + */}
             <div className="border p-4 rounded-xl bg-card/50">
               <FormField control={form.control} name="hotel_extra" render={({ field }) => (
-                <FormItem><FormLabel>Hotel Kota Tambahan (Opsional)</FormLabel><FormControl><Input {...field} placeholder="Hotel transit / kota tambahan" /></FormControl><FormMessage /></FormItem>
+                <FormItem>
+                  <FormLabel>Hotel Kota Tambahan (Opsional)</FormLabel>
+                  <div className="flex gap-2">
+                    <SearchableHotelSelect 
+                      hotels={extraHotels}
+                      value={field.value || ""}
+                      onValueChange={(id) => {
+                        if (id === "none") {
+                          field.onChange("");
+                        } else {
+                          const h = extraHotels.find(x => x.id === id);
+                          if (h) field.onChange(h.name);
+                        }
+                      }}
+                      placeholder="Pilih hotel kota tambahan"
+                    />
+                    <Button type="button" variant="outline" size="icon" onClick={() => handleAddHotelClick("extra", "")} title="Tambah Hotel Baru">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
               )} />
             </div>
           </div>

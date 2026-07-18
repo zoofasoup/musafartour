@@ -14,7 +14,7 @@ import { compressAndConvertToWebP } from "@/lib/imageUtils";
 
 const hotelSchema = z.object({
   name: z.string().min(1, "Nama hotel wajib diisi"),
-  location: z.enum(["makkah", "madinah"]),
+  location: z.enum(["makkah", "madinah", "extra"]),
   star_rating: z.number().min(1).max(5),
   distance: z.string().min(1, "Jarak wajib diisi"),
   walking_duration: z.string().min(1, "Durasi jalan kaki wajib diisi"),
@@ -26,7 +26,7 @@ type HotelFormValues = z.infer<typeof hotelSchema>;
 interface AddHotelModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  location: "makkah" | "madinah";
+  location: "makkah" | "madinah" | "extra";
   onSuccess: (hotel: any) => void;
 }
 
