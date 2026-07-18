@@ -482,35 +482,81 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingP
     flight: row.flight,
     flight_type: row.flight_type,
     available_tiers: [row.tier],
-    slots_total: slots_total > 0 ? slots_total : null,
-    slots_filled: slots_filled,
+    slots_total: slots_total > 0 ? slots_total : 40,
     status: "draft",
     timeframe: row.timeframe || null,
     start_airport: row.start_airport || null,
     route: row.route || null,
     itinerary: row.itinerary || null,
-    nights_makkah: row.nights_makkah || null,
-    nights_madinah: row.nights_madinah || null,
-    nights_extra: row.nights_extra || null,
+    nights_makkah: row.nights_makkah || 0,
+    nights_madinah: row.nights_madinah || 0,
+    nights_extra: row.nights_extra || 0,
     hotel_extra: row.hotel_extra || null,
-    included_items: row.facilities || null,
-    selling_points: row.selling_points || null,
+    included_items: row.facilities || "",
+    selling_points: row.selling_points || "",
     max_discount: row.max_discount || 0,
     banner_image: existingPkg ? existingPkg.banner_image : (row.banner_image || null),
     catalog_link: existingPkg ? existingPkg.catalog_link : (row.catalog_link || null),
     itinerary_link: existingPkg ? existingPkg.itinerary_link : (row.itinerary_link || null),
     
-    // Explicitly add fields that PackageForm sends
     is_sold_out: false,
     waitlist_count: 0,
     gallery_images: [],
     excluded_items: "",
     equipment_list: "Perlengkapan Lengkap",
 
+    // Default transports for all tiers (matches PackageForm defaults)
+    hemat_transport: "Bus Eksklusif",
+    best_seller_transport: "Bus Eksklusif",
+    five_star_transport: "Kereta Cepat",
+    pelataran_transport: "Bus Eksklusif",
+
+    // Prices
     package_price: row.tier === "nyaman" ? priceJson : { quad: 0, triple: 0, double: 0 },
-    [priceField(row.tier)]: priceJson,
-    [transportField(row.tier)]: defaultTransport(row.tier),
-    ...hotelFields(hotelPrefix(row.tier), makkahHotel, madinahHotel),
+    hemat_package_price: row.tier === "hemat" ? priceJson : { quad: 0, triple: 0, double: 0 },
+    five_star_package_price: row.tier === "five-star" ? priceJson : { quad: 0, triple: 0, double: 0 },
+    pelataran_package_price: row.tier === "pelataran-hemat" ? priceJson : { quad: 0, triple: 0, double: 0 },
+
+    // Hotels
+    makkah_hotel_name: row.tier === "nyaman" ? (makkahHotel?.name || row.hotel_makkah || null) : null,
+    makkah_hotel_star: row.tier === "nyaman" ? (makkahHotel?.star_rating || null) : null,
+    makkah_distance: row.tier === "nyaman" ? (makkahHotel?.distance || null) : null,
+    makkah_duration_walk: row.tier === "nyaman" ? (makkahHotel?.walking_duration || null) : null,
+    
+    madinah_hotel_name: row.tier === "nyaman" ? (madinahHotel?.name || row.hotel_madinah || null) : null,
+    madinah_hotel_star: row.tier === "nyaman" ? (madinahHotel?.star_rating || null) : null,
+    madinah_distance: row.tier === "nyaman" ? (madinahHotel?.distance || null) : null,
+    madinah_duration_walk: row.tier === "nyaman" ? (madinahHotel?.walking_duration || null) : null,
+
+    hemat_makkah_hotel_name: row.tier === "hemat" ? (makkahHotel?.name || row.hotel_makkah || null) : null,
+    hemat_makkah_hotel_star: row.tier === "hemat" ? (makkahHotel?.star_rating || null) : null,
+    hemat_makkah_distance: row.tier === "hemat" ? (makkahHotel?.distance || null) : null,
+    hemat_makkah_duration_walk: row.tier === "hemat" ? (makkahHotel?.walking_duration || null) : null,
+
+    hemat_madinah_hotel_name: row.tier === "hemat" ? (madinahHotel?.name || row.hotel_madinah || null) : null,
+    hemat_madinah_hotel_star: row.tier === "hemat" ? (madinahHotel?.star_rating || null) : null,
+    hemat_madinah_distance: row.tier === "hemat" ? (madinahHotel?.distance || null) : null,
+    hemat_madinah_duration_walk: row.tier === "hemat" ? (madinahHotel?.walking_duration || null) : null,
+
+    five_star_makkah_hotel_name: row.tier === "five-star" ? (makkahHotel?.name || row.hotel_makkah || null) : null,
+    five_star_makkah_hotel_star: row.tier === "five-star" ? (makkahHotel?.star_rating || null) : null,
+    five_star_makkah_distance: row.tier === "five-star" ? (makkahHotel?.distance || null) : null,
+    five_star_makkah_duration_walk: row.tier === "five-star" ? (makkahHotel?.walking_duration || null) : null,
+
+    five_star_madinah_hotel_name: row.tier === "five-star" ? (madinahHotel?.name || row.hotel_madinah || null) : null,
+    five_star_madinah_hotel_star: row.tier === "five-star" ? (madinahHotel?.star_rating || null) : null,
+    five_star_madinah_distance: row.tier === "five-star" ? (madinahHotel?.distance || null) : null,
+    five_star_madinah_duration_walk: row.tier === "five-star" ? (madinahHotel?.walking_duration || null) : null,
+
+    pelataran_makkah_hotel_name: row.tier === "pelataran-hemat" ? (makkahHotel?.name || row.hotel_makkah || null) : null,
+    pelataran_makkah_hotel_star: row.tier === "pelataran-hemat" ? (makkahHotel?.star_rating || null) : null,
+    pelataran_makkah_distance: row.tier === "pelataran-hemat" ? (makkahHotel?.distance || null) : null,
+    pelataran_makkah_duration_walk: row.tier === "pelataran-hemat" ? (makkahHotel?.walking_duration || null) : null,
+
+    pelataran_madinah_hotel_name: row.tier === "pelataran-hemat" ? (madinahHotel?.name || row.hotel_madinah || null) : null,
+    pelataran_madinah_hotel_star: row.tier === "pelataran-hemat" ? (madinahHotel?.star_rating || null) : null,
+    pelataran_madinah_distance: row.tier === "pelataran-hemat" ? (madinahHotel?.distance || null) : null,
+    pelataran_madinah_duration_walk: row.tier === "pelataran-hemat" ? (madinahHotel?.walking_duration || null) : null,
   };
 
   return payload;
