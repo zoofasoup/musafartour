@@ -22,7 +22,16 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, X, RefreshCw } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn, formatNumber } from "@/lib/utils";
+
+export interface HotelRecord {
+  name: string;
+  star_rating: number;
+  distance: string;
+  walking_duration: string;
+  location: string;
+}
 
 interface ParsedPackage {
   rowIndex: number;
@@ -55,6 +64,12 @@ interface ParsedPackage {
   itinerary_link: string;
   slug: string;
   errors: string[];
+  matched_flight?: boolean;
+  matched_airport?: boolean;
+  matched_route?: boolean;
+  hotel_makkah_record?: HotelRecord;
+  hotel_madinah_record?: HotelRecord;
+  hotel_extra_record?: HotelRecord;
 }
 
 function fuzzyMatchTier(input: string): string {
@@ -258,7 +273,8 @@ function validateRow(row: ParsedPackage): string[] {
 
 function parseExcelData(
   worksheet: XLSX.WorkSheet,
-  referenceData?: { flights: string[]; airports: string[]; routes: string[] }
+  referenceData?: { flights: string[]; airports: string[]; routes: string[] },
+  hotels?: HotelRecord[]
 ): ParsedPackage[] {
   const rawData = XLSX.utils.sheet_to_json<unknown[]>(worksheet, { header: 1, defval: "" });
   if (rawData.length < 2) return [];
@@ -307,13 +323,25 @@ function parseExcelData(
       
       const rawFlight = String(getVal(row, colMap.flight) || "").trim();
       const flight = referenceData ? findClosestString(rawFlight, referenceData.flights) : rawFlight;
+      const matched_flight = referenceData ? referenceData.flights.includes(flight) && flight !== "" : false;
       
       const rawFlightType = String(getVal(row, colMap.flight_type) || "").trim();
+      
       const rawStartAirport = String(getVal(row, colMap.start_airport) || "").trim();
       const start_airport = referenceData ? findClosestString(rawStartAirport, referenceData.airports) : rawStartAirport;
+      const matched_airport = referenceData ? referenceData.airports.includes(start_airport) && start_airport !== "" : false;
       
       const rawRoute = String(getVal(row, colMap.route) || "").trim();
       const route = referenceData ? findClosestString(rawRoute, referenceData.routes) : rawRoute;
+      const matched_route = referenceData ? referenceData.routes.includes(route) && route !== "" : false;
+
+      const rawHotelMakkah = String(getVal(row, colMap.hotel_makkah) || "").trim();
+      const rawHotelMadinah = String(getVal(row, colMap.hotel_madinah) || "").trim();
+      const rawHotelExtra = String(getVal(row, colMap.hotel_extra) || "").trim();
+
+      const hotel_makkah_record = hotels ? findHotel(hotels, rawHotelMakkah, "makkah") : undefined;
+      const hotel_madinah_record = hotels ? findHotel(hotels, rawHotelMadinah, "madinah") : undefined;
+      const hotel_extra_record = hotels ? findHotel(hotels, rawHotelExtra, "") : undefined;
 
       const parsed: ParsedPackage = {
         rowIndex: idx + 1,
@@ -332,21 +360,26 @@ function parseExcelData(
         nights_makkah: parseInt(String(getVal(row, colMap.nights_makkah) || "0"), 10) || 0,
         nights_madinah: parseInt(String(getVal(row, colMap.nights_madinah) || "0"), 10) || 0,
         nights_extra: parseInt(String(getVal(row, colMap.nights_extra) || "0"), 10) || 0,
-        hotel_makkah: String(getVal(row, colMap.hotel_makkah) || "").trim(),
-        hotel_madinah: String(getVal(row, colMap.hotel_madinah) || "").trim(),
-        hotel_extra: String(getVal(row, colMap.hotel_extra) || "").trim(),
+        hotel_makkah: rawHotelMakkah,
+        hotel_madinah: rawHotelMadinah,
+        hotel_extra: rawHotelExtra,
         facilities: String(getVal(row, colMap.facilities) || "").trim(),
         selling_points: String(getVal(row, colMap.selling_points) || "").trim(),
-        price_quad: parsePrice(getVal(row, colMap.price_quad)),
-        price_triple: parsePrice(getVal(row, colMap.price_triple)),
-        price_double: parsePrice(getVal(row, colMap.price_double)),
-        max_discount: parsePrice(getVal(row, colMap.max_discount)),
-        slots_remaining: parseInt(String(getVal(row, colMap.slots_remaining) || "0"), 10) || 0,
+        price_quad: parseInt(String(getVal(row, colMap.price_quad) || "0").replace(/\D/g, ""), 10) || 0,
+        price_triple: parseInt(String(getVal(row, colMap.price_triple) || "0").replace(/\D/g, ""), 10) || 0,
+        price_double: parseInt(String(getVal(row, colMap.price_double) || "0").replace(/\D/g, ""), 10) || 0,
+        max_discount: parseInt(String(getVal(row, colMap.max_discount) || "0").replace(/\D/g, ""), 10) || 0,
         banner_image: String(getVal(row, colMap.banner_image) || "").trim(),
         catalog_link: String(getVal(row, colMap.catalog_link) || "").trim(),
         itinerary_link: String(getVal(row, colMap.itinerary_link) || "").trim(),
-        slug: slugify(packageName, departureDateStr),
+        slug: "",
         errors: [],
+        matched_flight,
+        matched_airport,
+        matched_route,
+        hotel_makkah_record,
+        hotel_madinah_record,
+        hotel_extra_record,
       };
 
       parsed.errors = validateRow(parsed);
@@ -354,36 +387,23 @@ function parseExcelData(
     });
 }
 
-interface HotelRecord {
-  name: string;
-  star_rating: number;
-  distance: string;
-  walking_duration: string;
-  location: string;
-}
-
 function findHotel(hotels: HotelRecord[], name: string, location: string): HotelRecord | undefined {
   if (!name) return undefined;
   const n = normalizeStr(name);
-  // Exact name + location
-  const exact = hotels.find(
-    (h) => normalizeStr(h.name) === n && h.location === location
-  );
-  if (exact) return exact;
-  // Fuzzy: contains match with location
-  const fuzzyLoc = hotels.find(
-    (h) => h.location === location && (normalizeStr(h.name).includes(n) || n.includes(normalizeStr(h.name)))
-  );
-  if (fuzzyLoc) return fuzzyLoc;
-  // Fuzzy: any location
+  if (location) {
+    const fuzzyLoc = hotels.find(
+      (h) => h.location === location && (normalizeStr(h.name).includes(n) || n.includes(normalizeStr(h.name)))
+    );
+    if (fuzzyLoc) return fuzzyLoc;
+  }
   return hotels.find(
     (h) => normalizeStr(h.name).includes(n) || n.includes(normalizeStr(h.name))
   );
 }
 
 function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[]) {
-  const makkahHotel = findHotel(hotels, row.hotel_makkah, "makkah");
-  const madinahHotel = findHotel(hotels, row.hotel_madinah, "madinah");
+  const makkahHotel = row.hotel_makkah_record;
+  const madinahHotel = row.hotel_madinah_record;
 
   const priceJson = { quad: row.price_quad, triple: row.price_triple, double: row.price_double };
 
@@ -441,7 +461,7 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[]) {
 
   const payload: Record<string, unknown> = {
     package_name: row.package_name,
-    slug: row.slug,
+    slug: slugify(row.package_name, row.departure_date),
     departure_date: row.departure_date || new Date().toISOString().split('T')[0],
     duration_days: row.duration_days,
     flight: row.flight,
@@ -521,20 +541,20 @@ export interface BulkPackageUploadProps {
 const GOOGLE_SHEET_ID = "11R3Dv7YNJEYj0NLCY-xm4OH2PuZ_T85jsbizPJNQsn0";
 const SHEET_NAME = "ALL PACKAGES_FIX";
 
-
 export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackageUploadProps) => {
   const [parsedData, setParsedData] = useState<ParsedPackage[]>([]);
   const [step, setStep] = useState<"upload" | "preview" | "importing">("upload");
   const [importProgress, setImportProgress] = useState({ done: 0, total: 0, errors: 0 });
   const [fileName, setFileName] = useState("");
   const [isFetchingSheet, setIsFetchingSheet] = useState(false);
+  const [hotels, setHotels] = useState<HotelRecord[]>([]);
+  const [selectedRowIndices, setSelectedRowIndices] = useState<Set<number>>(new Set());
   const [referenceData, setReferenceData] = useState<{ flights: string[]; airports: string[]; routes: string[] }>({
     flights: [],
     airports: [],
     routes: [],
   });
 
-  // Fetch unique existing values when modal opens
   useEffect(() => {
     if (open) {
       const fetchRef = async () => {
@@ -554,6 +574,8 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
             routes: Array.from(routes).filter(Boolean),
           });
         }
+        const { data: hotelsData } = await supabase.from("hotels").select("name, star_rating, distance, walking_duration, location");
+        if (hotelsData) setHotels(hotelsData as HotelRecord[]);
       };
       fetchRef();
     }
@@ -561,6 +583,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
 
   const resetState = useCallback(() => {
     setParsedData([]);
+    setSelectedRowIndices(new Set());
     setStep("upload");
     setImportProgress({ done: 0, total: 0, errors: 0 });
     setFileName("");
@@ -588,7 +611,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
         const data = new Uint8Array(evt.target?.result as ArrayBuffer);
         const wb = XLSX.read(data, { type: "array", cellDates: true });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const parsed = parseExcelData(ws, referenceData);
+        const parsed = parseExcelData(ws, referenceData, hotels);
         
         if (parsed.length === 0) {
           toast.error("File kosong atau format tidak sesuai");
@@ -596,6 +619,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
         }
 
         setParsedData(parsed);
+        setSelectedRowIndices(new Set(parsed.filter(r => r.errors.length === 0).map(r => r.rowIndex)));
         setStep("preview");
         toast.success(`${parsed.length} baris berhasil diparsing`);
       } catch (err) {
@@ -615,9 +639,8 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
       const csvText = await response.text();
       const wb = XLSX.read(csvText, { type: "string", cellDates: true });
       
-      // Since it's a direct CSV export of that sheet, there is only one sheet named "Sheet1"
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const parsed = parseExcelData(ws, referenceData);
+      const parsed = parseExcelData(ws, referenceData, hotels);
       
       if (parsed.length === 0) {
         toast.error("File kosong atau format tidak sesuai");
@@ -627,6 +650,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
 
       setFileName("Google Sheets (Sync)");
       setParsedData(parsed);
+      setSelectedRowIndices(new Set(parsed.filter(r => r.errors.length === 0).map(r => r.rowIndex)));
       setStep("preview");
       toast.success(`${parsed.length} baris berhasil diparsing dari Google Sheets`);
     } catch (err) {
@@ -637,17 +661,14 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
   };
 
   const handleImport = async () => {
-    const validRows = parsedData.filter((r) => r.errors.length === 0);
+    const validRows = parsedData.filter((row) => row.errors.length === 0 && selectedRowIndices.has(row.rowIndex));
     if (validRows.length === 0) {
-      toast.error("Tidak ada data valid untuk diimport");
+      toast.error("Tidak ada data valid yang dipilih untuk diimport");
       return;
     }
 
     setStep("importing");
     setImportProgress({ done: 0, total: validRows.length, errors: 0 });
-
-    const { data: hotelsData } = await supabase.from("hotels").select("name, star_rating, distance, walking_duration, location");
-    const hotels: HotelRecord[] = hotelsData || [];
 
     let successCount = 0;
     let errorCount = 0;
@@ -777,6 +798,18 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10 text-center">
+                      <Checkbox 
+                        checked={selectedRowIndices.size === parsedData.filter(r => r.errors.length === 0).length && parsedData.length > 0}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedRowIndices(new Set(parsedData.filter(r => r.errors.length === 0).map(r => r.rowIndex)));
+                          } else {
+                            setSelectedRowIndices(new Set());
+                          }
+                        }}
+                      />
+                    </TableHead>
                     <TableHead className="w-10">#</TableHead>
                     <TableHead>Judul Paket</TableHead>
                     <TableHead>Tanggal</TableHead>
@@ -812,6 +845,18 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
                     const hasError = row.errors.length > 0;
                     return (
                       <TableRow key={row.rowIndex} className={hasError ? "bg-destructive/5" : ""}>
+                        <TableCell className="text-center">
+                          <Checkbox 
+                            disabled={hasError}
+                            checked={selectedRowIndices.has(row.rowIndex)}
+                            onCheckedChange={(checked) => {
+                              const newSet = new Set(selectedRowIndices);
+                              if (checked) newSet.add(row.rowIndex);
+                              else newSet.delete(row.rowIndex);
+                              setSelectedRowIndices(newSet);
+                            }}
+                          />
+                        </TableCell>
                         <TableCell className="text-muted-foreground">{row.rowIndex}</TableCell>
                         <TableCell className={cn("font-medium", !row.package_name && "text-destructive")}>
                           <div className="min-w-[150px]">{row.package_name || "—"}</div>
@@ -820,8 +865,12 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
                           {row.departure_date || "—"}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">{row.timeframe || "—"}</TableCell>
-                        <TableCell>{row.start_airport || "—"}</TableCell>
-                        <TableCell className="whitespace-nowrap">{row.flight || "—"}</TableCell>
+                        <TableCell>
+                          {row.start_airport || "—"} {row.matched_airport && <CheckCircle2 className="inline h-3 w-3 text-green-500 ml-1" />}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {row.flight || "—"} {row.matched_flight && <CheckCircle2 className="inline h-3 w-3 text-green-500 ml-1" />}
+                        </TableCell>
                         <TableCell>{row.duration_days || "—"}</TableCell>
                         <TableCell>
                           {row.tier ? (
@@ -833,14 +882,28 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
                           )}
                         </TableCell>
                         <TableCell>{row.flight_type || "—"}</TableCell>
-                        <TableCell>{row.route || "—"}</TableCell>
+                        <TableCell>
+                          {row.route || "—"} {row.matched_route && <CheckCircle2 className="inline h-3 w-3 text-green-500 ml-1" />}
+                        </TableCell>
                         <TableCell><div className="max-w-[150px] truncate" title={row.itinerary}>{row.itinerary || "—"}</div></TableCell>
                         <TableCell className="text-center">{row.nights_makkah || "—"}</TableCell>
                         <TableCell className="text-center">{row.nights_madinah || "—"}</TableCell>
                         <TableCell className="text-center">{row.nights_extra || "—"}</TableCell>
-                        <TableCell><div className="min-w-[120px]">{row.hotel_makkah || "—"}</div></TableCell>
-                        <TableCell><div className="min-w-[120px]">{row.hotel_madinah || "—"}</div></TableCell>
-                        <TableCell><div className="min-w-[120px]">{row.hotel_extra || "—"}</div></TableCell>
+                        <TableCell>
+                          <div className="min-w-[120px]">
+                            {row.hotel_makkah_record ? `${row.hotel_makkah_record.name} ⭐${row.hotel_makkah_record.star_rating}` : row.hotel_makkah || "—"}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="min-w-[120px]">
+                            {row.hotel_madinah_record ? `${row.hotel_madinah_record.name} ⭐${row.hotel_madinah_record.star_rating}` : row.hotel_madinah || "—"}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="min-w-[120px]">
+                            {row.hotel_extra_record ? `${row.hotel_extra_record.name} ⭐${row.hotel_extra_record.star_rating}` : row.hotel_extra || "—"}
+                          </div>
+                        </TableCell>
                         <TableCell className={cn("text-right tabular-nums whitespace-nowrap", !row.price_quad && "text-destructive")}>
                           {row.price_quad ? `Rp ${formatNumber(row.price_quad)}` : "—"}
                         </TableCell>
@@ -885,9 +948,9 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
 
             <DialogFooter className="gap-2">
               <Button variant="outline" onClick={handleClose}>Batal</Button>
-              <Button onClick={handleImport} disabled={validCount === 0}>
+              <Button onClick={handleImport} disabled={selectedRowIndices.size === 0}>
                 <Upload className="mr-2 h-4 w-4" />
-                Import {validCount} Paket
+                Import {selectedRowIndices.size} Paket
               </Button>
             </DialogFooter>
           </>
