@@ -742,6 +742,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
             <div className="flex-1 overflow-auto max-h-[50vh] border rounded-md">
               <Table>
                 <TableHeader>
+                  <TableRow>
                     <TableHead className="w-10">#</TableHead>
                     <TableHead>Judul Paket</TableHead>
                     <TableHead>Tanggal</TableHead>
