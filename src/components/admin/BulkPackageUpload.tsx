@@ -933,9 +933,11 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
                         </TableCell>
                         <TableCell>
                           {hasError ? (
-                            <span className="text-destructive text-xs font-medium" title={row.errors.join(", ")}>
-                              Error
-                            </span>
+                            <div className="text-destructive text-xs font-medium flex flex-col gap-0.5 whitespace-nowrap">
+                              {row.errors.map((err, i) => (
+                                <span key={i}>• {err}</span>
+                              ))}
+                            </div>
                           ) : (
                             <span className="text-green-600 dark:text-green-400 text-xs font-medium">Valid</span>
                           )}
