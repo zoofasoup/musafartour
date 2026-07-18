@@ -332,7 +332,7 @@ function parseExcelData(
       const departureDateStr = parseDate(getVal(row, colMap.departure_date));
       const packageName = String(getVal(row, colMap.package_name) || "").trim();
       const slug = slugify(packageName, departureDateStr);
-      const isUpdate = existingPackages ? !!existingPackages[slug] : false;
+      const isUpdate = existingPackages ? !!existingPackages[departureDateStr] : false;
       
       const rawFlight = String(getVal(row, colMap.flight) || "").trim();
       const flight = referenceData ? findClosestString(rawFlight, referenceData.flights) : rawFlight;
@@ -418,7 +418,7 @@ function findHotel(hotels: HotelRecord[], name: string, location: string): Hotel
 function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingPackages: Record<string, ExistingPackage>) {
   const makkahHotel = row.hotel_makkah_record;
   const madinahHotel = row.hotel_madinah_record;
-  const existingPkg = existingPackages[row.slug];
+  const existingPkg = existingPackages[row.departure_date];
 
   const priceJson = { quad: row.price_quad, triple: row.price_triple, double: row.price_double };
 
@@ -637,15 +637,15 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
   useEffect(() => {
     if (open) {
       const fetchRef = async () => {
-        const { data } = await supabase.from("packages").select("id, flight, start_airport, route, slug, banner_image, catalog_link, itinerary_link");
+        const { data } = await supabase.from("packages").select("id, flight, start_airport, route, slug, departure_date, banner_image, catalog_link, itinerary_link");
         if (data) {
           const flights = new Set<string>();
           const airports = new Set<string>();
           const routes = new Set<string>();
           const exMap: Record<string, ExistingPackage> = {};
           data.forEach((p) => {
-            if (p.slug) {
-              exMap[p.slug] = {
+            if (p.departure_date) {
+              exMap[p.departure_date] = {
                 id: p.id,
                 slug: p.slug,
                 banner_image: p.banner_image,
@@ -773,7 +773,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
     for (const row of validRows) {
       try {
         const payload = buildUpsertPayload(row, hotels, existingPackages);
-        const existingPkg = existingPackages[row.slug];
+        const existingPkg = existingPackages[row.departure_date];
         let error;
 
         if (existingPkg) {
