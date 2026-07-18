@@ -50,6 +50,8 @@ const PaketUmroh = () => {
   };
 
   const filteredPackages = packages.filter((pkg) => {
+    if (pkg.is_sold_out) return false;
+
     const pkgMonth = getMonthFromDate(pkg.departure_date);
     const pkgTiers = (pkg as any).available_tiers || [];
 
