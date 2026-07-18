@@ -253,20 +253,20 @@ const Packages = () => {
   const getAirlineLogo = (flight: string) => {
     if (!flight) return null;
     const f = flight.toLowerCase();
-    if (f.includes("garuda")) return "https://logo.clearbit.com/garuda-indonesia.com";
-    if (f.includes("saudia")) return "https://logo.clearbit.com/saudia.com";
-    if (f.includes("qatar")) return "https://logo.clearbit.com/qatarairways.com";
-    if (f.includes("oman")) return "https://logo.clearbit.com/omanair.com";
-    if (f.includes("emirates")) return "https://logo.clearbit.com/emirates.com";
-    if (f.includes("etihad")) return "https://logo.clearbit.com/etihad.com";
-    if (f.includes("turkish")) return "https://logo.clearbit.com/turkishairlines.com";
-    if (f.includes("lion")) return "https://logo.clearbit.com/lionair.co.id";
-    if (f.includes("batik")) return "https://logo.clearbit.com/batikair.com";
-    if (f.includes("citilink")) return "https://logo.clearbit.com/citilink.co.id";
-    if (f.includes("airasia")) return "https://logo.clearbit.com/airasia.com";
-    if (f.includes("scoot")) return "https://logo.clearbit.com/flyscoot.com";
-    if (f.includes("malaysia")) return "https://logo.clearbit.com/malaysiaairlines.com";
-    if (f.includes("singapore")) return "https://logo.clearbit.com/singaporeair.com";
+    if (f.includes("garuda")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Garuda_Indonesia_logo.svg/1024px-Garuda_Indonesia_logo.svg.png";
+    if (f.includes("saudia")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Saudia_Logo.svg/1024px-Saudia_Logo.svg.png";
+    if (f.includes("qatar")) return "https://upload.wikimedia.org/wikipedia/en/thumb/9/9b/Qatar_Airways_Logo.svg/1024px-Qatar_Airways_Logo.svg.png";
+    if (f.includes("oman")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Oman_Air_logo.svg/1024px-Oman_Air_logo.svg.png";
+    if (f.includes("emirates")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Emirates_logo.svg/1024px-Emirates_logo.svg.png";
+    if (f.includes("etihad")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Etihad_Airways_Logo.svg/1024px-Etihad_Airways_Logo.svg.png";
+    if (f.includes("turkish")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Turkish_Airlines_logo_2019_compact.svg/1024px-Turkish_Airlines_logo_2019_compact.svg.png";
+    if (f.includes("lion")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Lion_Air_Logo.svg/1024px-Lion_Air_Logo.svg.png";
+    if (f.includes("batik")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Batik_Air_logo.svg/1024px-Batik_Air_logo.svg.png";
+    if (f.includes("citilink")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Citilink_logo.svg/1024px-Citilink_logo.svg.png";
+    if (f.includes("airasia")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/AirAsia_New_Logo.svg/1024px-AirAsia_New_Logo.svg.png";
+    if (f.includes("scoot")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/FlyScoot.svg/1024px-FlyScoot.svg.png";
+    if (f.includes("malaysia")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Malaysia_Airlines_Logo.svg/1024px-Malaysia_Airlines_Logo.svg.png";
+    if (f.includes("singapore")) return "https://upload.wikimedia.org/wikipedia/en/thumb/6/6b/Singapore_Airlines_Logo_2.svg/1024px-Singapore_Airlines_Logo_2.svg.png";
     return null;
   };
 
