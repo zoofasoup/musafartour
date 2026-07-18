@@ -125,44 +125,37 @@ function findColumnIndex(headers: string[], possibleNames: string[]): number {
   return -1;
 }
 
-// Known airline names for fuzzy matching
-const KNOWN_AIRLINES = [
-  "Garuda Indonesia",
-  "Saudia",
-  "Scoot Airlines",
-  "Oman Air",
-  "Qatar Airways",
-  "Emirates",
-  "Lion Air",
-];
-
-function fuzzyMatchAirline(input: string): string {
+function findClosestString(input: string, references: string[]): string {
   if (!input) return "";
   const n = normalizeStr(input);
-  // Exact match first
-  for (const airline of KNOWN_AIRLINES) {
-    if (normalizeStr(airline) === n) return airline;
+  if (!n) return input.trim();
+  
+  // Exact match
+  for (const ref of references) {
+    if (normalizeStr(ref) === n) return ref;
   }
-  // Partial match: input contained in airline or vice-versa
-  for (const airline of KNOWN_AIRLINES) {
-    const na = normalizeStr(airline);
-    if (na.includes(n) || n.includes(na)) return airline;
+  
+  // Substring match
+  for (const ref of references) {
+    const nr = normalizeStr(ref);
+    if (nr && (nr.includes(n) || n.includes(nr))) return ref;
   }
-  // Word-level match: any word in input matches a word in airline
+  
+  // Word-level match
   const inputWords = n.split(" ");
-  for (const airline of KNOWN_AIRLINES) {
-    const airlineWords = normalizeStr(airline).split(" ");
-    if (inputWords.some((w) => w.length >= 3 && airlineWords.some((aw) => aw.includes(w) || w.includes(aw)))) {
-      return airline;
+  for (const ref of references) {
+    const refWords = normalizeStr(ref).split(" ");
+    if (inputWords.some((w) => w.length >= 3 && refWords.some((rw) => rw.includes(w) || w.includes(rw)))) {
+      return ref;
     }
   }
-  // Return original if no match
+  
   return input.trim();
 }
 
 function fuzzyMatchFlightType(input: string): string {
   const n = normalizeStr(input);
-  if (n.includes("direct") || n === "d") return "direct";
+  if (n.includes("direct") || n === "d" || n.includes("langsung") || n.includes("tanpa transit")) return "direct";
   if (n.includes("transit") || n === "t") return "transit";
   return "direct";
 }
@@ -263,8 +256,10 @@ function validateRow(row: ParsedPackage): string[] {
   return errors;
 }
 
-function parseExcelData(worksheet: XLSX.WorkSheet): ParsedPackage[] {
-  // Use sheet_to_json with header:1 to get raw arrays for fuzzy header matching
+function parseExcelData(
+  worksheet: XLSX.WorkSheet,
+  referenceData?: { flights: string[]; airports: string[]; routes: string[] }
+): ParsedPackage[] {
   const rawData = XLSX.utils.sheet_to_json<unknown[]>(worksheet, { header: 1, defval: "" });
   if (rawData.length < 2) return [];
 
@@ -309,8 +304,16 @@ function parseExcelData(worksheet: XLSX.WorkSheet): ParsedPackage[] {
       const tier = fuzzyMatchTier(tierRaw);
       const departureDateStr = parseDate(getVal(row, colMap.departure_date));
       const packageName = String(getVal(row, colMap.package_name) || "").trim();
+      
       const rawFlight = String(getVal(row, colMap.flight) || "").trim();
+      const flight = referenceData ? findClosestString(rawFlight, referenceData.flights) : rawFlight;
+      
       const rawFlightType = String(getVal(row, colMap.flight_type) || "").trim();
+      const rawStartAirport = String(getVal(row, colMap.start_airport) || "").trim();
+      const start_airport = referenceData ? findClosestString(rawStartAirport, referenceData.airports) : rawStartAirport;
+      
+      const rawRoute = String(getVal(row, colMap.route) || "").trim();
+      const route = referenceData ? findClosestString(rawRoute, referenceData.routes) : rawRoute;
 
       const parsed: ParsedPackage = {
         rowIndex: idx + 1,
@@ -318,12 +321,13 @@ function parseExcelData(worksheet: XLSX.WorkSheet): ParsedPackage[] {
         duration_days: parseInt(String(getVal(row, colMap.duration_days) || "0"), 10) || 0,
         tier,
         slots_total: parseInt(String(getVal(row, colMap.slots_total) || "0"), 10) || 0,
+        slots_remaining: parseInt(String(getVal(row, colMap.slots_remaining) || "0"), 10) || 0,
         package_name: packageName,
         timeframe: String(getVal(row, colMap.timeframe) || "").trim(),
-        start_airport: String(getVal(row, colMap.start_airport) || "").trim(),
-        flight: fuzzyMatchAirline(rawFlight),
+        start_airport,
+        flight,
         flight_type: fuzzyMatchFlightType(rawFlightType),
-        route: String(getVal(row, colMap.route) || "").trim(),
+        route,
         itinerary: String(getVal(row, colMap.itinerary) || "").trim(),
         nights_makkah: parseInt(String(getVal(row, colMap.nights_makkah) || "0"), 10) || 0,
         nights_madinah: parseInt(String(getVal(row, colMap.nights_madinah) || "0"), 10) || 0,
@@ -524,6 +528,36 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
   const [importProgress, setImportProgress] = useState({ done: 0, total: 0, errors: 0 });
   const [fileName, setFileName] = useState("");
   const [isFetchingSheet, setIsFetchingSheet] = useState(false);
+  const [referenceData, setReferenceData] = useState<{ flights: string[]; airports: string[]; routes: string[] }>({
+    flights: [],
+    airports: [],
+    routes: [],
+  });
+
+  // Fetch unique existing values when modal opens
+  useEffect(() => {
+    if (open) {
+      const fetchRef = async () => {
+        const { data } = await supabase.from("packages").select("flight, start_airport, route");
+        if (data) {
+          const flights = new Set<string>();
+          const airports = new Set<string>();
+          const routes = new Set<string>();
+          data.forEach((p) => {
+            if (p.flight) flights.add(p.flight.trim());
+            if (p.start_airport) airports.add(p.start_airport.trim());
+            if (p.route) routes.add(p.route.trim());
+          });
+          setReferenceData({
+            flights: Array.from(flights).filter(Boolean),
+            airports: Array.from(airports).filter(Boolean),
+            routes: Array.from(routes).filter(Boolean),
+          });
+        }
+      };
+      fetchRef();
+    }
+  }, [open]);
 
   const resetState = useCallback(() => {
     setParsedData([]);
@@ -554,7 +588,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
         const data = new Uint8Array(evt.target?.result as ArrayBuffer);
         const wb = XLSX.read(data, { type: "array", cellDates: true });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const parsed = parseExcelData(ws);
+        const parsed = parseExcelData(ws, referenceData);
         
         if (parsed.length === 0) {
           toast.error("File kosong atau format tidak sesuai");
@@ -583,7 +617,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
       
       // Since it's a direct CSV export of that sheet, there is only one sheet named "Sheet1"
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const parsed = parseExcelData(ws);
+      const parsed = parseExcelData(ws, referenceData);
       
       if (parsed.length === 0) {
         toast.error("File kosong atau format tidak sesuai");
