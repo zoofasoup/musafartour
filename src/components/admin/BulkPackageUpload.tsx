@@ -112,12 +112,13 @@ const TEMPLATE_COLUMNS = [
 
 // ─── Fuzzy matching utilities ───────────────────────────────────────────
 function normalizeStr(s: string): string {
+  if (!s) return "";
   return s
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[_\s]+/g, " ")
-    .replace(/[^a-z0-9 ]/g, "")
+    .replace(/[^a-z0-9]/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
