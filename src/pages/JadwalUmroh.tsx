@@ -10,6 +10,7 @@ import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { usePublishedPackages } from "@/hooks/usePackages";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import { getTierPrice } from "@/lib/utils";
 
 const JadwalUmroh = () => {
   const [month, setMonth] = useState<string>("all");
@@ -30,7 +31,7 @@ const JadwalUmroh = () => {
   };
 
   const filteredPackages = packages.filter((pkg) => {
-    const pkgCategory = getCategoryFromPrice(pkg.package_price.quad);
+    const pkgCategory = getCategoryFromPrice(getTierPrice(pkg).quad);
     const pkgMonth = getMonthFromDate(pkg.departure_date);
     
     const categoryMatch = packageType === "all" || pkgCategory === packageType;

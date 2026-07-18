@@ -5,6 +5,7 @@ import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { useHomepageData } from "@/hooks/useHomepageData";
 import { PackageCard } from "@/components/PackageCard";
+import { getTierPrice } from "@/lib/utils";
 import {
   Heart,
   Shield,
@@ -326,7 +327,7 @@ const TentangKami = () => {
                     slug={pkg.slug}
                     image={pkg.banner_image || "/placeholder.svg"}
                     title={pkg.package_name}
-                    price={pkg.package_price?.quad ? `Rp ${pkg.package_price.quad.toLocaleString("id-ID")}` : "Harga tidak tersedia"}
+                    price={getTierPrice(pkg).quad ? `Rp ${getTierPrice(pkg).quad.toLocaleString("id-ID")}` : "Harga tidak tersedia"}
                     date={new Date(pkg.departure_date).toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
                     duration={`${pkg.duration_days} Hari`}
                     airline={pkg.flight || "Saudia Airlines"}

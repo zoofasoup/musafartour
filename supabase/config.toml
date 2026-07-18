@@ -18,6 +18,9 @@ verify_jwt = false
 [functions.sync-google-sheets]
 verify_jwt = false
 
+[functions.sync-seats]
+verify_jwt = false
+
 [functions.migrate-drive-images]
 verify_jwt = false
 

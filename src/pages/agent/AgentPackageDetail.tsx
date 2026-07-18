@@ -26,7 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getTierPrice } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import PackageShareModal from "@/components/agent/PackageShareModal";
 
@@ -52,6 +52,10 @@ interface Package {
   makkah_distance: string | null;
   makkah_duration_walk: string | null;
   package_price: PackagePrice;
+  hemat_package_price?: Partial<PackagePrice> | null;
+  five_star_package_price?: Partial<PackagePrice> | null;
+  pelataran_package_price?: Partial<PackagePrice> | null;
+  available_tiers?: string[] | null;
   banner_image: string | null;
   gallery_images: string[] | null;
   status: string;
@@ -123,7 +127,7 @@ const AgentPackageDetail = () => {
 
   const generateSalesScript = () => {
     if (!pkg) return "";
-    const lowestPrice = pkg.package_price.quad;
+    const lowestPrice = getTierPrice(pkg).quad;
     
     return `🕌 *${pkg.package_name}*
 
@@ -195,7 +199,8 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
   }
 
   const slotStatus = getSlotStatus(pkg);
-  const lowestPrice = pkg.package_price.quad;
+  const tierPrice = getTierPrice(pkg);
+  const lowestPrice = tierPrice.quad;
   const commission = calculateCommission(lowestPrice, pkg.commission_rate);
 
   const includedItems = pkg.included_items?.split("\n").filter(Boolean) || [];
@@ -325,15 +330,15 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
                 <div className="grid gap-3">
                   <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                     <span>Paket Quad (4 orang/kamar)</span>
-                    <span className="font-bold">{formatPrice(pkg.package_price.quad)}</span>
+                    <span className="font-bold">{formatPrice(tierPrice.quad)}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                     <span>Paket Triple (3 orang/kamar)</span>
-                    <span className="font-bold">{formatPrice(pkg.package_price.triple)}</span>
+                    <span className="font-bold">{formatPrice(tierPrice.triple)}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                     <span>Paket Double (2 orang/kamar)</span>
-                    <span className="font-bold">{formatPrice(pkg.package_price.double)}</span>
+                    <span className="font-bold">{formatPrice(tierPrice.double)}</span>
                   </div>
                 </div>
               </CardContent>

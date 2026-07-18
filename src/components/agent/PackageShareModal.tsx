@@ -12,7 +12,7 @@ import { Check, Copy, Facebook, Instagram, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getTierPrice } from "@/lib/utils";
 
 interface PackagePrice {
   quad: number;
@@ -32,6 +32,10 @@ interface Package {
   makkah_hotel_name: string | null;
   makkah_hotel_star: number | null;
   package_price: PackagePrice;
+  hemat_package_price?: Partial<PackagePrice> | null;
+  five_star_package_price?: Partial<PackagePrice> | null;
+  pelataran_package_price?: Partial<PackagePrice> | null;
+  available_tiers?: string[] | null;
   commission_rate: number | null;
 }
 
@@ -68,7 +72,7 @@ const PackageShareModal = ({
 
 ✈️ ${pkg.flight} (${pkg.flight_type})
 
-💰 Harga mulai: ${formatPrice(pkg.package_price.quad)}/pax
+💰 Harga mulai: ${formatPrice(getTierPrice(pkg).quad)}/pax
 
 🔗 Info lebih lanjut: ${shareUrl}`;
   };

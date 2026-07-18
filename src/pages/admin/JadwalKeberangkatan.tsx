@@ -10,7 +10,7 @@ import { Loader2, ChevronLeft, ChevronRight, Plane } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, getDay, addMonths, subMonths } from "date-fns";
 import { id } from "date-fns/locale";
-import { formatNumber } from "@/lib/utils";
+import { formatNumber, getTierPrice } from "@/lib/utils";
 
 interface Package {
   id: string;
@@ -20,6 +20,10 @@ interface Package {
   flight: string;
   status: string;
   package_price: any;
+  hemat_package_price?: any;
+  five_star_package_price?: any;
+  pelataran_package_price?: any;
+  available_tiers?: string[] | null;
   slug: string | null;
 }
 
@@ -50,7 +54,7 @@ const JadwalKeberangkatan = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from("packages")
-        .select("id, package_name, departure_date, duration_days, flight, status, package_price, slug")
+        .select("id, package_name, departure_date, duration_days, flight, status, package_price, hemat_package_price, five_star_package_price, pelataran_package_price, available_tiers, slug")
         .eq("status", "published")
         .order("departure_date", { ascending: true });
 
@@ -280,7 +284,7 @@ const JadwalKeberangkatan = () => {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-primary">
-                        Rp {formatNumber(pkg.package_price?.quad)}
+                        Rp {formatNumber(getTierPrice(pkg).quad)}
                       </p>
                       <p className="text-xs text-muted-foreground">per orang (Quad)</p>
                     </div>

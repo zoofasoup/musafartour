@@ -13,6 +13,7 @@ import { FAQSection } from "@/components/home/FAQSection";
 import { CTASection } from "@/components/home/CTASection";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getTierPrice } from "@/lib/utils";
 
 const Index = () => {
   const {
@@ -39,11 +40,11 @@ const Index = () => {
     },
   });
 
-  const minPrice = packages?.length 
-    ? Math.min(...packages.map(p => p.package_price.quad))
+  const minPrice = packages?.length
+    ? Math.min(...packages.map(p => getTierPrice(p).quad).filter((q) => q > 0))
     : 20000000;
-  const maxPrice = packages?.length 
-    ? Math.max(...packages.map(p => p.package_price.double)) // Double is usually highest
+  const maxPrice = packages?.length
+    ? Math.max(...packages.map(p => getTierPrice(p).double).filter((q) => q > 0)) // Double is usually highest
     : 60000000;
     
   const fmtShort = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;

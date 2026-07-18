@@ -48,6 +48,44 @@ export function formatPriceJuta(price: number | null | undefined): string {
     : `${millions.toFixed(1).replace('.', ',')} Juta`;
 }
 
+type TierPrice = { quad?: number; triple?: number; double?: number } | null | undefined | unknown;
+
+interface PackageWithTierPrices {
+  package_price?: TierPrice;
+  hemat_package_price?: TierPrice;
+  five_star_package_price?: TierPrice;
+  pelataran_package_price?: TierPrice;
+  available_tiers?: string[] | null;
+}
+
+/**
+ * Packages only carry a real price on their own tier's price column
+ * (package_price = nyaman, hemat_package_price = hemat, etc). The other
+ * columns are zeroed out. Resolve the price for a package's actual tier,
+ * falling back to any tier that has a price set.
+ */
+export function getTierPrice(pkg: PackageWithTierPrices): { quad: number; triple: number; double: number } {
+  const tier = pkg.available_tiers?.[0] || "nyaman";
+  const byTier = (t: string): TierPrice => {
+    switch (t) {
+      case "hemat": return pkg.hemat_package_price;
+      case "five-star": return pkg.five_star_package_price;
+      case "pelataran-hemat":
+      case "pelataran": return pkg.pelataran_package_price;
+      default: return pkg.package_price;
+    }
+  };
+  const candidates = [
+    byTier(tier),
+    pkg.package_price,
+    pkg.hemat_package_price,
+    pkg.five_star_package_price,
+    pkg.pelataran_package_price,
+  ] as { quad?: number; triple?: number; double?: number }[];
+  const found = candidates.find((p) => (p?.quad ?? 0) > 0);
+  return { quad: found?.quad || 0, triple: found?.triple || 0, double: found?.double || 0 };
+}
+
 /**
  * Get background and text color classes for price based on package classification (title)
  */

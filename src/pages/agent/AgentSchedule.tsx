@@ -24,7 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { cn, formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency, getTierPrice } from "@/lib/utils";
 import PackageShareModal from "@/components/agent/PackageShareModal";
 
 interface Package {
@@ -33,6 +33,10 @@ interface Package {
   departure_date: string;
   duration_days: number;
   package_price: { quad?: number; triple?: number; double?: number };
+  hemat_package_price?: { quad?: number; triple?: number; double?: number } | null;
+  five_star_package_price?: { quad?: number; triple?: number; double?: number } | null;
+  pelataran_package_price?: { quad?: number; triple?: number; double?: number } | null;
+  available_tiers?: string[] | null;
   commission_rate: number;
   slots_total: number;
   slots_filled: number;
@@ -128,7 +132,7 @@ const AgentSchedule = () => {
       
       // Budget filter
       if (budgetFilters.length > 0) {
-        const price = pkg.package_price?.quad || 0;
+        const price = getTierPrice(pkg).quad;
         const matchesBudget = budgetFilters.some(filter => {
           if (filter === '<25') return price < 25000000;
           if (filter === '25-35') return price >= 25000000 && price <= 35000000;
@@ -254,7 +258,7 @@ const AgentSchedule = () => {
   };
 
   const PackageCard = ({ pkg, compact = false }: { pkg: Package; compact?: boolean }) => {
-    const price = pkg.package_price?.quad || 0;
+    const price = getTierPrice(pkg).quad;
     const commission = price * ((pkg.commission_rate || 4.5) / 100);
     
     if (compact) {
@@ -474,6 +478,10 @@ const AgentSchedule = () => {
             makkah_hotel_name: null,
             makkah_hotel_star: sharePackage.makkah_hotel_star,
             package_price: sharePackage.package_price as { quad: number; double: number; triple: number },
+            hemat_package_price: sharePackage.hemat_package_price,
+            five_star_package_price: sharePackage.five_star_package_price,
+            pelataran_package_price: sharePackage.pelataran_package_price,
+            available_tiers: sharePackage.available_tiers,
             commission_rate: sharePackage.commission_rate,
           }}
           agentCode={agent?.referral_code || ''}

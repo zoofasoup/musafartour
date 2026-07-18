@@ -473,10 +473,8 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingP
   };
 
   const slots_total = row.slots_total || 0;
-  let slots_filled = 0;
-  if (row.slots_remaining > 0 && slots_total > 0) {
-    slots_filled = Math.max(0, slots_total - row.slots_remaining);
-  }
+  // Sisa Seat = 0 means fully booked (filled = total), not "no data".
+  const slots_filled = slots_total > 0 ? Math.max(0, slots_total - row.slots_remaining) : 0;
 
   const payload: Record<string, unknown> = {
     package_name: row.package_name,

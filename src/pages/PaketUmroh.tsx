@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Package, Calendar, Plane, Clock, X, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { formatPriceJuta } from "@/lib/utils";
+import { formatPriceJuta, getTierPrice } from "@/lib/utils";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { usePublishedPackages } from "@/hooks/usePackages";
 
@@ -79,7 +79,7 @@ const PaketUmroh = () => {
     slug: pkg.slug,
     image: pkg.banner_image || "/placeholder.svg",
     title: pkg.package_name,
-    price: formatPrice(pkg.package_price.quad),
+    price: formatPrice(getTierPrice(pkg).quad),
     date: format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId }),
     duration: `${pkg.duration_days} Hari`,
     airline: pkg.flight,
