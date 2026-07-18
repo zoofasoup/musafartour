@@ -135,16 +135,18 @@ function findColumnIndex(headers: string[], possibleNames: string[]): number {
   const nh = headers.map((h) => (h ? normalizeStr(String(h)) : ""));
   const nn = possibleNames.map(normalizeStr);
 
+  // Aliases are ordered most-specific first. Resolve exact/prefix/substring
+  // for each alias in turn before falling back to the next, less-specific
+  // alias — otherwise a later alias's exact match (e.g. bare "quad") can beat
+  // an earlier alias's substring match (e.g. "quad + 3.5" inside a header with
+  // extra merged-cell text like "PAKAI HARGA INI Quad + 3.5").
   for (const name of nn) {
-    const idx = nh.indexOf(name);
+    if (!name) continue;
+    let idx = nh.indexOf(name);
     if (idx !== -1) return idx;
-  }
-  for (const name of nn) {
-    const idx = nh.findIndex((h) => h.startsWith(name));
+    idx = nh.findIndex((h) => h.startsWith(name));
     if (idx !== -1) return idx;
-  }
-  for (const name of nn) {
-    const idx = nh.findIndex((h) => h.includes(name));
+    idx = nh.findIndex((h) => h.includes(name));
     if (idx !== -1) return idx;
   }
   return -1;
