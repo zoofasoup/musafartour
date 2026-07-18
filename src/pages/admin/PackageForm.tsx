@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Separator } from "@/components/ui/separator";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { ArrowLeft, X, Upload, Plus, CalendarIcon, Clipboard, Link as LinkIcon, FileUp, Check, ChevronsUpDown } from "lucide-react";
@@ -1178,9 +1178,9 @@ const PackageForm = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit, handleValidationError)} className="space-y-6 pb-8">
+      <form onSubmit={form.handleSubmit(onSubmit, handleValidationError)} className="space-y-6 pb-12 bg-slate-50/50 min-h-[calc(100vh-4rem)] -m-6 p-6 md:-m-8 md:p-8">
         {/* Sticky top action bar */}
-        <div className="sticky top-0 z-40 -mx-8 -mt-8 px-8 py-3 bg-background/95 backdrop-blur border-b shadow-sm mb-6">
+        <div className="sticky top-0 z-40 -mx-6 -mt-6 px-6 py-3 md:-mx-8 md:-mt-8 md:px-8 bg-white/95 backdrop-blur border-b shadow-sm mb-8">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" type="button" onClick={() => safeNavigate("/admin/packages")}>
@@ -1221,41 +1221,29 @@ const PackageForm = () => {
             <h1 className="text-3xl font-bold">{id ? "Edit Paket" : "Tambah Paket"}</h1>
           <p className="text-muted-foreground">Lengkapi informasi paket umroh</p>
         </div>
-          <Tabs defaultValue="umum" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
-              <TabsTrigger value="umum">Informasi Umum</TabsTrigger>
-              <TabsTrigger value="harga">Harga & Akomodasi</TabsTrigger>
-              <TabsTrigger value="media">Fasilitas & Media</TabsTrigger>
-            </TabsList>
+          <div className="space-y-12">
+            <BasicInfoTab form={form} />
             
-            <TabsContent value="umum">
-              <BasicInfoTab form={form} />
-            </TabsContent>
+            <PricingTab 
+              form={form} 
+              hasHemat={hasHemat} 
+              hasNyaman={hasNyaman} 
+              hasFiveStar={hasFiveStar} 
+              hasPelataranHemat={hasPelataranHemat} 
+              renderTierSection={renderTierSection} 
+            />
 
-            <TabsContent value="harga">
-              <PricingTab 
-                form={form} 
-                hasHemat={hasHemat} 
-                hasNyaman={hasNyaman} 
-                hasFiveStar={hasFiveStar} 
-                hasPelataranHemat={hasPelataranHemat} 
-                renderTierSection={renderTierSection} 
-              />
-            </TabsContent>
-
-            <TabsContent value="media">
-              <MediaContentTab 
-                form={form}
-                loading={loading}
-                bannerPreview={bannerPreview} handleBannerFiles={handleBannerFiles} removeBanner={removeBanner}
-                katalogPreview={katalogPreview} setKatalogFile={setKatalogFile} setKatalogPreview={setKatalogPreview}
-                itineraryPreview={itineraryPreview} setItineraryFile={setItineraryFile} setItineraryPreview={setItineraryPreview}
-                galleryPreviews={galleryPreviews} handleGalleryFiles={handleGalleryFiles} removeGalleryImage={removeGalleryImage}
-                dbStandardItems={dbStandardItems} dbOptionalItems={dbOptionalItems} dbExcludeItems={dbExcludeItems}
-                ImageDropZone={ImageDropZone} DocDropZone={DocDropZone} AddItemInput={AddItemInput}
-              />
-            </TabsContent>
-          </Tabs>
+            <MediaContentTab 
+              form={form}
+              loading={loading}
+              bannerPreview={bannerPreview} handleBannerFiles={handleBannerFiles} removeBanner={removeBanner}
+              katalogPreview={katalogPreview} setKatalogFile={setKatalogFile} setKatalogPreview={setKatalogPreview}
+              itineraryPreview={itineraryPreview} setItineraryFile={setItineraryFile} setItineraryPreview={setItineraryPreview}
+              galleryPreviews={galleryPreviews} handleGalleryFiles={handleGalleryFiles} removeGalleryImage={removeGalleryImage}
+              dbStandardItems={dbStandardItems} dbOptionalItems={dbOptionalItems} dbExcludeItems={dbExcludeItems}
+              ImageDropZone={ImageDropZone} DocDropZone={DocDropZone} AddItemInput={AddItemInput}
+            />
+          </div>
         <AddHotelModal
           open={hotelModalOpen}
           onOpenChange={setHotelModalOpen}

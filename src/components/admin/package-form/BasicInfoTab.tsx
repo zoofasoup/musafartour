@@ -14,7 +14,7 @@ export const BasicInfoTab = ({ form }: { form: any }) => {
   return (
     <div className="space-y-8 mt-6">
       {/* 1. Informasi Dasar */}
-      <Card data-form-section>
+      <Card data-form-section className="border-t-8 border-t-primary shadow-sm">
         <CardHeader>
           <CardTitle>Informasi Dasar</CardTitle>
           <CardDescription>Identitas utama paket umroh</CardDescription>
