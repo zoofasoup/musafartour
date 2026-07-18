@@ -1,7 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
-import { TrustElements } from "@/components/TrustElements";
 import { useHomepageData } from "@/hooks/useHomepageData";
 import { HeroSection } from "@/components/home/HeroSection";
 import { AirlinesCarousel } from "@/components/home/AirlinesCarousel";
@@ -98,8 +97,6 @@ const Index = () => {
       />
 
       <HeroSection heroData={heroData} websiteSettings={websiteSettings} isLoading={heroLoading} />
-
-      <TrustElements />
 
       <AirlinesCarousel />
       <JamaahCarousel />
