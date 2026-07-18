@@ -31,15 +31,15 @@ interface Package {
   duration_days: number;
   flight: string;
   package_price: any;
-  hemat_package_price: any;
-  five_star_package_price: any;
-  pelataran_package_price: any;
   status: string;
   is_sold_out: boolean;
   tiers_data?: any;
+  slots_total: number | null;
+  slots_filled: number | null;
+  available_tiers: string[] | null;
 }
 
-type SortField = 'package_name' | 'departure_date' | 'duration_days' | 'flight' | 'package_price' | 'status';
+type SortField = 'package_name' | 'departure_date' | 'slots_filled' | 'package_price' | 'status';
 type SortDirection = 'asc' | 'desc';
 
 /** Extract the best quad price from tier-specific or default price columns */
@@ -108,6 +108,11 @@ const Packages = () => {
       aValue = new Date(aValue).getTime();
       bValue = new Date(bValue).getTime();
     }
+    
+    if (sortField === 'slots_filled') {
+      aValue = Math.max(0, (a.slots_total || 45) - (a.slots_filled || 0));
+      bValue = Math.max(0, (b.slots_total || 45) - (b.slots_filled || 0));
+    }
 
     if (typeof aValue === 'string') {
       aValue = aValue.toLowerCase();
@@ -143,12 +148,12 @@ const Packages = () => {
     try {
       const { data, error } = await supabase
         .from("packages")
-        .select("id, slug, package_name, departure_date, duration_days, flight, package_price, status, is_sold_out, tiers_data");
+        .select("id, slug, package_name, departure_date, duration_days, flight, package_price, status, is_sold_out, tiers_data, slots_total, slots_filled, available_tiers");
 
       if (error) throw error;
       setPackages(data || []);
     } catch (error: any) {
-      toast.error("Gagal memuat data: " + error.message);
+      toast.error("Gagal memuat daftar paket");
     } finally {
       setLoading(false);
     }
@@ -160,111 +165,66 @@ const Packages = () => {
 
   const handleDelete = async () => {
     if (!deleteId) return;
-
     try {
-      const { error } = await supabase
-        .from("packages")
-        .delete()
-        .eq("id", deleteId);
-
+      const { error } = await supabase.from("packages").delete().eq("id", deleteId);
       if (error) throw error;
-
       toast.success("Paket berhasil dihapus");
+      fetchPackages();
+    } catch (error: any) {
+      toast.error("Gagal menghapus paket");
+    } finally {
       setDeleteId(null);
-      fetchPackages();
-    } catch (error: any) {
-      toast.error("Gagal menghapus paket: " + error.message);
     }
   };
 
-  const handleBulkAction = async (actionId: string, ids: string[]) => {
-    try {
-      switch (actionId) {
-        case "delete":
-          const { error: deleteError } = await supabase
-            .from("packages")
-            .delete()
-            .in("id", ids);
-          if (deleteError) throw deleteError;
-          toast.success(`${ids.length} paket berhasil dihapus`);
-          break;
-        case "publish":
-          const { error: publishError } = await supabase
-            .from("packages")
-            .update({ status: "published" })
-            .in("id", ids);
-          if (publishError) throw publishError;
-          toast.success(`${ids.length} paket berhasil dipublish`);
-          break;
-        case "unpublish":
-          const { error: unpublishError } = await supabase
-            .from("packages")
-            .update({ status: "draft" })
-            .in("id", ids);
-          if (unpublishError) throw unpublishError;
-          toast.success(`${ids.length} paket berhasil di-unpublish`);
-          break;
-        case "export":
-          exportToCSV(ids);
-          break;
-        case "markSoldOut":
-          const { error: soldOutError } = await supabase
-            .from("packages")
-            .update({ is_sold_out: true, sold_out_date: new Date().toISOString() })
-            .in("id", ids);
-          if (soldOutError) throw soldOutError;
-          toast.success(`${ids.length} paket ditandai sold out`);
-          break;
-        case "markAvailable":
-          const { error: availableError } = await supabase
-            .from("packages")
-            .update({ is_sold_out: false, sold_out_date: null })
-            .in("id", ids);
-          if (availableError) throw availableError;
-          toast.success(`${ids.length} paket ditandai tersedia`);
-          break;
-      }
-      clearSelection();
-      fetchPackages();
-    } catch (error: any) {
-      toast.error("Gagal: " + error.message);
-    }
+  const getTierColor = (tier: string) => {
+    const t = tier.toLowerCase();
+    if (t.includes('nyaman')) return 'bg-blue-100 text-blue-700 border-blue-200';
+    if (t.includes('hemat')) return 'bg-orange-100 text-orange-700 border-orange-200';
+    if (t.includes('star')) return 'bg-purple-100 text-purple-700 border-purple-200';
+    return 'bg-slate-100 text-slate-700 border-slate-200';
   };
 
-  const exportToCSV = (ids: string[]) => {
-    const selectedPackages = packages.filter((pkg) => ids.includes(pkg.id));
-    const headers = ["Nama Paket", "Tanggal Keberangkatan", "Durasi (Hari)", "Maskapai", "Harga Quad", "Status"];
-    const rows = selectedPackages.map((pkg) => [
-      pkg.package_name,
-      pkg.departure_date,
-      pkg.duration_days,
-      pkg.flight,
-      getDisplayPrice(pkg),
-      pkg.status,
-    ]);
-
-    const csvContent = [headers, ...rows].map((row) => row.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `paket-umroh-${new Date().toISOString().split("T")[0]}.csv`;
-    link.click();
-    toast.success(`${ids.length} paket berhasil di-export`);
+  const formatTierName = (tier: string) => {
+    if (tier === 'five-star') return 'Bintang 5';
+    if (tier === 'pelataran-hemat') return 'Pelataran';
+    return tier.charAt(0).toUpperCase() + tier.slice(1);
   };
 
   const bulkActions = [
-    commonBulkActions.publish,
-    commonBulkActions.unpublish,
-    commonBulkActions.markSoldOut,
-    commonBulkActions.markAvailable,
-    commonBulkActions.export,
-    commonBulkActions.delete,
+    { ...commonBulkActions.delete, handler: async (ids: string[]) => {
+      const { error } = await supabase.from("packages").delete().in("id", ids);
+      if (error) throw error;
+      fetchPackages();
+      handleExitSelectionMode();
+    }},
+    { ...commonBulkActions.publish, handler: async (ids: string[]) => {
+      const { error } = await supabase.from("packages").update({ status: 'published' }).in("id", ids);
+      if (error) throw error;
+      fetchPackages();
+      handleExitSelectionMode();
+    }},
+    { ...commonBulkActions.draft, handler: async (ids: string[]) => {
+      const { error } = await supabase.from("packages").update({ status: 'draft' }).in("id", ids);
+      if (error) throw error;
+      fetchPackages();
+      handleExitSelectionMode();
+    }}
   ];
+
+  const handleBulkAction = async (action: any) => {
+    try {
+      await action.handler(selectedIds);
+      toast.success(`Aksi ${action.label} berhasil dijalankan`);
+    } catch (err: any) {
+      toast.error(`Gagal: ${err.message}`);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex h-[400px] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
       </div>
     );
   }
@@ -273,27 +233,22 @@ const Packages = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Paket Umroh</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Paket Umroh</h1>
           <p className="text-muted-foreground">Kelola paket umroh Anda</p>
         </div>
-        <div className="flex items-center gap-2">
-          {selectionMode ? (
-            <Button variant="outline" onClick={handleExitSelectionMode}>
-              Batal
-            </Button>
-          ) : (
-            <Button variant="outline" onClick={() => setSelectionMode(true)}>
-              Pilih
-            </Button>
-          )}
+        <div className="flex items-center gap-3">
           <Button 
-            variant="outline"
-            onClick={() => setImportOpen(true)}
+            variant={selectionMode ? "secondary" : "outline"} 
+            onClick={() => selectionMode ? handleExitSelectionMode() : setSelectionMode(true)}
+            size="sm"
           >
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            {selectionMode ? "Batal Pilih" : "Pilih"}
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)} className="flex items-center gap-2">
+            <FileSpreadsheet className="h-4 w-4" />
             Upload / Sync Google Sheets
           </Button>
-          <Button onClick={() => navigate("/admin/packages/new")}>
+          <Button onClick={() => navigate("/admin/packages/add")} size="sm">
             <Plus className="mr-2 h-4 w-4" />
             Tambah Paket
           </Button>
@@ -316,127 +271,160 @@ const Packages = () => {
             />
           )}
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {selectionMode && <TableHead className="w-12"></TableHead>}
-                <TableHead className="w-[100px] whitespace-nowrap">
-                  <Button variant="ghost" onClick={() => handleSort('slots_filled')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'slots_filled' ? 'text-red-600' : ''}`}>
-                    Sisa Seat {getSortIcon('slots_filled')}
-                  </Button>
-                </TableHead>
-                <TableHead className="whitespace-nowrap">
-                  <Button variant="ghost" onClick={() => handleSort('package_name')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'package_name' ? 'text-red-600' : ''}`}>
-                    Nama Paket {getSortIcon('package_name')}
-                  </Button>
-                </TableHead>
-                <TableHead className="whitespace-nowrap">
-                  <Button variant="ghost" onClick={() => handleSort('departure_date')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'departure_date' ? 'text-red-600' : ''}`}>
-                    Tanggal Keberangkatan {getSortIcon('departure_date')}
-                  </Button>
-                </TableHead>
-                <TableHead className="whitespace-nowrap">
-                  <Button variant="ghost" onClick={() => handleSort('duration_days')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'duration_days' ? 'text-red-600' : ''}`}>
-                    Durasi {getSortIcon('duration_days')}
-                  </Button>
-                </TableHead>
-                <TableHead className="whitespace-nowrap">
-                  <Button variant="ghost" onClick={() => handleSort('flight')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'flight' ? 'text-red-600' : ''}`}>
-                    Maskapai {getSortIcon('flight')}
-                  </Button>
-                </TableHead>
-                <TableHead className="whitespace-nowrap">
-                  <Button variant="ghost" onClick={() => handleSort('package_price')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'package_price' ? 'text-red-600' : ''}`}>
-                    Harga (Quad) {getSortIcon('package_price')}
-                  </Button>
-                </TableHead>
-                <TableHead className="whitespace-nowrap">
-                  <Button variant="ghost" onClick={() => handleSort('status')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'status' ? 'text-red-600' : ''}`}>
-                    Status {getSortIcon('status')}
-                  </Button>
-                </TableHead>
-                <TableHead className="text-right whitespace-nowrap">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedPackages.length === 0 ? (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader className="bg-muted/50">
                 <TableRow>
-                  <TableCell colSpan={selectionMode ? 8 : 7} className="text-center text-muted-foreground">
-                    Belum ada paket umroh
-                  </TableCell>
+                  {selectionMode && <TableHead className="w-12"></TableHead>}
+                  <TableHead className="w-[300px]">
+                    <Button variant="ghost" onClick={() => handleSort('package_name')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'package_name' ? 'text-primary' : ''}`}>
+                      Paket & Maskapai {getSortIcon('package_name')}
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button variant="ghost" onClick={() => handleSort('departure_date')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'departure_date' ? 'text-primary' : ''}`}>
+                      Jadwal Keberangkatan {getSortIcon('departure_date')}
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button variant="ghost" onClick={() => handleSort('slots_filled')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'slots_filled' ? 'text-primary' : ''}`}>
+                      Ketersediaan Kursi {getSortIcon('slots_filled')}
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button variant="ghost" onClick={() => handleSort('package_price')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'package_price' ? 'text-primary' : ''}`}>
+                      Harga Mulai {getSortIcon('package_price')}
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button variant="ghost" onClick={() => handleSort('status')} className={`h-auto p-0 font-semibold hover:bg-transparent transition-colors ${sortField === 'status' ? 'text-primary' : ''}`}>
+                      Status {getSortIcon('status')}
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
-              ) : (
-                sortedPackages.map((pkg, index) => (
-                  <TableRow
-                    key={pkg.id}
-                    className={`${isSelected(pkg.id) ? "bg-primary/10" : ""} ${selectionMode ? "cursor-pointer select-none" : ""}`}
-                    onClick={(e) => handleRowClick(pkg, index, e)}
-                  >
-                    {selectionMode && (
-                      <TableCell>
-                        <Checkbox
-                          checked={isSelected(pkg.id)}
-                          onCheckedChange={() => {
-                            toggleSelect(pkg.id);
-                            lastSelectedIndex.current = index;
-                          }}
-                          aria-label={`Select ${pkg.package_name}`}
-                        />
-                      </TableCell>
-                    )}
-                    <TableCell className="font-bold text-center">
-                      {(() => {
-                        const sisa = Math.max(0, (pkg.slots_total || 45) - (pkg.slots_filled || 0));
-                        return <span className={sisa <= 5 ? "text-red-600" : "text-emerald-600"}>{sisa}</span>;
-                      })()}
-                    </TableCell>
-                    <TableCell className="font-medium min-w-[200px]">{pkg.package_name}</TableCell>
-                    <TableCell className="whitespace-nowrap">{format(new Date(pkg.departure_date), "dd MMM yyyy")}</TableCell>
-                    <TableCell className="whitespace-nowrap">{pkg.duration_days} hari</TableCell>
-                    <TableCell className="whitespace-nowrap">{pkg.flight}</TableCell>
-                    <TableCell className="whitespace-nowrap">Rp {formatNumber(getDisplayPrice(pkg))}</TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <Badge 
-                          variant={pkg.status === "published" ? "default" : "secondary"}
-                          className={pkg.status === "published" ? "bg-green-600 hover:bg-green-700 text-white" : ""}
-                        >
-                          {pkg.status === "published" ? "Published" : "Draft"}
-                        </Badge>
-                        {pkg.is_sold_out && (
-                          <Badge variant="destructive">Sold Out</Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate(`/admin/brochure/${pkg.slug}`)}
-                        title="Digital Brochure"
-                      >
-                        <Presentation className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate(`/admin/packages/${pkg.id}`)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDeleteId(pkg.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+              </TableHeader>
+              <TableBody>
+                {sortedPackages.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={selectionMode ? 7 : 6} className="text-center py-10 text-muted-foreground">
+                      Belum ada paket umroh
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  sortedPackages.map((pkg, index) => {
+                    const total = pkg.slots_total || 45;
+                    const filled = pkg.slots_filled || 0;
+                    const sisa = Math.max(0, total - filled);
+                    const availabilityPercent = Math.min(100, (filled / total) * 100);
+                    
+                    return (
+                      <TableRow
+                        key={pkg.id}
+                        className={`${isSelected(pkg.id) ? "bg-primary/5" : ""} ${selectionMode ? "cursor-pointer select-none" : ""}`}
+                        onClick={(e) => handleRowClick(pkg, index, e)}
+                      >
+                        {selectionMode && (
+                          <TableCell>
+                            <Checkbox
+                              checked={isSelected(pkg.id)}
+                              onCheckedChange={() => {
+                                toggleSelect(pkg.id);
+                                lastSelectedIndex.current = index;
+                              }}
+                              aria-label={`Select ${pkg.package_name}`}
+                            />
+                          </TableCell>
+                        )}
+                        <TableCell>
+                          <div className="flex flex-col gap-1.5">
+                            <span className="font-semibold">{pkg.package_name}</span>
+                            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                              <span className="text-muted-foreground flex items-center bg-slate-100 px-1.5 py-0.5 rounded border">
+                                ✈️ {pkg.flight}
+                              </span>
+                              {pkg.available_tiers && pkg.available_tiers.map(tier => (
+                                <span key={tier} className={`px-1.5 py-0.5 rounded border text-[10px] font-medium ${getTierColor(tier)}`}>
+                                  {formatTierName(tier)}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{format(new Date(pkg.departure_date), "dd MMM yyyy")}</span>
+                            <span className="text-xs text-muted-foreground">{pkg.duration_days} Hari Perjalanan</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1 w-[120px]">
+                            <div className="flex justify-between text-xs items-center">
+                              <span className={`font-semibold ${sisa <= 5 ? "text-destructive" : "text-emerald-600"}`}>
+                                Sisa {sisa}
+                              </span>
+                              <span className="text-muted-foreground">{filled}/{total}</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full rounded-full transition-all ${sisa <= 5 ? 'bg-destructive' : 'bg-emerald-500'}`}
+                                style={{ width: `${availabilityPercent}%` }}
+                              />
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium whitespace-nowrap">
+                          Rp {formatNumber(getDisplayPrice(pkg))}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col items-start gap-1">
+                            <Badge 
+                              variant={pkg.status === "published" ? "default" : "secondary"}
+                              className={pkg.status === "published" ? "bg-emerald-500 hover:bg-emerald-600 border-transparent" : ""}
+                            >
+                              {pkg.status === "published" ? "Published" : "Draft"}
+                            </Badge>
+                            {pkg.is_sold_out && (
+                              <Badge variant="destructive" className="text-[10px] px-1 py-0 h-4">Sold Out</Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-slate-500 hover:text-primary hover:bg-primary/10"
+                              onClick={() => navigate(`/admin/brochure/${pkg.slug}`)}
+                              title="Digital Brochure"
+                            >
+                              <Presentation className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-slate-500 hover:text-blue-600 hover:bg-blue-50"
+                              onClick={() => navigate(`/admin/packages/${pkg.id}`)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-slate-500 hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => setDeleteId(pkg.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
