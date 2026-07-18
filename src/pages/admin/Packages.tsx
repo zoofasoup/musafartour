@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
 import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
 import { BulkPackageUpload } from "@/components/admin/BulkPackageUpload";
 import { formatNumber } from "@/lib/utils";
+import { ExpandedPackageDetails } from "@/components/admin/ExpandedPackageDetails";
 
 interface Package {
   id: string;
@@ -66,12 +67,14 @@ const Packages = () => {
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [sortField, setSortField] = useState<SortField>('package_name');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [sortField, setSortField] = useState<SortField>('departure_date');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [selectionMode, setSelectionMode] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const lastSelectedIndex = useRef<number | null>(null);
+
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const { selectedIds, toggleSelect, selectAll, clearSelection, isSelected, allSelected, setSelectedIds } = useBulkSelection(packages);
 
@@ -79,6 +82,7 @@ const Packages = () => {
     setSelectionMode(false);
     clearSelection();
     lastSelectedIndex.current = null;
+    setExpandedId(null);
   };
 
   const handleSort = (field: SortField) => {
@@ -125,10 +129,14 @@ const Packages = () => {
   });
 
   const handleRowClick = useCallback((pkg: Package, index: number, event: React.MouseEvent) => {
-    if (!selectionMode) return;
     // Don't trigger on button/checkbox clicks
     const target = event.target as HTMLElement;
-    if (target.closest('button') || target.closest('[role="checkbox"]')) return;
+    if (target.closest('button') || target.closest('[role="checkbox"]') || target.closest('a')) return;
+
+    if (!selectionMode) {
+      setExpandedId(prev => prev === pkg.id ? null : pkg.id);
+      return;
+    }
 
     if (event.shiftKey && lastSelectedIndex.current !== null) {
       const start = Math.min(lastSelectedIndex.current, index);
@@ -148,7 +156,7 @@ const Packages = () => {
     try {
       const { data, error } = await supabase
         .from("packages")
-        .select("id, slug, package_name, departure_date, duration_days, flight, package_price, status, is_sold_out, tiers_data, slots_total, slots_filled, available_tiers");
+        .select("*");
 
       if (error) throw error;
       setPackages(data || []);
@@ -419,11 +427,21 @@ const Packages = () => {
                           </div>
                         </TableCell>
                       </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
+                      {expandedId === pkg.id && (
+                        <TableRow className="hover:bg-transparent bg-slate-50/50">
+                          <TableCell colSpan={selectionMode ? 7 : 6} className="p-0 border-b">
+                            <div className="p-6 shadow-inner border-y animate-in fade-in slide-in-from-top-2 duration-200">
+                              <ExpandedPackageDetails pkg={pkg} />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
           </div>
         </CardContent>
       </Card>
