@@ -49,9 +49,10 @@ const PaketUmroh = () => {
     return format(new Date(date), "MMMM yyyy", { locale: localeId }).toLowerCase();
   };
 
-  const filteredPackages = packages.filter((pkg) => {
-    if (pkg.is_sold_out) return false;
+  const isEffectivelySoldOut = (pkg: (typeof packages)[number]) =>
+    pkg.is_sold_out || (!!pkg.slots_total && (pkg.slots_filled || 0) >= pkg.slots_total);
 
+  const filteredPackages = packages.filter((pkg) => {
     const pkgMonth = getMonthFromDate(pkg.departure_date);
     const pkgTiers = (pkg as any).available_tiers || [];
 
@@ -64,6 +65,12 @@ const PaketUmroh = () => {
     return categoryMatch && airlineMatch && monthMatch && flightTypeMatch && durationMatch;
   });
 
+  // Available packages first (soonest departure first, already the base query order),
+  // sold-out packages pushed to the end. Stable sort preserves date order within each group.
+  const sortedPackages = [...filteredPackages].sort(
+    (a, b) => Number(isEffectivelySoldOut(a)) - Number(isEffectivelySoldOut(b))
+  );
+
   const isFiltered = category !== "all" || airline !== "all" || month !== "all" || flightType !== "all" || duration !== "all";
 
   const resetFilters = () => {
@@ -74,7 +81,7 @@ const PaketUmroh = () => {
     setDuration("all");
   };
 
-  const transformedPackages = filteredPackages.map((pkg) => ({
+  const transformedPackages = sortedPackages.map((pkg) => ({
     id: pkg.id,
     slug: pkg.slug,
     image: pkg.banner_image || "/placeholder.svg",
@@ -89,8 +96,8 @@ const PaketUmroh = () => {
     hotelMadinah: pkg.madinah_hotel_name || undefined,
     hotelMadinahRating: pkg.madinah_hotel_star || undefined,
     category: (pkg as any).available_tiers?.[0] || "nyaman",
-    seatAvailable: !pkg.is_sold_out,
-    isSoldOut: pkg.is_sold_out || false,
+    seatAvailable: !isEffectivelySoldOut(pkg),
+    isSoldOut: isEffectivelySoldOut(pkg),
     waitlistCount: pkg.waitlist_count || 0,
   }));
 
