@@ -2,9 +2,9 @@ import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
 import { Suspense } from "react";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { Button } from "@/components/ui/button";
-import { 
-  LogOut, LayoutDashboard, Package, Calendar, Wallet, 
-  Palette, Trophy, User, PanelLeft, Home
+import {
+  LogOut, LayoutDashboard, Package, Calendar, Wallet,
+  Palette, Trophy, User, PanelLeft, Home, BookOpen
 } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo.svg";
 import {
@@ -47,10 +47,15 @@ const navItems = [
     url: "/agent/leaderboard", 
     icon: Trophy,
   },
-  { 
-    title: "Marketing", 
-    url: "/agent/marketing-kit", 
+  {
+    title: "Marketing",
+    url: "/agent/marketing-kit",
     icon: Palette,
+  },
+  {
+    title: "Panduan",
+    url: "/agent/guide",
+    icon: BookOpen,
   },
 ];
 
