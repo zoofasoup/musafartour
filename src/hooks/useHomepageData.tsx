@@ -181,7 +181,7 @@ const fallbackFaqs: FAQItem[] = [
     id: "5",
     question: "Bagaimana prosedur pendaftaran dan sistem pembayarannya?",
     category: "general",
-    answer: "Sangat mudah! Anda cukup membayar Uang Muka (DP) mulai dari Rp 3.000.000 untuk booking seat. Pelunasan dapat dilakukan secara bertahap dan maksimal dibayarkan 1 bulan sebelum tanggal keberangkatan. Demi keamanan, SEMUA transaksi hanya ditransfer ke Rekening Resmi Perusahaan (PT Musa Amanah Wisata).",
+    answer: "Sangat mudah! Anda cukup membayar Uang Muka (DP) sebesar Rp 5.000.000/pax untuk booking seat (DP non-refundable). Pelunasan dapat dilakukan secara bertahap dan maksimal dibayarkan H-35 sebelum tanggal keberangkatan. Demi keamanan, SEMUA transaksi hanya ditransfer ke Rekening Resmi Perusahaan (PT Musa Amanah Wisata).",
     is_active: true,
     display_order: 5,
     created_at: new Date().toISOString(),

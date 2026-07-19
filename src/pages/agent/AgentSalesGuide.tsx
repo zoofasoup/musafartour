@@ -116,18 +116,14 @@ const AgentSalesGuide = () => {
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <ul className="space-y-1.5 list-disc pl-5">
-            <li>DP <strong>{fmt(5_000_000)}/pax</strong> untuk booking seat - <strong>non-refundable</strong> (dikonfirmasi di dokumen paket resmi).</li>
+            <li>DP <strong>{fmt(5_000_000)}/pax</strong> untuk booking seat - <strong>non-refundable</strong>.</li>
+            <li>Pelunasan maksimal <strong>H-35</strong> sebelum keberangkatan.</li>
             <li>Tersedia cicilan <strong>0% hingga 12 bulan</strong>.</li>
+            <li>Harga mengikuti asumsi kurs USD = <strong>{fmt(USD_KURS)}</strong>; harga final dikonfirmasi saat pendaftaran.</li>
             <li>Harga & program bisa berubah sewaktu-waktu mengikuti kebijakan pemerintah Indonesia/Arab Saudi, hotel, dan maskapai - selalu sampaikan ini di awal supaya jamaah tidak kaget.</li>
             <li>Jamaah bisa <strong>upgrade kamar atau kelas penerbangan</strong> di luar harga paket - ini peluang upsell, tawarkan kalau relevan.</li>
             <li>Kalau jamaah tidak punya teman sekamar sesuai tipe yang dipilih (quad/triple/double), ada penyesuaian biaya lewat musyawarah - bukan biaya sepihak dari kami.</li>
           </ul>
-          <TbdCallout>
-            Ada beberapa angka yang beda-beda antar sumber - konfirmasi ke supervisor sebelum menjanjikan ke calon jamaah:
-            <br />• DP: FAQ publik di website masih menyebut mulai Rp 3.000.000, padahal dokumen paket & TentangKami menyebut Rp 5.000.000.
-            <br />• Batas pelunasan: TentangKami menyebut H-45, dokumen paket menyebut H-35.
-            <br />• Asumsi kurs USD: kalkulator harga di website pakai {fmt(USD_KURS)}, dokumen paket menyebut Rp 17.000.
-          </TbdCallout>
           <TbdCallout>
             Kebijakan refund setelah DP (di luar DP yang memang non-refundable) dan reschedule belum didokumentasikan lengkap. Jangan janjikan persentase atau nominal apa pun ke jamaah - selalu eskalasi ke supervisor dulu.
           </TbdCallout>
