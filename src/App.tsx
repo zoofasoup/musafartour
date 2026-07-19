@@ -1,4 +1,4 @@
-// Cache bust commit
+// Cache bust commit 2026-07-19: force rebuild, CSS asset was missing from production
 import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
