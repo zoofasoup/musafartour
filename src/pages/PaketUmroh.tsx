@@ -128,19 +128,21 @@ const PaketUmroh = () => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Pilihan paket Umroh terlengkap mulai dari Budget hingga Premium Bintang 5.
           </p>
-          {/* Filter Bar - desktop: inline pill row */}
-          <div className="hidden lg:flex flex-wrap items-center justify-center gap-3 mt-8">
-            {filterConfigs.map((f) => (
-              <Select key={f.key} value={f.value} onValueChange={f.onChange}>
-                <SelectTrigger className={`${f.width} h-9 text-sm rounded-full bg-white shadow-sm border-border/50`}><SelectValue placeholder={f.placeholder} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{f.allLabel}</SelectItem>
-                  {f.options.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ))}
+          {/* Filter Bar - desktop: one grouped pill, dividers between each filter */}
+          <div className="hidden lg:flex items-center justify-center gap-3 mt-8">
+            <div className="flex items-center divide-x divide-border rounded-full border border-border bg-white shadow-sm overflow-hidden">
+              {filterConfigs.map((f) => (
+                <Select key={f.key} value={f.value} onValueChange={f.onChange}>
+                  <SelectTrigger className={`${f.width} h-9 text-sm rounded-none border-0 bg-transparent shadow-none focus:ring-0 focus:ring-offset-0`}><SelectValue placeholder={f.placeholder} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{f.allLabel}</SelectItem>
+                    {f.options.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ))}
+            </div>
 
             {isFiltered && (
               <Button variant="ghost" size="sm" onClick={resetFilters} className="text-muted-foreground hover:text-foreground gap-1">
