@@ -154,8 +154,9 @@ const ConditionalFloatingWhatsApp = () => {
   const isAgentPage = location.pathname.startsWith('/agent');
   const isBoothPage = location.pathname === '/booth';
   const isCalcPage = location.pathname.startsWith('/kalkulator');
-  
-  if (isAdminPage || isAgentPage || isBoothPage || isCalcPage) {
+  const isPackageDetailPage = location.pathname.startsWith('/paket-umroh/');
+
+  if (isAdminPage || isAgentPage || isBoothPage || isCalcPage || isPackageDetailPage) {
     return null;
   }
   

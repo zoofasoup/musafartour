@@ -35,7 +35,7 @@ import {
 
 /* ── Constants ─────────────────────────────────────────────── */
 const CHILD_PRICE = 25_000_000;
-const INFANT_PRICE = 12_000_000;
+const INFANT_PRICE = 15_000_000;
 
 const fmt = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0, maximumFractionDigits: 0 });
 const fmtShort = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;

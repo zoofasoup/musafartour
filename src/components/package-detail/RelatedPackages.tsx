@@ -1,0 +1,60 @@
+import { useMemo } from "react";
+import { PackageCard } from "@/components/PackageCard";
+import { usePublishedPackages } from "@/hooks/usePackages";
+import { getTierPrice, formatPriceJuta, isPackageUnavailable } from "@/lib/utils";
+import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
+
+interface RelatedPackagesProps {
+  currentPackageId: string;
+  currentTier: string;
+}
+
+/** Cross-sell: other published packages on the same primary tier, nearest upcoming departure first. */
+export function RelatedPackages({ currentPackageId, currentTier }: RelatedPackagesProps) {
+  const { data: packages = [] } = usePublishedPackages();
+
+  const related = useMemo(() => {
+    const today = new Date();
+    return packages
+      .filter((p) => p.id !== currentPackageId)
+      .filter((p) => (p.available_tiers?.[0] || "nyaman") === currentTier)
+      .filter((p) => new Date(p.departure_date) >= today)
+      .sort((a, b) => {
+        // Available packages first (site-wide convention), nearest departure first within each group.
+        const unavailDiff = Number(isPackageUnavailable(a)) - Number(isPackageUnavailable(b));
+        if (unavailDiff !== 0) return unavailDiff;
+        return new Date(a.departure_date).getTime() - new Date(b.departure_date).getTime();
+      })
+      .slice(0, 4);
+  }, [packages, currentPackageId, currentTier]);
+
+  if (related.length === 0) return null;
+
+  return (
+    <section className="mt-12">
+      <h2 className="text-xl font-bold mb-4 text-foreground">Paket Umroh Lainnya</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {related.map((pkg, idx) => (
+          <PackageCard
+            key={pkg.id}
+            id={pkg.id}
+            slug={pkg.slug || undefined}
+            image={pkg.banner_image || "/placeholder.svg"}
+            title={pkg.package_name}
+            price={formatPriceJuta(getTierPrice(pkg).quad)}
+            date={format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId })}
+            duration={`${pkg.duration_days} Hari`}
+            airline={pkg.flight}
+            transit={pkg.flight_type?.toLowerCase() === "direct" ? "Direct" : "Transit"}
+            category={pkg.available_tiers?.[0] || "nyaman"}
+            seatAvailable={!isPackageUnavailable(pkg)}
+            isSoldOut={isPackageUnavailable(pkg)}
+            waitlistCount={pkg.waitlist_count || 0}
+            index={idx}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}

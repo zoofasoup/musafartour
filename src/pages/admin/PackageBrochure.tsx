@@ -30,7 +30,7 @@ import { id as localeId } from "date-fns/locale";
 
 /* ── Constants ─────────────────────────────────────────────── */
 const CHILD_PRICE = 25_000_000;
-const INFANT_PRICE = 12_000_000;
+const INFANT_PRICE = 15_000_000;
 const fmtShort = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
 const fmtDate = (d: string) => {
   try { return format(new Date(d), "d MMM yyyy", { locale: localeId }); }
@@ -752,7 +752,7 @@ export default function PackageBrochure() {
                   <Baby className="h-3.5 w-3.5 text-pink-500" />
                   <div>
                     <span className="text-xs font-semibold tracking-tight">Infant</span>
-                    <span className="text-[10px] text-muted-foreground ml-1">12jt</span>
+                    <span className="text-[10px] text-muted-foreground ml-1">15jt</span>
                   </div>
                 </div>
                 <CounterInput value={infants} onChange={setInfants} />

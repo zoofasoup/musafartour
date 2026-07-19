@@ -1,5 +1,4 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Calendar, PlaneTakeoff, Route, Timer, Bus } from "lucide-react";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import { format } from "date-fns";
@@ -16,10 +15,9 @@ const fmtDate = (d: string) => {
 interface PackageMetricsProps {
   packageData: PublishedPackage;
   transport?: string;
-  seatPercentage: number | null;
 }
 
-export function PackageMetrics({ packageData, transport, seatPercentage }: PackageMetricsProps) {
+export function PackageMetrics({ packageData, transport }: PackageMetricsProps) {
   return (
     <Card className="border shadow-sm">
       <CardContent className="p-5">
@@ -81,22 +79,6 @@ export function PackageMetrics({ packageData, transport, seatPercentage }: Packa
               <p className="text-[10px] text-muted-foreground uppercase">Transport</p>
               <p className="text-sm font-bold">{transport}</p>
             </div>
-          </div>
-        )}
-
-        {/* Seat Progress */}
-        {seatPercentage !== null && packageData.slots_total && (
-          <div className="mt-4 pt-4 border-t">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs text-muted-foreground">Ketersediaan Seat</span>
-              <span className="text-xs font-bold">
-                {packageData.slots_filled}/{packageData.slots_total}
-              </span>
-            </div>
-            <Progress value={seatPercentage} className="h-2" />
-            <p className="text-[10px] text-muted-foreground mt-1">
-              {packageData.slots_total - (packageData.slots_filled || 0)} seat tersisa
-            </p>
           </div>
         )}
       </CardContent>

@@ -82,6 +82,11 @@ export interface PublishedPackage {
   is_sold_out: boolean;
   sold_out_date: string | null;
   waitlist_count: number | null;
+  // SEO
+  meta_title: string | null;
+  meta_description: string | null;
+  og_image: string | null;
+  canonical_url: string | null;
 }
 
 const transformPackage = (row: any): PublishedPackage => ({
