@@ -12,6 +12,8 @@ import {
   Baby,
   BookOpen,
   MessageCircle,
+  FileText,
+  Backpack,
 } from "lucide-react";
 import { USD_KURS } from "@/lib/calcConfig";
 import { CHILD_PRICE, INFANT_PRICE } from "@/lib/roomCombos";
@@ -45,6 +47,12 @@ const GLOSSARY = [
   { term: "Muthowwif", def: "Pembimbing ibadah yang mendampingi jamaah selama di tanah suci (istilah 'tour guide' versi umroh)." },
   { term: "Talbiyah", def: "Kalimat yang diucapkan berulang selama ihram: \"Labbaik Allahumma labbaik...\"" },
   { term: "Dam", def: "Denda/tebusan (biasanya menyembelih hewan) karena melanggar salah satu larangan ihram." },
+];
+
+const PERLENGKAPAN = [
+  "Ransel", "Koper 24 Inch", "Buku Panduan Umroh & Notebook", "Syal",
+  "Kain Ihram (Laki-laki)", "Baju Koko (Laki-laki)", "Abaya (Perempuan)",
+  "Mukena (Perempuan)", "Kaos Ikhwan", "Strap ID Card", "Tumbler",
 ];
 
 const EXTRA_SCRIPTS = [
@@ -108,16 +116,20 @@ const AgentSalesGuide = () => {
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <ul className="space-y-1.5 list-disc pl-5">
-            <li>DP <strong>{fmt(5_000_000)}/pax</strong> untuk booking seat.</li>
-            <li>Pelunasan maksimal <strong>H-45</strong> sebelum keberangkatan.</li>
+            <li>DP <strong>{fmt(5_000_000)}/pax</strong> untuk booking seat - <strong>non-refundable</strong> (dikonfirmasi di dokumen paket resmi).</li>
             <li>Tersedia cicilan <strong>0% hingga 12 bulan</strong>.</li>
-            <li>Harga mengikuti asumsi kurs USD = <strong>{fmt(USD_KURS)}</strong>; harga final dikonfirmasi saat pendaftaran.</li>
+            <li>Harga & program bisa berubah sewaktu-waktu mengikuti kebijakan pemerintah Indonesia/Arab Saudi, hotel, dan maskapai - selalu sampaikan ini di awal supaya jamaah tidak kaget.</li>
+            <li>Jamaah bisa <strong>upgrade kamar atau kelas penerbangan</strong> di luar harga paket - ini peluang upsell, tawarkan kalau relevan.</li>
+            <li>Kalau jamaah tidak punya teman sekamar sesuai tipe yang dipilih (quad/triple/double), ada penyesuaian biaya lewat musyawarah - bukan biaya sepihak dari kami.</li>
           </ul>
           <TbdCallout>
-            FAQ publik di website masih menyebut DP mulai Rp 3.000.000, beda dengan Rp 5.000.000 di atas. Konfirmasi angka yang berlaku ke supervisor sebelum menjanjikan ke calon jamaah, supaya tidak ada info yang beda-beda.
+            Ada beberapa angka yang beda-beda antar sumber - konfirmasi ke supervisor sebelum menjanjikan ke calon jamaah:
+            <br />• DP: FAQ publik di website masih menyebut mulai Rp 3.000.000, padahal dokumen paket & TentangKami menyebut Rp 5.000.000.
+            <br />• Batas pelunasan: TentangKami menyebut H-45, dokumen paket menyebut H-35.
+            <br />• Asumsi kurs USD: kalkulator harga di website pakai {fmt(USD_KURS)}, dokumen paket menyebut Rp 17.000.
           </TbdCallout>
           <TbdCallout>
-            Kebijakan refund/pembatalan/reschedule belum didokumentasikan di sistem. Jangan janjikan persentase atau nominal apa pun ke jamaah - selalu eskalasi ke supervisor dulu.
+            Kebijakan refund setelah DP (di luar DP yang memang non-refundable) dan reschedule belum didokumentasikan lengkap. Jangan janjikan persentase atau nominal apa pun ke jamaah - selalu eskalasi ke supervisor dulu.
           </TbdCallout>
         </CardContent>
       </Card>
@@ -183,16 +195,41 @@ const AgentSalesGuide = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Syarat Dokumen & Kesehatan</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <FileText className="h-4 w-4 text-primary" /> Syarat Dokumen & Kesehatan
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <ul className="space-y-1.5 list-disc pl-5">
-            <li>Paspor minimal <strong>2 suku kata</strong> pada nama - nama 1 kata harus ditambah dulu di Disdukcapil sebelum bisa dipakai umroh.</li>
+            <li>Paspor asli, <strong>berlaku minimal 1 tahun</strong> dari tanggal keberangkatan, dan nama minimal <strong>2 suku kata</strong> - nama 1 kata harus ditambah dulu di Disdukcapil.</li>
+            <li>Pasfoto 4x6 sebanyak 2 lembar (boleh softcopy).</li>
+            <li>KTP asli.</li>
+            <li>Fotokopi surat nikah - bagi suami istri yang berangkat bersama.</li>
+            <li>Fotokopi Kartu Keluarga - bagi anak yang berangkat bersama orang tua.</li>
             <li>Vaksin <strong>Meningitis & Polio wajib</strong>, diurus dan dibiayai sendiri oleh jamaah (tidak termasuk paket).</li>
           </ul>
           <TbdCallout>
-            Masa berlaku minimum paspor, aturan mahram untuk jamaah wanita, dan batas usia jamaah belum didefinisikan di sistem manapun. Jangan menjawab dengan angka pasti - eskalasi ke supervisor/tim dokumen.
+            Aturan mahram untuk jamaah wanita dan batas usia jamaah belum didefinisikan di sistem manapun. Jangan menjawab dengan kepastian - eskalasi ke supervisor/tim dokumen.
           </TbdCallout>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Backpack className="h-4 w-4 text-primary" /> Perlengkapan Jamaah
+          </CardTitle>
+          <CardDescription>Termasuk dalam paket - berguna untuk dijelaskan ke calon jamaah yang belum tahu apa saja yang mereka dapat.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+            {PERLENGKAPAN.map((item) => (
+              <div key={item} className="flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                {item}
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
