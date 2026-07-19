@@ -3,18 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { Link, useNavigate } from "react-router-dom";
-import { 
-  Star, 
-  Plane, 
-  Users, 
-  Calendar, 
+import {
+  Star,
+  Plane,
+  Calendar,
   MapPin,
   Share2,
   FileText,
   Eye,
   Search,
-  Filter
+  Filter,
+  Wallet,
+  Package as PackageIcon,
 } from "lucide-react";
+import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -202,11 +204,11 @@ const AgentPackages = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto w-full pb-20 md:pb-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold">Paket Umroh</h1>
-        <p className="text-muted-foreground">Browse dan share paket ke prospek kamu</p>
-      </div>
+      <AgentPageHeader
+        title="Paket Umroh"
+        description="Browse dan share paket ke prospek kamu"
+        icon={PackageIcon}
+      />
 
       <div className="space-y-6">
         {/* Filters */}
@@ -277,13 +279,16 @@ const AgentPackages = () => {
                     <div>
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="text-lg md:text-xl font-bold">{pkg.package_name}</h3>
-                        <Badge 
-                          variant={slotStatus.color === "success" ? "default" : slotStatus.color === "warning" ? "secondary" : "destructive"}
-                          className={slotStatus.color === "success" ? "bg-emerald-500" : slotStatus.color === "warning" ? "bg-yellow-500 text-black" : ""}
+                        <Badge
+                          variant="outline"
+                          className={
+                            slotStatus.color === "success"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : slotStatus.color === "warning"
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : "bg-red-50 text-red-700 border-red-200"
+                          }
                         >
-                          {slotStatus.status === "open" && "🟢 "}
-                          {slotStatus.status === "almost" && "🟡 "}
-                          {slotStatus.status === "full" && "🔴 "}
                           {slotStatus.label}
                         </Badge>
                       </div>
@@ -310,8 +315,9 @@ const AgentPackages = () => {
                         {formatPrice(lowestPrice)}
                         <span className="text-sm font-normal text-muted-foreground">/pax</span>
                       </div>
-                      <div className="text-emerald-600 font-semibold">
-                        💰 Komisi: {formatPrice(commission)}
+                      <div className="text-emerald-600 font-semibold flex items-center gap-1.5">
+                        <Wallet className="h-4 w-4" />
+                        Komisi: {formatPrice(commission)}
                       </div>
                     </div>
 
@@ -366,7 +372,7 @@ const AgentPackages = () => {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                          <span className="text-4xl">🕌</span>
+                          <PackageIcon className="h-10 w-10" />
                         </div>
                       )}
                     </div>

@@ -10,13 +10,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Trophy, Medal, Award, Star, Crown, Users, Flame, Zap, Clock, 
+import {
+  Trophy, Medal, Award, Star, Crown, Users, Flame, Zap, Clock,
   Target, Gift, ShoppingBag, Ticket, GraduationCap, DollarSign,
   ChevronRight, Lock, CheckCircle2, TrendingUp, UserPlus
 } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
+import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
+import { AGENT_LEVEL_COLORS as levelColors, AGENT_LEVEL_ICONS as levelIcons } from "@/lib/agentLevels";
 
 // Icon mapping
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -35,20 +37,6 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 import { formatCurrency } from "@/lib/utils";
-
-const levelColors: Record<string, string> = {
-  bronze: "bg-amber-600",
-  silver: "bg-slate-400",
-  gold: "bg-yellow-500",
-  platinum: "bg-gradient-to-r from-purple-500 to-blue-500",
-};
-
-const levelIcons: Record<string, React.ReactNode> = {
-  bronze: <Award className="h-5 w-5 text-amber-600" />,
-  silver: <Medal className="h-5 w-5 text-slate-400" />,
-  gold: <Trophy className="h-5 w-5 text-yellow-500" />,
-  platinum: <Crown className="h-5 w-5 text-purple-500" />,
-};
 
 export default function AgentLeaderboard() {
   const { agent } = useAgentAuth();
@@ -198,15 +186,15 @@ export default function AgentLeaderboard() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto w-full pb-20 md:pb-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold">Leaderboard & Gamification</h1>
-        <p className="text-muted-foreground">Raih prestasi, kumpulkan badge, dan tukar rewards!</p>
-      </div>
+      <AgentPageHeader
+        title="Leaderboard & Gamification"
+        description="Raih prestasi, kumpulkan badge, dan tukar rewards!"
+        icon={Trophy}
+      />
 
-      {/* Your Ranking Widget - Sticky */}
+      {/* Your Ranking Widget - not sticky, since AgentHeader above already sticks to the same scroll container and would collide with it */}
       {agent && (
-        <Card className="sticky top-0 z-10 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+        <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -278,15 +266,15 @@ export default function AgentLeaderboard() {
                   <div className="flex items-center justify-center w-10 h-10 rounded-full shrink-0">
                     {index === 0 ? (
                       <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                        <span className="text-xl">🥇</span>
+                        <Trophy className="h-5 w-5 text-yellow-500" />
                       </div>
                     ) : index === 1 ? (
                       <div className="w-10 h-10 rounded-full bg-slate-400/20 flex items-center justify-center">
-                        <span className="text-xl">🥈</span>
+                        <Medal className="h-5 w-5 text-slate-400" />
                       </div>
                     ) : index === 2 ? (
                       <div className="w-10 h-10 rounded-full bg-amber-600/20 flex items-center justify-center">
-                        <span className="text-xl">🥉</span>
+                        <Medal className="h-5 w-5 text-amber-600" />
                       </div>
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
@@ -361,7 +349,7 @@ export default function AgentLeaderboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5 text-orange-500" />
-            🎯 Challenges Bulan Ini
+            Challenges Bulan Ini
           </CardTitle>
           <CardDescription>Selesaikan tantangan dan dapatkan reward ekstra!</CardDescription>
         </CardHeader>
@@ -376,13 +364,13 @@ export default function AgentLeaderboard() {
               const isCompleted = progress?.completed_at != null;
 
               return (
-                <Card key={challenge.id} className={isCompleted ? 'border-green-500/50 bg-green-50/50 dark:bg-green-950/20' : ''}>
+                <Card key={challenge.id} className={isCompleted ? 'border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-950/20' : ''}>
                   <CardContent className="pt-4">
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h4 className="font-semibold flex items-center gap-2">
                           {challenge.title}
-                          {isCompleted && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                          {isCompleted && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
                         </h4>
                         <p className="text-sm text-muted-foreground">{challenge.description}</p>
                       </div>
@@ -392,7 +380,7 @@ export default function AgentLeaderboard() {
                       }>
                         {challenge.reward_type === 'cash' && formatCurrency(Number(challenge.reward_value))}
                         {challenge.reward_type === 'points' && `${challenge.reward_value} pts`}
-                        {challenge.reward_type === 'badge' && `🏅 ${challenge.reward_value}`}
+                        {challenge.reward_type === 'badge' && challenge.reward_value}
                       </Badge>
                     </div>
                     <div className="space-y-2">
@@ -423,7 +411,7 @@ export default function AgentLeaderboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Award className="h-5 w-5 text-purple-500" />
-            🏅 Badges & Achievements
+            Badges & Achievements
           </CardTitle>
           <CardDescription>
             Koleksi badge kamu: {earnedBadges?.length || 0}/{badges?.length || 0}
@@ -516,7 +504,7 @@ export default function AgentLeaderboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Star className="h-5 w-5 text-yellow-500" />
-            ⭐ Agent Levels
+            Agent Levels
           </CardTitle>
           <CardDescription>Tingkatkan level untuk unlock benefit lebih besar</CardDescription>
         </CardHeader>
@@ -597,7 +585,7 @@ export default function AgentLeaderboard() {
                 <ul className="space-y-1">
                   {level.benefits?.map((benefit, i) => (
                     <li key={i} className="text-xs text-muted-foreground flex items-start gap-1">
-                      <CheckCircle2 className="h-3 w-3 text-green-500 mt-0.5 shrink-0" />
+                      <CheckCircle2 className="h-3 w-3 text-emerald-500 mt-0.5 shrink-0" />
                       {benefit}
                     </li>
                   ))}
@@ -615,7 +603,7 @@ export default function AgentLeaderboard() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Gift className="h-5 w-5 text-pink-500" />
-                🎁 Rewards Store
+                Rewards Store
               </CardTitle>
               <CardDescription>Tukarkan poin kamu dengan hadiah menarik</CardDescription>
             </div>

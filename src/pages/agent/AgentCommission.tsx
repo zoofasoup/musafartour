@@ -9,9 +9,8 @@ import {
   TrendingUp, 
   Clock, 
   CheckCircle, 
-  Loader2, 
+  Loader2,
   AlertCircle,
-  Building2,
   CreditCard,
   User,
   Search,
@@ -30,6 +29,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
+import { AgentStatCard } from "@/components/agent/AgentStatCard";
 
 interface Sale {
   id: string;
@@ -283,13 +284,13 @@ const AgentCommission = () => {
     switch (status) {
       case 'paid':
       case 'completed':
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Dibayar</Badge>;
+        return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Dibayar</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">Pending</Badge>;
+        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Pending</Badge>;
       case 'processing':
-        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">Diproses</Badge>;
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Diproses</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">Ditolak</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Ditolak</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -300,7 +301,7 @@ const AgentCommission = () => {
 
   if (salesLoading || withdrawalsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -308,73 +309,39 @@ const AgentCommission = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto w-full">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Komisi & Penarikan</h1>
-          <p className="text-muted-foreground">Kelola komisi dan penarikan saldo Anda</p>
-        </div>
+        <AgentPageHeader
+          title="Komisi & Penarikan"
+          description="Kelola komisi dan penarikan saldo Anda"
+          icon={Wallet}
+        />
 
         {/* Overview Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Earned</p>
-                  <p className="text-xl font-bold text-foreground">{formatCurrency(totalEarned)}</p>
-                  <p className="text-xs text-muted-foreground">Sepanjang waktu</p>
-                </div>
-                <div className="h-10 w-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Pending</p>
-                  <p className="text-xl font-bold text-foreground">{formatCurrency(pendingCommission)}</p>
-                  <p className="text-xs text-muted-foreground">Belum cair</p>
-                </div>
-                <div className="h-10 w-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/10">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Bisa Ditarik</p>
-                  <p className="text-xl font-bold text-green-600 dark:text-green-400">{formatCurrency(availableBalance)}</p>
-                  <p className="text-xs text-muted-foreground">Saldo tersedia</p>
-                </div>
-                <div className="h-10 w-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                  <Wallet className="h-5 w-5 text-green-600 dark:text-green-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Sudah Ditarik</p>
-                  <p className="text-xl font-bold text-foreground">{formatCurrency(totalWithdrawn)}</p>
-                  <p className="text-xs text-muted-foreground">Total penarikan</p>
-                </div>
-                <div className="h-10 w-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                  <CheckCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <AgentStatCard
+            icon={TrendingUp}
+            label="Total Earned"
+            value={formatCurrency(totalEarned)}
+            helper={<span className="text-muted-foreground">Sepanjang waktu</span>}
+          />
+          <AgentStatCard
+            icon={Clock}
+            label="Pending"
+            value={formatCurrency(pendingCommission)}
+            helper={<span className="text-muted-foreground">Belum cair</span>}
+          />
+          <AgentStatCard
+            icon={Wallet}
+            label="Bisa Ditarik"
+            value={formatCurrency(availableBalance)}
+            helper={<span className="text-muted-foreground">Saldo tersedia</span>}
+            className="border-emerald-200 bg-emerald-50/50"
+          />
+          <AgentStatCard
+            icon={CheckCircle}
+            label="Sudah Ditarik"
+            value={formatCurrency(totalWithdrawn)}
+            helper={<span className="text-muted-foreground">Total penarikan</span>}
+          />
         </div>
 
         {/* Withdrawal Section */}
@@ -417,7 +384,7 @@ const AgentCommission = () => {
                 </div>
                 <Button 
                   onClick={() => setShowWithdrawModal(true)}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-emerald-600 hover:bg-emerald-700"
                 >
                   <Wallet className="mr-2 h-4 w-4" />
                   Tarik Saldo
@@ -465,29 +432,13 @@ const AgentCommission = () => {
 
             {/* Monthly Stats */}
             <div className="grid grid-cols-3 gap-4">
-              <Card>
-                <CardContent className="pt-4 text-center">
-                  <p className="text-2xl font-bold text-foreground">{formatCurrency(monthEarned)}</p>
-                  <p className="text-sm text-muted-foreground">Earned</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 text-center">
-                  <p className="text-2xl font-bold text-foreground">{monthSales.length}</p>
-                  <p className="text-sm text-muted-foreground">Deals</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 text-center">
-                  <p className="text-2xl font-bold text-foreground">
-                    {monthSales.length > 0 
-                      ? formatCurrency(monthEarned / monthSales.length)
-                      : 'Rp 0'
-                    }
-                  </p>
-                  <p className="text-sm text-muted-foreground">Avg Komisi</p>
-                </CardContent>
-              </Card>
+              <AgentStatCard icon={TrendingUp} label="Earned" value={formatCurrency(monthEarned)} />
+              <AgentStatCard icon={CheckCircle} label="Deals" value={monthSales.length} />
+              <AgentStatCard
+                icon={Wallet}
+                label="Avg Komisi"
+                value={monthSales.length > 0 ? formatCurrency(monthEarned / monthSales.length) : 'Rp 0'}
+              />
             </div>
 
             {/* Monthly Sales Table */}
@@ -520,7 +471,7 @@ const AgentCommission = () => {
                             <TableCell>{sale.customer_name}</TableCell>
                             <TableCell className="max-w-[150px] truncate">{sale.package_name}</TableCell>
                             <TableCell className="text-right">{formatCurrency(sale.sale_amount)}</TableCell>
-                            <TableCell className="text-right font-medium text-green-600">
+                            <TableCell className="text-right font-medium text-emerald-600">
                               {formatCurrency(sale.commission_amount)}
                             </TableCell>
                             <TableCell>{getStatusBadge(sale.status)}</TableCell>
@@ -591,7 +542,7 @@ const AgentCommission = () => {
                             <TableCell>{sale.customer_name}</TableCell>
                             <TableCell className="max-w-[150px] truncate">{sale.package_name}</TableCell>
                             <TableCell className="text-right">{formatCurrency(sale.sale_amount)}</TableCell>
-                            <TableCell className="text-right font-medium text-green-600">
+                            <TableCell className="text-right font-medium text-emerald-600">
                               {formatCurrency(sale.commission_amount)}
                             </TableCell>
                             <TableCell>{getStatusBadge(sale.status)}</TableCell>
@@ -670,7 +621,7 @@ const AgentCommission = () => {
           <div className="space-y-4">
             <div>
               <Label>Saldo Tersedia</Label>
-              <p className="text-2xl font-bold text-green-600">{formatCurrency(availableBalance)}</p>
+              <p className="text-2xl font-bold text-emerald-600">{formatCurrency(availableBalance)}</p>
             </div>
 
             <div>
@@ -700,7 +651,7 @@ const AgentCommission = () => {
             <Button 
               onClick={handleWithdraw}
               disabled={withdrawMutation.isPending}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-emerald-600 hover:bg-emerald-700"
             >
               {withdrawMutation.isPending ? (
                 <>

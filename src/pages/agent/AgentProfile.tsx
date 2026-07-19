@@ -21,13 +21,11 @@ import {
   EyeOff,
   History,
   Shield,
-  Settings,
   LogOut,
   AlertTriangle,
   CheckCircle2,
   Clock,
   DollarSign,
-  Calendar,
   FileText
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,6 +53,8 @@ import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { formatCurrency } from "@/lib/utils";
+import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
+import { AGENT_LEVEL_COLORS as levelColors, AGENT_LEVEL_LABELS as levelLabels, type AgentLevel } from "@/lib/agentLevels";
 
 const BANK_LIST = [
   "Bank BCA",
@@ -76,20 +76,6 @@ const BANK_LIST = [
   "Bank Neo Commerce",
   "Bank Digital BCA"
 ];
-
-const levelColors = {
-  bronze: "bg-amber-600",
-  silver: "bg-gray-400",
-  gold: "bg-yellow-500",
-  platinum: "bg-purple-500",
-};
-
-const levelLabels = {
-  bronze: "Bronze",
-  silver: "Silver",
-  gold: "Gold",
-  platinum: "Platinum",
-};
 
 const AgentProfile = () => {
   const { agent, refreshAgent, signOut } = useAgentAuth();
@@ -312,15 +298,15 @@ const AgentProfile = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return <Badge className="bg-green-500 text-white"><CheckCircle2 className="h-3 w-3 mr-1" />Konfirmasi</Badge>;
+        return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200"><CheckCircle2 className="h-3 w-3 mr-1" />Konfirmasi</Badge>;
       case 'pending':
-        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
+        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
       case 'paid':
-        return <Badge className="bg-blue-500 text-white"><DollarSign className="h-3 w-3 mr-1" />Dibayar</Badge>;
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200"><DollarSign className="h-3 w-3 mr-1" />Dibayar</Badge>;
       case 'processed':
-        return <Badge className="bg-blue-500 text-white"><Check className="h-3 w-3 mr-1" />Diproses</Badge>;
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200"><Check className="h-3 w-3 mr-1" />Diproses</Badge>;
       case 'rejected':
-        return <Badge variant="destructive"><AlertTriangle className="h-3 w-3 mr-1" />Ditolak</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200"><AlertTriangle className="h-3 w-3 mr-1" />Ditolak</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -328,22 +314,18 @@ const AgentProfile = () => {
 
   if (!agent) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  const agentLevel = agent.level as keyof typeof levelColors;
+  const agentLevel = agent.level as AgentLevel;
 
   return (
-    <div className="py-6 px-4 pb-24 md:pb-6">
+    <div className="pb-24 md:pb-6">
       <div className="max-w-3xl mx-auto space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Profil Saya</h1>
-          <p className="text-muted-foreground">Kelola akun dan pengaturan Anda</p>
-        </div>
+        <AgentPageHeader title="Profil Saya" description="Kelola akun dan pengaturan Anda" icon={User} />
 
         {/* Profile Header Card */}
         <Card>
@@ -420,7 +402,7 @@ const AgentProfile = () => {
                 <p className="text-sm text-muted-foreground">Total Sales</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-green-600">{formatCurrency(agent.total_commission)}</p>
+                <p className="text-2xl font-bold text-emerald-600">{formatCurrency(agent.total_commission)}</p>
                 <p className="text-sm text-muted-foreground">Total Komisi</p>
               </div>
               <div>
@@ -846,7 +828,7 @@ const AgentProfile = () => {
                         </div>
                         <div className="text-right ml-4">
                           {getStatusBadge(sale.status)}
-                          <p className="text-sm font-medium text-green-600 mt-1">
+                          <p className="text-sm font-medium text-emerald-600 mt-1">
                             +{formatCurrency(sale.commission_amount)}
                           </p>
                         </div>

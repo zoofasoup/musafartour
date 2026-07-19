@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Loader2, UploadCloud, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { compressImage } from "@/utils/imageCompression";
@@ -318,7 +319,7 @@ const AgentOnboarding = () => {
                 </div>
               </div>
 
-              <hr className="my-6" />
+              <Separator className="my-6" />
               
               <div className="space-y-4">
                 <h3 className="font-medium">Profil Pemasaran</h3>
@@ -367,7 +368,7 @@ const AgentOnboarding = () => {
             </CardContent>
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 border-t pt-6">
               <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                 Data Anda aman & terenkripsi
               </p>
               <Button type="submit" disabled={loading || uploading} className="w-full sm:w-auto min-w-[200px]">

@@ -166,25 +166,23 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-4 md:p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-64" />
-          <div className="grid gap-4 md:grid-cols-4">
-            <Skeleton className="h-12" />
-            <Skeleton className="h-12" />
-            <Skeleton className="h-12" />
-            <Skeleton className="h-12" />
-          </div>
-          <Skeleton className="h-96" />
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-64 rounded-3xl" />
+        <div className="grid gap-4 md:grid-cols-4">
+          <Skeleton className="h-12" />
+          <Skeleton className="h-12" />
+          <Skeleton className="h-12" />
+          <Skeleton className="h-12" />
         </div>
+        <Skeleton className="h-96" />
       </div>
     );
   }
 
   if (!pkg) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <Card className="p-8 text-center">
           <h2 className="text-xl font-semibold mb-2">Paket tidak ditemukan</h2>
           <p className="text-muted-foreground mb-4">
@@ -207,47 +205,38 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
   const excludedItems = pkg.excluded_items?.split("\n").filter(Boolean) || [];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="max-w-4xl mx-auto space-y-6">
+      <Button
+        variant="ghost"
+        className="text-muted-foreground hover:text-foreground -ml-2"
+        onClick={() => navigate("/agent/packages")}
+      >
+        ← Kembali ke Katalog
+      </Button>
+
       {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-6 md:p-8">
-        <div className="max-w-4xl mx-auto">
-          <Button
-            variant="ghost"
-            className="text-white/80 hover:text-white mb-4 -ml-2"
-            onClick={() => navigate("/agent/packages")}
-          >
-            ← Kembali ke Katalog
-          </Button>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold">{pkg.package_name}</h1>
-              <div className="flex items-center gap-4 mt-2 text-emerald-100">
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  <span>
-                    {format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: id })}
-                  </span>
-                </div>
-                <span>•</span>
-                <span>{pkg.duration_days} Hari</span>
+      <div className="rounded-3xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-6 md:p-8">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold">{pkg.package_name}</h1>
+            <div className="flex items-center gap-4 mt-2 text-emerald-100">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                <span>
+                  {format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: id })}
+                </span>
               </div>
+              <span>•</span>
+              <span>{pkg.duration_days} Hari</span>
             </div>
-            <Badge 
-              className={
-                slotStatus.color === "success" 
-                  ? "bg-emerald-500" 
-                  : slotStatus.color === "warning" 
-                  ? "bg-yellow-500 text-black" 
-                  : "bg-red-500"
-              }
-            >
-              {slotStatus.label}
-            </Badge>
           </div>
+          <Badge className="bg-white/20 backdrop-blur text-white border border-white/30">
+            {slotStatus.label}
+          </Badge>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+      <div className="space-y-6">
         {/* Quick Actions */}
         <Card>
           <CardContent className="p-4">
@@ -257,13 +246,13 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
                 onClick={shareToWhatsApp}
               >
                 <Share2 className="h-4 w-4 mr-2" />
-                📱 Share WA
+                Share WA
               </Button>
               {pkg.catalog_link && (
                 <Button variant="outline" asChild>
                   <a href={pkg.catalog_link} target="_blank" rel="noopener noreferrer">
                     <FileText className="h-4 w-4 mr-2" />
-                    📄 Katalog
+                    Katalog
                   </a>
                 </Button>
               )}
@@ -276,13 +265,13 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
                 ) : (
                   <>
                     <Copy className="h-4 w-4 mr-2" />
-                    📋 Copy Script
+                    Copy Script
                   </>
                 )}
               </Button>
               <Button variant="outline" onClick={() => setShareModalOpen(true)}>
                 <Palette className="h-4 w-4 mr-2" />
-                🎨 Share Lainnya
+                Share Lainnya
               </Button>
             </div>
           </CardContent>

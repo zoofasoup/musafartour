@@ -4,17 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { 
-  Calendar as CalendarIcon, 
-  List, 
-  Loader2, 
+import {
+  Calendar as CalendarIcon,
+  List,
+  Loader2,
   Share2,
   ChevronLeft,
   ChevronRight,
   Filter,
   Plane,
-  Users,
-  X
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +24,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn, formatCurrency, getTierPrice } from "@/lib/utils";
 import PackageShareModal from "@/components/agent/PackageShareModal";
+import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
 
 interface Package {
   id: string;
@@ -234,24 +233,24 @@ const AgentSchedule = () => {
   const getStatusBadge = (pkg: Package) => {
     const status = getPackageStatus(pkg);
     const remaining = (pkg.slots_total || 40) - (pkg.slots_filled || 0);
-    
+
     switch (status) {
       case 'open':
         return (
-          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-            🟢 Open ({remaining} seats)
+          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+            Open ({remaining} seats)
           </Badge>
         );
       case 'almost-full':
         return (
-          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-            🟡 Almost Full ({remaining} seats)
+          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+            Almost Full ({remaining} seats)
           </Badge>
         );
       case 'full':
         return (
-          <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-            🔴 Full Booked
+          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+            Full Booked
           </Badge>
         );
     }
@@ -266,7 +265,10 @@ const AgentSchedule = () => {
         <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium">📅 {format(new Date(pkg.departure_date), 'd MMM', { locale: localeId })}</span>
+              <span className="text-sm font-medium flex items-center gap-1">
+                <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                {format(new Date(pkg.departure_date), 'd MMM', { locale: localeId })}
+              </span>
               <span className="text-sm text-muted-foreground">-</span>
               <span className="text-sm font-medium truncate">{pkg.package_name}</span>
             </div>
@@ -275,7 +277,7 @@ const AgentSchedule = () => {
               <span className="text-sm text-muted-foreground">
                 Harga: {formatCurrency(price)}
               </span>
-              <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+              <span className="text-sm text-emerald-600 font-medium">
                 Komisi: {formatCurrency(commission)}
               </span>
             </div>
@@ -325,7 +327,7 @@ const AgentSchedule = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Komisi</p>
-                  <p className="font-bold text-lg text-green-600 dark:text-green-400">
+                  <p className="font-bold text-lg text-emerald-600">
                     {formatCurrency(commission)}
                   </p>
                 </div>
@@ -347,7 +349,7 @@ const AgentSchedule = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -355,109 +357,101 @@ const AgentSchedule = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto w-full pb-6">
-      {/* Header */}
-      <div className="bg-background/95 border-b rounded-xl p-2">
-        <div className="px-4 md:px-6 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Jadwal Keberangkatan 2025</h1>
-              <p className="text-sm text-muted-foreground">{filteredPackages.length} paket tersedia</p>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              {/* View Toggle */}
-              <div className="flex bg-muted rounded-lg p-1">
-                <Button
-                  variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="h-8"
-                >
-                  <List className="h-4 w-4 mr-1" />
-                  List
-                </Button>
-                <Button
-                  variant={viewMode === 'calendar' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('calendar')}
-                  className="h-8"
-                >
-                  <CalendarIcon className="h-4 w-4 mr-1" />
-                  Calendar
-                </Button>
-              </div>
-              
-              {/* Filter Button (Mobile) */}
-              <Sheet open={showFilters} onOpenChange={setShowFilters}>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm" className="lg:hidden">
-                    <Filter className="h-4 w-4" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-80">
-                  <SheetHeader>
-                    <SheetTitle>Filter Jadwal</SheetTitle>
-                  </SheetHeader>
-                  <ScrollArea className="h-[calc(100vh-100px)] mt-4">
-                    <FilterPanel />
-                  </ScrollArea>
-                </SheetContent>
-              </Sheet>
-            </div>
-          </div>
-          
-          {/* Quick Month Selector */}
-          <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
-            <Button
-              variant={selectedMonthFilter === null ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedMonthFilter(null)}
-              className="shrink-0"
-            >
-              Semua
-            </Button>
-            {MONTHS.map((month, index) => (
+      <AgentPageHeader
+        title="Jadwal Keberangkatan"
+        description={`${filteredPackages.length} paket tersedia`}
+        icon={CalendarIcon}
+        action={
+          <div className="flex items-center gap-2">
+            <div className="flex bg-muted rounded-lg p-1">
               <Button
-                key={month}
-                variant={selectedMonthFilter === index ? 'default' : 'outline'}
+                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                 size="sm"
-                onClick={() => setSelectedMonthFilter(index)}
-                className="shrink-0"
+                onClick={() => setViewMode('list')}
+                className="h-8"
               >
-                {month}
+                <List className="h-4 w-4 mr-1" />
+                List
               </Button>
-            ))}
+              <Button
+                variant={viewMode === 'calendar' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('calendar')}
+                className="h-8"
+              >
+                <CalendarIcon className="h-4 w-4 mr-1" />
+                Calendar
+              </Button>
+            </div>
+
+            {/* Filter Button (Mobile) */}
+            <Sheet open={showFilters} onOpenChange={setShowFilters}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="lg:hidden">
+                  <Filter className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80">
+                <SheetHeader>
+                  <SheetTitle>Filter Jadwal</SheetTitle>
+                </SheetHeader>
+                <ScrollArea className="h-[calc(100vh-100px)] mt-4">
+                  <FilterPanel />
+                </ScrollArea>
+              </SheetContent>
+            </Sheet>
           </div>
-        </div>
+        }
+      />
+
+      {/* Quick Month Selector */}
+      <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
+        <Button
+          variant={selectedMonthFilter === null ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setSelectedMonthFilter(null)}
+          className="shrink-0"
+        >
+          Semua
+        </Button>
+        {MONTHS.map((month, index) => (
+          <Button
+            key={month}
+            variant={selectedMonthFilter === index ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSelectedMonthFilter(index)}
+            className="shrink-0"
+          >
+            {month}
+          </Button>
+        ))}
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 md:px-8 py-6">
-        <div className="flex gap-6">
-          {/* Sidebar Filters (Desktop) */}
-          <div className="hidden lg:block w-64 shrink-0">
-            <Card className="sticky top-40">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm">Filter</CardTitle>
-                  <Button variant="ghost" size="sm" onClick={clearFilters}>
-                    Reset
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <FilterPanel />
-              </CardContent>
-            </Card>
-          </div>
+      <div className="flex gap-6">
+        {/* Sidebar Filters (Desktop) */}
+        <div className="hidden lg:block w-64 shrink-0">
+          <Card className="sticky top-24">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm">Filter</CardTitle>
+                <Button variant="ghost" size="sm" onClick={clearFilters}>
+                  Reset
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <FilterPanel />
+            </CardContent>
+          </Card>
+        </div>
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">
-            {viewMode === 'list' ? (
-              <ListView />
-            ) : (
-              <CalendarView />
-            )}
-          </div>
+        {/* Main Content */}
+        <div className="flex-1 min-w-0">
+          {viewMode === 'list' ? (
+            <ListView />
+          ) : (
+            <CalendarView />
+          )}
         </div>
       </div>
 
@@ -543,9 +537,9 @@ const AgentSchedule = () => {
           <Label className="text-sm font-medium mb-3 block">Status</Label>
           <div className="space-y-2">
             {[
-              { value: 'open', label: '🟢 Open' },
-              { value: 'almost-full', label: '🟡 Almost Full' },
-              { value: 'full', label: '🔴 Full Booked' },
+              { value: 'open', label: 'Open' },
+              { value: 'almost-full', label: 'Almost Full' },
+              { value: 'full', label: 'Full Booked' },
             ].map(item => (
               <div key={item.value} className="flex items-center gap-2">
                 <Checkbox
@@ -633,7 +627,7 @@ const AgentSchedule = () => {
             <div key={monthKey}>
               <div className="flex items-center gap-4 mb-4">
                 <div className="h-px flex-1 bg-border" />
-                <h2 className="font-bold text-lg uppercase tracking-wide text-muted-foreground">
+                <h2 className="text-sm font-bold uppercase text-muted-foreground">
                   {format(monthDate, 'MMMM yyyy', { locale: localeId })}
                 </h2>
                 <div className="h-px flex-1 bg-border" />
@@ -716,8 +710,8 @@ const AgentSchedule = () => {
                             key={i}
                             className={cn(
                               "w-1.5 h-1.5 rounded-full",
-                              status === 'open' && "bg-green-500",
-                              status === 'almost-full' && "bg-yellow-500",
+                              status === 'open' && "bg-emerald-500",
+                              status === 'almost-full' && "bg-amber-500",
                               status === 'full' && "bg-red-500"
                             )}
                           />
@@ -736,11 +730,11 @@ const AgentSchedule = () => {
           {/* Legend */}
           <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
               <span className="text-xs text-muted-foreground">Open</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-yellow-500" />
+              <div className="w-2 h-2 rounded-full bg-amber-500" />
               <span className="text-xs text-muted-foreground">Almost Full</span>
             </div>
             <div className="flex items-center gap-2">

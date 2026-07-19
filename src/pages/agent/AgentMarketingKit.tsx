@@ -17,7 +17,6 @@ import {
   Loader2,
   ExternalLink,
   Trash2,
-  Eye,
   MessageSquare,
   Palette,
   Package
@@ -33,6 +32,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
 
 interface NativeMaterial {
   id: string;
@@ -258,21 +258,21 @@ const AgentMarketingKit = () => {
 
   if (packagesLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 py-6 px-4">
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Marketing Kit</h1>
-          <p className="text-muted-foreground">Download materi promosi dan tools untuk meningkatkan penjualan</p>
-        </div>
+    <div className="max-w-6xl mx-auto space-y-6">
+      <AgentPageHeader
+        title="Marketing Kit"
+        description="Download materi promosi dan tools untuk meningkatkan penjualan"
+        icon={Palette}
+      />
 
+      <div className="space-y-8">
         {/* General Marketing Kit */}
         <Card>
           <CardHeader>
@@ -305,81 +305,30 @@ const AgentMarketingKit = () => {
 
               {/* Visual Assets Tab */}
               <TabsContent value="visual" className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  {/* Katalog Digital */}
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center shrink-0">
-                          <FileText className="h-6 w-6 text-red-600 dark:text-red-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold">Katalog Digital 2025</h3>
-                          <p className="text-sm text-muted-foreground">PDF • 15 MB • Updated Jan 2025</p>
-                          <div className="flex gap-2 mt-3">
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-4 w-4 mr-1" />
-                              Preview
-                            </Button>
-                            <Button size="sm">
-                              <Download className="h-4 w-4 mr-1" />
-                              Download
-                            </Button>
+                {filterMaterials('visual').length > 0 ? (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {filterMaterials('visual').map((material) => (
+                      <div key={material.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium text-sm">{material.title}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {material.format}
+                            </p>
                           </div>
                         </div>
+                        <Button size="sm" variant="outline" onClick={() => handleDownload(material.file_url, material.title)}>
+                          <Download className="h-4 w-4" />
+                        </Button>
                       </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Flyer Templates */}
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center shrink-0">
-                          <ImageIcon className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold">Flyer Templates</h3>
-                          <p className="text-sm text-muted-foreground mb-2">5 template siap pakai</p>
-                          <div className="flex flex-wrap gap-1 mb-3">
-                            <Badge variant="secondary" className="text-xs">A4 Print</Badge>
-                            <Badge variant="secondary" className="text-xs">IG Post</Badge>
-                            <Badge variant="secondary" className="text-xs">IG Story</Badge>
-                            <Badge variant="secondary" className="text-xs">FB Post</Badge>
-                            <Badge variant="secondary" className="text-xs">WA Status</Badge>
-                          </div>
-                          <Button size="sm">
-                            <Download className="h-4 w-4 mr-1" />
-                            Download Pack (ZIP)
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Dynamic materials from database */}
-                {filterMaterials('visual').length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-sm text-muted-foreground">Materi Lainnya</h4>
-                    <div className="grid gap-3 md:grid-cols-2">
-                      {filterMaterials('visual').map((material) => (
-                        <div key={material.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                            <div>
-                              <p className="font-medium text-sm">{material.title}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {material.format}
-                              </p>
-                            </div>
-                          </div>
-                          <Button size="sm" variant="outline" onClick={() => handleDownload(material.file_url, material.title)}>
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>Belum ada materi visual general</p>
+                    <p className="text-sm">Cek materi per paket di bawah</p>
                   </div>
                 )}
               </TabsContent>
@@ -416,7 +365,8 @@ const AgentMarketingKit = () => {
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
-                      💬 Caption IG/FB
+                      <MessageSquare className="h-4 w-4" />
+                      Caption IG/FB
                       <Badge variant="secondary">{IG_CAPTIONS.length} caption</Badge>
                     </CardTitle>
                   </CardHeader>
@@ -444,45 +394,24 @@ const AgentMarketingKit = () => {
 
               {/* Videos Tab */}
               <TabsContent value="video" className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 bg-pink-100 dark:bg-pink-900/30 rounded-lg flex items-center justify-center shrink-0">
-                          <Video className="h-6 w-6 text-pink-600 dark:text-pink-400" />
+                {filterMaterials('video').length > 0 ? (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {filterMaterials('video').map((material) => (
+                      <div key={material.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Video className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium text-sm">{material.title}</p>
+                            <p className="text-xs text-muted-foreground">{material.format}</p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold">Video Testimonial</h3>
-                          <p className="text-sm text-muted-foreground">30 detik • MP4</p>
-                          <Button size="sm" className="mt-3">
-                            <Download className="h-4 w-4 mr-1" />
-                            Download
-                          </Button>
-                        </div>
+                        <Button size="sm" variant="outline" onClick={() => handleDownload(material.file_url, material.title)}>
+                          <Download className="h-4 w-4" />
+                        </Button>
                       </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center shrink-0">
-                          <Video className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold">Hotel Tour</h3>
-                          <p className="text-sm text-muted-foreground">60 detik • MP4</p>
-                          <Button size="sm" className="mt-3">
-                            <Download className="h-4 w-4 mr-1" />
-                            Download
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {filterMaterials('video').length === 0 && materials.filter(m => m.category === 'video').length === 0 && (
+                    ))}
+                  </div>
+                ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     <Video className="h-12 w-12 mx-auto mb-2 opacity-50" />
                     <p>Video akan segera tersedia</p>
@@ -520,9 +449,6 @@ const AgentMarketingKit = () => {
                               <ExternalLink className="h-4 w-4 mr-1" />
                               View Page
                             </a>
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            Edit Bio
                           </Button>
                         </div>
                       </div>
@@ -714,7 +640,7 @@ const AgentMarketingKit = () => {
       <Dialog open={showScriptModal} onOpenChange={setShowScriptModal}>
         <DialogContent className="max-w-lg max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>📝 {scriptCategory}</DialogTitle>
+            <DialogTitle>{scriptCategory}</DialogTitle>
             <DialogDescription>Pilih dan copy template yang sesuai</DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[60vh]">

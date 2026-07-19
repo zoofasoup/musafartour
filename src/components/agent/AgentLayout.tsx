@@ -4,7 +4,7 @@ import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { Button } from "@/components/ui/button";
 import {
   LogOut, LayoutDashboard, Package, Calendar, Wallet,
-  Palette, Trophy, User, PanelLeft, Home, BookOpen
+  Palette, Trophy, BookOpen
 } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo.svg";
 import {
@@ -88,8 +88,8 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-slate-50 flex w-full">
       <SidebarProvider defaultOpen={false}>
-        <Sidebar className="border-r border-slate-200/60 bg-slate-50">
-          <SidebarHeader className="p-4 border-b border-slate-200/60 h-[72px] flex items-center justify-center">
+        <Sidebar className="border-r border-slate-100 bg-white">
+          <SidebarHeader className="p-4 border-b border-slate-100 h-[72px] flex items-center justify-center">
             <Link to="/agent/dashboard" className="flex items-center gap-2 transition-transform hover:scale-105">
               <img src={musafarLogo} alt="Musafar Tour" className="h-8 w-auto" />
               <span className="font-bold text-xl text-primary hidden sm:inline-block">Agent</span>
@@ -109,13 +109,13 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
                           asChild
                           className={`transition-all duration-300 ease-in-out rounded-lg ${
                             active
-                              ? "bg-white shadow-sm text-primary border border-slate-100"
-                              : "text-slate-500 hover:bg-slate-200/50 hover:text-slate-800"
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
                           }`}
                           tooltip={item.title}
                         >
                           <Link to={item.url}>
-                            <Icon className={`h-4 w-4 ${active ? "text-primary" : ""}`} />
+                            <Icon className={`h-4 w-4 ${active ? "text-emerald-600" : ""}`} />
                             <span className={active ? "font-semibold text-slate-900" : "font-medium"}>{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
@@ -128,7 +128,7 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
           </SidebarContent>
 
           <SidebarFooter className="p-4">
-            <Link to="/agent/profile" className="px-2 mb-4 flex flex-col hover:bg-slate-200/50 p-2 rounded-lg transition-all duration-300 ease-in-out cursor-pointer group">
+            <Link to="/agent/profile" className="px-2 mb-4 flex flex-col hover:bg-slate-100 p-2 rounded-lg transition-all duration-300 ease-in-out cursor-pointer group">
               <p className="text-sm font-semibold text-slate-700 truncate w-full group-hover:text-slate-900">
                 {agent.name}
               </p>
@@ -152,7 +152,7 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
         </Sidebar>
 
         <div className="flex-1 h-svh p-2 sm:p-4">
-          <main className="h-full w-full overflow-auto bg-[#F8FAFC] flex flex-col rounded-xl border border-slate-200/60 relative shadow-sm">
+          <main className="h-full w-full overflow-auto bg-[#F8FAFC] flex flex-col rounded-3xl border border-slate-100/60 relative shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
             <AgentHeader />
             <div className="p-4 sm:p-6 md:p-8 flex-1">
               <Suspense
