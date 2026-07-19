@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "@/hooks/use-toast";
 import { LazyImage } from "@/components/ui/lazy-image";
-import { getPriceBadgeStyle } from "@/lib/utils";
+import { getPriceBadgeStyle, getOptimizedImageUrl } from "@/lib/utils";
 
 import garudaLogo from "@/assets/airlines/garuda-indonesia.svg";
 import saudiaLogo from "@/assets/airlines/saudia.svg";
@@ -168,7 +168,7 @@ export const PackageCard = ({
         )}
 
         <LazyImage
-          src={allImages[currentImageIndex] || '/placeholder.svg'}
+          src={getOptimizedImageUrl(allImages[currentImageIndex], 500) || '/placeholder.svg'}
           alt={`Paket Umroh ${title} - Musafar Tour`}
           loading={index < 4 ? 'eager' : 'lazy'}
           decoding="async"

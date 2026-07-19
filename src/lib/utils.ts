@@ -142,11 +142,25 @@ export function parseListItems(items: string | string[] | null | undefined): str
 }
 
 /**
- * Returns the image URL as-is. Previously used Supabase's /render/image/public/
- * endpoint for on-the-fly WebP conversion, but that applies resizing_type:fill
- * by default which crops/zooms images. Images are now served directly.
+ * Requests a downscaled version of a Supabase Storage image via its
+ * /render/image/public/ transform endpoint, for contexts (thumbnails, cards)
+ * that don't need the full original resolution. Uses resize=contain
+ * (resizing_type:fit) with only `width` set, so the image is scaled down
+ * proportionally with no cropping - an earlier attempt at this used the
+ * default resizing_type:fill (which forces a target aspect ratio and crops
+ * to match it) and visibly cropped/zoomed images, so it was reverted. This
+ * mode preserves the original aspect ratio; container-level CSS
+ * (object-cover) still handles cropping to fit the card exactly as it does
+ * for full-size images.
+ * Non-Supabase-Storage URLs (external links, /placeholder.svg) are returned
+ * unchanged.
  */
-export function getOptimizedImageUrl(url: string | null | undefined, _width?: number, _quality = 80): string {
+export function getOptimizedImageUrl(url: string | null | undefined, width?: number, quality = 75): string {
   if (!url) return '';
-  return url;
+  const marker = '/storage/v1/object/public/';
+  const idx = url.indexOf(marker);
+  if (idx === -1 || !width) return url;
+  const transformed = url.slice(0, idx) + '/storage/v1/render/image/public/' + url.slice(idx + marker.length);
+  const separator = transformed.includes('?') ? '&' : '?';
+  return `${transformed}${separator}width=${width}&resize=contain&quality=${quality}`;
 }
