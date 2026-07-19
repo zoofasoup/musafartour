@@ -83,10 +83,6 @@ const PackageDetailPage = () => {
   const grandTotal = selectedCombo ? selectedCombo.totalRoomCost + childTotal + infantTotal : 0;
   const totalSavings = adults * discount;
 
-  const handleBooking = () => {
-    document.getElementById("kalkulator-harga")?.scrollIntoView({ behavior: "smooth" });
-  };
-
   const handleWhatsApp = () => {
     if (!packageData || !selectedCombo) return;
     const tierLabel = TIER_LABELS[effectiveTier] || effectiveTier;
@@ -280,7 +276,6 @@ const PackageDetailPage = () => {
           setCustomerName={setCustomerName}
           handleWhatsApp={handleWhatsApp}
           handleNotifyMe={handleNotifyMe}
-          handleBooking={handleBooking}
         />
       </div>
 
@@ -307,7 +302,6 @@ const PackageDetailPage = () => {
         setCustomerName={setCustomerName}
         handleWhatsApp={handleWhatsApp}
         handleNotifyMe={handleNotifyMe}
-        handleBooking={handleBooking}
       />
 
       <Footer />

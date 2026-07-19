@@ -47,7 +47,6 @@ export interface PackagePricingBodyProps {
   setCustomerName: (val: string) => void;
   handleWhatsApp: () => void;
   handleNotifyMe: () => void;
-  handleBooking: () => void;
 }
 
 /** The calculator's actual content, shared between the desktop sticky sidebar and the mobile Sheet. */
@@ -74,7 +73,6 @@ export function PackagePricingBody({
   setCustomerName,
   handleWhatsApp,
   handleNotifyMe,
-  handleBooking,
 }: PackagePricingBodyProps) {
   return (
     <div className="p-4 space-y-4">
@@ -218,15 +216,13 @@ export function PackagePricingBody({
         </>
       )}
 
-      <Separator />
-      {isPackageUnavailable(packageData) ? (
-        <Button onClick={handleNotifyMe} className="w-full gap-2 text-sm font-bold" variant="outline">
-          <Bell className="h-4 w-4" /> Notify Me
-        </Button>
-      ) : (
-        <Button onClick={handleBooking} className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold">
-          <Users className="h-4 w-4" /> Daftar Sekarang
-        </Button>
+      {isPackageUnavailable(packageData) && (
+        <>
+          <Separator />
+          <Button onClick={handleNotifyMe} className="w-full gap-2 text-sm font-bold" variant="outline">
+            <Bell className="h-4 w-4" /> Notify Me
+          </Button>
+        </>
       )}
     </div>
   );
