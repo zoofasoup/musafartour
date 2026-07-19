@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { BedDouble, Users, PersonStanding, Baby, Sparkles, Crown, MessageCircle, Bell, Minus, Plus } from "lucide-react";
+import { BedDouble, Calculator, Users, PersonStanding, Baby, Sparkles, Crown, MessageCircle, Bell, Minus, Plus } from "lucide-react";
 import { cn, isPackageUnavailable, formatCurrency } from "@/lib/utils";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackagePrice } from "@/lib/packageSchema";
@@ -230,14 +231,48 @@ export function PackagePricingBody({
   );
 }
 
-/** Desktop sticky sidebar shell around PackagePricingBody. Hidden on mobile - see PackageStickyMobileBar. */
+/**
+ * Desktop sticky sidebar shell around PackagePricingBody. Hidden on mobile -
+ * see PackageStickyMobileBar. Starts collapsed (price reference + one CTA)
+ * so the interactive calculator doesn't compete for attention the moment
+ * the page loads - only expands into the full form once the user asks for it.
+ */
 export function PackagePricing(props: PackagePricingBodyProps) {
+  const [expanded, setExpanded] = useState(false);
+  const { price } = props;
+
   return (
     <aside
       id="kalkulator-harga"
       className="hidden lg:block w-[360px] shrink-0 rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-y-auto h-fit sticky top-24"
     >
-      <PackagePricingBody {...props} />
+      {expanded ? (
+        <PackagePricingBody {...props} />
+      ) : (
+        <div className="p-4 space-y-4">
+          <div className="flex items-center gap-2 mb-1">
+            <BedDouble className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-bold">Kalkulator Harga</h3>
+          </div>
+
+          {price && (
+            <div className="grid grid-cols-3 gap-1.5">
+              {(["quad", "triple", "double"] as const).map((rt) => (
+                <div key={rt} className="p-2 rounded-lg text-center border bg-muted/30">
+                  <span className="block text-[10px] text-muted-foreground capitalize">{rt}</span>
+                  <span className="block text-xs font-bold mt-0.5">
+                    {price[rt] > 0 ? formatCurrency(price[rt]) : "—"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <Button onClick={() => setExpanded(true)} className="w-full gap-2 text-sm font-bold">
+            <Calculator className="h-4 w-4" /> Hitung Harga & Pesan
+          </Button>
+        </div>
+      )}
     </aside>
   );
 }
