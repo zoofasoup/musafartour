@@ -7,7 +7,9 @@ import { PackageCard } from "@/components/PackageCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package, Calendar, Plane, Clock, X, MessageCircle } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
+import { Package, Calendar, Plane, Clock, X, MessageCircle, SlidersHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { formatPriceJuta, getTierPrice, isPackageUnavailable } from "@/lib/utils";
@@ -20,6 +22,7 @@ const PaketUmroh = () => {
   const [month, setMonth] = useState<string>("all");
   const [flightType, setFlightType] = useState<string>("all");
   const [duration, setDuration] = useState<string>("all");
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   const { data: packages = [], isLoading: loading } = usePublishedPackages();
 
@@ -69,6 +72,15 @@ const PaketUmroh = () => {
   );
 
   const isFiltered = category !== "all" || airline !== "all" || month !== "all" || flightType !== "all" || duration !== "all";
+  const activeFilterCount = [category, airline, month, flightType, duration].filter((v) => v !== "all").length;
+
+  const filterConfigs = [
+    { key: "category", value: category, onChange: setCategory, placeholder: "Kategori", allLabel: "Semua Kategori", options: filterOptions.categories.map((c: any) => ({ value: c.value, label: c.label })), width: "w-[160px]" },
+    { key: "month", value: month, onChange: setMonth, placeholder: "Bulan", allLabel: "Semua Bulan", options: filterOptions.months.map((m) => ({ value: m.value, label: m.label })), width: "w-[170px]" },
+    { key: "airline", value: airline, onChange: setAirline, placeholder: "Maskapai", allLabel: "Semua Maskapai", options: filterOptions.airlines.map((a) => ({ value: a, label: a })), width: "w-[170px]" },
+    { key: "flightType", value: flightType, onChange: setFlightType, placeholder: "Penerbangan", allLabel: "Semua Tipe", options: [{ value: "direct", label: "Direct" }, { value: "transit", label: "Transit" }], width: "w-[150px]" },
+    { key: "duration", value: duration, onChange: setDuration, placeholder: "Durasi", allLabel: "Semua Durasi", options: filterOptions.durations.map((d) => ({ value: String(d), label: `${d} Hari` })), width: "w-[140px]" },
+  ];
 
   const resetFilters = () => {
     setCategory("all");
@@ -116,62 +128,68 @@ const PaketUmroh = () => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Pilihan paket Umroh terlengkap mulai dari Budget hingga Premium Bintang 5.
           </p>
-          {/* Filter Bar */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-[160px] h-9 text-sm rounded-full bg-white shadow-sm border-border/50"><SelectValue placeholder="Kategori" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Kategori</SelectItem>
-                {filterOptions.categories.map((c: any) => (
-                  <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={month} onValueChange={setMonth}>
-              <SelectTrigger className="w-[170px] h-9 text-sm rounded-full bg-white shadow-sm border-border/50"><SelectValue placeholder="Bulan" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Bulan</SelectItem>
-                {filterOptions.months.map((m) => (
-                  <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={airline} onValueChange={setAirline}>
-              <SelectTrigger className="w-[170px] h-9 text-sm rounded-full bg-white shadow-sm border-border/50"><SelectValue placeholder="Maskapai" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Maskapai</SelectItem>
-                {filterOptions.airlines.map((a) => (
-                  <SelectItem key={a} value={a}>{a}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={flightType} onValueChange={setFlightType}>
-              <SelectTrigger className="w-[150px] h-9 text-sm rounded-full bg-white shadow-sm border-border/50"><SelectValue placeholder="Penerbangan" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Tipe</SelectItem>
-                <SelectItem value="direct">Direct</SelectItem>
-                <SelectItem value="transit">Transit</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={duration} onValueChange={setDuration}>
-              <SelectTrigger className="w-[140px] h-9 text-sm rounded-full bg-white shadow-sm border-border/50"><SelectValue placeholder="Durasi" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Durasi</SelectItem>
-                {filterOptions.durations.map((d) => (
-                  <SelectItem key={d} value={String(d)}>{d} Hari</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Filter Bar - desktop: inline pill row */}
+          <div className="hidden lg:flex flex-wrap items-center justify-center gap-3 mt-8">
+            {filterConfigs.map((f) => (
+              <Select key={f.key} value={f.value} onValueChange={f.onChange}>
+                <SelectTrigger className={`${f.width} h-9 text-sm rounded-full bg-white shadow-sm border-border/50`}><SelectValue placeholder={f.placeholder} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{f.allLabel}</SelectItem>
+                  {f.options.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ))}
 
             {isFiltered && (
               <Button variant="ghost" size="sm" onClick={resetFilters} className="text-muted-foreground hover:text-foreground gap-1">
                 <X className="h-3 w-3" /> Reset
               </Button>
             )}
+          </div>
+
+          {/* Filter Bar - mobile: single trigger opening a bottom sheet */}
+          <div className="flex lg:hidden justify-center mt-8">
+            <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="rounded-full h-9 gap-2 bg-white shadow-sm border-border/50 px-5">
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                  Filter
+                  {activeFilterCount > 0 && (
+                    <Badge className="h-5 min-w-5 justify-center rounded-full px-1 text-[10px]">{activeFilterCount}</Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-2xl">
+                <SheetHeader>
+                  <SheetTitle>Filter Paket</SheetTitle>
+                </SheetHeader>
+                <div className="space-y-3 py-4">
+                  {filterConfigs.map((f) => (
+                    <Select key={f.key} value={f.value} onValueChange={f.onChange}>
+                      <SelectTrigger className="w-full h-11 text-sm rounded-xl"><SelectValue placeholder={f.placeholder} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{f.allLabel}</SelectItem>
+                        {f.options.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ))}
+                </div>
+                <div className="flex gap-2 border-t pt-4">
+                  {isFiltered && (
+                    <Button variant="outline" className="flex-1" onClick={resetFilters}>
+                      <X className="h-3.5 w-3.5" /> Reset
+                    </Button>
+                  )}
+                  <Button className="flex-1" onClick={() => setMobileFilterOpen(false)}>
+                    Terapkan Filter
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </section>
