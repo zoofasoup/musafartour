@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { BedDouble, Users, PersonStanding, Baby, Sparkles, Crown, MessageCircle, Bell, Minus, Plus } from "lucide-react";
@@ -112,7 +111,7 @@ export function PackagePricingBody({
             <PersonStanding className="h-3.5 w-3.5 text-emerald-500" />
             <div>
               <span className="text-xs font-semibold">Anak</span>
-              <span className="text-[10px] text-muted-foreground ml-1">25jt</span>
+              <span className="text-[10px] text-muted-foreground ml-1">25jt · Sharing bed</span>
             </div>
           </div>
           <CounterInput value={children} onChange={setChildren} />
@@ -122,25 +121,11 @@ export function PackagePricingBody({
             <Baby className="h-3.5 w-3.5 text-pink-500" />
             <div>
               <span className="text-xs font-semibold">Infant</span>
-              <span className="text-[10px] text-muted-foreground ml-1">15jt</span>
+              <span className="text-[10px] text-muted-foreground ml-1">15jt · Tanpa bed & perlengkapan</span>
             </div>
           </div>
           <CounterInput value={infants} onChange={setInfants} />
         </div>
-      </div>
-
-      {/* Discount */}
-      <div className="space-y-1.5">
-        <Label className="text-xs flex items-center gap-1.5">
-          <Sparkles className="h-3 w-3 text-amber-500" /> Diskon/Pax
-        </Label>
-        <Input
-          type="number"
-          placeholder="0"
-          value={discount || ""}
-          onChange={(e) => { setDiscount(Number(e.target.value) || 0); setSelectedComboIdx(0); }}
-          className="font-mono text-xs h-8"
-        />
       </div>
 
       <Separator />
