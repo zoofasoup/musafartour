@@ -252,7 +252,6 @@ const PackageDetailPage = () => {
           <PackageHotels packageData={packageData} hotels={hotels} />
 
           <PackageFeatures
-            packageData={packageData}
             sellingPoints={sellingPoints}
             includedItems={includedItems}
             excludedItems={excludedItems}

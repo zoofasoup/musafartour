@@ -1,9 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Plane, ExternalLink, Download } from "lucide-react";
-import { cn, getPriceBadgeStyle, formatPriceJuta } from "@/lib/utils";
+import { Clock, Plane, ExternalLink } from "lucide-react";
+import { cn, getPriceBadgeStyle, formatPriceJuta, parseListItems } from "@/lib/utils";
 import { airlineLogos } from "@/lib/airlineLogos";
 import { PackageUrgencyBar } from "@/components/package-detail/PackageUrgencyBar";
+import { ItineraryDialog } from "@/components/package-detail/ItineraryDialog";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackagePrice } from "@/lib/packageSchema";
 
@@ -13,6 +14,8 @@ interface PackageHeaderProps {
 }
 
 export function PackageHeader({ packageData, price }: PackageHeaderProps) {
+  const hasItinerary = parseListItems(packageData.itinerary).length > 0;
+
   return (
     <div className="flex flex-col space-y-4">
       <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground leading-tight">
@@ -52,7 +55,7 @@ export function PackageHeader({ packageData, price }: PackageHeaderProps) {
 
       <PackageUrgencyBar packageData={packageData} />
 
-      {(packageData.catalog_link || packageData.itinerary_link) && (
+      {(packageData.catalog_link || hasItinerary) && (
         <div className="flex flex-wrap gap-2 pt-1">
           {packageData.catalog_link && (
             <a href={packageData.catalog_link} target="_blank" rel="noopener noreferrer">
@@ -61,12 +64,8 @@ export function PackageHeader({ packageData, price }: PackageHeaderProps) {
               </Button>
             </a>
           )}
-          {packageData.itinerary_link && (
-            <a href={packageData.itinerary_link} target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" className="gap-2 text-sm">
-                <Download className="h-4 w-4" /> Download Itinerary
-              </Button>
-            </a>
+          {hasItinerary && (
+            <ItineraryDialog packageName={packageData.package_name} itinerary={packageData.itinerary} />
           )}
         </div>
       )}
