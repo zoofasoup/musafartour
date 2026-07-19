@@ -9,6 +9,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    --cache-bust-20260719: 1;
     --background: 40 33% 96%;
     --foreground: 0 0% 15%;
 
