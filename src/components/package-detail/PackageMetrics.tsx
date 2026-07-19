@@ -19,7 +19,7 @@ interface PackageMetricsProps {
 
 export function PackageMetrics({ packageData, transport }: PackageMetricsProps) {
   return (
-    <Card className="border shadow-sm">
+    <Card>
       <CardContent className="p-5">
         <h3 className="text-sm font-bold mb-4 text-muted-foreground uppercase tracking-wider">
           Info Keberangkatan

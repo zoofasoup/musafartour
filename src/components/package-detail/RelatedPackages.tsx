@@ -20,12 +20,10 @@ export function RelatedPackages({ currentPackageId, currentTier }: RelatedPackag
       .filter((p) => p.id !== currentPackageId)
       .filter((p) => (p.available_tiers?.[0] || "nyaman") === currentTier)
       .filter((p) => new Date(p.departure_date) >= today)
-      .sort((a, b) => {
-        // Available packages first (site-wide convention), nearest departure first within each group.
-        const unavailDiff = Number(isPackageUnavailable(a)) - Number(isPackageUnavailable(b));
-        if (unavailDiff !== 0) return unavailDiff;
-        return new Date(a.departure_date).getTime() - new Date(b.departure_date).getTime();
-      })
+      // Only recommend packages someone can actually book - a sold-out card
+      // wastes one of the few cross-sell slots on something unbuyable.
+      .filter((p) => !isPackageUnavailable(p))
+      .sort((a, b) => new Date(a.departure_date).getTime() - new Date(b.departure_date).getTime())
       .slice(0, 4);
   }, [packages, currentPackageId, currentTier]);
 

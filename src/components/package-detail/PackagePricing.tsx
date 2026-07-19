@@ -209,8 +209,8 @@ export function PackagePricingBody({
               onChange={(e) => setCustomerName(e.target.value)}
               className="text-xs h-8"
             />
-            <Button onClick={handleWhatsApp} className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs" size="sm">
-              <MessageCircle className="h-3.5 w-3.5" /> Kirim via WhatsApp
+            <Button onClick={handleWhatsApp} className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold">
+              <MessageCircle className="h-4 w-4" /> Kirim via WhatsApp
             </Button>
           </div>
         </>
@@ -218,12 +218,12 @@ export function PackagePricingBody({
 
       <Separator />
       {isPackageUnavailable(packageData) ? (
-        <Button onClick={handleNotifyMe} className="w-full gap-2 text-xs" variant="outline" size="sm">
-          <Bell className="h-3.5 w-3.5" /> Notify Me
+        <Button onClick={handleNotifyMe} className="w-full gap-2 text-sm font-bold" variant="outline">
+          <Bell className="h-4 w-4" /> Notify Me
         </Button>
       ) : (
-        <Button onClick={handleBooking} className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white text-xs" size="sm">
-          <Users className="h-3.5 w-3.5" /> Daftar Sekarang
+        <Button onClick={handleBooking} className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold">
+          <Users className="h-4 w-4" /> Daftar Sekarang
         </Button>
       )}
     </div>
@@ -235,7 +235,7 @@ export function PackagePricing(props: PackagePricingBodyProps) {
   return (
     <aside
       id="kalkulator-harga"
-      className="hidden lg:block w-[360px] shrink-0 border rounded-2xl bg-card/80 backdrop-blur-sm overflow-y-auto shadow-sm h-fit sticky top-24"
+      className="hidden lg:block w-[360px] shrink-0 rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-y-auto h-fit sticky top-24"
     >
       <PackagePricingBody {...props} />
     </aside>

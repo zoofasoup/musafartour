@@ -94,7 +94,7 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
   const madinahPhotos = getPhotos(hotels.madinah.name);
 
   return (
-    <Card className="border shadow-sm">
+    <Card>
       <CardContent className="p-5">
         <h3 className="text-sm font-bold text-muted-foreground uppercase mb-4">
           Akomodasi

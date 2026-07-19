@@ -23,7 +23,7 @@ export function PackageFeatures({
       <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-1">
         {/* Selling Points */}
         {sellingPoints.length > 0 && (
-          <AccordionItem value="item-1" className="border rounded-lg bg-card px-4">
+          <AccordionItem value="item-1" className="rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] px-5">
             <AccordionTrigger className="hover:no-underline py-4">
               <span className="text-sm font-bold text-muted-foreground uppercase flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-amber-500" /> Keunggulan Paket
@@ -44,7 +44,7 @@ export function PackageFeatures({
 
         {/* Included & Excluded */}
         {(includedItems.length > 0 || excludedItems.length > 0) && (
-          <AccordionItem value="item-2" className="border rounded-lg bg-card px-4">
+          <AccordionItem value="item-2" className="rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] px-5">
             <AccordionTrigger className="hover:no-underline py-4">
               <span className="text-sm font-bold text-muted-foreground uppercase flex items-center gap-2">
                 <Package className="h-4 w-4 text-primary" /> Termasuk & Tidak Termasuk
@@ -89,7 +89,7 @@ export function PackageFeatures({
 
         {/* Equipment */}
         {equipmentItems.length > 0 && (
-          <AccordionItem value="item-3" className="border rounded-lg bg-card px-4">
+          <AccordionItem value="item-3" className="rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] px-5">
             <AccordionTrigger className="hover:no-underline py-4">
               <span className="text-sm font-bold text-muted-foreground uppercase flex items-center gap-2">
                 <Package className="h-4 w-4 text-primary" /> Perlengkapan
@@ -110,7 +110,7 @@ export function PackageFeatures({
 
         {/* Itinerary */}
         {packageData.itinerary && packageData.itinerary !== "-" && (
-          <AccordionItem value="item-4" className="border rounded-lg bg-card px-4">
+          <AccordionItem value="item-4" className="rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] px-5">
             <AccordionTrigger className="hover:no-underline py-4">
               <span className="text-sm font-bold text-muted-foreground uppercase flex items-center gap-2">
                 <Route className="h-4 w-4 text-primary" /> Itinerary Perjalanan

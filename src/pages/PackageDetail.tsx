@@ -4,7 +4,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -13,7 +12,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Package, ArrowLeft, ExternalLink, Download } from "lucide-react";
+import { Package, ArrowLeft } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { usePackageBySlug } from "@/hooks/usePackages";
 import { isPackageUnavailable, formatCurrency, parseListItems } from "@/lib/utils";
@@ -25,7 +24,7 @@ import { id as localeId } from "date-fns/locale";
 
 import { TierSelector, TIER_LABELS } from "@/components/package-detail/TierSelector";
 import { PackageGallery } from "@/components/package-detail/PackageGallery";
-import { PackageUrgencyBar } from "@/components/package-detail/PackageUrgencyBar";
+import { PackageHeader } from "@/components/package-detail/PackageHeader";
 import { PackageMetrics } from "@/components/package-detail/PackageMetrics";
 import { PackageHotels } from "@/components/package-detail/PackageHotels";
 import { PackageFeatures } from "@/components/package-detail/PackageFeatures";
@@ -166,6 +165,7 @@ const PackageDetailPage = () => {
   const equipmentItems = parseListItems(packageData.equipment_list);
   const sellingPoints = parseListItems(packageData.selling_points);
   const transport = resolveTierTransport(packageData, effectiveTier);
+  const hasImages = !!(packageData.banner_image || packageData.gallery_images?.length);
 
   const pageUrl = packageData.canonical_url || `${SITE_URL}/paket-umroh/${packageData.slug}`;
   const pageTitle = packageData.meta_title || `Paket Umroh ${packageData.package_name} - Musafar Tour`;
@@ -207,7 +207,6 @@ const PackageDetailPage = () => {
       <TierSelector
         availableTiers={availableTiers}
         effectiveTier={effectiveTier}
-        packageName={packageData.package_name}
         onSelectTier={(t) => {
           setSelectedTier(t);
           setSelectedComboIdx(0);
@@ -238,11 +237,19 @@ const PackageDetailPage = () => {
 
       <div className="flex flex-col lg:flex-row container mx-auto px-6 md:px-8 min-h-[calc(100vh-4rem)] gap-6 mt-4 pb-24 lg:pb-8">
         <main className="flex-1 lg:pr-2 space-y-6">
-          <PackageGallery packageData={packageData} price={price}>
-            <PackageUrgencyBar packageData={packageData} />
-            <PackageMetrics packageData={packageData} transport={transport} />
-            <PackageHotels packageData={packageData} hotels={hotels} />
-          </PackageGallery>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {hasImages && (
+              <div className="lg:col-span-5 self-start">
+                <PackageGallery packageData={packageData} price={price} />
+              </div>
+            )}
+            <div className={hasImages ? "lg:col-span-7" : "lg:col-span-12"}>
+              <PackageHeader packageData={packageData} price={price} />
+            </div>
+          </div>
+
+          <PackageMetrics packageData={packageData} transport={transport} />
+          <PackageHotels packageData={packageData} hotels={hotels} />
 
           <PackageFeatures
             packageData={packageData}
@@ -251,27 +258,6 @@ const PackageDetailPage = () => {
             excludedItems={excludedItems}
             equipmentItems={equipmentItems}
           />
-
-          {(packageData.catalog_link || packageData.itinerary_link) && (
-            <Card className="border shadow-sm">
-              <CardContent className="p-5 flex flex-wrap gap-3">
-                {packageData.catalog_link && (
-                  <a href={packageData.catalog_link} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline" className="gap-2 text-sm">
-                      <ExternalLink className="h-4 w-4" /> Lihat Katalog
-                    </Button>
-                  </a>
-                )}
-                {packageData.itinerary_link && (
-                  <a href={packageData.itinerary_link} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline" className="gap-2 text-sm">
-                      <Download className="h-4 w-4" /> Download Itinerary
-                    </Button>
-                  </a>
-                )}
-              </CardContent>
-            </Card>
-          )}
 
           <RelatedPackages currentPackageId={packageData.id} currentTier={effectiveTier} />
         </main>
