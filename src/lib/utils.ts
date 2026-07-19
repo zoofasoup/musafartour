@@ -110,20 +110,43 @@ export function isPackageUnavailable(pkg: PackageAvailability): boolean {
   return false;
 }
 
+export interface TierAccentClasses {
+  /** Light tint background, e.g. for badges */
+  bg: string;
+  /** Dark, readable text on the light tint */
+  text: string;
+  /** Slightly stronger tint, for icon circles / dividers */
+  ring: string;
+  /** Border matching the tint family */
+  border: string;
+}
+
+/**
+ * The site's real color system is per-package-tier, not the neutral (zero-
+ * saturation) --primary token - use this wherever a package needs an actual
+ * brand-colored accent (price cards, badges, route graphics).
+ */
+export function getTierAccentClasses(title: string | undefined): TierAccentClasses {
+  const t = (title || '').toLowerCase();
+
+  if (t.includes('pelataran hemat')) return { bg: 'bg-orange-50', text: 'text-orange-700', ring: 'bg-orange-100', border: 'border-orange-100' };
+  if (t.includes('hemat')) return { bg: 'bg-green-50', text: 'text-green-700', ring: 'bg-green-100', border: 'border-green-100' };
+  if (t.includes('nyaman')) return { bg: 'bg-blue-50', text: 'text-blue-700', ring: 'bg-blue-100', border: 'border-blue-100' };
+  if (t.includes('plus')) return { bg: 'bg-teal-50', text: 'text-teal-700', ring: 'bg-teal-100', border: 'border-teal-100' };
+  if (t.includes('vip') || t.includes('bintang 5') || t.includes('five star') || t.includes('luxury')) {
+    return { bg: 'bg-purple-50', text: 'text-purple-700', ring: 'bg-purple-100', border: 'border-purple-100' };
+  }
+
+  return { bg: 'bg-rose-50', text: 'text-rose-700', ring: 'bg-rose-100', border: 'border-rose-100' }; // Default fallback
+}
+
 /**
  * Get background and text color classes for price based on package classification (title)
  */
 export function getPriceBadgeStyle(title: string | undefined): string {
   if (!title) return 'bg-primary/10 text-primary';
-  const t = title.toLowerCase();
-  
-  if (t.includes('pelataran hemat')) return 'bg-orange-50 text-orange-700';
-  if (t.includes('hemat')) return 'bg-green-50 text-green-700';
-  if (t.includes('nyaman')) return 'bg-blue-50 text-blue-700';
-  if (t.includes('plus')) return 'bg-teal-50 text-teal-700';
-  if (t.includes('vip') || t.includes('bintang 5') || t.includes('five star') || t.includes('luxury')) return 'bg-purple-50 text-purple-700';
-  
-  return 'bg-rose-50 text-rose-700'; // Default fallback color
+  const { bg, text } = getTierAccentClasses(title);
+  return `${bg} ${text}`;
 }
 
 /**

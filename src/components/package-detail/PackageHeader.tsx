@@ -1,5 +1,5 @@
 import { Calendar, Clock, Plane, Bus } from "lucide-react";
-import { parseListItems } from "@/lib/utils";
+import { cn, parseListItems, getTierAccentClasses } from "@/lib/utils";
 import { airlineLogos } from "@/lib/airlineLogos";
 import { PackageUrgencyBar } from "@/components/package-detail/PackageUrgencyBar";
 import { ItineraryDialog } from "@/components/package-detail/ItineraryDialog";
@@ -27,37 +27,35 @@ const fmtDate = (d: string) => {
 
 const fmtRupiah = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
 
-function InfoChip({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-2.5 rounded-xl border border-border bg-muted/30 px-3 py-2.5">
-      <Icon className="h-4 w-4 text-primary shrink-0" />
-      <div className="min-w-0">
-        <p className="text-[10px] text-muted-foreground uppercase">{label}</p>
-        <p className="text-sm font-bold truncate">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function RouteLeg({ label, from, to }: { label: string; from: string; to: string }) {
+function RouteLeg({
+  label,
+  from,
+  to,
+  accent,
+}: {
+  label: string;
+  from: string;
+  to: string;
+  accent: ReturnType<typeof getTierAccentClasses>;
+}) {
   return (
     <div className="flex-1 min-w-0">
-      <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1.5">{label}</p>
+      <p className={cn("text-[11px] font-bold uppercase tracking-wide mb-2", accent.text)}>{label}</p>
       <div className="flex items-center gap-2">
-        <div className="text-center shrink-0">
-          <p className="text-sm font-bold">{from}</p>
-          <p className="text-[10px] text-muted-foreground">{AIRPORT_CITY[from] || ""}</p>
+        <div className="shrink-0">
+          <p className="text-lg font-black leading-none">{from}</p>
+          <p className="text-[11px] text-muted-foreground mt-1">{AIRPORT_CITY[from] || ""}</p>
         </div>
-        <div className="flex-1 flex items-center gap-1">
-          <div className="h-1 w-1 rounded-full bg-primary shrink-0" />
-          <div className="flex-1 border-t border-dashed border-primary/40" />
-          <Plane className="h-3.5 w-3.5 text-primary rotate-90 shrink-0" />
-          <div className="flex-1 border-t border-dashed border-primary/40" />
-          <div className="h-1 w-1 rounded-full bg-primary shrink-0" />
+        <div className="flex-1 flex items-center px-1">
+          <div className={cn("h-px flex-1", accent.ring)} />
+          <div className={cn("mx-1.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full", accent.ring)}>
+            <Plane className={cn("h-3.5 w-3.5 rotate-90", accent.text)} />
+          </div>
+          <div className={cn("h-px flex-1", accent.ring)} />
         </div>
-        <div className="text-center shrink-0">
-          <p className="text-sm font-bold">{to}</p>
-          <p className="text-[10px] text-muted-foreground">{AIRPORT_CITY[to] || ""}</p>
+        <div className="shrink-0 text-right">
+          <p className="text-lg font-black leading-none">{to}</p>
+          <p className="text-[11px] text-muted-foreground mt-1">{AIRPORT_CITY[to] || ""}</p>
         </div>
       </div>
     </div>
@@ -76,9 +74,10 @@ export function PackageHeader({ packageData, price, transport }: PackageHeaderPr
   const hasRoute = packageData.route && packageData.route !== "-" && packageData.start_airport;
   const routeParts = hasRoute ? packageData.route!.split("-") : null;
   const [arriveAt, departFrom] = routeParts && routeParts.length === 2 ? routeParts : [null, null];
+  const accent = getTierAccentClasses(packageData.package_name);
 
   return (
-    <div className="flex flex-col space-y-5">
+    <div className="flex flex-col space-y-6">
       <div className="space-y-1">
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground leading-tight">
           {packageData.package_name}
@@ -86,59 +85,78 @@ export function PackageHeader({ packageData, price, transport }: PackageHeaderPr
         {hasTimeframe && <p className="text-sm font-medium text-muted-foreground">{packageData.timeframe}</p>}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <InfoChip icon={Calendar} label="Keberangkatan" value={fmtDate(packageData.departure_date)} />
-        <InfoChip icon={Clock} label="Durasi" value={`${packageData.duration_days} Hari`} />
+      {/* Trip basics - plain inline row, no boxes, just clear icon + value pairs */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 py-4 border-y border-border">
+        <div className="flex items-center gap-2">
+          <Calendar className={cn("h-4 w-4 shrink-0", accent.text)} />
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide leading-none mb-1">Keberangkatan</p>
+            <p className="text-sm font-bold leading-none">{fmtDate(packageData.departure_date)}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Clock className={cn("h-4 w-4 shrink-0", accent.text)} />
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide leading-none mb-1">Durasi</p>
+            <p className="text-sm font-bold leading-none">{packageData.duration_days} Hari</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {airlineLogos[packageData.flight] ? (
+            <img src={airlineLogos[packageData.flight]} alt={packageData.flight} className="h-6 object-contain" />
+          ) : (
+            <>
+              <Plane className={cn("h-4 w-4 shrink-0", accent.text)} />
+              <span className="text-sm font-bold">{packageData.flight}</span>
+            </>
+          )}
+        </div>
       </div>
 
-      <div className="flex items-center gap-2.5">
-        <span className="text-[10px] font-bold text-muted-foreground uppercase">Maskapai</span>
-        {airlineLogos[packageData.flight] ? (
-          <img src={airlineLogos[packageData.flight]} alt={packageData.flight} className="h-6 object-contain" />
-        ) : (
-          <span className="text-sm font-bold">{packageData.flight}</span>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <span className="text-sm font-medium text-muted-foreground">Harga mulai dari (Quad)</span>
-        <span className="block text-4xl font-black text-primary tracking-tight">
+      {/* Price - the one number that matters most, given real visual weight and the package's own tier color */}
+      <div className={cn("rounded-2xl border p-5", accent.bg, accent.border)}>
+        <span className={cn("text-xs font-semibold uppercase tracking-wide", accent.text)}>Harga mulai dari (Quad)</span>
+        <p className={cn("text-4xl md:text-5xl font-black tracking-tight mt-1", accent.text)}>
           {price?.quad ? fmtRupiah(price.quad) : "Harga belum tersedia"}
-        </span>
+        </p>
         {(!!price?.triple || !!price?.double) && (
-          <div className="grid grid-cols-2 gap-2 pt-1">
+          <div className={cn("flex flex-wrap items-center gap-x-5 gap-y-1 mt-3 pt-3 border-t", accent.border)}>
             {!!price?.triple && (
-              <div className="rounded-xl border border-border bg-muted/30 px-3 py-2">
-                <p className="text-[10px] text-muted-foreground uppercase">Triple</p>
-                <p className="text-sm font-bold">{fmtRupiah(price.triple)}</p>
-              </div>
+              <span className="text-xs text-foreground/80">
+                <span className="font-bold">Triple</span> · {fmtRupiah(price.triple)}
+              </span>
             )}
             {!!price?.double && (
-              <div className="rounded-xl border border-border bg-muted/30 px-3 py-2">
-                <p className="text-[10px] text-muted-foreground uppercase">Double</p>
-                <p className="text-sm font-bold">{fmtRupiah(price.double)}</p>
-              </div>
+              <span className="text-xs text-foreground/80">
+                <span className="font-bold">Double</span> · {fmtRupiah(price.double)}
+              </span>
             )}
           </div>
         )}
       </div>
 
+      {/* Route - a proper "boarding pass" moment, transport folded in as a footnote */}
       {arriveAt && departFrom && (
-        <div className="rounded-xl border border-border bg-muted/30 p-3">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase mb-3">Rute Penerbangan</p>
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-3">
-            <RouteLeg label="Berangkat" from={packageData.start_airport!} to={arriveAt} />
-            <RouteLeg label="Pulang" from={departFrom} to={packageData.start_airport!} />
+        <div className="rounded-2xl border border-border p-5">
+          <div className="flex items-center justify-between gap-2 flex-wrap mb-4">
+            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Rute Penerbangan</p>
+            {transport && (
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <Bus className="h-3.5 w-3.5" /> {transport}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-col sm:flex-row gap-5 sm:gap-4">
+            <RouteLeg label="Berangkat" from={packageData.start_airport!} to={arriveAt} accent={accent} />
+            <RouteLeg label="Pulang" from={departFrom} to={packageData.start_airport!} accent={accent} />
           </div>
         </div>
       )}
 
-      {transport && <InfoChip icon={Bus} label="Transport" value={transport} />}
-
       <PackageUrgencyBar packageData={packageData} />
 
       {hasItinerary && (
-        <div className="flex flex-wrap gap-2 pt-1">
+        <div className="flex flex-wrap gap-2">
           <ItineraryDialog packageName={packageData.package_name} itinerary={packageData.itinerary} />
         </div>
       )}
