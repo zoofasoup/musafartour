@@ -13,6 +13,7 @@ import { Package, Calendar, Plane, Clock, X, MessageCircle, SlidersHorizontal } 
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { formatPriceJuta, getTierPrice, isPackageUnavailable } from "@/lib/utils";
+import { resolveTierHotels } from "@/lib/roomCombos";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { usePublishedPackages } from "@/hooks/usePackages";
 
@@ -90,25 +91,29 @@ const PaketUmroh = () => {
     setDuration("all");
   };
 
-  const transformedPackages = sortedPackages.map((pkg) => ({
-    id: pkg.id,
-    slug: pkg.slug,
-    image: pkg.banner_image || "/placeholder.svg",
-    title: pkg.package_name,
-    price: formatPrice(getTierPrice(pkg).quad),
-    date: format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId }),
-    duration: `${pkg.duration_days} Hari`,
-    airline: pkg.flight,
-    transit: pkg.flight_type.toLowerCase() === "direct" ? "Direct" : "Transit",
-    hotelMakkah: pkg.makkah_hotel_name || undefined,
-    hotelMakkahRating: pkg.makkah_hotel_star || undefined,
-    hotelMadinah: pkg.madinah_hotel_name || undefined,
-    hotelMadinahRating: pkg.madinah_hotel_star || undefined,
-    category: (pkg as any).available_tiers?.[0] || "nyaman",
-    seatAvailable: !isPackageUnavailable(pkg),
-    isSoldOut: isPackageUnavailable(pkg),
-    waitlistCount: pkg.waitlist_count || 0,
-  }));
+  const transformedPackages = sortedPackages.map((pkg) => {
+    const primaryTier = (pkg as any).available_tiers?.[0] || "nyaman";
+    const tierHotels = resolveTierHotels(pkg, primaryTier);
+    return {
+      id: pkg.id,
+      slug: pkg.slug,
+      image: pkg.banner_image || "/placeholder.svg",
+      title: pkg.package_name,
+      price: formatPrice(getTierPrice(pkg).quad),
+      date: format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId }),
+      duration: `${pkg.duration_days} Hari`,
+      airline: pkg.flight,
+      transit: pkg.flight_type.toLowerCase() === "direct" ? "Direct" : "Transit",
+      hotelMakkah: tierHotels.makkah.name || undefined,
+      hotelMakkahRating: tierHotels.makkah.star || undefined,
+      hotelMadinah: tierHotels.madinah.name || undefined,
+      hotelMadinahRating: tierHotels.madinah.star || undefined,
+      category: primaryTier,
+      seatAvailable: !isPackageUnavailable(pkg),
+      isSoldOut: isPackageUnavailable(pkg),
+      waitlistCount: pkg.waitlist_count || 0,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-background">

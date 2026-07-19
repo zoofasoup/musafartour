@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import type { PackageData } from "@/hooks/useHomepageData";
 import { formatPriceJuta, getTierPrice, isPackageUnavailable } from "@/lib/utils";
+import { resolveTierHotels } from "@/lib/roomCombos";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 
 interface PackageFilterSectionProps {
@@ -95,6 +96,7 @@ export const PackageFilterSection = ({
 
   const transformedPackages = displayPackages.map((pkg) => {
     const displayCategory = category !== "all" ? category : (pkg as any).available_tiers?.[0] || "nyaman";
+    const tierHotels = resolveTierHotels(pkg as any, displayCategory);
 
     return {
       id: pkg.id,
@@ -106,10 +108,10 @@ export const PackageFilterSection = ({
       duration: `${pkg.duration_days} Hari`,
       airline: pkg.flight,
       transit: pkg.flight_type.toLowerCase() === "direct" ? "Direct" : "Transit",
-      hotelMakkah: pkg.makkah_hotel_name || undefined,
-      hotelMakkahRating: pkg.makkah_hotel_star || undefined,
-      hotelMadinah: pkg.madinah_hotel_name || undefined,
-      hotelMadinahRating: pkg.madinah_hotel_star || undefined,
+      hotelMakkah: tierHotels.makkah.name || undefined,
+      hotelMakkahRating: tierHotels.makkah.star || undefined,
+      hotelMadinah: tierHotels.madinah.name || undefined,
+      hotelMadinahRating: tierHotels.madinah.star || undefined,
       category: displayCategory,
       seatAvailable: !isPackageUnavailable(pkg),
       fiveStarPrice: pkg.five_star_package_price?.quad ? formatPrice(pkg.five_star_package_price.quad) : undefined,
