@@ -64,8 +64,9 @@ const ImageCarousel = ({ images }: { images: (string | null)[] }) => {
         {validImages.map((img, idx) => (
           <img
             key={idx}
-            src={img}
+            src={getOptimizedImageUrl(img, 400)}
             alt={`Hotel view ${idx + 1}`}
+            loading="lazy"
             className="w-full h-full object-cover bg-muted flex-shrink-0"
           />
         ))}

@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { ArrowLeft, Save, Upload, X, Image, Building2, DoorOpen, Bed, Clipboard, MapPin } from "lucide-react";
 import { compressImage } from "@/utils/imageCompression";
+import { getOptimizedImageUrl } from "@/lib/utils";
 
 const hotelSchema = z.object({
   name: z.string().min(1, "Nama hotel wajib diisi"),
@@ -277,8 +278,9 @@ const HotelForm = () => {
       {value ? (
         <div className="relative group">
           <img
-            src={value}
+            src={getOptimizedImageUrl(value, 500)}
             alt={label}
+            loading="lazy"
             className="w-full h-40 object-cover rounded-lg border"
           />
           <button

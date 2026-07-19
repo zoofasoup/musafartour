@@ -1,6 +1,11 @@
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Footprints, Hotel, Star } from "lucide-react";
+import { MapPin, Footprints, Hotel, Star, ImageIcon } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { getOptimizedImageUrl } from "@/lib/utils";
+import { ImageLightbox } from "@/components/ImageLightbox";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackageHotels as PackageHotelsType } from "@/lib/packageSchema";
 
@@ -12,13 +17,80 @@ const StarRating = ({ rating }: { rating: number }) => (
   </div>
 );
 
+interface HotelPhotoRow {
+  name: string;
+  exterior_photo: string | null;
+  lobby_photo: string | null;
+  room_photo: string | null;
+}
+
+function useHotelPhotoLookup() {
+  const { data } = useQuery({
+    queryKey: ["hotel-photos-all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("hotels")
+        .select("name, exterior_photo, lobby_photo, room_photo");
+      if (error) throw error;
+      return (data || []) as HotelPhotoRow[];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  return useMemo(() => {
+    const map = new Map<string, HotelPhotoRow>();
+    (data || []).forEach((row) => map.set(row.name.trim().toLowerCase(), row));
+    return map;
+  }, [data]);
+}
+
+function HotelPhotoStrip({ photos, onOpen }: { photos: { label: string; url: string }[]; onOpen: (index: number) => void }) {
+  if (photos.length === 0) return null;
+  return (
+    <div className="flex gap-1.5">
+      {photos.map((photo, i) => (
+        <button
+          key={photo.label}
+          type="button"
+          onClick={() => onOpen(i)}
+          className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border bg-muted"
+        >
+          <img
+            src={getOptimizedImageUrl(photo.url, 160)}
+            alt={photo.label}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 interface PackageHotelsProps {
   packageData: PublishedPackage;
   hotels: PackageHotelsType | null;
 }
 
 export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
+  const photoLookup = useHotelPhotoLookup();
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
+
   if (!hotels || (!hotels.makkah.name && !hotels.madinah.name)) return null;
+
+  const getPhotos = (name: string | undefined) => {
+    if (!name) return [];
+    const row = photoLookup.get(name.trim().toLowerCase());
+    if (!row) return [];
+    return [
+      { label: "Eksterior", url: row.exterior_photo },
+      { label: "Lobby", url: row.lobby_photo },
+      { label: "Kamar", url: row.room_photo },
+    ].filter((p): p is { label: string; url: string } => !!p.url);
+  };
+
+  const makkahPhotos = getPhotos(hotels.makkah.name);
+  const madinahPhotos = getPhotos(hotels.madinah.name);
 
   return (
     <Card className="border shadow-sm">
@@ -41,7 +113,7 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
                     </Badge>
                   )}
                 </div>
-                {hotels.makkah.star && <StarRating rating={hotels.makkah.star} />}
+                {hotels.makkah.star ? <StarRating rating={hotels.makkah.star} /> : null}
               </div>
               <p className="font-semibold text-sm">{hotels.makkah.name}</p>
               {(hotels.makkah.distance || hotels.makkah.walk) && (
@@ -56,6 +128,16 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
                       <Footprints className="h-3 w-3" /> {hotels.makkah.walk}
                     </span>
                   )}
+                </div>
+              )}
+              {makkahPhotos.length > 0 ? (
+                <HotelPhotoStrip
+                  photos={makkahPhotos}
+                  onOpen={(index) => setLightbox({ images: makkahPhotos.map((p) => p.url), index })}
+                />
+              ) : (
+                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70">
+                  <ImageIcon className="h-3 w-3" /> Foto belum tersedia
                 </div>
               )}
             </div>
@@ -75,7 +157,7 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
                     </Badge>
                   )}
                 </div>
-                {hotels.madinah.star && <StarRating rating={hotels.madinah.star} />}
+                {hotels.madinah.star ? <StarRating rating={hotels.madinah.star} /> : null}
               </div>
               <p className="font-semibold text-sm">{hotels.madinah.name}</p>
               {(hotels.madinah.distance || hotels.madinah.walk) && (
@@ -90,6 +172,16 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
                       <Footprints className="h-3 w-3" /> {hotels.madinah.walk}
                     </span>
                   )}
+                </div>
+              )}
+              {madinahPhotos.length > 0 ? (
+                <HotelPhotoStrip
+                  photos={madinahPhotos}
+                  onOpen={(index) => setLightbox({ images: madinahPhotos.map((p) => p.url), index })}
+                />
+              ) : (
+                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70">
+                  <ImageIcon className="h-3 w-3" /> Foto belum tersedia
                 </div>
               )}
             </div>
@@ -111,6 +203,17 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
           )}
         </div>
       </CardContent>
+
+      {lightbox && (
+        <ImageLightbox
+          images={lightbox.images.map((url) => getOptimizedImageUrl(url, 1600))}
+          currentIndex={lightbox.index}
+          isOpen={true}
+          onClose={() => setLightbox(null)}
+          onPrevious={() => setLightbox((prev) => prev && { ...prev, index: Math.max(0, prev.index - 1) })}
+          onNext={() => setLightbox((prev) => prev && { ...prev, index: Math.min(prev.images.length - 1, prev.index + 1) })}
+        />
+      )}
     </Card>
   );
 }

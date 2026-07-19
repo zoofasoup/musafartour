@@ -545,7 +545,7 @@ export default function PackageBrochure() {
                               <Badge variant="outline" className="text-[10px] px-1.5 py-0">{currentPkg.nights_makkah} Malam</Badge>
                             )}
                           </div>
-                          {hotels.makkah.star && <StarRating rating={hotels.makkah.star} />}
+                          {hotels.makkah.star ? <StarRating rating={hotels.makkah.star} /> : null}
                         </div>
                         <p className="font-semibold text-sm tracking-tight">{hotels.makkah.name}</p>
                         {(hotels.makkah.distance || hotels.makkah.walk) && (
@@ -575,7 +575,7 @@ export default function PackageBrochure() {
                               <Badge variant="outline" className="text-[10px] px-1.5 py-0">{currentPkg.nights_madinah} Malam</Badge>
                             )}
                           </div>
-                          {hotels.madinah.star && <StarRating rating={hotels.madinah.star} />}
+                          {hotels.madinah.star ? <StarRating rating={hotels.madinah.star} /> : null}
                         </div>
                         <p className="font-semibold text-sm tracking-tight">{hotels.madinah.name}</p>
                         {(hotels.madinah.distance || hotels.madinah.walk) && (
