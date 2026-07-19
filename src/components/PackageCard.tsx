@@ -83,6 +83,7 @@ export const PackageCard = ({
 
   const allImages = [image, ...images].filter(Boolean);
   const hasMultipleImages = allImages.length > 1;
+  const optimizedImageSrc = getOptimizedImageUrl(allImages[currentImageIndex], 500) || '/placeholder.svg';
 
   const packageId = id || slug || '';
   const isFav = isFavorite(packageId);
@@ -138,7 +139,7 @@ export const PackageCard = ({
       onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`cursor-pointer group flex flex-col bg-card rounded-3xl border border-border shadow-sm p-2 md:p-2.5 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 ease-out will-change-transform ${isSoldOut ? 'opacity-90' : ''} ${className}`}
+      className={`cursor-pointer group flex flex-col bg-card rounded-3xl border border-border shadow-sm p-2 md:p-2.5 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 ease-out ${isSoldOut ? 'opacity-90' : ''} ${className}`}
     >
       {/* Image Container */}
       <div className="relative w-full h-[160px] md:h-[170px] shrink-0 bg-muted rounded-2xl md:rounded-[20px] overflow-hidden">
@@ -151,7 +152,7 @@ export const PackageCard = ({
         )}
 
         <LazyImage
-          src={getOptimizedImageUrl(allImages[currentImageIndex], 500) || '/placeholder.svg'}
+          src={optimizedImageSrc}
           alt={`Paket Umroh ${title} - Musafar Tour`}
           loading={index < 4 ? 'eager' : 'lazy'}
           decoding="async"
@@ -167,9 +168,14 @@ export const PackageCard = ({
           }}
         />
 
-        {/* Blur Gradient Overlay - isolated on its own GPU layer so it doesn't
-            re-sample/glitch while the parent card scales on hover */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 backdrop-blur-md [mask-image:linear-gradient(to_top,black,transparent)] [-webkit-mask-image:linear-gradient(to_top,black,transparent)] [transform:translateZ(0)] will-change-[backdrop-filter] pointer-events-none z-10" />
+        {/* Blur gradient at the bottom of the image, done as a pre-blurred duplicate
+            (filter, not backdrop-filter) masked to fade in - backdrop-filter live-samples
+            what's behind it and glitches while an ancestor is mid hover-transform. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-cover bg-top blur-md [mask-image:linear-gradient(to_top,black,black_10%,transparent_56%)] [-webkit-mask-image:linear-gradient(to_top,black,black_10%,transparent_56%)] pointer-events-none z-10"
+          style={{ backgroundImage: `url(${optimizedImageSrc})` }}
+        />
 
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/30 pointer-events-none z-10" />
