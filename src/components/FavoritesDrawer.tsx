@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { getPriceBadgeStyle } from "@/lib/utils";
+import { redirectToWhatsApp } from "@/lib/chatRedirect";
 
 interface FavoritesDrawerProps {
   children: React.ReactNode;
@@ -22,25 +23,14 @@ export const FavoritesDrawer = ({ children }: FavoritesDrawerProps) => {
     }
   };
 
-  const handleWhatsAppSubmit = async () => {
-    const { getNextCS } = await import("@/lib/whatsappRotation");
-    let phoneNumber = "6282210101900"; 
-    try {
-      const nextCS = await getNextCS();
-      if (nextCS && nextCS.phone_number) {
-        phoneNumber = nextCS.phone_number;
-      }
-    } catch (error) {
-      console.error("Error fetching CS number:", error);
-    }
+  const handleWhatsAppSubmit = () => {
     let message = "Assalamu'alaikum Musafar Tour, Saya tertarik dengan paket Umroh berikut yang saya simpan dari website:\n";
     favorites.forEach((pkg, index) => {
       const dateText = pkg.date ? ` (${pkg.date}) ` : ' ';
       message += `${index + 1}. *${pkg.title}*${dateText}Harga: ${pkg.price}\n`;
     });
     message += "Mohon informasi lebih lanjut mengenai ketersediaan dan detail paket tersebut. Terima kasih.";
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, "_blank");
+    redirectToWhatsApp(message);
   };
 
   return (

@@ -73,24 +73,11 @@ export const getTotalWeight = (csNumbers: CSNumber[]): number => {
   return csNumbers.reduce((sum, cs) => sum + (cs.weight || 1), 0);
 };
 
-// Get next CS in rotation using weighted distribution
+// Get the CS to redirect to. No rotation - always the first active number
+// (display_order 1), currently Roro.
 export const getNextCS = async (): Promise<CSNumber | null> => {
   const csNumbers = await fetchCSNumbers();
-  if (csNumbers.length === 0) return null;
-  
-  // Build weighted pool
-  const weightedPool = buildWeightedPool(csNumbers);
-  if (weightedPool.length === 0) return null;
-  
-  const currentIndex = getCurrentRotationIndex();
-  const safeIndex = currentIndex % weightedPool.length;
-  const cs = weightedPool[safeIndex];
-  
-  // Update to next index (weighted round-robin)
-  const nextIndex = (safeIndex + 1) % weightedPool.length;
-  setRotationIndex(nextIndex);
-  
-  return cs;
+  return csNumbers[0] || null;
 };
 
 // Build WhatsApp URL
