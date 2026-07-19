@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Footprints, Hotel, Star, ImageIcon } from "lucide-react";
+import { MapPin, Footprints, Hotel, Star, ImageIcon, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn, getOptimizedImageUrl } from "@/lib/utils";
 import { ImageLightbox } from "@/components/ImageLightbox";
@@ -23,6 +23,7 @@ interface HotelPhotoRow {
   exterior_photo: string | null;
   lobby_photo: string | null;
   room_photo: string | null;
+  google_maps_url: string | null;
 }
 
 function useHotelPhotoLookup() {
@@ -31,7 +32,7 @@ function useHotelPhotoLookup() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("hotels")
-        .select("name, exterior_photo, lobby_photo, room_photo");
+        .select("name, exterior_photo, lobby_photo, room_photo, google_maps_url");
       if (error) throw error;
       return (data || []) as HotelPhotoRow[];
     },
@@ -120,8 +121,15 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
     ].filter((p): p is { label: string; url: string } => !!p.url);
   };
 
+  const getMapsUrl = (name: string | undefined) => {
+    if (!name) return null;
+    return photoLookup.get(name.trim().toLowerCase())?.google_maps_url || null;
+  };
+
   const makkahPhotos = getPhotos(hotels.makkah.name);
   const madinahPhotos = getPhotos(hotels.madinah.name);
+  const makkahMapsUrl = getMapsUrl(hotels.makkah.name);
+  const madinahMapsUrl = getMapsUrl(hotels.madinah.name);
 
   return (
     <Card>
@@ -171,6 +179,16 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
                   <ImageIcon className="h-3 w-3" /> Foto belum tersedia
                 </div>
               )}
+              {makkahMapsUrl && (
+                <a
+                  href={makkahMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                >
+                  <ExternalLink className="h-3 w-3" /> Lihat di Google Maps
+                </a>
+              )}
             </div>
           )}
 
@@ -214,6 +232,16 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70">
                   <ImageIcon className="h-3 w-3" /> Foto belum tersedia
                 </div>
+              )}
+              {madinahMapsUrl && (
+                <a
+                  href={madinahMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                >
+                  <ExternalLink className="h-3 w-3" /> Lihat di Google Maps
+                </a>
               )}
             </div>
           )}

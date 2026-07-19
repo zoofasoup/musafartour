@@ -1,6 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Calendar, Clock, ExternalLink, Plane, Bus } from "lucide-react";
-import { cn, getPriceBadgeStyle, formatPriceJuta, parseListItems } from "@/lib/utils";
+import { Calendar, Clock, Plane, Bus } from "lucide-react";
+import { parseListItems } from "@/lib/utils";
 import { airlineLogos } from "@/lib/airlineLogos";
 import { PackageUrgencyBar } from "@/components/package-detail/PackageUrgencyBar";
 import { ItineraryDialog } from "@/components/package-detail/ItineraryDialog";
@@ -103,19 +102,9 @@ export function PackageHeader({ packageData, price, transport }: PackageHeaderPr
 
       <div className="space-y-2">
         <span className="text-sm font-medium text-muted-foreground">Harga mulai dari (Quad)</span>
-        <div className="flex items-center gap-3">
-          <span className="text-4xl font-black text-primary tracking-tight">
-            {price?.quad ? fmtRupiah(price.quad) : "Harga belum tersedia"}
-          </span>
-          <span
-            className={cn(
-              "px-3 py-1 rounded-full text-xs font-semibold shrink-0",
-              getPriceBadgeStyle(packageData.package_name)
-            )}
-          >
-            {price?.quad ? formatPriceJuta(price.quad) : ""}
-          </span>
-        </div>
+        <span className="block text-4xl font-black text-primary tracking-tight">
+          {price?.quad ? fmtRupiah(price.quad) : "Harga belum tersedia"}
+        </span>
         {(!!price?.triple || !!price?.double) && (
           <div className="grid grid-cols-2 gap-2 pt-1">
             {!!price?.triple && (
@@ -148,18 +137,9 @@ export function PackageHeader({ packageData, price, transport }: PackageHeaderPr
 
       <PackageUrgencyBar packageData={packageData} />
 
-      {(packageData.catalog_link || hasItinerary) && (
+      {hasItinerary && (
         <div className="flex flex-wrap gap-2 pt-1">
-          {packageData.catalog_link && (
-            <a href={packageData.catalog_link} target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" className="gap-2 text-sm">
-                <ExternalLink className="h-4 w-4" /> Lihat Katalog
-              </Button>
-            </a>
-          )}
-          {hasItinerary && (
-            <ItineraryDialog packageName={packageData.package_name} itinerary={packageData.itinerary} />
-          )}
+          <ItineraryDialog packageName={packageData.package_name} itinerary={packageData.itinerary} />
         </div>
       )}
     </div>

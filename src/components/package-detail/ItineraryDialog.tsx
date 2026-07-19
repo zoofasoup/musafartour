@@ -77,20 +77,18 @@ export function ItineraryDialog({ packageName, itinerary, trigger }: ItineraryDi
 
         <div className="p-6 pt-4 space-y-3">
           {days.map((day, idx) => (
-            <div key={idx} className="rounded-2xl border border-border bg-muted/30 p-4 space-y-3">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <Badge className="rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
-                    {day.dayLabel}
-                  </Badge>
-                  {day.city && (
-                    <span className="flex items-center gap-1 text-sm font-semibold">
-                      <MapPin className="h-3.5 w-3.5 text-primary" /> {day.city}
-                    </span>
-                  )}
-                </div>
-                {day.date && <span className="text-xs text-muted-foreground">{day.date}</span>}
+            <div key={idx} className="rounded-2xl border border-border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                <Badge className="rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
+                  {day.dayLabel}
+                </Badge>
+                {day.city && (
+                  <span className="flex items-center gap-1.5 text-base font-bold">
+                    <MapPin className="h-4 w-4 text-primary" /> {day.city}
+                  </span>
+                )}
               </div>
+              {day.date && <p className="text-sm font-semibold text-foreground/80 mb-4">{day.date}</p>}
 
               <div className="relative pl-4 space-y-3">
                 {day.activities.map((activity, aIdx) => (
