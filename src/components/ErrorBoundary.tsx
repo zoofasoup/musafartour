@@ -12,6 +12,13 @@ interface State {
   error: Error | null;
 }
 
+const CHUNK_ERROR_PATTERN = /dynamically imported module|Importing a module script failed|Failed to fetch dynamically imported module|ChunkLoadError/i;
+export const CHUNK_RELOAD_FLAG = "chunk-error-reload-attempted";
+
+function isChunkLoadError(error: Error): boolean {
+  return CHUNK_ERROR_PATTERN.test(error.message);
+}
+
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
@@ -24,6 +31,17 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught error:", error, errorInfo);
+
+    // A stale/deleted JS chunk (e.g. after a new deploy replaces hashed
+    // filenames while this tab is still running the old bundle) looks like
+    // an app error to the user but is self-healing with a single reload,
+    // which fetches the fresh HTML/asset manifest. Guard with a flag so a
+    // genuinely broken deploy still falls through to the visible error UI
+    // instead of reload-looping forever.
+    if (isChunkLoadError(error) && !sessionStorage.getItem(CHUNK_RELOAD_FLAG)) {
+      sessionStorage.setItem(CHUNK_RELOAD_FLAG, "1");
+      window.location.reload();
+    }
   }
 
   private handleRetry = () => {

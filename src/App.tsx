@@ -9,7 +9,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 import { useMarketingPixels } from "./hooks/useMarketingPixels";
 import { useRedirects } from "./hooks/useRedirects";
-import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ErrorBoundary, CHUNK_RELOAD_FLAG } from "./components/ErrorBoundary";
 import { FavoritesProvider } from "./hooks/useFavorites";
 import { AgentAuthProvider } from "./hooks/useAgentAuth";
 import ScrollToTop from "./components/ScrollToTop";
@@ -120,6 +120,17 @@ const RedirectsHandler = () => {
   return null;
 };
 
+// Clears the chunk-reload guard once the app has actually rendered
+// successfully, so a future deploy's stale-chunk error can still trigger
+// the one-time auto-reload in ErrorBoundary instead of being permanently
+// blocked for the rest of this tab's session.
+const ChunkReloadFlagCleaner = () => {
+  useEffect(() => {
+    sessionStorage.removeItem(CHUNK_RELOAD_FLAG);
+  }, []);
+  return null;
+};
+
 // Auth Hash Redirect Handler (for invites/recoveries)
 const AuthHashRedirectHandler = () => {
   const location = useLocation();
@@ -172,6 +183,7 @@ const App = () => (
               <MarketingPixelsLoader />
               <RedirectsHandler />
               <AuthHashRedirectHandler />
+              <ChunkReloadFlagCleaner />
               <Suspense
                 fallback={
                   <div className="min-h-screen flex items-center justify-center">
