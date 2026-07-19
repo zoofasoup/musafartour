@@ -32,7 +32,7 @@ export function RelatedPackages({ currentPackageId, currentTier }: RelatedPackag
   return (
     <section className="mt-12">
       <h2 className="text-xl font-bold mb-4 text-foreground">Paket Umroh Lainnya</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory -mx-6 px-6 pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible sm:mx-0 sm:px-0 sm:pb-0">
         {related.map((pkg, idx) => (
           <PackageCard
             key={pkg.id}
@@ -50,6 +50,7 @@ export function RelatedPackages({ currentPackageId, currentTier }: RelatedPackag
             isSoldOut={isPackageUnavailable(pkg)}
             waitlistCount={pkg.waitlist_count || 0}
             index={idx}
+            className="w-[78%] shrink-0 snap-start sm:w-auto sm:shrink"
           />
         ))}
       </div>
