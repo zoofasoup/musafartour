@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, RefreshCw } from "lucide-react";
+import { Plus, Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, RefreshCw, Route } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import {
@@ -217,6 +217,26 @@ const Packages = () => {
     }
   };
 
+  const [syncingItinerary, setSyncingItinerary] = useState(false);
+
+  const handleSyncItinerary = async () => {
+    setSyncingItinerary(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-itinerary");
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(data?.message || "Sync itinerary selesai");
+      if (data?.details?.length) {
+        console.log("Sync itinerary details:", data.details);
+      }
+      fetchPackages();
+    } catch (err: any) {
+      toast.error(`Gagal sync itinerary: ${err.message}`);
+    } finally {
+      setSyncingItinerary(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
@@ -314,6 +334,16 @@ const Packages = () => {
           >
             <RefreshCw className={`h-4 w-4 ${syncingSeats ? "animate-spin" : ""}`} />
             {syncingSeats ? "Syncing..." : "Sync Sisa Seat"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSyncItinerary}
+            disabled={syncingItinerary}
+            className="flex items-center gap-2"
+          >
+            <Route className={`h-4 w-4 ${syncingItinerary ? "animate-spin" : ""}`} />
+            {syncingItinerary ? "Syncing..." : "Sync Itinerary"}
           </Button>
           <Button onClick={() => navigate("/admin/packages/add")} size="sm">
             <Plus className="mr-2 h-4 w-4" />

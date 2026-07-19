@@ -64,7 +64,10 @@ export function ItineraryDialog({ packageName, itinerary, trigger }: ItineraryDi
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-xl w-full max-h-[85vh] overflow-y-auto rounded-3xl p-0">
+      <DialogContent
+        overlayClassName="backdrop-blur-sm z-[105]"
+        className="z-[110] w-[calc(100%-3rem)] max-h-[calc(100%-3rem)] sm:max-w-xl sm:max-h-[85vh] overflow-y-auto rounded-3xl p-0"
+      >
         <DialogHeader className="p-6 pb-2 sticky top-0 bg-background z-10 border-b">
           <DialogTitle className="text-lg font-bold flex items-center gap-2">
             <Route className="h-5 w-5 text-primary" /> Itinerary Perjalanan
