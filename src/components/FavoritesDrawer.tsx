@@ -1,6 +1,6 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Trash2, Heart, MessageCircle, ShoppingCart } from "lucide-react";
+import { ShoppingBag, Trash2, MessageCircle, ShoppingCart } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
@@ -44,7 +44,7 @@ export const FavoritesDrawer = ({ children }: FavoritesDrawerProps) => {
       >
         <SheetHeader className="mb-2">
           <SheetTitle className="flex items-center gap-2.5 text-2xl md:text-3xl font-extrabold tracking-tight">
-            <Heart className="h-7 w-7 fill-primary text-primary shrink-0" />
+            <ShoppingCart className="h-7 w-7 fill-primary text-primary shrink-0" />
             <span className="flex items-baseline gap-2">
               Paket Umrohku
               <span className="text-muted-foreground text-lg md:text-xl font-semibold">({favorites.length})</span>
@@ -57,7 +57,7 @@ export const FavoritesDrawer = ({ children }: FavoritesDrawerProps) => {
               <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
               <p className="font-medium text-foreground">Belum ada paket tersimpan</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Klik ikon hati (favorit) pada paket untuk menyimpannya di sini.
+                Klik ikon keranjang pada paket untuk menyimpannya di sini.
               </p>
             </div>
           ) : (

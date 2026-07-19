@@ -15,6 +15,27 @@ const AIRPORT_CITY: Record<string, string> = {
   SUB: "Surabaya",
   KNO: "Medan",
   DPS: "Denpasar",
+  MCT: "Muscat",
+  DOH: "Doha",
+  DXB: "Dubai",
+  AUH: "Abu Dhabi",
+  SIN: "Singapura",
+  KUL: "Kuala Lumpur",
+};
+
+/**
+ * Typical layover hub per airline on Indonesia-Saudi umrah routes, used only
+ * when the package isn't a direct flight. Saudia and Garuda Indonesia fly
+ * CGK-JED direct so they intentionally have no entry - we only show a transit
+ * airport when we're confident which one it actually is.
+ */
+const AIRLINE_TRANSIT_HUB: Record<string, string> = {
+  "Oman Air": "MCT",
+  "Qatar Airways": "DOH",
+  "Emirates": "DXB",
+  "Etihad Airways": "AUH",
+  "Scoot": "SIN",
+  "Lion Air": "KUL",
 };
 
 const fmtDate = (d: string) => {
@@ -27,32 +48,49 @@ const fmtDate = (d: string) => {
 
 const fmtRupiah = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
 
+function Connector({ accent }: { accent: ReturnType<typeof getTierAccentClasses> }) {
+  return (
+    <div className="flex-1 flex items-center px-1">
+      <div className={cn("h-px flex-1", accent.ring)} />
+      <div className={cn("mx-1.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full", accent.ring)}>
+        <Plane className={cn("h-3.5 w-3.5 rotate-90", accent.text)} />
+      </div>
+      <div className={cn("h-px flex-1", accent.ring)} />
+    </div>
+  );
+}
+
 function RouteLeg({
   label,
   from,
   to,
+  via,
   accent,
 }: {
   label: string;
   from: string;
   to: string;
+  via?: string;
   accent: ReturnType<typeof getTierAccentClasses>;
 }) {
   return (
     <div className="flex-1 min-w-0">
       <p className={cn("text-[11px] font-bold uppercase tracking-wide mb-2", accent.text)}>{label}</p>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <div className="shrink-0">
           <p className="text-lg font-black leading-none">{from}</p>
           <p className="text-[11px] text-muted-foreground mt-1">{AIRPORT_CITY[from] || ""}</p>
         </div>
-        <div className="flex-1 flex items-center px-1">
-          <div className={cn("h-px flex-1", accent.ring)} />
-          <div className={cn("mx-1.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full", accent.ring)}>
-            <Plane className={cn("h-3.5 w-3.5 rotate-90", accent.text)} />
-          </div>
-          <div className={cn("h-px flex-1", accent.ring)} />
-        </div>
+        <Connector accent={accent} />
+        {via && (
+          <>
+            <div className="shrink-0 text-center opacity-80">
+              <p className="text-sm font-bold leading-none">{via}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">{AIRPORT_CITY[via] || ""}</p>
+            </div>
+            <Connector accent={accent} />
+          </>
+        )}
         <div className="shrink-0 text-right">
           <p className="text-lg font-black leading-none">{to}</p>
           <p className="text-[11px] text-muted-foreground mt-1">{AIRPORT_CITY[to] || ""}</p>
@@ -75,6 +113,8 @@ export function PackageHeader({ packageData, price, transport }: PackageHeaderPr
   const routeParts = hasRoute ? packageData.route!.split("-") : null;
   const [arriveAt, departFrom] = routeParts && routeParts.length === 2 ? routeParts : [null, null];
   const accent = getTierAccentClasses(packageData.package_name);
+  const isDirect = packageData.flight_type?.toLowerCase() === "direct";
+  const transitAirport = isDirect ? undefined : AIRLINE_TRANSIT_HUB[packageData.flight];
 
   return (
     <div className="flex flex-col space-y-6">
@@ -147,8 +187,8 @@ export function PackageHeader({ packageData, price, transport }: PackageHeaderPr
             )}
           </div>
           <div className="flex flex-col sm:flex-row gap-5 sm:gap-4">
-            <RouteLeg label="Berangkat" from={packageData.start_airport!} to={arriveAt} accent={accent} />
-            <RouteLeg label="Pulang" from={departFrom} to={packageData.start_airport!} accent={accent} />
+            <RouteLeg label="Berangkat" from={packageData.start_airport!} to={arriveAt} via={transitAirport} accent={accent} />
+            <RouteLeg label="Pulang" from={departFrom} to={packageData.start_airport!} via={transitAirport} accent={accent} />
           </div>
         </div>
       )}

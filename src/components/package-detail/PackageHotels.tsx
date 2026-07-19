@@ -71,7 +71,7 @@ function HotelPhotoCarousel({ photos, onOpen }: { photos: { label: string; url: 
             key={photo.label}
             type="button"
             onClick={() => onOpen(i)}
-            className="relative h-36 w-full shrink-0 snap-start overflow-hidden rounded-xl border bg-muted"
+            className="relative h-56 sm:h-64 lg:h-72 w-full shrink-0 snap-start overflow-hidden rounded-xl border bg-muted"
           >
             <LazyImage
               src={getOptimizedImageUrl(photo.url, 500)}

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { cn, isPackageUnavailable, getOptimizedImageUrl, formatPriceJuta } from "@/lib/utils";
 import { useFavorites } from "@/hooks/useFavorites";
 import { ImageLightbox } from "@/components/ImageLightbox";
@@ -76,9 +76,9 @@ export function PackageGallery({ packageData, price }: PackageGalleryProps) {
             e.stopPropagation();
             handleFavoriteClick();
           }}
-          aria-label={isFav ? "Keluarkan dari favorit" : "Simpan paket"}
+          aria-label={isFav ? "Keluarkan dari keranjang" : "Masukkan ke keranjang"}
         >
-          <Heart className={cn("h-5 w-5 transition-all", isFav ? "fill-white text-white" : "text-white")} />
+          <ShoppingCart className={cn("h-5 w-5 transition-all", isFav ? "fill-white text-white" : "text-white")} />
         </Button>
       </div>
 
