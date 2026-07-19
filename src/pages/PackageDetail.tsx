@@ -86,7 +86,7 @@ const PackageDetailPage = () => {
   const handleWhatsApp = () => {
     if (!packageData || !selectedCombo) return;
     const tierLabel = TIER_LABELS[effectiveTier] || effectiveTier;
-    const name = customerName || "Bapak/Ibu";
+    const name = customerName.trim();
     const depDate = fmtDate(packageData.departure_date);
 
     const parts: string[] = [];
@@ -94,7 +94,11 @@ const PackageDetailPage = () => {
     if (children > 0) parts.push(`${children} Anak (Sharing Bed)`);
     if (infants > 0) parts.push(`${infants} Infant`);
 
-    let msg = `Assalamu'alaikum ${name},\n\nBerikut estimasi biaya Umroh dari *Musafar Tour*:\n\n`;
+    // This message is sent BY the customer TO Musafar Tour's WhatsApp (see
+    // redirectToWhatsApp) - it must read as the customer's own inquiry, not
+    // as Musafar Tour addressing the customer.
+    let msg = `Assalamu'alaikum Musafar Tour,\n\n`;
+    msg += name ? `Saya ${name}, tertarik dengan paket Umroh berikut:\n\n` : `Saya tertarik dengan paket Umroh berikut:\n\n`;
     msg += `📦 *Paket:* ${packageData.package_name} (${tierLabel})\n`;
     msg += `📅 *Keberangkatan:* ${depDate}\n`;
     msg += `🛏️ *Komposisi Kamar:* ${selectedCombo.label}\n`;
@@ -107,7 +111,7 @@ const PackageDetailPage = () => {
     if (totalSavings > 0) {
       msg += `🎉 Diskon: ${formatCurrency(discount)}/dewasa × ${adults} = hemat *${formatCurrency(totalSavings)}*!\n`;
     }
-    msg += `\n_Musafar Tour & Travel_`;
+    msg += `\nMohon informasi lebih lanjut mengenai ketersediaan dan proses pendaftarannya. Terima kasih.`;
 
     redirectToWhatsApp(msg);
   };
