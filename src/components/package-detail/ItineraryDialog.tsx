@@ -7,9 +7,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Route, MapPin } from "lucide-react";
-import { parseListItems } from "@/lib/utils";
+import { Route, MapPin, ChevronRight } from "lucide-react";
+import { cn, parseListItems, getTierAccentClasses } from "@/lib/utils";
 
 interface ItineraryDay {
   dayLabel: string;
@@ -42,9 +41,10 @@ interface ItineraryDialogProps {
   packageName: string;
   itinerary: string | null | undefined;
   trigger?: React.ReactNode;
+  accent?: ReturnType<typeof getTierAccentClasses>;
 }
 
-export function ItineraryDialog({ packageName, itinerary, trigger }: ItineraryDialogProps) {
+export function ItineraryDialog({ packageName, itinerary, trigger, accent }: ItineraryDialogProps) {
   const [open, setOpen] = useState(false);
 
   const days = useMemo(() => {
@@ -59,9 +59,22 @@ export function ItineraryDialog({ packageName, itinerary, trigger }: ItineraryDi
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button variant="outline" className="gap-2 text-sm">
-            <Route className="h-4 w-4" /> Lihat Itinerary
-          </Button>
+          <button
+            type="button"
+            className={cn(
+              "group w-full flex items-center gap-3 rounded-2xl border-2 bg-card p-3.5 text-left transition-colors",
+              accent ? cn(accent.border, "hover:bg-muted/40") : "border-border hover:bg-muted/40"
+            )}
+          >
+            <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", accent?.bg || "bg-primary/10")}>
+              <Route className={cn("h-5 w-5", accent?.text || "text-primary")} />
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="block text-sm font-bold text-foreground">Lihat Itinerary Lengkap</span>
+              <span className="block text-xs text-muted-foreground">{days.length} hari perjalanan, jadwal harian detail</span>
+            </span>
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 transition-transform group-hover:translate-x-0.5" />
+          </button>
         )}
       </DialogTrigger>
       <DialogContent

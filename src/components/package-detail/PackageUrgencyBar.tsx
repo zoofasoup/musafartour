@@ -1,25 +1,24 @@
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Flame, Users, XCircle } from "lucide-react";
-import { isPackageUnavailable } from "@/lib/utils";
+import { ShoppingCart, XCircle } from "lucide-react";
+import { cn, isPackageUnavailable } from "@/lib/utils";
 import type { PublishedPackage } from "@/hooks/usePackages";
 
 interface PackageUrgencyBarProps {
   packageData: PublishedPackage;
+  className?: string;
 }
 
-/** Seat-availability / sold-out signal, promoted near the top of the page as the primary urgency cue. */
-export function PackageUrgencyBar({ packageData }: PackageUrgencyBarProps) {
+/**
+ * Compact seat-availability chip - meant to sit right next to the buy action
+ * (sticky mobile bar, desktop calculator) rather than floating alone in the
+ * middle of the page, so urgency and the CTA are seen together.
+ */
+export function PackageUrgencyBar({ packageData, className }: PackageUrgencyBarProps) {
   if (isPackageUnavailable(packageData)) {
     return (
-      <div className="flex items-center gap-2 text-destructive">
-        <XCircle className="h-4 w-4 shrink-0" />
-        <span className="text-sm font-bold">Paket ini sudah penuh</span>
-        <span className="text-xs text-muted-foreground">
-          {packageData.waitlist_count
-            ? `• ${packageData.waitlist_count} jamaah menunggu di waiting list`
-            : "• Klik \"Notify Me\" untuk dapat kabar jika ada seat tersedia"}
-        </span>
+      <div className={cn("flex items-center gap-1.5 text-destructive", className)}>
+        <XCircle className="h-3.5 w-3.5 shrink-0" />
+        <span className="text-xs font-bold">Paket ini sudah penuh</span>
       </div>
     );
   }
@@ -33,19 +32,12 @@ export function PackageUrgencyBar({ packageData }: PackageUrgencyBarProps) {
   const isAlmostFull = seatPercentage >= 80;
 
   return (
-    <div className="flex items-center gap-3">
-      {isAlmostFull ? (
-        <Flame className="h-4 w-4 text-amber-500 shrink-0" />
-      ) : (
-        <Users className="h-4 w-4 text-primary shrink-0" />
-      )}
-      <span className="text-sm font-semibold shrink-0">
+    <div className={cn("flex items-center gap-2", className)}>
+      <ShoppingCart className={cn("h-3.5 w-3.5 shrink-0", isAlmostFull ? "text-amber-500" : "text-primary")} />
+      <span className="text-xs font-bold shrink-0">
         {isAlmostFull ? `Tersisa ${remaining} seat!` : `${remaining} seat tersisa`}
       </span>
-      <Progress value={seatPercentage} className="h-1.5 flex-1 max-w-[160px]" />
-      <Badge variant="outline" className="text-xs font-mono shrink-0">
-        {filled}/{total}
-      </Badge>
+      <Progress value={seatPercentage} className="h-1 flex-1 max-w-[80px]" />
     </div>
   );
 }

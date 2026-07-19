@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { BedDouble, Calculator, Users, PersonStanding, Baby, Sparkles, Crown, MessageCircle, Bell, Minus, Plus } from "lucide-react";
 import { cn, isPackageUnavailable, formatCurrency } from "@/lib/utils";
+import { PackageUrgencyBar } from "./PackageUrgencyBar";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackagePrice } from "@/lib/packageSchema";
 import type { RoomCombo } from "@/lib/roomCombos";
@@ -190,7 +191,7 @@ export function PackagePricingBody({
             )}
             <Separator />
             <div className="flex justify-between items-center">
-              <span className="text-xs font-bold">TOTAL</span>
+              <span className="text-xs font-bold">TOTAL ({adults + children + infants} orang)</span>
               <span className="text-base font-bold text-primary">{formatCurrency(grandTotal)}</span>
             </div>
             {totalSavings > 0 && (
@@ -266,6 +267,10 @@ export function PackagePricing(props: PackagePricingBodyProps) {
                 </div>
               ))}
             </div>
+          )}
+
+          {!isPackageUnavailable(props.packageData) && (
+            <PackageUrgencyBar packageData={props.packageData} className="justify-center" />
           )}
 
           <Button onClick={() => setExpanded(true)} className="w-full gap-2 text-sm font-bold">

@@ -1,7 +1,7 @@
 import { Calendar, Clock, Plane, Bus } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { cn, parseListItems, getTierAccentClasses } from "@/lib/utils";
 import { airlineLogos } from "@/lib/airlineLogos";
-import { PackageUrgencyBar } from "@/components/package-detail/PackageUrgencyBar";
 import { ItineraryDialog } from "@/components/package-detail/ItineraryDialog";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackagePrice } from "@/lib/packageSchema";
@@ -47,6 +47,26 @@ const fmtDate = (d: string) => {
 };
 
 const fmtRupiah = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
+
+function InfoItem({
+  icon,
+  label,
+  children,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      {icon}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide leading-none mb-1">{label}</p>
+        <div className="text-sm font-bold leading-none">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 function Connector({ accent }: { accent: ReturnType<typeof getTierAccentClasses> }) {
   return (
@@ -117,7 +137,7 @@ export function PackageHeader({ packageData, price, transport }: PackageHeaderPr
   const transitAirport = isDirect ? undefined : AIRLINE_TRANSIT_HUB[packageData.flight];
 
   return (
-    <div className="flex flex-col space-y-6">
+    <div className="flex flex-col space-y-4">
       <div className="space-y-1">
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground leading-tight">
           {packageData.package_name}
@@ -125,81 +145,78 @@ export function PackageHeader({ packageData, price, transport }: PackageHeaderPr
         {hasTimeframe && <p className="text-sm font-medium text-muted-foreground">{packageData.timeframe}</p>}
       </div>
 
-      {/* Trip basics - plain inline row, no boxes, just clear icon + value pairs */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 py-4 border-y border-border">
-        <div className="flex items-center gap-2">
-          <Calendar className={cn("h-4 w-4 shrink-0", accent.text)} />
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide leading-none mb-1">Keberangkatan</p>
-            <p className="text-sm font-bold leading-none">{fmtDate(packageData.departure_date)}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Clock className={cn("h-4 w-4 shrink-0", accent.text)} />
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide leading-none mb-1">Durasi</p>
-            <p className="text-sm font-bold leading-none">{packageData.duration_days} Hari</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {airlineLogos[packageData.flight] ? (
-            <img src={airlineLogos[packageData.flight]} alt={packageData.flight} className="h-6 object-contain" />
-          ) : (
-            <>
-              <Plane className={cn("h-4 w-4 shrink-0", accent.text)} />
-              <span className="text-sm font-bold">{packageData.flight}</span>
-            </>
+      {/* One consolidated card for everything about the trip itself - quick
+          facts, price, route - sharing one border/radius/shadow instead of
+          each being its own competing floating box. */}
+      <Card className="p-0 overflow-hidden divide-y divide-border/60">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4">
+          <InfoItem icon={<Calendar className={cn("h-4 w-4 shrink-0", accent.text)} />} label="Keberangkatan">
+            {fmtDate(packageData.departure_date)}
+          </InfoItem>
+          <InfoItem icon={<Clock className={cn("h-4 w-4 shrink-0", accent.text)} />} label="Durasi">
+            {packageData.duration_days} Hari
+          </InfoItem>
+          <InfoItem
+            icon={
+              airlineLogos[packageData.flight] ? null : <Plane className={cn("h-4 w-4 shrink-0", accent.text)} />
+            }
+            label="Maskapai"
+          >
+            {airlineLogos[packageData.flight] ? (
+              <img src={airlineLogos[packageData.flight]} alt={packageData.flight} className="h-5 object-contain" />
+            ) : (
+              packageData.flight
+            )}
+          </InfoItem>
+          {transport && (
+            <InfoItem icon={<Bus className={cn("h-4 w-4 shrink-0", accent.text)} />} label="Transportasi">
+              {transport}
+            </InfoItem>
           )}
         </div>
-      </div>
 
-      {/* Price - the one number that matters most, given real visual weight and the package's own tier color */}
-      <div className={cn("rounded-2xl border p-5", accent.bg, accent.border)}>
-        <span className={cn("text-xs font-semibold uppercase tracking-wide", accent.text)}>Harga mulai dari (Quad)</span>
-        <p className={cn("text-4xl md:text-5xl font-black tracking-tight mt-1", accent.text)}>
-          {price?.quad ? fmtRupiah(price.quad) : "Harga belum tersedia"}
-        </p>
-        {(!!price?.triple || !!price?.double) && (
-          <div className={cn("flex flex-wrap items-center gap-x-5 gap-y-1 mt-3 pt-3 border-t", accent.border)}>
-            {!!price?.triple && (
-              <span className="text-xs text-foreground/80">
-                <span className="font-bold">Triple</span> · {fmtRupiah(price.triple)}
-              </span>
+        {/* Price - the one number that matters most, given real visual weight and the package's own tier color */}
+        <div className={cn("px-5 py-5", accent.bg)}>
+          <span className={cn("text-xs font-semibold uppercase tracking-wide", accent.text)}>Harga mulai dari (Quad)</span>
+          <p className={cn("text-4xl md:text-5xl font-black tracking-tight mt-1", accent.text)}>
+            {price?.quad ? (
+              <>
+                {fmtRupiah(price.quad)}
+                <span className="text-base md:text-lg font-bold ml-1.5 opacity-70">/orang</span>
+              </>
+            ) : (
+              "Harga belum tersedia"
             )}
-            {!!price?.double && (
-              <span className="text-xs text-foreground/80">
-                <span className="font-bold">Double</span> · {fmtRupiah(price.double)}
-              </span>
-            )}
+          </p>
+          {(!!price?.triple || !!price?.double) && (
+            <div className={cn("flex flex-wrap items-center gap-x-5 gap-y-1 mt-3 pt-3 border-t", accent.border)}>
+              {!!price?.triple && (
+                <span className="text-xs text-foreground/80">
+                  <span className="font-bold">Triple</span> · {fmtRupiah(price.triple)}/orang
+                </span>
+              )}
+              {!!price?.double && (
+                <span className="text-xs text-foreground/80">
+                  <span className="font-bold">Double</span> · {fmtRupiah(price.double)}/orang
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Route - a proper "boarding pass" moment */}
+        {arriveAt && departFrom && (
+          <div className="px-5 py-5">
+            <p className="text-sm font-bold text-muted-foreground uppercase mb-4">Rute Penerbangan</p>
+            <div className="flex flex-col sm:flex-row gap-5 sm:gap-4">
+              <RouteLeg label="Berangkat" from={packageData.start_airport!} to={arriveAt} via={transitAirport} accent={accent} />
+              <RouteLeg label="Pulang" from={departFrom} to={packageData.start_airport!} via={transitAirport} accent={accent} />
+            </div>
           </div>
         )}
-      </div>
+      </Card>
 
-      {/* Route - a proper "boarding pass" moment, transport folded in as a footnote */}
-      {arriveAt && departFrom && (
-        <div className="rounded-2xl border border-border p-5">
-          <div className="flex items-center justify-between gap-2 flex-wrap mb-4">
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Rute Penerbangan</p>
-            {transport && (
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                <Bus className="h-3.5 w-3.5" /> {transport}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col sm:flex-row gap-5 sm:gap-4">
-            <RouteLeg label="Berangkat" from={packageData.start_airport!} to={arriveAt} via={transitAirport} accent={accent} />
-            <RouteLeg label="Pulang" from={departFrom} to={packageData.start_airport!} via={transitAirport} accent={accent} />
-          </div>
-        </div>
-      )}
-
-      <PackageUrgencyBar packageData={packageData} />
-
-      {hasItinerary && (
-        <div className="flex flex-wrap gap-2">
-          <ItineraryDialog packageName={packageData.package_name} itinerary={packageData.itinerary} />
-        </div>
-      )}
+      {hasItinerary && <ItineraryDialog packageName={packageData.package_name} itinerary={packageData.itinerary} accent={accent} />}
     </div>
   );
 }
