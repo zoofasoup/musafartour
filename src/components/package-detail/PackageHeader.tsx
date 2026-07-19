@@ -210,6 +210,7 @@ export function PackageHeader({ packageData, price, transport }: PackageHeaderPr
             <p className="text-sm font-bold text-muted-foreground uppercase mb-4">Rute Penerbangan</p>
             <div className="flex flex-col sm:flex-row gap-5 sm:gap-4">
               <RouteLeg label="Berangkat" from={packageData.start_airport!} to={arriveAt} via={transitAirport} accent={accent} />
+              <div className="h-px w-full bg-border sm:h-auto sm:w-px sm:self-stretch" />
               <RouteLeg label="Pulang" from={departFrom} to={packageData.start_airport!} via={transitAirport} accent={accent} />
             </div>
           </div>
