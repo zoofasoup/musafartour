@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -24,6 +25,8 @@ const PaketUmroh = () => {
   const [flightType, setFlightType] = useState<string>("all");
   const [duration, setDuration] = useState<string>("all");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const { data: packages = [], isLoading: loading } = usePublishedPackages();
 
@@ -156,50 +159,54 @@ const PaketUmroh = () => {
             )}
           </div>
 
-          {/* Filter Bar - mobile: single trigger opening a bottom sheet */}
-          <div className="flex lg:hidden justify-center mt-8">
-            <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="rounded-full h-9 gap-2 bg-white shadow-sm border-border/50 px-5">
-                  <SlidersHorizontal className="h-3.5 w-3.5" />
-                  Filter
-                  {activeFilterCount > 0 && (
-                    <Badge className="h-5 min-w-5 justify-center rounded-full px-1 text-[10px]">{activeFilterCount}</Badge>
-                  )}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-2xl">
-                <SheetHeader>
-                  <SheetTitle>Filter Paket</SheetTitle>
-                </SheetHeader>
-                <div className="space-y-3 py-4">
-                  {filterConfigs.map((f) => (
-                    <Select key={f.key} value={f.value} onValueChange={f.onChange}>
-                      <SelectTrigger className="w-full h-11 text-sm rounded-xl"><SelectValue placeholder={f.placeholder} /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">{f.allLabel}</SelectItem>
-                        {f.options.map((o) => (
-                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ))}
-                </div>
-                <div className="flex gap-2 border-t pt-4">
-                  {isFiltered && (
-                    <Button variant="outline" className="flex-1" onClick={resetFilters}>
-                      <X className="h-3.5 w-3.5" /> Reset
-                    </Button>
-                  )}
-                  <Button className="flex-1" onClick={() => setMobileFilterOpen(false)}>
-                    Terapkan Filter
-                  </Button>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
         </div>
       </section>
+
+      {/* Filter Bar - mobile: floating trigger, always reachable while scrolling, opens a bottom sheet */}
+      <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
+        {mounted && createPortal(
+          <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+            <SheetTrigger asChild>
+              <Button variant="outline" className="rounded-full h-11 gap-2 bg-white shadow-lg border-border/50 px-6">
+                <SlidersHorizontal className="h-4 w-4" />
+                Filter
+                {activeFilterCount > 0 && (
+                  <Badge className="h-5 min-w-5 justify-center rounded-full px-1 text-[10px]">{activeFilterCount}</Badge>
+                )}
+              </Button>
+            </SheetTrigger>
+          </div>,
+          document.body
+        )}
+        <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-2xl">
+          <SheetHeader>
+            <SheetTitle>Filter Paket</SheetTitle>
+          </SheetHeader>
+          <div className="space-y-3 py-4">
+            {filterConfigs.map((f) => (
+              <Select key={f.key} value={f.value} onValueChange={f.onChange}>
+                <SelectTrigger className="w-full h-11 text-sm rounded-xl"><SelectValue placeholder={f.placeholder} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{f.allLabel}</SelectItem>
+                  {f.options.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ))}
+          </div>
+          <div className="flex gap-2 border-t pt-4">
+            {isFiltered && (
+              <Button variant="outline" className="flex-1" onClick={resetFilters}>
+                <X className="h-3.5 w-3.5" /> Reset
+              </Button>
+            )}
+            <Button className="flex-1" onClick={() => setMobileFilterOpen(false)}>
+              Terapkan Filter
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Packages */}
       <section className="py-12 container mx-auto px-6 md:px-8">

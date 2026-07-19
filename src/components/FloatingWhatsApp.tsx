@@ -40,7 +40,7 @@ const FloatingWhatsApp = () => {
       onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="fixed bottom-6 right-6 z-[9999] flex items-center gap-3 bg-[#25D366] hover:bg-[#22c55e] text-white rounded-full shadow-[0_4px_14px_0_rgba(37,211,102,0.39)] hover:shadow-[0_6px_20px_rgba(37,211,102,0.23)] transition-all duration-300 group cursor-pointer"
+      className="fixed bottom-6 right-6 z-40 flex items-center gap-3 bg-[#25D366] hover:bg-[#22c55e] text-white rounded-full shadow-[0_4px_14px_0_rgba(37,211,102,0.39)] hover:shadow-[0_6px_20px_rgba(37,211,102,0.23)] transition-all duration-300 group cursor-pointer"
       aria-label="Hubungi via WhatsApp"
     >
       <div className={`flex items-center transition-all duration-300 ${isHovered ? 'px-5 py-3' : 'p-4'}`}>
