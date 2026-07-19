@@ -167,8 +167,8 @@ export const PackageCard = ({
           }}
         />
 
-        {/* Blur Gradient Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 backdrop-blur-md [mask-image:linear-gradient(to_top,black,transparent)] [-webkit-mask-image:linear-gradient(to_top,black,transparent)] pointer-events-none z-10" />
+        {/* Gradient overlay for contrast at bottom of image */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/25 to-transparent pointer-events-none z-10" />
 
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/30 pointer-events-none z-10" />
