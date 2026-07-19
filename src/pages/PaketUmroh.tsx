@@ -8,7 +8,7 @@ import { PackageCard } from "@/components/PackageCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Package, Calendar, Plane, Clock, X, MessageCircle, SlidersHorizontal } from "lucide-react";
 import { format } from "date-fns";
@@ -163,21 +163,23 @@ const PaketUmroh = () => {
       </section>
 
       {/* Filter Bar - mobile: floating trigger, always reachable while scrolling, opens a bottom sheet */}
+      {mounted && createPortal(
+        <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+          <Button
+            variant="outline"
+            className="rounded-full h-11 gap-2 bg-white shadow-lg border-border/50 px-6"
+            onClick={() => setMobileFilterOpen(true)}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filter
+            {activeFilterCount > 0 && (
+              <Badge className="h-5 min-w-5 justify-center rounded-full px-1 text-[10px]">{activeFilterCount}</Badge>
+            )}
+          </Button>
+        </div>,
+        document.body
+      )}
       <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
-        {mounted && createPortal(
-          <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-            <SheetTrigger asChild>
-              <Button variant="outline" className="rounded-full h-11 gap-2 bg-white shadow-lg border-border/50 px-6">
-                <SlidersHorizontal className="h-4 w-4" />
-                Filter
-                {activeFilterCount > 0 && (
-                  <Badge className="h-5 min-w-5 justify-center rounded-full px-1 text-[10px]">{activeFilterCount}</Badge>
-                )}
-              </Button>
-            </SheetTrigger>
-          </div>,
-          document.body
-        )}
         <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-2xl">
           <SheetHeader>
             <SheetTitle>Filter Paket</SheetTitle>

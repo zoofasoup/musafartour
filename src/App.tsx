@@ -120,6 +120,34 @@ const RedirectsHandler = () => {
   return null;
 };
 
+// Radix Dialog/Sheet/Select sometimes fail to release the `pointer-events:
+// none` they lock onto <body> while open - most reliably reproduced by
+// picking an option from a <Select> nested inside a <Sheet> - leaving the
+// entire page (including things like the floating WhatsApp button)
+// unclickable after closing. A MutationObserver reacting to the exact
+// moment the lock is cleared isn't reliable here (the bug is Radix's
+// nested-portal lock bookkeeping getting out of sync, not a timing issue
+// we can catch by watching for one specific mutation), so this polls
+// instead: if the lock is present but nothing is actually open anymore,
+// clear it.
+const BodyPointerEventsGuard = () => {
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.body.style.pointerEvents !== "none") return;
+      const anythingOpen = document.querySelector(
+        '[data-state="open"][role="dialog"], [data-state="open"][role="alertdialog"], [data-state="open"][role="listbox"], [data-state="open"][role="menu"]'
+      );
+      if (!anythingOpen) {
+        document.body.style.pointerEvents = "";
+      }
+    }, 300);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return null;
+};
+
 // Clears the chunk-reload guard once the app has actually rendered
 // successfully, so a future deploy's stale-chunk error can still trigger
 // the one-time auto-reload in ErrorBoundary instead of being permanently
@@ -179,6 +207,7 @@ const App = () => (
               }}
             >
               <ScrollToTop />
+              <BodyPointerEventsGuard />
               <ConditionalFloatingWhatsApp />
               <TikTokPixelTracker />
               <MarketingPixelsLoader />
