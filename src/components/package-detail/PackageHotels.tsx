@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Footprints, Hotel, Star, ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { getOptimizedImageUrl } from "@/lib/utils";
+import { cn, getOptimizedImageUrl } from "@/lib/utils";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { LazyImage } from "@/components/ui/lazy-image";
 import type { PublishedPackage } from "@/hooks/usePackages";
@@ -45,25 +45,55 @@ function useHotelPhotoLookup() {
   }, [data]);
 }
 
-function HotelPhotoStrip({ photos, onOpen }: { photos: { label: string; url: string }[]; onOpen: (index: number) => void }) {
+/** One photo on screen at a time, swipeable - not a row of small thumbnails. */
+function HotelPhotoCarousel({ photos, onOpen }: { photos: { label: string; url: string }[]; onOpen: (index: number) => void }) {
+  const [active, setActive] = useState(0);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
   if (photos.length === 0) return null;
+
+  const handleScroll = () => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setActive(Math.round(el.scrollLeft / el.clientWidth));
+  };
+
   return (
-    <div className="flex gap-1.5">
-      {photos.map((photo, i) => (
-        <button
-          key={photo.label}
-          type="button"
-          onClick={() => onOpen(i)}
-          className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border bg-muted"
-        >
-          <LazyImage
-            src={getOptimizedImageUrl(photo.url, 160)}
-            alt={photo.label}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
-        </button>
-      ))}
+    <div className="space-y-1.5">
+      <div
+        ref={scrollerRef}
+        onScroll={handleScroll}
+        className="flex overflow-x-auto snap-x snap-mandatory rounded-xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+      >
+        {photos.map((photo, i) => (
+          <button
+            key={photo.label}
+            type="button"
+            onClick={() => onOpen(i)}
+            className="relative h-36 w-full shrink-0 snap-start overflow-hidden rounded-xl border bg-muted"
+          >
+            <LazyImage
+              src={getOptimizedImageUrl(photo.url, 500)}
+              alt={photo.label}
+              loading="lazy"
+              className="h-full w-full object-cover"
+            />
+            <span className="absolute bottom-1.5 left-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white">
+              {photo.label}
+            </span>
+          </button>
+        ))}
+      </div>
+      {photos.length > 1 && (
+        <div className="flex justify-center gap-1">
+          {photos.map((_, i) => (
+            <div
+              key={i}
+              className={cn("h-1.5 rounded-full transition-all", i === active ? "w-4 bg-primary" : "w-1.5 bg-border")}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -132,7 +162,7 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
                 </div>
               )}
               {makkahPhotos.length > 0 ? (
-                <HotelPhotoStrip
+                <HotelPhotoCarousel
                   photos={makkahPhotos}
                   onOpen={(index) => setLightbox({ images: makkahPhotos.map((p) => p.url), index })}
                 />
@@ -176,7 +206,7 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
                 </div>
               )}
               {madinahPhotos.length > 0 ? (
-                <HotelPhotoStrip
+                <HotelPhotoCarousel
                   photos={madinahPhotos}
                   onOpen={(index) => setLightbox({ images: madinahPhotos.map((p) => p.url), index })}
                 />

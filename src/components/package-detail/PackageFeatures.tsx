@@ -1,43 +1,20 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Sparkles, CheckCircle2, Package, XCircle } from "lucide-react";
+import { CheckCircle2, Package, XCircle } from "lucide-react";
 
 interface PackageFeaturesProps {
-  sellingPoints: string[];
   includedItems: string[];
   excludedItems: string[];
   equipmentItems: string[];
 }
 
 export function PackageFeatures({
-  sellingPoints,
   includedItems,
   excludedItems,
   equipmentItems,
 }: PackageFeaturesProps) {
   return (
     <div className="mt-8">
-      <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-1">
-        {/* Selling Points */}
-        {sellingPoints.length > 0 && (
-          <AccordionItem value="item-1" className="rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] px-5">
-            <AccordionTrigger className="hover:no-underline py-4">
-              <span className="text-sm font-bold text-muted-foreground uppercase flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-amber-500" /> Keunggulan Paket
-              </span>
-            </AccordionTrigger>
-            <AccordionContent className="pb-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {sellingPoints.map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-2 py-1">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span className="text-sm">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        )}
-
+      <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-2">
         {/* Included & Excluded */}
         {(includedItems.length > 0 || excludedItems.length > 0) && (
           <AccordionItem value="item-2" className="rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] px-5">

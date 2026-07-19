@@ -25,7 +25,6 @@ import { id as localeId } from "date-fns/locale";
 import { TierSelector, TIER_LABELS } from "@/components/package-detail/TierSelector";
 import { PackageGallery } from "@/components/package-detail/PackageGallery";
 import { PackageHeader } from "@/components/package-detail/PackageHeader";
-import { PackageMetrics } from "@/components/package-detail/PackageMetrics";
 import { PackageHotels } from "@/components/package-detail/PackageHotels";
 import { PackageFeatures } from "@/components/package-detail/PackageFeatures";
 import { PackagePricing } from "@/components/package-detail/PackagePricing";
@@ -163,7 +162,6 @@ const PackageDetailPage = () => {
   const includedItems = parseListItems(packageData.included_items);
   const excludedItems = parseListItems(packageData.excluded_items);
   const equipmentItems = parseListItems(packageData.equipment_list);
-  const sellingPoints = parseListItems(packageData.selling_points);
   const transport = resolveTierTransport(packageData, effectiveTier);
   const hasImages = !!(packageData.banner_image || packageData.gallery_images?.length);
 
@@ -244,15 +242,13 @@ const PackageDetailPage = () => {
               </div>
             )}
             <div className={hasImages ? "lg:col-span-7" : "lg:col-span-12"}>
-              <PackageHeader packageData={packageData} price={price} />
+              <PackageHeader packageData={packageData} price={price} transport={transport} />
             </div>
           </div>
 
-          <PackageMetrics packageData={packageData} transport={transport} />
           <PackageHotels packageData={packageData} hotels={hotels} />
 
           <PackageFeatures
-            sellingPoints={sellingPoints}
             includedItems={includedItems}
             excludedItems={excludedItems}
             equipmentItems={equipmentItems}
