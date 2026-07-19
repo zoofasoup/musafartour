@@ -6,6 +6,7 @@ import { cn, isPackageUnavailable, getOptimizedImageUrl, getPriceBadgeStyle, for
 import { airlineLogos } from "@/lib/airlineLogos";
 import { useFavorites } from "@/hooks/useFavorites";
 import { ImageLightbox } from "@/components/ImageLightbox";
+import { LazyImage } from "@/components/ui/lazy-image";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackagePrice } from "@/lib/packageSchema";
 
@@ -53,7 +54,7 @@ export function PackageGallery({ packageData, price, children }: PackageGalleryP
             className="relative rounded-2xl overflow-hidden shadow-lg bg-card border cursor-zoom-in"
             onClick={() => setLightboxOpen(true)}
           >
-            <img
+            <LazyImage
               src={getOptimizedImageUrl(allImages[activeIndex], 900)}
               alt={packageData.package_name}
               className="w-full h-auto object-cover max-h-[700px]"
@@ -95,7 +96,7 @@ export function PackageGallery({ packageData, price, children }: PackageGalleryP
                     activeIndex === idx ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
                   )}
                 >
-                  <img
+                  <LazyImage
                     src={getOptimizedImageUrl(img, 160)}
                     alt={`${packageData.package_name} ${idx + 1}`}
                     className="w-full h-full object-cover"

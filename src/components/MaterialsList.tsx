@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AssetItem, Campaign, ParsedItem, ItineraryDay } from '../marketing-types';
 import { parseFilename } from '../marketing-utils';
 import { Download, Copy, FileText, Image as ImageIcon, Map, FileSpreadsheet, CheckCircle2, Clock, CalendarDays, Search, ArrowDown } from 'lucide-react';
+import { LazyImage } from '@/components/ui/lazy-image';
 
 interface MaterialsListProps {
   campaign: Campaign;
@@ -45,7 +46,7 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({ campaign, searchQu
     <div key={item.id} className="group bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden flex flex-col h-full transition-all duration-300 hover:shadow-[0_20px_40px_rgb(201,42,54,0.08)] hover:-translate-y-2">
       {!hideThumbnail && item.thumbnail ? (
         <div className={`${customAspect} bg-gray-50 relative overflow-hidden border-b border-gray-100`}>
-          <img src={item.thumbnail} alt={item.name} className={`w-full h-full ${objectFit} transition-transform duration-700 group-hover:scale-105`} />
+          <LazyImage src={item.thumbnail} alt={item.name} className={`w-full h-full ${objectFit} transition-transform duration-700 group-hover:scale-105`} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </div>
       ) : (

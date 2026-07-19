@@ -9,6 +9,7 @@ import { id as localeId } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import DOMPurify from "dompurify";
+import { LazyImage } from "@/components/ui/lazy-image";
 
 interface Article {
   id: string;
@@ -177,7 +178,7 @@ const ArtikelDetail = () => {
           {/* Featured Image */}
           {article.featured_image && (
             <div className="mb-12">
-              <img
+              <LazyImage
                 src={article.featured_image}
                 alt={article.title}
                 className="w-full h-auto rounded-lg"
@@ -222,7 +223,7 @@ const ArtikelDetail = () => {
                   >
                     {related.featured_image && (
                       <div className="aspect-video overflow-hidden">
-                        <img
+                        <LazyImage
                           src={related.featured_image}
                           alt={related.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

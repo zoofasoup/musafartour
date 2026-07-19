@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Star, Heart, ShieldCheck } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo.svg";
+import { LazyImage } from "@/components/ui/lazy-image";
 import type { HeroData, WebsiteSettings } from "@/hooks/useHomepageData";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { useNavigate } from "react-router-dom";
@@ -104,7 +105,7 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
             <div className="w-full max-w-[1600px] mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 animate-fade-in opacity-0" style={{ animationDelay: '0.8s', animationFillMode: 'forwards' }}>
               {mosaicPhotos.map((photo, i) => (
                 <div key={i} className="aspect-[3/4] rounded-2xl overflow-hidden bg-muted group relative shadow-md">
-                  <img
+                  <LazyImage
                     src={photo}
                     alt={`Jamaah Musafar Tour ${i + 1}`}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"

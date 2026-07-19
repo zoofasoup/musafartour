@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, animate, useInView } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { LazyImage } from "@/components/ui/lazy-image";
 
 const fallbackPhotos = [
   { id: "1", image_url: "/gallery/jamaah-1.jpg" },
@@ -123,7 +124,7 @@ export const JamaahCarousel = () => {
                   }`}
                 >
                   <div className="w-full h-full overflow-hidden bg-slate-100 relative">
-                    <img
+                    <LazyImage
                       src={photo.image_url}
                       alt="Jamaah umroh Musafar Tour"
                       className="w-full h-full object-cover"

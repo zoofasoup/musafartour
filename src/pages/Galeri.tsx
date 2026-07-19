@@ -6,6 +6,7 @@ import { Camera } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { supabase } from "@/integrations/supabase/client";
+import { LazyImage } from "@/components/ui/lazy-image";
 
 interface GalleryImage {
   id: string;
@@ -119,7 +120,7 @@ const Galeri = () => {
                       className="relative overflow-hidden rounded-lg aspect-[4/3] group cursor-pointer"
                       onClick={() => openLightbox(images.map(i => i.image_url), imgIndex)}
                     >
-                      <img
+                      <LazyImage
                         src={image.image_url}
                         alt={image.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"

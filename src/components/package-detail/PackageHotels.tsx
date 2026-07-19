@@ -6,6 +6,7 @@ import { MapPin, Footprints, Hotel, Star, ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getOptimizedImageUrl } from "@/lib/utils";
 import { ImageLightbox } from "@/components/ImageLightbox";
+import { LazyImage } from "@/components/ui/lazy-image";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackageHotels as PackageHotelsType } from "@/lib/packageSchema";
 
@@ -55,7 +56,7 @@ function HotelPhotoStrip({ photos, onOpen }: { photos: { label: string; url: str
           onClick={() => onOpen(i)}
           className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border bg-muted"
         >
-          <img
+          <LazyImage
             src={getOptimizedImageUrl(photo.url, 160)}
             alt={photo.label}
             loading="lazy"

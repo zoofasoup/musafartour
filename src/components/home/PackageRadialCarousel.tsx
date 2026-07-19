@@ -6,6 +6,7 @@ import { ChevronRight } from "lucide-react";
 import { motion, useAnimation } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getOptimizedImageUrl } from "@/lib/utils";
+import { LazyImage } from "@/components/ui/lazy-image";
 
 type CarouselPackage = Pick<PublishedPackage, "id" | "slug" | "banner_image" | "package_name">;
 
@@ -144,8 +145,8 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
                   }
                 }}>
                   <Link to={`/paket-umroh/${pkg.slug}`} className="block transition-transform duration-500 md:hover:scale-105 md:hover:-translate-y-4" draggable={false}>
-                    <img 
-                      src={getOptimizedImageUrl(pkg.banner_image, 320) || '/placeholder.svg'} 
+                    <LazyImage
+                      src={getOptimizedImageUrl(pkg.banner_image, 320) || '/placeholder.svg'}
                       alt={pkg.package_name}
                       draggable={false}
                       onDragStart={(e) => e.preventDefault()}

@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import testimonialMale from "@/assets/testimonial-male.png";
 import testimonialFemale from "@/assets/testimonial-female.png";
+import { LazyImage } from "@/components/ui/lazy-image";
 
 interface TestimonialCardProps {
   name: string;
@@ -61,7 +62,7 @@ export const TestimonialCard = ({ name, text, location, gender = 'male', imageUr
           )}
         </div>
         <div className="flex items-center gap-3 pt-4 border-t border-border/50">
-          <img
+          <LazyImage
             src={avatarImage}
             alt={name}
             className="w-12 h-12 rounded-full object-cover flex-shrink-0"
