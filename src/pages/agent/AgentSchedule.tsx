@@ -23,7 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn, formatCurrency, getTierPrice } from "@/lib/utils";
-import PackageShareModal from "@/components/agent/PackageShareModal";
+import PackageShareModal from "@/components/package-detail/PackageShareModal";
 import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
 
 interface Package {

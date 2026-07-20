@@ -29,6 +29,7 @@ import { PackageHotels } from "@/components/package-detail/PackageHotels";
 import { PackageFeatures } from "@/components/package-detail/PackageFeatures";
 import { PackagePricing } from "@/components/package-detail/PackagePricing";
 import { PackageCtaButtons } from "@/components/package-detail/PackageCtaButtons";
+import { PackageTestimonials } from "@/components/package-detail/PackageTestimonials";
 import { PackageStickyMobileBar } from "@/components/package-detail/PackageStickyMobileBar";
 import { RelatedPackages } from "@/components/package-detail/RelatedPackages";
 import {
@@ -252,7 +253,7 @@ const PackageDetailPage = () => {
       </div>
 
       <div className="flex flex-col lg:flex-row container mx-auto px-6 md:px-8 min-h-[calc(100vh-4rem)] gap-6 mt-4 pb-24 lg:pb-8">
-        <main className="flex-1 lg:pr-2 space-y-6">
+        <main className="flex-1 min-w-0 lg:pr-2 space-y-6">
           {/* Gallery shows here on mobile only - on desktop it moves into the
               sidebar, stacked above the calculator, so this column is a
               single full-width block instead of splitting into two narrower
@@ -273,6 +274,8 @@ const PackageDetailPage = () => {
             equipmentItems={equipmentItems}
           />
 
+          <PackageTestimonials />
+
           <RelatedPackages currentPackageId={packageData.id} currentTier={effectiveTier} />
         </main>
 
@@ -280,6 +283,8 @@ const PackageDetailPage = () => {
           {hasImages && <PackageGallery packageData={packageData} price={price} />}
 
           <PackageCtaButtons
+            packageData={packageData}
+            price={price}
             onSoloWhatsApp={handleSoloWhatsApp}
             calculatorExpanded={calculatorExpanded}
             onToggleCalculator={() => setCalculatorExpanded((v) => !v)}

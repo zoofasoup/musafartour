@@ -136,6 +136,15 @@ const fetchTestimonials = async (): Promise<Testimonial[]> => {
   return data;
 };
 
+/** Same query key as the homepage's own testimonials fetch, so pages sharing it also share the cache. */
+export const useTestimonials = () => {
+  return useQuery({
+    queryKey: ["homepage-testimonials"],
+    queryFn: fetchTestimonials,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 const fallbackFaqs: FAQItem[] = [
   {
     id: "1",

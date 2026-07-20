@@ -28,7 +28,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { formatCurrency, getTierPrice } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import PackageShareModal from "@/components/agent/PackageShareModal";
+import PackageShareModal from "@/components/package-detail/PackageShareModal";
 
 interface PackagePrice {
   quad: number;
