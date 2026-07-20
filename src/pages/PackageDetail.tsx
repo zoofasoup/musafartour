@@ -28,6 +28,7 @@ import { PackageHeader } from "@/components/package-detail/PackageHeader";
 import { PackageHotels } from "@/components/package-detail/PackageHotels";
 import { PackageFeatures } from "@/components/package-detail/PackageFeatures";
 import { PackagePricing } from "@/components/package-detail/PackagePricing";
+import { PackageCtaButtons } from "@/components/package-detail/PackageCtaButtons";
 import { PackageStickyMobileBar } from "@/components/package-detail/PackageStickyMobileBar";
 import { RelatedPackages } from "@/components/package-detail/RelatedPackages";
 import {
@@ -63,6 +64,7 @@ const PackageDetailPage = () => {
   const [discount, setDiscount] = useState(0);
   const [customerName, setCustomerName] = useState("");
   const [selectedComboIdx, setSelectedComboIdx] = useState(0);
+  const [calculatorExpanded, setCalculatorExpanded] = useState(false);
 
   const availableTiers = packageData?.available_tiers || ["nyaman"];
   const effectiveTier = availableTiers.includes(selectedTier) ? selectedTier : availableTiers[0];
@@ -112,6 +114,22 @@ const PackageDetailPage = () => {
       msg += `🎉 Diskon: ${formatCurrency(discount)}/dewasa × ${adults} = hemat *${formatCurrency(totalSavings)}*!\n`;
     }
     msg += `\nMohon informasi lebih lanjut mengenai ketersediaan dan proses pendaftarannya. Terima kasih.`;
+
+    redirectToWhatsApp(msg);
+  };
+
+  // Skips the calculator entirely - for a solo jamaah who just wants to ask
+  // sales directly rather than configure a multi-pax room combo.
+  const handleSoloWhatsApp = () => {
+    if (!packageData) return;
+    const depDate = fmtDate(packageData.departure_date);
+
+    let msg = `Assalamu'alaikum Musafar Tour,\n\n`;
+    msg += `Saya tertarik dengan paket Umroh berikut, rencana berangkat sendiri (tanpa rombongan):\n\n`;
+    msg += `📦 *Paket:* ${packageData.package_name}\n`;
+    msg += `📅 *Keberangkatan:* ${depDate}\n`;
+    if (price?.quad) msg += `💰 *Harga mulai dari:* ${formatCurrency(price.quad)}/orang\n`;
+    msg += `\nMohon info lebih lanjut mengenai opsi kamar untuk 1 orang. Terima kasih.`;
 
     redirectToWhatsApp(msg);
   };
@@ -261,7 +279,14 @@ const PackageDetailPage = () => {
         <div className="hidden lg:flex lg:flex-col gap-6 w-[360px] shrink-0">
           {hasImages && <PackageGallery packageData={packageData} price={price} />}
 
+          <PackageCtaButtons
+            onSoloWhatsApp={handleSoloWhatsApp}
+            calculatorExpanded={calculatorExpanded}
+            onToggleCalculator={() => setCalculatorExpanded((v) => !v)}
+          />
+
           <PackagePricing
+            expanded={calculatorExpanded}
             packageData={packageData}
             price={price}
             adults={adults}
