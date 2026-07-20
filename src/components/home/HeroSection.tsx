@@ -91,7 +91,7 @@ export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectio
               </div>
               <div className="flex items-center gap-1.5 bg-green-500/10 text-green-700 px-3 py-1 rounded-full border border-green-500/20">
                 <ShieldCheck className="h-4 w-4" />
-                <p className="text-sm sm:text-base font-semibold">Berizin Resmi Kemenag PPIU: 17102200953750002</p>
+                <p className="text-sm sm:text-base font-semibold">Berizin Resmi Kemenag PPIU: {websiteSettings?.ppiu_license_number || "17102200953750002"}</p>
               </div>
             </div>
             

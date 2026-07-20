@@ -1,8 +1,22 @@
 import musafarLogo from "@/assets/musafar-logo.svg";
 import { Instagram, Facebook, Youtube, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useHomepageData } from "@/hooks/useHomepageData";
+
+const FALLBACK_PHONE = "021-38312137";
+const FALLBACK_WHATSAPP = "6281917403797";
+const FALLBACK_ADDRESS = "Commercial Park Harapan Indah Ruko Emerald Blok EB1 No. 28, Medan Satria, Kota Bekasi, Jawa Barat 17131";
 
 const Footer = () => {
+  const { websiteSettings } = useHomepageData();
+
+  const phone = websiteSettings?.phone_number || FALLBACK_PHONE;
+  const whatsapp = websiteSettings?.whatsapp_number || FALLBACK_WHATSAPP;
+  const address = websiteSettings?.address || FALLBACK_ADDRESS;
+  const instagramUrl = websiteSettings?.instagram_url || "https://instagram.com/musafartour";
+  const facebookUrl = websiteSettings?.facebook_url || "https://facebook.com/musafartour";
+  const youtubeUrl = websiteSettings?.youtube_url || "https://youtube.com/@musafartour";
+
   const schemaData = {
     "@context": "https://schema.org",
     "@type": "TravelAgency",
@@ -10,20 +24,13 @@ const Footer = () => {
     "image": "https://musafartour.com/logo.webp",
     "@id": "https://musafartour.com",
     "url": "https://musafartour.com",
-    "telephone": "021-38312137",
+    "telephone": phone,
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Commercial Park Harapan Indah Ruko Emerald Blok EB1 No. 28",
-      "addressLocality": "Medan Satria, Kota Bekasi",
-      "addressRegion": "Jawa Barat",
-      "postalCode": "17131",
+      "streetAddress": address,
       "addressCountry": "ID"
     },
-    "sameAs": [
-      "https://instagram.com/musafartour",
-      "https://facebook.com/musafartour",
-      "https://youtube.com/@musafartour"
-    ]
+    "sameAs": [instagramUrl, facebookUrl, youtubeUrl]
   };
 
   return (
@@ -52,7 +59,7 @@ const Footer = () => {
 
               <div className="flex items-center pb-3 max-w-sm mb-16">
                 <a
-                  href="https://wa.me/6281917403797?text=Halo%20Musamin,%20saya%20ingin%20mendapatkan%20info%20promo%20paket%20umroh%20terbaru"
+                  href={`https://wa.me/${whatsapp}?text=Halo%20Musamin,%20saya%20ingin%20mendapatkan%20info%20promo%20paket%20umroh%20terbaru`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-emerald-400 font-semibold hover:text-emerald-300 transition-colors text-lg"
@@ -64,13 +71,13 @@ const Footer = () => {
 
             {/* Socials */}
             <div className="flex gap-4 mt-auto">
-              <a href="https://instagram.com/musafartour" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-neutral-950 flex items-center justify-center hover:bg-white/80 transition-colors" aria-label="Instagram">
+              <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-neutral-950 flex items-center justify-center hover:bg-white/80 transition-colors" aria-label="Instagram">
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="https://facebook.com/musafartour" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-neutral-950 flex items-center justify-center hover:bg-white/80 transition-colors" aria-label="Facebook">
+              <a href={facebookUrl} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-neutral-950 flex items-center justify-center hover:bg-white/80 transition-colors" aria-label="Facebook">
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href="https://youtube.com/@musafartour" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-neutral-950 flex items-center justify-center hover:bg-white/80 transition-colors" aria-label="YouTube">
+              <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-neutral-950 flex items-center justify-center hover:bg-white/80 transition-colors" aria-label="YouTube">
                 <Youtube className="w-5 h-5" />
               </a>
             </div>

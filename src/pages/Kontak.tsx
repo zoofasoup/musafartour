@@ -9,6 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Phone, Mail, MapPin, Clock, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatWhatsAppUrl } from "@/lib/utils";
+import { useHomepageData } from "@/hooks/useHomepageData";
+
+const FALLBACK_WHATSAPP = "6281917403797";
+const FALLBACK_ADDRESS = "Commercial Park Harapan Indah Ruko Emerald Blok EB1 No. 28, Medan Satria, Kota Bekasi, Jawa Barat 17131";
+const FALLBACK_OFFICE_HOURS = "Senin - Jumat: 09.00 - 17.00 WIB, Sabtu: 09.00 - 14.00 WIB, Minggu & Libur: Tutup";
 
 const Kontak = () => {
   const [formData, setFormData] = useState({
@@ -19,10 +24,17 @@ const Kontak = () => {
     message: "",
   });
   const { toast } = useToast();
+  const { websiteSettings } = useHomepageData();
+
+  const whatsapp = websiteSettings?.whatsapp_number || FALLBACK_WHATSAPP;
+  const phone = websiteSettings?.phone_number || "021-38312137";
+  const email = websiteSettings?.email || "musafartour@gmail.com";
+  const address = websiteSettings?.address || FALLBACK_ADDRESS;
+  const officeHours = websiteSettings?.office_hours || FALLBACK_OFFICE_HOURS;
 
   const handleWhatsAppClick = () => {
     const message = "Halo Musafar Tour, saya ingin bertanya tentang paket umroh.";
-    const whatsappUrl = formatWhatsAppUrl("6281917403797", message);
+    const whatsappUrl = formatWhatsAppUrl(whatsapp, message);
     window.open(whatsappUrl, "_blank");
   };
 
@@ -48,9 +60,9 @@ Subjek: ${formData.subject}
 Pesan:
 ${formData.message}`;
 
-    const whatsappUrl = formatWhatsAppUrl("6281917403797", message);
+    const whatsappUrl = formatWhatsAppUrl(whatsapp, message);
     window.open(whatsappUrl, "_blank");
-    
+
     toast({
       title: "Pesan terkirim!",
       description: "Anda akan diarahkan ke WhatsApp untuk mengirim pesan.",
@@ -78,14 +90,11 @@ ${formData.message}`;
           "mainEntity": {
             "@type": "TravelAgency",
             "name": "Musafar Tour",
-            "telephone": "+6281917403797",
-            "email": "musafartour@gmail.com",
+            "telephone": `+${whatsapp}`,
+            "email": email,
             "address": {
               "@type": "PostalAddress",
-              "streetAddress": "Commercial Park Harapan Indah Ruko Emerald Blok EB1 No. 28",
-              "addressLocality": "Bekasi",
-              "addressRegion": "Jawa Barat",
-              "postalCode": "17131",
+              "streetAddress": address,
               "addressCountry": "ID"
             }
           }
@@ -123,10 +132,7 @@ ${formData.message}`;
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Alamat Kantor</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Commercial Park Harapan Indah Ruko Emerald Blok EB1 No. 28<br />
-                    Medan Satria, Kota Bekasi, Jawa Barat 17131
-                  </p>
+                  <p className="text-sm text-muted-foreground">{address}</p>
                 </div>
               </div>
 
@@ -136,8 +142,8 @@ ${formData.message}`;
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Telepon & WhatsApp</h3>
-                  <p className="text-sm text-muted-foreground">021-38312137</p>
-                  <p className="text-sm text-muted-foreground">0819-1740-3797 (WhatsApp)</p>
+                  <p className="text-sm text-muted-foreground">{phone}</p>
+                  <p className="text-sm text-muted-foreground">{whatsapp} (WhatsApp)</p>
                 </div>
               </div>
 
@@ -147,7 +153,7 @@ ${formData.message}`;
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Email</h3>
-                  <p className="text-sm text-muted-foreground">musafartour@gmail.com</p>
+                  <p className="text-sm text-muted-foreground">{email}</p>
                 </div>
               </div>
 
@@ -157,11 +163,7 @@ ${formData.message}`;
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Jam Operasional</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Senin - Jumat: 09.00 - 17.00 WIB<br />
-                    Sabtu: 09.00 - 14.00 WIB<br />
-                    Minggu & Libur: Tutup
-                  </p>
+                  <p className="text-sm text-muted-foreground">{officeHours}</p>
                 </div>
               </div>
             </div>
@@ -246,7 +248,7 @@ ${formData.message}`;
         <div className="container mx-auto px-6 md:px-8">
           <h2 className="text-3xl font-bold text-center mb-8">Lokasi Kantor Kami</h2>
           <div className="max-w-5xl mx-auto">
-            <GoogleMap />
+            <GoogleMap googleMapsUrl={websiteSettings?.google_maps_url || undefined} />
           </div>
         </div>
       </section>

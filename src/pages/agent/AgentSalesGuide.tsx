@@ -23,6 +23,7 @@ import {
 import { USD_KURS } from "@/lib/calcConfig";
 import { CHILD_PRICE, INFANT_PRICE } from "@/lib/roomCombos";
 import { Link } from "react-router-dom";
+import { useHomepageData } from "@/hooks/useHomepageData";
 
 const fmt = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
 
@@ -84,6 +85,13 @@ const EXTRA_SCRIPTS = [
 ];
 
 const AgentSalesGuide = () => {
+  const { websiteSettings } = useHomepageData();
+  const ppiuNumber = websiteSettings?.ppiu_license_number || "17102200953750002";
+  const companyName = websiteSettings?.company_legal_name || "PT Musa Amanah Wisata";
+  const bankNames = websiteSettings?.bank_names?.length ? websiteSettings.bank_names.join(", ") : "BCA, BSI, BNI";
+  const officeAddress = websiteSettings?.address || "Commercial Park Harapan Indah, Ruko Emerald Blok EB1 No.28, Medan Satria, Kota Bekasi, Jawa Barat 17131";
+  const officePhone = websiteSettings?.phone_number || "021-38312137";
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto w-full pb-20 md:pb-6">
       <div>
@@ -103,14 +111,14 @@ const AgentSalesGuide = () => {
           <CardDescription>Fakta yang bisa langsung kamu sebutkan untuk meyakinkan calon jamaah.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
-          <p>Izin resmi <strong>PPIU Kemenag No. 17102200953750002</strong>, atas nama <strong>PT Musa Amanah Wisata</strong>.</p>
+          <p>Izin resmi <strong>PPIU Kemenag No. {ppiuNumber}</strong>, atas nama <strong>{companyName}</strong>.</p>
           <p className="flex items-start gap-2">
             <Landmark className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-            Rekening resmi hanya BCA, BSI, BNI a.n. PT Musa Amanah Wisata - <strong>jangan pernah</strong> minta jamaah transfer ke rekening pribadi.
+            Rekening resmi hanya {bankNames} a.n. {companyName} - <strong>jangan pernah</strong> minta jamaah transfer ke rekening pribadi.
           </p>
           <p className="flex items-start gap-2">
             <MapPin className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-            Kantor: Commercial Park Harapan Indah, Ruko Emerald Blok EB1 No.28, Medan Satria, Kota Bekasi, Jawa Barat 17131 · 021-38312137
+            Kantor: {officeAddress} · {officePhone}
           </p>
           <p className="flex items-start gap-2">
             <Tag className="h-4 w-4 mt-0.5 text-primary shrink-0" />
