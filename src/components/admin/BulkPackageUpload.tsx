@@ -360,13 +360,19 @@ function parseExcelData(
       const hotel_madinah_record = hotels ? findHotel(hotels, rawHotelMadinah, "madinah") : undefined;
       const hotel_extra_record = hotels ? findHotel(hotels, rawHotelExtra, "") : undefined;
 
-      const parsed: ParsedPackage = {
+        const rawSlotsTotal = parseInt(String(getVal(row, colMap.slots_total) || "0"), 10) || 0;
+        const rawRemainingStr = getVal(row, colMap.slots_remaining);
+        const slots_remaining = rawRemainingStr === undefined || rawRemainingStr === "" 
+          ? rawSlotsTotal 
+          : parseInt(String(rawRemainingStr), 10) || 0;
+
+        const parsed: ParsedPackage = {
         rowIndex: idx + 1,
         departure_date: departureDateStr,
         duration_days: parseInt(String(getVal(row, colMap.duration_days) || "0"), 10) || 0,
         tier,
-        slots_total: parseInt(String(getVal(row, colMap.slots_total) || "0"), 10) || 0,
-        slots_remaining: parseInt(String(getVal(row, colMap.slots_remaining) || "0"), 10) || 0,
+        slots_total: rawSlotsTotal,
+        slots_remaining,
         package_name: packageName,
         timeframe: String(getVal(row, colMap.timeframe) || "").trim(),
         start_airport,

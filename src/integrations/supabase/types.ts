@@ -1567,6 +1567,8 @@ export type Database = {
       }
       umroh_calculator_leads: {
         Row: {
+          assigned_to: string | null
+          assigned_to_email: string | null
           calculated_daily_target: number | null
           calculated_monthly_target: number | null
           companion_name: string | null
@@ -1598,6 +1600,8 @@ export type Database = {
           whatsapp: string
         }
         Insert: {
+          assigned_to?: string | null
+          assigned_to_email?: string | null
           calculated_daily_target?: number | null
           calculated_monthly_target?: number | null
           companion_name?: string | null
@@ -1629,6 +1633,8 @@ export type Database = {
           whatsapp: string
         }
         Update: {
+          assigned_to?: string | null
+          assigned_to_email?: string | null
           calculated_daily_target?: number | null
           calculated_monthly_target?: number | null
           companion_name?: string | null
@@ -1752,6 +1758,8 @@ export type Database = {
       }
       whatsapp_clicks: {
         Row: {
+          assigned_to: string | null
+          assigned_to_email: string | null
           clicked_at: string
           cs_id: string | null
           cs_name: string
@@ -1767,6 +1775,8 @@ export type Database = {
           utm_term: string | null
         }
         Insert: {
+          assigned_to?: string | null
+          assigned_to_email?: string | null
           clicked_at?: string
           cs_id?: string | null
           cs_name: string
@@ -1782,6 +1792,8 @@ export type Database = {
           utm_term?: string | null
         }
         Update: {
+          assigned_to?: string | null
+          assigned_to_email?: string | null
           clicked_at?: string
           cs_id?: string | null
           cs_name?: string
@@ -1945,6 +1957,8 @@ export type Database = {
       get_calculator_lead_by_token: {
         Args: { _token: string }
         Returns: {
+          assigned_to: string | null
+          assigned_to_email: string | null
           calculated_daily_target: number | null
           calculated_monthly_target: number | null
           companion_name: string | null
