@@ -1,24 +1,17 @@
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ShoppingCart } from "lucide-react";
-import { cn, isPackageUnavailable, getOptimizedImageUrl, formatPriceJuta } from "@/lib/utils";
-import { useFavorites } from "@/hooks/useFavorites";
+import { cn, isPackageUnavailable, getOptimizedImageUrl } from "@/lib/utils";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { LazyImage } from "@/components/ui/lazy-image";
 import type { PublishedPackage } from "@/hooks/usePackages";
-import type { PackagePrice } from "@/lib/packageSchema";
 
 interface PackageGalleryProps {
   packageData: PublishedPackage;
-  price: PackagePrice | null;
 }
 
-export function PackageGallery({ packageData, price }: PackageGalleryProps) {
-  const { isFavorite, toggleFavorite } = useFavorites();
+export function PackageGallery({ packageData }: PackageGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   const allImages = useMemo(() => {
     const raw = [packageData.banner_image, ...(packageData.gallery_images || [])].filter(
@@ -27,21 +20,7 @@ export function PackageGallery({ packageData, price }: PackageGalleryProps) {
     return Array.from(new Set(raw));
   }, [packageData.banner_image, packageData.gallery_images]);
 
-  const isFav = isFavorite(packageData.id);
   const unavailable = isPackageUnavailable(packageData);
-
-  const handleFavoriteClick = () => {
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 400);
-    toggleFavorite({
-      id: packageData.id,
-      slug: packageData.slug || undefined,
-      title: packageData.package_name,
-      image: packageData.banner_image || "",
-      price: price?.quad ? formatPriceJuta(price.quad) : "",
-      date: packageData.departure_date,
-    });
-  };
 
   if (allImages.length === 0) return null;
 
@@ -65,21 +44,6 @@ export function PackageGallery({ packageData, price }: PackageGalleryProps) {
             </Badge>
           </div>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "absolute top-4 right-4 z-10 rounded-xl backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/20 shadow-lg",
-            isAnimating && "scale-110"
-          )}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleFavoriteClick();
-          }}
-          aria-label={isFav ? "Keluarkan dari keranjang" : "Masukkan ke keranjang"}
-        >
-          <ShoppingCart className={cn("h-5 w-5 transition-all", isFav ? "fill-white text-white" : "text-white")} />
-        </Button>
       </div>
 
       {allImages.length > 1 && (

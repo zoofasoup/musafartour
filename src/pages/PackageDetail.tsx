@@ -275,7 +275,7 @@ const PackageDetailPage = () => {
               ones. */}
           {hasImages && (
             <div className="lg:hidden">
-              <PackageGallery packageData={packageData} price={price} />
+              <PackageGallery packageData={packageData} />
             </div>
           )}
 
@@ -294,7 +294,7 @@ const PackageDetailPage = () => {
         </main>
 
         <div className="hidden lg:flex lg:flex-col gap-6 w-[360px] shrink-0">
-          {hasImages && <PackageGallery packageData={packageData} price={price} />}
+          {hasImages && <PackageGallery packageData={packageData} />}
 
           {/* Sticky so the CTA (and calculator, once expanded) stays clickable
               while the user scrolls through hotels/features/testimonials below. */}
