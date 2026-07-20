@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, Heart, ChevronLeft, ChevronRight, Bell, Users, ShieldCheck, CheckCircle2, ShoppingCart, Package } from "lucide-react";
+import { Star, Heart, ChevronLeft, ChevronRight, Bell, Users, ShieldCheck, CheckCircle2, ShoppingCart, Armchair } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "@/hooks/use-toast";
@@ -229,10 +229,10 @@ export const PackageCard = ({
         {/* Remaining Seats Badge */}
         {!isSoldOut && remainingSeats !== null && (
           <div className="absolute bottom-4 right-4 z-20">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md bg-white/10 border border-white/20 shadow-lg">
-              <ShoppingCart className={`w-3.5 h-3.5 shrink-0 ${isAlmostFull ? 'text-amber-400' : 'text-white'}`} />
-              <span className="text-xs font-bold text-white whitespace-nowrap">
-                {isAlmostFull ? `Tersisa ${remainingSeats} seat!` : `${remainingSeats} seat tersisa`}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md bg-black/60 border border-white/10 shadow-lg">
+              <Armchair className={`w-3.5 h-3.5 shrink-0 ${isAlmostFull ? 'text-amber-400' : 'text-white'}`} />
+              <span className={`text-xs font-bold whitespace-nowrap ${isAlmostFull ? 'text-amber-400' : 'text-white'}`}>
+                Sisa {remainingSeats}
               </span>
             </div>
           </div>
@@ -319,10 +319,12 @@ export const PackageCard = ({
                 id={cartButtonTourId}
                 ref={heartRef}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleFavoriteClick(e); }}
-                className={`flex items-center justify-center w-9 h-9 rounded-full bg-emerald-600 hover:bg-emerald-700 shadow-md transition-colors ${isAnimating ? 'animate-cart-pop' : ''}`}
+                className={`flex items-center justify-center w-9 h-9 rounded-full shadow-md transition-colors ${
+                  isFav ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-200 hover:bg-slate-300'
+                } ${isAnimating ? 'animate-cart-pop' : ''}`}
                 aria-label={isFav ? "Keluarkan dari keranjang" : "Masukkan ke keranjang"}
               >
-                <Package className={`w-5 h-5 text-white ${isFav ? 'fill-white' : ''}`} />
+                <ShoppingCart className={`w-5 h-5 ${isFav ? 'text-white fill-white' : 'text-black'}`} />
               </button>
             </>
           )}
