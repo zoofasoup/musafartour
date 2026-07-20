@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, FileText, Plane, BarChart, RefreshCw, TrendingUp, Sparkles, AlertTriangle, Lightbulb, Users, Calendar, ArrowRight, Activity, Zap } from "lucide-react";
+import { Package, FileText, Plane, BarChart, RefreshCw, AlertTriangle, Users, Calendar, ArrowRight, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,6 +60,34 @@ const AdminDashboard = () => {
     },
   });
 
+  const { data: whatsappClicksThisMonth } = useQuery({
+    queryKey: ['whatsapp-clicks-this-month'],
+    queryFn: async () => {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      const { count } = await supabase
+        .from('whatsapp_clicks')
+        .select('*', { count: 'exact', head: true })
+        .gte('clicked_at', startOfMonth.toISOString());
+      return count || 0;
+    },
+  });
+
+  const { data: topAgents } = useQuery({
+    queryKey: ['dashboard-top-agents'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('agents')
+        .select('id, name, total_sales, total_commission, level')
+        .eq('status', 'active')
+        .order('total_sales', { ascending: false })
+        .limit(3);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
@@ -93,32 +121,24 @@ const AdminDashboard = () => {
       value: packagesCount?.toString() || "0",
       icon: Package,
       description: "Paket aktif",
-      trend: "+12%",
-      trendUp: true,
     },
     {
       title: "Wisata Halal",
       value: wisataCount?.toString() || "0",
       icon: Plane,
       description: "Destinasi tersedia",
-      trend: "+5%",
-      trendUp: true,
     },
     {
       title: "Artikel",
       value: articlesCount?.toString() || "0",
       icon: FileText,
       description: "Artikel published",
-      trend: "+2",
-      trendUp: true,
     },
     {
-      title: "Total Views",
-      value: "4,250", // Mocked GA data
+      title: "Klik WhatsApp",
+      value: whatsappClicksThisMonth?.toString() || "0",
       icon: BarChart,
       description: "Bulan ini",
-      trend: "+18%",
-      trendUp: true,
     },
   ];
 
@@ -130,7 +150,7 @@ const AdminDashboard = () => {
       const slotsTotal = nextPkg.slots_total || 45;
       const slotsFilled = nextPkg.slots_filled || 0;
       const sisaSeat = Math.max(0, slotsTotal - slotsFilled);
-      
+
       if (daysUntil < 45 && sisaSeat > 0) {
         insights.push({
           id: 1,
@@ -144,36 +164,14 @@ const AdminDashboard = () => {
         });
       }
     }
-    if (insights.length === 0) {
-      insights.push({
-        id: 1,
-        type: 'idea',
-        icon: Lightbulb,
-        title: "Peluang SEO & Ads",
-        text: "Pencarian keyword 'Wisata Halal Turki' meningkat 45% minggu ini di Google. Saran: Naikkan budget Meta Ads untuk landing page Turki.",
-        color: 'text-blue-700',
-        bg: 'bg-blue-50',
-        border: 'border-blue-200'
-      });
-    }
-    insights.push({
-      id: 2,
-      type: 'success',
-      icon: Sparkles,
-      title: "Gamifikasi Berhasil",
-      text: "Konversi pendaftaran agen baru naik 20% bulan ini sejak fitur poin diaktifkan. Bagikan pencapaian ini di grup komunitas Agen!",
-      color: 'text-emerald-700',
-      bg: 'bg-emerald-50',
-      border: 'border-emerald-200'
-    });
     return insights;
   };
 
-  const topAgents = [
-    { name: "Budi Santoso", points: 1250, sales: 5, initials: "BS", color: "bg-blue-100 text-blue-700" },
-    { name: "Siti Aminah", points: 980, sales: 4, initials: "SA", color: "bg-pink-100 text-pink-700" },
-    { name: "Ahmad Rizal", points: 850, sales: 3, initials: "AR", color: "bg-purple-100 text-purple-700" },
-  ];
+  const insights = getInsights();
+
+  const agentInitials = (name: string) =>
+    name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+  const agentColors = ["bg-blue-100 text-blue-700", "bg-pink-100 text-pink-700", "bg-purple-100 text-purple-700"];
 
   const handleMigrateSlugs = async () => {
     setMigrating(true);
@@ -200,9 +198,10 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Musafar Insights - AI Powered Assistant */}
+      {/* Insights derived from real upcoming-departure data - only renders when there's something real to flag */}
+      {insights.length > 0 && (
       <div className="grid gap-4 md:grid-cols-2">
-        {getInsights().map((insight) => {
+        {insights.map((insight) => {
           const Icon = insight.icon;
           return (
             <div key={insight.id} className={`${insight.bg} ${insight.border} border rounded-2xl p-5 shadow-sm transition-transform hover:-translate-y-1 duration-300`}>
@@ -219,6 +218,7 @@ const AdminDashboard = () => {
           );
         })}
       </div>
+      )}
 
       {/* KPI Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -234,13 +234,7 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-slate-800">{stat.value}</div>
-                <div className="mt-2 flex items-center text-xs">
-                  <span className={`font-medium flex items-center gap-1 ${stat.trendUp ? 'text-emerald-500' : 'text-red-500'}`}>
-                    <TrendingUp className="h-3 w-3" />
-                    {stat.trend}
-                  </span>
-                  <span className="text-slate-400 ml-2">{stat.description}</span>
-                </div>
+                <div className="mt-2 text-xs text-slate-400">{stat.description}</div>
               </CardContent>
             </Card>
           );
@@ -315,16 +309,18 @@ const AdminDashboard = () => {
               <Users className="w-5 h-5 text-indigo-500" />
               Leaderboard Agen
             </CardTitle>
-            <CardDescription>Top 3 agen bulan ini</CardDescription>
+            <CardDescription>Top 3 agen berdasarkan total penjualan</CardDescription>
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100">
-              {topAgents.map((agent, i) => (
-                <div key={agent.name} className="p-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
+              {!topAgents || topAgents.length === 0 ? (
+                <div className="p-8 text-center text-sm text-slate-500">Belum ada agen aktif.</div>
+              ) : topAgents.map((agent, i) => (
+                <div key={agent.id} className="p-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${agent.color}`}>
-                        {agent.initials}
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${agentColors[i] || agentColors[agentColors.length - 1]}`}>
+                        {agentInitials(agent.name)}
                       </div>
                       {i === 0 && (
                         <div className="absolute -top-2 -right-2 text-xl filter drop-shadow-sm">👑</div>
@@ -332,12 +328,12 @@ const AdminDashboard = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold text-slate-900 text-sm">{agent.name}</h4>
-                      <p className="text-xs text-slate-500 mt-0.5">{agent.sales} Closing</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{agent.total_sales} Closing</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-indigo-600">{agent.points}</div>
-                    <div className="text-[10px] text-slate-400 uppercase tracking-wider">Poin</div>
+                    <div className="font-bold text-indigo-600">Rp {(agent.total_commission || 0).toLocaleString('id-ID')}</div>
+                    <div className="text-[10px] text-slate-400 uppercase tracking-wider">Komisi</div>
                   </div>
                 </div>
               ))}
