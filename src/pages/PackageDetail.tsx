@@ -235,16 +235,17 @@ const PackageDetailPage = () => {
 
       <div className="flex flex-col lg:flex-row container mx-auto px-6 md:px-8 min-h-[calc(100vh-4rem)] gap-6 mt-4 pb-24 lg:pb-8">
         <main className="flex-1 lg:pr-2 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {hasImages && (
-              <div className="lg:col-span-5 self-start">
-                <PackageGallery packageData={packageData} price={price} />
-              </div>
-            )}
-            <div className={hasImages ? "lg:col-span-7" : "lg:col-span-12"}>
-              <PackageHeader packageData={packageData} price={price} transport={transport} />
+          {/* Gallery shows here on mobile only - on desktop it moves into the
+              sidebar, stacked above the calculator, so this column is a
+              single full-width block instead of splitting into two narrower
+              ones. */}
+          {hasImages && (
+            <div className="lg:hidden">
+              <PackageGallery packageData={packageData} price={price} />
             </div>
-          </div>
+          )}
+
+          <PackageHeader packageData={packageData} price={price} transport={transport} />
 
           <PackageHotels packageData={packageData} hotels={hotels} />
 
@@ -257,30 +258,34 @@ const PackageDetailPage = () => {
           <RelatedPackages currentPackageId={packageData.id} currentTier={effectiveTier} />
         </main>
 
-        <PackagePricing
-          packageData={packageData}
-          price={price}
-          adults={adults}
-          setAdults={setAdults}
-          children={children}
-          setChildren={setChildren}
-          infants={infants}
-          setInfants={setInfants}
-          discount={discount}
-          setDiscount={setDiscount}
-          combos={combos}
-          safeComboIdx={safeComboIdx}
-          setSelectedComboIdx={setSelectedComboIdx}
-          childTotal={childTotal}
-          infantTotal={infantTotal}
-          selectedCombo={selectedCombo}
-          grandTotal={grandTotal}
-          totalSavings={totalSavings}
-          customerName={customerName}
-          setCustomerName={setCustomerName}
-          handleWhatsApp={handleWhatsApp}
-          handleNotifyMe={handleNotifyMe}
-        />
+        <div className="hidden lg:flex lg:flex-col gap-6 w-[360px] shrink-0">
+          {hasImages && <PackageGallery packageData={packageData} price={price} />}
+
+          <PackagePricing
+            packageData={packageData}
+            price={price}
+            adults={adults}
+            setAdults={setAdults}
+            children={children}
+            setChildren={setChildren}
+            infants={infants}
+            setInfants={setInfants}
+            discount={discount}
+            setDiscount={setDiscount}
+            combos={combos}
+            safeComboIdx={safeComboIdx}
+            setSelectedComboIdx={setSelectedComboIdx}
+            childTotal={childTotal}
+            infantTotal={infantTotal}
+            selectedCombo={selectedCombo}
+            grandTotal={grandTotal}
+            totalSavings={totalSavings}
+            customerName={customerName}
+            setCustomerName={setCustomerName}
+            handleWhatsApp={handleWhatsApp}
+            handleNotifyMe={handleNotifyMe}
+          />
+        </div>
       </div>
 
       <PackageStickyMobileBar
