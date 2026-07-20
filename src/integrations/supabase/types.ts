@@ -1654,6 +1654,8 @@ export type Database = {
       website_settings: {
         Row: {
           address: string | null
+          bank_names: string[] | null
+          company_legal_name: string | null
           created_at: string
           email: string
           facebook_url: string | null
@@ -1663,6 +1665,7 @@ export type Database = {
           instagram_url: string | null
           office_hours: string | null
           phone_number: string
+          ppiu_license_number: string | null
           site_name: string
           site_tagline: string | null
           updated_at: string
@@ -1671,6 +1674,8 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          bank_names?: string[] | null
+          company_legal_name?: string | null
           created_at?: string
           email?: string
           facebook_url?: string | null
@@ -1680,6 +1685,7 @@ export type Database = {
           instagram_url?: string | null
           office_hours?: string | null
           phone_number?: string
+          ppiu_license_number?: string | null
           site_name?: string
           site_tagline?: string | null
           updated_at?: string
@@ -1688,6 +1694,8 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          bank_names?: string[] | null
+          company_legal_name?: string | null
           created_at?: string
           email?: string
           facebook_url?: string | null
@@ -1697,6 +1705,7 @@ export type Database = {
           instagram_url?: string | null
           office_hours?: string | null
           phone_number?: string
+          ppiu_license_number?: string | null
           site_name?: string
           site_tagline?: string | null
           updated_at?: string
@@ -1944,6 +1953,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_agent_sale: {
+        Args: {
+          _agent_id: string
+          _commission_rate?: number
+          _customer_name: string
+          _customer_phone: string
+          _departure_date?: string
+          _notes?: string
+          _package_id: string
+          _package_name: string
+          _sale_amount: number
+          _status?: string
+        }
+        Returns: string
+      }
+      redirect_agent_short_link: { Args: { _code: string }; Returns: string }
       slugify: { Args: { text_input: string }; Returns: string }
     }
     Enums: {

@@ -9,14 +9,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { 
-  Users, 
-  Search, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  UserCheck, 
+import {
+  Users,
+  Search,
+  CheckCircle,
+  XCircle,
+  Clock,
+  UserCheck,
   UserX,
   Eye,
   Mail,
@@ -26,7 +28,8 @@ import {
   Loader2,
   Key,
   Trash2,
-  MoreHorizontal
+  MoreHorizontal,
+  Receipt,
 } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
@@ -74,6 +77,39 @@ const AgentManagement = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  const [logSaleAgent, setLogSaleAgent] = useState<Agent | null>(null);
+  const [saleCustomerName, setSaleCustomerName] = useState("");
+  const [saleCustomerPhone, setSaleCustomerPhone] = useState("");
+  const [salePackageId, setSalePackageId] = useState("");
+  const [saleAmount, setSaleAmount] = useState("");
+  const [saleCommissionRate, setSaleCommissionRate] = useState("4.5");
+  const [saleStatus, setSaleStatus] = useState("confirmed");
+  const [saleNotes, setSaleNotes] = useState("");
+
+  const resetSaleForm = () => {
+    setLogSaleAgent(null);
+    setSaleCustomerName("");
+    setSaleCustomerPhone("");
+    setSalePackageId("");
+    setSaleAmount("");
+    setSaleCommissionRate("4.5");
+    setSaleStatus("confirmed");
+    setSaleNotes("");
+  };
+
+  const { data: publishedPackages = [] } = useQuery({
+    queryKey: ['agent-management-packages'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('packages')
+        .select('id, package_name, departure_date')
+        .eq('status', 'published')
+        .order('departure_date', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const handleChangePassword = async () => {
     if (!newPassword || newPassword.length < 6) {
@@ -173,6 +209,37 @@ const AgentManagement = () => {
     },
     onError: (error) => {
       toast.error("Gagal menghapus agent: " + error.message);
+    },
+  });
+
+  // Log a sale mutation - the only write path into agent_sales; also keeps
+  // total_sales/total_commission/available_balance on `agents` in sync
+  // (those are stored columns, not derived on the fly).
+  const logSaleMutation = useMutation({
+    mutationFn: async () => {
+      if (!logSaleAgent) return;
+      const pkg = publishedPackages.find((p) => p.id === salePackageId);
+      const { error } = await supabase.rpc('log_agent_sale', {
+        _agent_id: logSaleAgent.id,
+        _customer_name: saleCustomerName.trim(),
+        _customer_phone: saleCustomerPhone.trim(),
+        _package_id: salePackageId || null,
+        _package_name: pkg?.package_name || "",
+        _sale_amount: parseFloat(saleAmount),
+        _commission_rate: parseFloat(saleCommissionRate) || 4.5,
+        _departure_date: pkg?.departure_date || null,
+        _status: saleStatus,
+        _notes: saleNotes.trim() || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-agents'] });
+      toast.success("Penjualan berhasil dicatat");
+      resetSaleForm();
+    },
+    onError: (error: any) => {
+      toast.error("Gagal mencatat penjualan: " + error.message);
     },
   });
 
@@ -387,7 +454,16 @@ const AgentManagement = () => {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 {agent.status === 'active' && (
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
+                                    onClick={() => setLogSaleAgent(agent)}
+                                    className="text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer"
+                                  >
+                                    <Receipt className="mr-2 h-4 w-4" />
+                                    <span>Log Penjualan</span>
+                                  </DropdownMenuItem>
+                                )}
+                                {agent.status === 'active' && (
+                                  <DropdownMenuItem
                                     onClick={() => handleSuspend(agent)}
                                     className="text-amber-600 focus:bg-amber-50 focus:text-amber-700 cursor-pointer"
                                   >
@@ -626,6 +702,85 @@ const AgentManagement = () => {
               Tutup Panel
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Log a Sale Dialog - the only write path into agent_sales */}
+      <Dialog open={!!logSaleAgent} onOpenChange={(open) => !open && resetSaleForm()}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Log Penjualan · {logSaleAgent?.name}</DialogTitle>
+            <DialogDescription>Catat penjualan yang sudah dikonfirmasi supaya komisi dan leaderboard agent ini ikut terupdate.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Nama Pelanggan</Label>
+              <Input value={saleCustomerName} onChange={(e) => setSaleCustomerName(e.target.value)} placeholder="Nama..." />
+            </div>
+            <div className="space-y-1.5">
+              <Label>No. WhatsApp Pelanggan</Label>
+              <Input value={saleCustomerPhone} onChange={(e) => setSaleCustomerPhone(e.target.value)} placeholder="08..." />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Paket</Label>
+              <Select value={salePackageId} onValueChange={setSalePackageId}>
+                <SelectTrigger><SelectValue placeholder="Pilih paket..." /></SelectTrigger>
+                <SelectContent>
+                  {publishedPackages.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.package_name} · {format(new Date(p.departure_date), "d MMM yyyy", { locale: id })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Nilai Penjualan (Rp)</Label>
+                <Input type="number" value={saleAmount} onChange={(e) => setSaleAmount(e.target.value)} placeholder="35000000" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Komisi (%)</Label>
+                <Input type="number" step="0.1" value={saleCommissionRate} onChange={(e) => setSaleCommissionRate(e.target.value)} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Status</Label>
+              <Select value={saleStatus} onValueChange={setSaleStatus}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="confirmed">Confirmed (komisi langsung masuk)</SelectItem>
+                  <SelectItem value="pending">Pending (belum masuk komisi)</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Catatan (opsional)</Label>
+              <Textarea value={saleNotes} onChange={(e) => setSaleNotes(e.target.value)} rows={2} />
+            </div>
+            {saleAmount && saleCommissionRate && (
+              <p className="text-xs text-muted-foreground">
+                Estimasi komisi: {formatCurrency(Math.round((parseFloat(saleAmount) || 0) * (parseFloat(saleCommissionRate) || 0) / 100))}
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={resetSaleForm}>Batal</Button>
+            <Button
+              onClick={() => logSaleMutation.mutate()}
+              disabled={
+                logSaleMutation.isPending ||
+                !saleCustomerName.trim() ||
+                !saleCustomerPhone.trim() ||
+                !salePackageId ||
+                !saleAmount ||
+                parseFloat(saleAmount) <= 0
+              }
+            >
+              {logSaleMutation.isPending ? "Menyimpan..." : "Simpan"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
