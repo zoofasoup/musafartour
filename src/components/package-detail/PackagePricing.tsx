@@ -231,10 +231,12 @@ interface PackagePricingProps extends PackagePricingBodyProps {
 }
 
 /**
- * Desktop sticky sidebar shell around PackagePricingBody. Hidden on mobile -
- * see PackageStickyMobileBar. Expand/collapse is controlled by the
- * "Hitung Ramai-ramai" CTA above it (PackageCtaButtons) rather than an
- * internal toggle, so it renders nothing at all until the user asks for it.
+ * Desktop calculator shell around PackagePricingBody. Hidden on mobile - see
+ * PackageStickyMobileBar. Expand/collapse is controlled by the "Hitung
+ * Ramai-ramai" CTA above it (PackageCtaButtons) rather than an internal
+ * toggle, so it renders nothing at all until the user asks for it. Stickiness
+ * and scrolling are handled by the shared sidebar wrapper in PackageDetail,
+ * so this stays in flow right below the CTA card.
  */
 export function PackagePricing({ expanded, ...props }: PackagePricingProps) {
   if (!expanded) return null;
@@ -242,7 +244,7 @@ export function PackagePricing({ expanded, ...props }: PackagePricingProps) {
   return (
     <aside
       id="kalkulator-harga"
-      className="hidden lg:block w-[360px] shrink-0 rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-y-auto h-fit sticky top-24"
+      className="hidden lg:block w-[360px] shrink-0 rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)]"
     >
       <PackagePricingBody {...props} />
     </aside>

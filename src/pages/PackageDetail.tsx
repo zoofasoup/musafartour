@@ -280,39 +280,43 @@ const PackageDetailPage = () => {
         <div className="hidden lg:flex lg:flex-col gap-6 w-[360px] shrink-0">
           {hasImages && <PackageGallery packageData={packageData} price={price} />}
 
-          <PackageCtaButtons
-            packageData={packageData}
-            price={price}
-            onSoloWhatsApp={handleSoloWhatsApp}
-            calculatorExpanded={calculatorExpanded}
-            onToggleCalculator={() => setCalculatorExpanded((v) => !v)}
-          />
+          {/* Sticky so the CTA (and calculator, once expanded) stays clickable
+              while the user scrolls through hotels/features/testimonials below. */}
+          <div className="sticky top-24 space-y-6 max-h-[calc(100vh-7rem)] overflow-y-auto">
+            <PackageCtaButtons
+              packageData={packageData}
+              price={price}
+              onSoloWhatsApp={handleSoloWhatsApp}
+              calculatorExpanded={calculatorExpanded}
+              onToggleCalculator={() => setCalculatorExpanded((v) => !v)}
+            />
 
-          <PackagePricing
-            expanded={calculatorExpanded}
-            packageData={packageData}
-            price={price}
-            adults={adults}
-            setAdults={setAdults}
-            children={children}
-            setChildren={setChildren}
-            infants={infants}
-            setInfants={setInfants}
-            discount={discount}
-            setDiscount={setDiscount}
-            combos={combos}
-            safeComboIdx={safeComboIdx}
-            setSelectedComboIdx={setSelectedComboIdx}
-            childTotal={childTotal}
-            infantTotal={infantTotal}
-            selectedCombo={selectedCombo}
-            grandTotal={grandTotal}
-            totalSavings={totalSavings}
-            customerName={customerName}
-            setCustomerName={setCustomerName}
-            handleWhatsApp={handleWhatsApp}
-            handleNotifyMe={handleNotifyMe}
-          />
+            <PackagePricing
+              expanded={calculatorExpanded}
+              packageData={packageData}
+              price={price}
+              adults={adults}
+              setAdults={setAdults}
+              children={children}
+              setChildren={setChildren}
+              infants={infants}
+              setInfants={setInfants}
+              discount={discount}
+              setDiscount={setDiscount}
+              combos={combos}
+              safeComboIdx={safeComboIdx}
+              setSelectedComboIdx={setSelectedComboIdx}
+              childTotal={childTotal}
+              infantTotal={infantTotal}
+              selectedCombo={selectedCombo}
+              grandTotal={grandTotal}
+              totalSavings={totalSavings}
+              customerName={customerName}
+              setCustomerName={setCustomerName}
+              handleWhatsApp={handleWhatsApp}
+              handleNotifyMe={handleNotifyMe}
+            />
+          </div>
         </div>
       </div>
 
