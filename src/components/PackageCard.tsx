@@ -33,6 +33,8 @@ interface PackageCardProps {
   index?: number;
   className?: string;
   imageClassName?: string;
+  /** DOM id to apply to the cart button, so a product tour can point at it. Only pass this on one card at a time. */
+  cartButtonTourId?: string;
 }
 
 
@@ -61,6 +63,7 @@ export const PackageCard = ({
   index = 0,
   className = "",
   imageClassName = "aspect-square",
+  cartButtonTourId,
 }: PackageCardProps) => {
   const navigate = useNavigate();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -313,6 +316,7 @@ export const PackageCard = ({
               
               {/* Cart Button */}
               <button
+                id={cartButtonTourId}
                 ref={heartRef}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleFavoriteClick(e); }}
                 className={`flex items-center justify-center w-9 h-9 rounded-full bg-emerald-600 hover:bg-emerald-700 shadow-md transition-colors ${isAnimating ? 'animate-cart-pop' : ''}`}

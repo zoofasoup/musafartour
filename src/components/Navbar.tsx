@@ -79,7 +79,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-3">
             {/* Favorites Button */}
             <FavoritesDrawer>
-              <button className="relative p-2 rounded-full hover:bg-accent transition-colors" aria-label="Keranjang belanja">
+              <button id="tour-navbar-cart" className="relative p-2 rounded-full hover:bg-accent transition-colors" aria-label="Keranjang belanja">
                 <ShoppingCart className={`h-5 w-5 ${favorites.length > 0 ? 'fill-primary text-primary' : ''}`} />
                 {favorites.length > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
@@ -105,7 +105,7 @@ const Navbar = () => {
           {/* Mobile Menu Button */}
           <div className="flex md:hidden items-center gap-2">
             <FavoritesDrawer>
-              <button className="relative p-2 rounded-full hover:bg-accent transition-colors">
+              <button id="tour-navbar-cart-mobile" className="relative p-2 rounded-full hover:bg-accent transition-colors">
                 <ShoppingCart className={`h-5 w-5 ${favorites.length > 0 ? 'fill-primary text-primary' : ''}`} />
                 {favorites.length > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">

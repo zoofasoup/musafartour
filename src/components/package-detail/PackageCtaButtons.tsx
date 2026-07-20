@@ -46,6 +46,7 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
 
       <div className="space-y-1">
         <Button
+          id="tour-cta-solo"
           onClick={onSoloWhatsApp}
           className="w-full h-12 rounded-full text-base font-bold gap-2 border-2 border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400 text-slate-900 shadow-sm"
         >
@@ -56,6 +57,7 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
 
       <div className="space-y-1">
         <Button
+          id="tour-cta-calculator"
           onClick={onToggleCalculator}
           className="w-full h-12 rounded-full text-base font-bold gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
         >

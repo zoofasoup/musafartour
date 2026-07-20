@@ -32,6 +32,8 @@ import { PackageCtaButtons } from "@/components/package-detail/PackageCtaButtons
 import { PackageTestimonials } from "@/components/package-detail/PackageTestimonials";
 import { PackageStickyMobileBar } from "@/components/package-detail/PackageStickyMobileBar";
 import { RelatedPackages } from "@/components/package-detail/RelatedPackages";
+import { useProductTour } from "@/hooks/useProductTour";
+import { ProductTour } from "@/components/tour/ProductTour";
 import {
   generateRoomCombos,
   resolveTierPrice,
@@ -66,6 +68,20 @@ const PackageDetailPage = () => {
   const [customerName, setCustomerName] = useState("");
   const [selectedComboIdx, setSelectedComboIdx] = useState(0);
   const [calculatorExpanded, setCalculatorExpanded] = useState(false);
+
+  const tour = useProductTour("package-detail", !loading && !!packageData);
+  const tourSteps = [
+    {
+      targets: ["#tour-cta-solo"],
+      title: "Berangkat Sendiri?",
+      body: "Mau daftar sendiri tanpa rombongan? Klik tombol ini untuk chat langsung dengan tim kami.",
+    },
+    {
+      targets: ["#tour-cta-calculator"],
+      title: "Hitung Biaya Rombongan",
+      body: "Berangkat rame-rame? Klik di sini untuk membuka kalkulator dan menghitung total biaya sesuai jumlah peserta.",
+    },
+  ];
 
   const availableTiers = packageData?.available_tiers || ["nyaman"];
   const effectiveTier = availableTiers.includes(selectedTier) ? selectedTier : availableTiers[0];
@@ -346,6 +362,8 @@ const PackageDetailPage = () => {
       />
 
       <Footer />
+
+      <ProductTour steps={tourSteps} active={tour.active} onFinish={tour.finish} />
     </div>
   );
 };

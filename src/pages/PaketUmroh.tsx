@@ -17,6 +17,8 @@ import { formatPriceJuta, getTierPrice, isPackageUnavailable } from "@/lib/utils
 import { resolveTierHotels } from "@/lib/roomCombos";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { usePublishedPackages } from "@/hooks/usePackages";
+import { useProductTour } from "@/hooks/useProductTour";
+import { ProductTour } from "@/components/tour/ProductTour";
 
 const PaketUmroh = () => {
   const [category, setCategory] = useState<string>("all");
@@ -120,6 +122,25 @@ const PaketUmroh = () => {
     };
   });
 
+  const tour = useProductTour("paket-umroh", !loading && transformedPackages.length > 0);
+  const tourSteps = [
+    {
+      targets: ["#tour-filter-bar", "#tour-filter-mobile"],
+      title: "Cari Paket dengan Mudah",
+      body: "Gunakan filter ini untuk menyaring paket berdasarkan bulan, maskapai, durasi, dan lainnya sesuai kebutuhanmu.",
+    },
+    {
+      targets: ["#tour-cart-button"],
+      title: "Simpan Paket ke Keranjang",
+      body: "Klik ikon kotak hijau ini untuk memasukkan paket ke Keranjang. Kamu bisa menyimpan beberapa paket sekaligus untuk dibandingkan nanti.",
+    },
+    {
+      targets: ["#tour-navbar-cart", "#tour-navbar-cart-mobile"],
+      title: "Lihat Keranjangmu",
+      body: "Semua paket yang sudah kamu simpan bisa dilihat dan dibandingkan lagi di sini, kapan saja.",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <SEO 
@@ -140,7 +161,7 @@ const PaketUmroh = () => {
           </p>
           {/* Filter Bar - desktop: one grouped pill, dividers between each filter */}
           <div className="hidden lg:flex items-center justify-center gap-3 mt-8">
-            <div className="flex items-center divide-x divide-border rounded-full border border-border bg-white shadow-sm overflow-hidden">
+            <div id="tour-filter-bar" className="flex items-center divide-x divide-border rounded-full border border-border bg-white shadow-sm overflow-hidden">
               {filterConfigs.map((f) => (
                 <Select key={f.key} value={f.value} onValueChange={f.onChange}>
                   <SelectTrigger className={`${f.width} h-9 text-sm rounded-none border-0 bg-transparent shadow-none focus:ring-0 focus:ring-offset-0`}><SelectValue placeholder={f.placeholder} /></SelectTrigger>
@@ -168,6 +189,7 @@ const PaketUmroh = () => {
       {mounted && createPortal(
         <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
           <Button
+            id="tour-filter-mobile"
             variant="outline"
             className="rounded-full h-11 gap-2 bg-white shadow-lg border-border/50 px-6"
             onClick={() => setMobileFilterOpen(true)}
@@ -245,13 +267,15 @@ const PaketUmroh = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {transformedPackages.map((pkg, idx) => (
-              <PackageCard key={pkg.id} {...pkg} index={idx} />
+              <PackageCard key={pkg.id} {...pkg} index={idx} cartButtonTourId={idx === 0 ? "tour-cart-button" : undefined} />
             ))}
           </div>
         )}
       </section>
 
       <Footer />
+
+      <ProductTour steps={tourSteps} active={tour.active} onFinish={tour.finish} />
     </div>
   );
 };
