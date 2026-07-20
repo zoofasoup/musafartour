@@ -14,6 +14,11 @@ import {
   MessageCircle,
   FileText,
   Backpack,
+  Tag,
+  Train,
+  Building2,
+  Plane,
+  Route,
 } from "lucide-react";
 import { USD_KURS } from "@/lib/calcConfig";
 import { CHILD_PRICE, INFANT_PRICE } from "@/lib/roomCombos";
@@ -106,6 +111,51 @@ const AgentSalesGuide = () => {
           <p className="flex items-start gap-2">
             <MapPin className="h-4 w-4 mt-0.5 text-primary shrink-0" />
             Kantor: Commercial Park Harapan Indah, Ruko Emerald Blok EB1 No.28, Medan Satria, Kota Bekasi, Jawa Barat 17131 · 021-38312137
+          </p>
+          <p className="flex items-start gap-2">
+            <Tag className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+            Harga yang tertera sudah <strong>all-in</strong>, tiket confirmed di awal - tidak ada biaya tersembunyi yang muncul belakangan.
+          </p>
+          <p className="flex items-start gap-2">
+            <Train className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+            Kereta Cepat Haramain (Madinah–Makkah) tersedia di sebagian besar paket - hemat waktu dan tenaga jamaah dibanding jalur darat biasa.
+          </p>
+          <p className="flex items-start gap-2">
+            <Building2 className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+            Akses Lounge Eksklusif di Bandara Soekarno-Hatta, dan hotel-hotel yang dipilih memprioritaskan jarak dekat ke Masjid Nabawi/Masjidil Haram.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Route className="h-4 w-4 text-primary" /> Perjalanan & Itinerary
+          </CardTitle>
+          <CardDescription>
+            Talking points untuk menggambarkan perjalanan secara verbal ke calon jamaah - bukan jadwal hari-per-hari yang kaku, karena durasi asli beda-beda per paket (9-12+ hari). Untuk itinerary detail per paket, arahkan jamaah ke halaman detail paketnya.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <p className="flex items-start gap-2">
+            <Plane className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+            Sebagian besar paket terbang langsung ke Madinah (tanpa transit dulu) - proses check-in dibantu tim handling.
+          </p>
+          <p className="flex items-start gap-2">
+            <MapPin className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+            Di Madinah: waktu khusyuk di Raudhah, ziarah ke Masjid Quba dan Jabal Uhud.
+          </p>
+          <p className="flex items-start gap-2">
+            <Train className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+            Lanjut ke Makkah naik Kereta Cepat Haramain - tanpa lelah di jalan.
+          </p>
+          <p className="flex items-start gap-2">
+            <Building2 className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+            Di Makkah: puncak ibadah umrah, City Tour, dan untuk sebagian paket ada wisata sejarah ke Thaif.
+          </p>
+          <p className="flex items-start gap-2">
+            <CheckCircle2 className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+            Ditutup dengan Tawaf Wada sebelum kembali ke Tanah Air, InsyaAllah membawa predikat Mabrur.
           </p>
         </CardContent>
       </Card>
