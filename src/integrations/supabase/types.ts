@@ -650,6 +650,42 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_spend: {
+        Row: {
+          amount: number
+          campaign_name: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          period_end: string
+          period_start: string
+          platform: string
+        }
+        Insert: {
+          amount: number
+          campaign_name: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          period_end: string
+          period_start: string
+          platform?: string
+        }
+        Update: {
+          amount?: number
+          campaign_name?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          platform?: string
+        }
+        Relationships: []
+      }
       departure_schedules: {
         Row: {
           available_seats: number
