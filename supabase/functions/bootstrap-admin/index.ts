@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const adminSetupCode = Deno.env.get('ADMIN_SETUP_CODE') || 'Musafar2026';
+    const adminSetupCode = Deno.env.get('ADMIN_SETUP_CODE');
 
     // Check if ADMIN_SETUP_CODE is configured
     if (!adminSetupCode) {

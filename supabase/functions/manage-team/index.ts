@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
       }
 
       // Ensure they cannot demote themselves accidentally
-      if (userId === user.id && role !== 'superadmin' && userRoleData?.role === 'superadmin') {
+      if (userId === user.id && role !== 'superadmin' && roleData?.role === 'superadmin') {
         return new Response(JSON.stringify({ error: 'You cannot remove your own Super Admin access' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
