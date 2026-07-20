@@ -60,6 +60,7 @@ const Chat = lazy(() => import("./pages/Chat"));
 const ChatRotation = lazy(() => import("./pages/admin/ChatRotation"));
 const URLShortener = lazy(() => import("./pages/admin/URLShortener"));
 const ShortLinkRedirect = lazy(() => import("./pages/ShortLinkRedirect"));
+const AgentShortLinkRedirect = lazy(() => import("./pages/AgentShortLinkRedirect"));
 const BoothLead = lazy(() => import("./pages/BoothLead"));
 const UmrohCalculator = lazy(() => import("./pages/UmrohCalculator"));
 const UmrohCalculatorResult = lazy(() => import("./pages/UmrohCalculatorResult"));
@@ -236,6 +237,7 @@ const App = () => (
                   <Route path="/jadwal-umroh" element={<JadwalUmroh />} />
                   <Route path="/chat" element={<Chat />} />
                   <Route path="/s/:code" element={<ShortLinkRedirect />} />
+                  <Route path="/l/:code" element={<AgentShortLinkRedirect />} />
                   <Route path="/booth" element={<BoothLead />} />
                   <Route path="/kalkulator" element={<UmrohCalculator />} />
                   <Route path="/kalkulator/hasil/:id" element={<UmrohCalculatorResult />} />
