@@ -115,6 +115,8 @@ const PaketUmroh = () => {
       seatAvailable: !isPackageUnavailable(pkg),
       isSoldOut: isPackageUnavailable(pkg),
       waitlistCount: pkg.waitlist_count || 0,
+      slotsTotal: pkg.slots_total,
+      slotsFilled: pkg.slots_filled,
     };
   });
 

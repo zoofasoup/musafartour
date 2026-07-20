@@ -123,6 +123,8 @@ export const PackageFilterSection = ({
       bestSellerTransport: pkg.best_seller_transport || undefined,
       isSoldOut: isPackageUnavailable(pkg),
       waitlistCount: pkg.waitlist_count || 0,
+      slotsTotal: pkg.slots_total,
+      slotsFilled: pkg.slots_filled,
     };
   });
 

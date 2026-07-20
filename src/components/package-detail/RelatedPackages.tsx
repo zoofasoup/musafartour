@@ -57,6 +57,8 @@ export function RelatedPackages({ currentPackageId, currentTier }: RelatedPackag
               seatAvailable={!isPackageUnavailable(pkg)}
               isSoldOut={isPackageUnavailable(pkg)}
               waitlistCount={pkg.waitlist_count || 0}
+              slotsTotal={pkg.slots_total}
+              slotsFilled={pkg.slots_filled}
               index={idx}
               className="w-[280px] shrink-0 snap-start"
             />

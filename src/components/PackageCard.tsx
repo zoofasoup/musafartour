@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, Heart, ChevronLeft, ChevronRight, Bell, Users, ShieldCheck, CheckCircle2, ShoppingCart, ArrowUpRight } from "lucide-react";
+import { Star, Heart, ChevronLeft, ChevronRight, Bell, Users, ShieldCheck, CheckCircle2, ShoppingCart, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "@/hooks/use-toast";
@@ -28,6 +28,8 @@ interface PackageCardProps {
   seatAvailable?: boolean;
   isSoldOut?: boolean;
   waitlistCount?: number;
+  slotsTotal?: number | null;
+  slotsFilled?: number | null;
   index?: number;
   className?: string;
   imageClassName?: string;
@@ -54,6 +56,8 @@ export const PackageCard = ({
   seatAvailable = true,
   isSoldOut = false,
   waitlistCount = 0,
+  slotsTotal,
+  slotsFilled,
   index = 0,
   className = "",
   imageClassName = "aspect-square",
@@ -87,6 +91,8 @@ export const PackageCard = ({
 
   const packageId = id || slug || '';
   const isFav = isFavorite(packageId);
+  const remainingSeats = slotsTotal ? Math.max(0, slotsTotal - (slotsFilled || 0)) : null;
+  const isAlmostFull = slotsTotal ? Math.round(((slotsFilled || 0) / slotsTotal) * 100) >= 80 : false;
   const [isAnimating, setIsAnimating] = useState(false);
   const heartRef = useRef<HTMLButtonElement>(null);
 
@@ -217,23 +223,17 @@ export const PackageCard = ({
           </div>
         )}
 
-        {/* Cart Button Overlaid */}
-        <div className="absolute bottom-4 right-4 z-20">
-          {!isSoldOut && (
-            <button
-              ref={heartRef}
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleFavoriteClick(e); }}
-              className={`p-2.5 rounded-xl backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/20 transition-all shadow-lg ${isAnimating ? 'scale-110' : ''}`}
-              aria-label={isFav ? "Keluarkan dari keranjang" : "Masukkan ke keranjang"}
-            >
-              <ShoppingCart 
-                className={`w-5 h-5 transition-all duration-300 ${
-                  isFav ? 'fill-white text-white' : 'text-white'
-                }`} 
-              />
-            </button>
-          )}
-        </div>
+        {/* Remaining Seats Badge */}
+        {!isSoldOut && remainingSeats !== null && (
+          <div className="absolute bottom-4 right-4 z-20">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md bg-white/10 border border-white/20 shadow-lg">
+              <ShoppingCart className={`w-3.5 h-3.5 shrink-0 ${isAlmostFull ? 'text-amber-400' : 'text-white'}`} />
+              <span className="text-xs font-bold text-white whitespace-nowrap">
+                {isAlmostFull ? `Tersisa ${remainingSeats} seat!` : `${remainingSeats} seat tersisa`}
+              </span>
+            </div>
+          </div>
+        )}
 
         {isSoldOut && waitlistCount > 0 && (
           <div className="absolute bottom-16 left-4 z-20">
@@ -311,13 +311,14 @@ export const PackageCard = ({
                 <span className="font-extrabold text-xl tracking-tight">{displayPrice}</span>
               </div>
               
-              {/* Action Pill */}
+              {/* Cart Button */}
               <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/paket-umroh/${slug || id}`); }}
-                className="flex items-center justify-center bg-foreground text-background hover:bg-foreground/90 w-9 h-9 rounded-full transition-all shadow-md group/btn"
-                aria-label="Lihat Detail"
+                ref={heartRef}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleFavoriteClick(e); }}
+                className={`flex items-center justify-center w-9 h-9 rounded-full bg-emerald-600 hover:bg-emerald-700 shadow-md transition-colors ${isAnimating ? 'animate-cart-pop' : ''}`}
+                aria-label={isFav ? "Keluarkan dari keranjang" : "Masukkan ke keranjang"}
               >
-                <ArrowUpRight className="w-5 h-5 transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
+                <Package className={`w-5 h-5 text-white ${isFav ? 'fill-white' : ''}`} />
               </button>
             </>
           )}
