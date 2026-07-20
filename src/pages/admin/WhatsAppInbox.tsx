@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { CheckCircle2, Search } from "lucide-react";
+import { CheckCircle2, Search, UserCheck } from "lucide-react";
 
 interface Click {
   id: string;
@@ -20,6 +21,7 @@ interface Click {
   message: string | null;
   utm_source: string | null;
   utm_campaign: string | null;
+  assigned_to_email: string | null;
 }
 
 interface Conversion {
@@ -33,6 +35,7 @@ interface Conversion {
 /** Sales' lead queue for WhatsApp inquiries - lets them record which clicks turned into a real booking, closing the gap where whatsapp_conversions existed but nothing ever wrote to it. */
 export default function WhatsAppInbox() {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [convertClick, setConvertClick] = useState<Click | null>(null);
   const [customerName, setCustomerName] = useState("");
@@ -45,7 +48,7 @@ export default function WhatsAppInbox() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("whatsapp_clicks")
-        .select("id, clicked_at, cs_id, cs_name, message, utm_source, utm_campaign")
+        .select("id, clicked_at, cs_id, cs_name, message, utm_source, utm_campaign, assigned_to_email")
         .order("clicked_at", { ascending: false })
         .limit(500);
       if (error) throw error;
@@ -107,6 +110,21 @@ export default function WhatsAppInbox() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const claimClick = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("whatsapp_clicks")
+        .update({ assigned_to: user?.id, assigned_to_email: user?.email })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Klik diklaim");
+      qc.invalidateQueries({ queryKey: ["whatsapp-clicks"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -145,6 +163,7 @@ export default function WhatsAppInbox() {
                     <th className="text-left py-2">CS</th>
                     <th className="text-left py-2">Pesan</th>
                     <th className="text-left py-2">Campaign</th>
+                    <th className="text-left py-2">Ditugaskan</th>
                     <th className="text-right py-2">Aksi</th>
                   </tr>
                 </thead>
@@ -159,6 +178,17 @@ export default function WhatsAppInbox() {
                         <td className="py-3 font-medium">{c.cs_name}</td>
                         <td className="py-3 text-xs max-w-xs truncate" title={c.message || ""}>{c.message || "—"}</td>
                         <td className="py-3 text-xs">{c.utm_campaign || c.utm_source || "—"}</td>
+                        <td className="py-3 text-xs">
+                          {c.assigned_to_email ? (
+                            <span className="text-muted-foreground" title={c.assigned_to_email}>
+                              {c.assigned_to_email.split("@")[0]}
+                            </span>
+                          ) : (
+                            <Button size="sm" variant="ghost" className="h-7 gap-1 px-2 text-xs" onClick={() => claimClick.mutate(c.id)}>
+                              <UserCheck className="h-3.5 w-3.5" /> Klaim
+                            </Button>
+                          )}
+                        </td>
                         <td className="py-3 text-right">
                           {converted ? (
                             <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1">

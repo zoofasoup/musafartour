@@ -2,6 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import { Download, MessageCircle, Copy, Search } from "lucide-react";
+import { Download, MessageCircle, Copy, Search, UserCheck } from "lucide-react";
 import { STATUS_OPTIONS, type LeadStatus } from "@/lib/calcConfig";
 import { formatIDR } from "@/lib/umrohCalc";
 
@@ -37,10 +38,13 @@ interface Lead {
   ctwa_clid: string | null;
   event_id: string | null;
   result_data: any;
+  assigned_to: string | null;
+  assigned_to_email: string | null;
 }
 
 export default function CalculatorLeads() {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [modeFilter, setModeFilter] = useState<string>("all");
@@ -69,6 +73,21 @@ export default function CalculatorLeads() {
     },
     onSuccess: () => {
       toast.success("Status diperbarui");
+      qc.invalidateQueries({ queryKey: ["calculator-leads"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const claimLead = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("umroh_calculator_leads")
+        .update({ assigned_to: user?.id, assigned_to_email: user?.email })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Lead diklaim");
       qc.invalidateQueries({ queryKey: ["calculator-leads"] });
     },
     onError: (e: any) => toast.error(e.message),
@@ -234,6 +253,7 @@ export default function CalculatorLeads() {
                     <th className="text-left py-2">Paket</th>
                     <th className="text-left py-2">Target</th>
                     <th className="text-left py-2">Status</th>
+                    <th className="text-left py-2">Ditugaskan</th>
                     <th className="text-right py-2">Aksi</th>
                   </tr>
                 </thead>
@@ -257,6 +277,17 @@ export default function CalculatorLeads() {
                             {STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                           </SelectContent>
                         </Select>
+                      </td>
+                      <td className="py-3 text-xs" onClick={(e) => e.stopPropagation()}>
+                        {l.assigned_to_email ? (
+                          <span className="text-muted-foreground" title={l.assigned_to_email}>
+                            {l.assigned_to_email.split("@")[0]}
+                          </span>
+                        ) : (
+                          <Button size="sm" variant="ghost" className="h-7 gap-1 px-2 text-xs" onClick={() => claimLead.mutate(l.id)}>
+                            <UserCheck className="h-3.5 w-3.5" /> Klaim
+                          </Button>
+                        )}
                       </td>
                       <td className="py-3 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end gap-1">
