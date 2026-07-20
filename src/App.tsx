@@ -84,6 +84,7 @@ const AgentProtectedRoute = lazy(() => import("./components/agent/AgentProtected
 const AgentManagement = lazy(() => import("./pages/admin/AgentManagement"));
 const Gamification = lazy(() => import("./pages/admin/Gamification"));
 const PackageItems = lazy(() => import("./pages/admin/PackageItems"));
+const Equipment = lazy(() => import("./pages/admin/Equipment"));
 const CalculatorLeads = lazy(() => import("./pages/admin/CalculatorLeads"));
 
 const queryClient = new QueryClient({
@@ -370,6 +371,7 @@ const App = () => (
                     <Route path="hotels/:id" element={<HotelForm />} />
                     <Route path="jadwal" element={<JadwalKeberangkatan />} />
                     <Route path="package-items" element={<PackageItems />} />
+                    <Route path="equipment" element={<Equipment />} />
 
                     {/* Content & Blog */}
                     <Route path="articles" element={<ArticlesPage />} />

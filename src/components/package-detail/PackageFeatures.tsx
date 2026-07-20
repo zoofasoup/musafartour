@@ -1,17 +1,17 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle2, Package, XCircle } from "lucide-react";
+import { CheckCircle2, Package, XCircle, ImageOff } from "lucide-react";
+import { useEquipmentItems } from "@/hooks/useEquipmentItems";
 
 interface PackageFeaturesProps {
   includedItems: string[];
   excludedItems: string[];
-  equipmentItems: string[];
 }
 
 export function PackageFeatures({
   includedItems,
   excludedItems,
-  equipmentItems,
 }: PackageFeaturesProps) {
+  const { data: equipmentItems = [] } = useEquipmentItems();
   return (
     <div className="mt-8">
       <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-2">
@@ -69,11 +69,17 @@ export function PackageFeatures({
               </span>
             </AccordionTrigger>
             <AccordionContent className="pb-4">
-              <div className="grid grid-cols-2 gap-3">
-                {equipmentItems.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-sm py-1">
-                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                    {item}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {equipmentItems.map((item) => (
+                  <div key={item.id} className="text-center">
+                    <div className="aspect-square rounded-xl overflow-hidden bg-muted flex items-center justify-center mb-1.5">
+                      {item.image_url ? (
+                        <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <ImageOff className="h-6 w-6 text-muted-foreground" />
+                      )}
+                    </div>
+                    <span className="text-xs font-medium">{item.name}</span>
                   </div>
                 ))}
               </div>

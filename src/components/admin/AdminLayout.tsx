@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { 
   LogOut, LayoutDashboard, Home, Image, Target, MessageSquare, 
   Images, Package, Plane, Hotel, Calendar, FileText, HelpCircle,
-  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles, PanelLeft
+  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles, PanelLeft, Backpack
 } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
 import {
@@ -85,6 +85,7 @@ const AdminLayout = () => {
         { icon: Package, label: "Paket Umroh", path: "/admin/packages", roles: ["admin", "superadmin", "product_admin"] },
         { icon: Hotel, label: "Hotel", path: "/admin/hotels", roles: ["admin", "superadmin", "product_admin"] },
         { icon: ListChecks, label: "Fasilitas Paket", path: "/admin/package-items", roles: ["admin", "superadmin", "product_admin"] },
+        { icon: Backpack, label: "Perlengkapan", path: "/admin/equipment", roles: ["admin", "superadmin", "product_admin"] },
         { icon: Calendar, label: "Jadwal Keberangkatan", path: "/admin/jadwal", roles: ["admin", "superadmin", "product_admin"] },
         { icon: Calculator, label: "Kalkulator Harga", path: "/admin/calculator", roles: ["admin", "superadmin", "product_admin"] },
         { icon: Sparkles, label: "Calculator Leads", path: "/admin/calculator-leads", roles: ["admin", "superadmin", "product_admin"] },

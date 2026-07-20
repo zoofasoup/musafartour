@@ -180,7 +180,6 @@ const PackageDetailPage = () => {
 
   const includedItems = parseListItems(packageData.included_items);
   const excludedItems = parseListItems(packageData.excluded_items);
-  const equipmentItems = parseListItems(packageData.equipment_list);
   const transport = resolveTierTransport(packageData, effectiveTier);
   const hasImages = !!(packageData.banner_image || packageData.gallery_images?.length);
 
@@ -271,7 +270,6 @@ const PackageDetailPage = () => {
           <PackageFeatures
             includedItems={includedItems}
             excludedItems={excludedItems}
-            equipmentItems={equipmentItems}
           />
 
           <PackageTestimonials />

@@ -10,7 +10,32 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.5"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -461,18 +486,26 @@ export type Database = {
       agents: {
         Row: {
           account_name: string | null
+          address: string | null
+          agency_name: string | null
           approved_at: string | null
           available_balance: number
           bank_account: string | null
           bank_name: string | null
+          city: string | null
           created_at: string
           email: string
+          experience_level: string | null
           id: string
+          ktp_image_url: string | null
+          ktp_number: string | null
           level: string
           name: string
           phone: string
+          province: string | null
           referral_code: string
           referred_by_id: string | null
+          social_links: Json | null
           status: string
           total_commission: number
           total_sales: number
@@ -481,18 +514,26 @@ export type Database = {
         }
         Insert: {
           account_name?: string | null
+          address?: string | null
+          agency_name?: string | null
           approved_at?: string | null
           available_balance?: number
           bank_account?: string | null
           bank_name?: string | null
+          city?: string | null
           created_at?: string
           email: string
+          experience_level?: string | null
           id?: string
+          ktp_image_url?: string | null
+          ktp_number?: string | null
           level?: string
           name: string
           phone: string
+          province?: string | null
           referral_code: string
           referred_by_id?: string | null
+          social_links?: Json | null
           status?: string
           total_commission?: number
           total_sales?: number
@@ -501,18 +542,26 @@ export type Database = {
         }
         Update: {
           account_name?: string | null
+          address?: string | null
+          agency_name?: string | null
           approved_at?: string | null
           available_balance?: number
           bank_account?: string | null
           bank_name?: string | null
+          city?: string | null
           created_at?: string
           email?: string
+          experience_level?: string | null
           id?: string
+          ktp_image_url?: string | null
+          ktp_number?: string | null
           level?: string
           name?: string
           phone?: string
+          province?: string | null
           referral_code?: string
           referred_by_id?: string | null
+          social_links?: Json | null
           status?: string
           total_commission?: number
           total_sales?: number
@@ -645,6 +694,36 @@ export type Database = {
           },
         ]
       }
+      equipment_items: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       faq_items: {
         Row: {
           answer: string
@@ -752,6 +831,7 @@ export type Database = {
       }
       hotels: {
         Row: {
+          city_name: string | null
           created_at: string
           distance: string
           exterior_photo: string | null
@@ -759,7 +839,6 @@ export type Database = {
           id: string
           lobby_photo: string | null
           location: string
-          city_name: string | null
           name: string
           room_photo: string | null
           star_rating: number
@@ -767,6 +846,7 @@ export type Database = {
           walking_duration: string
         }
         Insert: {
+          city_name?: string | null
           created_at?: string
           distance: string
           exterior_photo?: string | null
@@ -774,7 +854,6 @@ export type Database = {
           id?: string
           lobby_photo?: string | null
           location: string
-          city_name?: string | null
           name: string
           room_photo?: string | null
           star_rating: number
@@ -782,6 +861,7 @@ export type Database = {
           walking_duration: string
         }
         Update: {
+          city_name?: string | null
           created_at?: string
           distance?: string
           exterior_photo?: string | null
@@ -789,7 +869,6 @@ export type Database = {
           id?: string
           lobby_photo?: string | null
           location?: string
-          city_name?: string | null
           name?: string
           room_photo?: string | null
           star_rating?: number
@@ -1868,7 +1947,13 @@ export type Database = {
       slugify: { Args: { text_input: string }; Returns: string }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role:
+        | "admin"
+        | "user"
+        | "superadmin"
+        | "product_admin"
+        | "content_admin"
+        | "agent_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1994,9 +2079,19 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: [
+        "admin",
+        "user",
+        "superadmin",
+        "product_admin",
+        "content_admin",
+        "agent_admin",
+      ],
     },
   },
 } as const
