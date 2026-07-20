@@ -20,6 +20,8 @@ const roleOptions = [
   { value: "product_admin", label: "Product Admin (Musafar Team)" },
   { value: "content_admin", label: "Content Admin (Marketing)" },
   { value: "agent_admin", label: "Agent Admin (Partner Support)" },
+  { value: "sales", label: "Sales" },
+  { value: "advertiser", label: "Advertiser (Paid Ads)" },
 ];
 
 const roleColors: Record<string, string> = {
@@ -27,6 +29,8 @@ const roleColors: Record<string, string> = {
   product_admin: "bg-blue-100 text-blue-800",
   content_admin: "bg-green-100 text-green-800",
   agent_admin: "bg-purple-100 text-purple-800",
+  sales: "bg-amber-100 text-amber-800",
+  advertiser: "bg-pink-100 text-pink-800",
 };
 
 export default function Team() {

@@ -86,6 +86,7 @@ const Gamification = lazy(() => import("./pages/admin/Gamification"));
 const PackageItems = lazy(() => import("./pages/admin/PackageItems"));
 const Equipment = lazy(() => import("./pages/admin/Equipment"));
 const CalculatorLeads = lazy(() => import("./pages/admin/CalculatorLeads"));
+const WhatsAppInbox = lazy(() => import("./pages/admin/WhatsAppInbox"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -392,6 +393,7 @@ const App = () => (
                     <Route path="gamification" element={<Gamification />} />
                     <Route path="calculator" element={<SalesCalculator />} />
                     <Route path="calculator-leads" element={<CalculatorLeads />} />
+                    <Route path="whatsapp-inbox" element={<WhatsAppInbox />} />
                     <Route path="brochure/:slug" element={<PackageBrochure />} />
                   </Route>
                   <Route path="*" element={<NotFound />} />

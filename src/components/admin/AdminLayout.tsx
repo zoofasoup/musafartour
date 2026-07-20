@@ -88,7 +88,13 @@ const AdminLayout = () => {
         { icon: Backpack, label: "Perlengkapan", path: "/admin/equipment", roles: ["admin", "superadmin", "product_admin"] },
         { icon: Calendar, label: "Jadwal Keberangkatan", path: "/admin/jadwal", roles: ["admin", "superadmin", "product_admin"] },
         { icon: Calculator, label: "Kalkulator Harga", path: "/admin/calculator", roles: ["admin", "superadmin", "product_admin"] },
-        { icon: Sparkles, label: "Calculator Leads", path: "/admin/calculator-leads", roles: ["admin", "superadmin", "product_admin"] },
+        { icon: Sparkles, label: "Calculator Leads", path: "/admin/calculator-leads", roles: ["admin", "superadmin", "product_admin", "sales"] },
+      ]
+    },
+    {
+      label: "SALES",
+      items: [
+        { icon: MessageCircleMore, label: "WhatsApp Inbox", path: "/admin/whatsapp-inbox", roles: ["admin", "superadmin", "sales"] },
       ]
     },
     {
@@ -109,9 +115,9 @@ const AdminLayout = () => {
       label: "SETTINGS",
       items: [
         { icon: Settings, label: "Website Settings", path: "/admin/settings", roles: ["admin", "superadmin"] },
-        { icon: TrendingUp, label: "Marketing Settings", path: "/admin/settings/marketing", roles: ["admin", "superadmin"] },
-        { icon: MessageCircleMore, label: "Chat Rotation", path: "/admin/chat-rotation", roles: ["admin", "superadmin"] },
-        { icon: Link2, label: "URL Shortener", path: "/admin/url-shortener", roles: ["admin", "superadmin"] },
+        { icon: TrendingUp, label: "Marketing Settings", path: "/admin/settings/marketing", roles: ["admin", "superadmin", "advertiser"] },
+        { icon: MessageCircleMore, label: "Chat Rotation", path: "/admin/chat-rotation", roles: ["admin", "superadmin", "advertiser"] },
+        { icon: Link2, label: "URL Shortener", path: "/admin/url-shortener", roles: ["admin", "superadmin", "advertiser"] },
         { icon: Search, label: "SEO", path: "/admin/seo", roles: ["admin", "superadmin", "content_admin"] },
         { icon: Users, label: "Team", path: "/admin/team", roles: ["admin", "superadmin"] },
       ]
