@@ -593,6 +593,7 @@ export type Database = {
           meta_description: string | null
           meta_title: string | null
           og_image: string | null
+          publish_at: string | null
           published_at: string | null
           robots_meta: string | null
           schema_type: string | null
@@ -616,6 +617,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           og_image?: string | null
+          publish_at?: string | null
           published_at?: string | null
           robots_meta?: string | null
           schema_type?: string | null
@@ -639,6 +641,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           og_image?: string | null
+          publish_at?: string | null
           published_at?: string | null
           robots_meta?: string | null
           schema_type?: string | null

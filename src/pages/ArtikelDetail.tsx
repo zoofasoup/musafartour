@@ -51,6 +51,7 @@ const ArtikelDetail = () => {
       .select("*")
       .eq("slug", slug)
       .eq("status", "published")
+      .or(`publish_at.is.null,publish_at.lte.${new Date().toISOString()}`)
       .maybeSingle();
 
     if (error) {
@@ -69,6 +70,7 @@ const ArtikelDetail = () => {
       .from("articles")
       .select("id, title, slug, excerpt, featured_image, category, created_at")
       .eq("status", "published")
+      .or(`publish_at.is.null,publish_at.lte.${new Date().toISOString()}`)
       .neq("id", article.id)
       .order("created_at", { ascending: false })
       .limit(3);

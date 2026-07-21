@@ -26,9 +26,17 @@ const articleSchema = z.object({
   meta_description: z.string().optional(),
   featured_image: z.string().optional(),
   status: z.string(),
+  publish_at: z.string().optional(),
 });
 
 type ArticleFormValues = z.infer<typeof articleSchema>;
+
+/** ISO timestamp from the DB -> the local "YYYY-MM-DDTHH:mm" format a datetime-local input expects. */
+const toDatetimeLocal = (iso: string) => {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 const ArticleForm = () => {
   const navigate = useNavigate();
@@ -51,6 +59,7 @@ const ArticleForm = () => {
       meta_description: "",
       featured_image: "",
       status: "draft",
+      publish_at: "",
     },
   });
 
@@ -82,6 +91,7 @@ const ArticleForm = () => {
           meta_description: data.meta_description || "",
           featured_image: data.featured_image || "",
           status: data.status || "draft",
+          publish_at: data.publish_at ? toDatetimeLocal(data.publish_at) : "",
         });
         if (data.featured_image) {
           setImagePreview(data.featured_image);
@@ -149,10 +159,15 @@ const ArticleForm = () => {
   const onSubmit = async (values: ArticleFormValues) => {
     setLoading(true);
     try {
+      const payload = {
+        ...values,
+        publish_at: values.publish_at ? new Date(values.publish_at).toISOString() : null,
+      };
+
       if (id) {
         const { error } = await supabase
           .from("articles")
-          .update(values as any)
+          .update(payload as any)
           .eq("id", id);
 
         if (error) throw error;
@@ -160,7 +175,7 @@ const ArticleForm = () => {
       } else {
         const { error } = await supabase
           .from("articles")
-          .insert(values as any);
+          .insert(payload as any);
 
         if (error) throw error;
         toast.success("Artikel berhasil dibuat");
@@ -413,6 +428,23 @@ const ArticleForm = () => {
                         <SelectItem value="published">Published</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="publish_at"
+                render={({ field }) => (
+                  <FormItem className="mt-4">
+                    <FormLabel>Jadwalkan Publikasi (opsional)</FormLabel>
+                    <FormControl>
+                      <Input type="datetime-local" {...field} />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      Kosongkan untuk publish langsung. Isi untuk menjadwalkan artikel muncul otomatis di waktu tertentu.
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}

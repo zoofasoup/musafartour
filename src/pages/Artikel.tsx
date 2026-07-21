@@ -53,6 +53,7 @@ const Artikel = () => {
       .from("articles")
       .select("*")
       .eq("status", "published")
+      .or(`publish_at.is.null,publish_at.lte.${new Date().toISOString()}`)
       .order("created_at", { ascending: false })
       .range(from, to);
 
