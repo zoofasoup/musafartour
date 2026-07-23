@@ -195,27 +195,7 @@ const Packages = () => {
     fetchPackages();
   }, []);
 
-  const [syncingSeats, setSyncingSeats] = useState(false);
 
-  const handleSyncSeats = async () => {
-    setSyncingSeats(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("sync-seats");
-      if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || "Sync gagal");
-      const updatedCount = data.updated?.length || 0;
-      toast.success(
-        updatedCount > 0
-          ? `${updatedCount} paket diperbarui dari Sisa Seat`
-          : "Semua paket sudah sesuai dengan Sisa Seat di sheet"
-      );
-      fetchPackages();
-    } catch (err: any) {
-      toast.error(`Gagal sync Sisa Seat: ${err.message}`);
-    } finally {
-      setSyncingSeats(false);
-    }
-  };
 
   const [syncingItinerary, setSyncingItinerary] = useState(false);
 
@@ -325,16 +305,7 @@ const Packages = () => {
             <FileSpreadsheet className="h-4 w-4" />
             Upload / Sync Google Sheets
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSyncSeats}
-            disabled={syncingSeats}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${syncingSeats ? "animate-spin" : ""}`} />
-            {syncingSeats ? "Syncing..." : "Sync Sisa Seat"}
-          </Button>
+
           <Button
             variant="outline"
             size="sm"
