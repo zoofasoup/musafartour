@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // 1. Fetch the sheet as CSV (public, no auth required)
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&_cb=${Date.now()}`;
     const csvResp = await fetch(csvUrl);
     if (!csvResp.ok) throw new Error(`Failed to fetch sheet: ${csvResp.status}`);
     const csvText = await csvResp.text();
