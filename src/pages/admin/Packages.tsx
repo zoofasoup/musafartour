@@ -209,7 +209,11 @@ const Packages = () => {
           ? `${updatedCount} paket diperbarui dari Sisa Seat`
           : "Semua paket sudah sesuai dengan Sisa Seat di sheet"
       );
-      fetchPackages();
+      
+      // Beri jeda 1.5 detik agar toast bisa terbaca, lalu hard refresh halamannya
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (err: any) {
       toast.error(`Gagal sync Sisa Seat: ${err.message}`);
     } finally {
