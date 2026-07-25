@@ -11,6 +11,13 @@ node_modules
 dist
 dist-ssr
 *.local
+.wrangler
+
+# Article pipeline secrets (ANTHROPIC_API_KEY, SUPABASE_SERVICE_ROLE_KEY) -
+# never commit these; local runs should export them as shell env vars or use
+# a file matching one of these patterns.
+.env.pipeline
+.env.pipeline.local
 
 # Editor directories and files
 .vscode/*

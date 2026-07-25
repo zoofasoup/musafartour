@@ -578,6 +578,92 @@ export type Database = {
           },
         ]
       }
+      article_pipeline_runs: {
+        Row: {
+          articles_published: number
+          articles_skipped: number
+          details: Json
+          error: string | null
+          finished_at: string | null
+          id: string
+          publish_status: string
+          regenerations: number
+          run_date: string
+          started_at: string
+          topics_attempted: number
+          trending_used: boolean
+        }
+        Insert: {
+          articles_published?: number
+          articles_skipped?: number
+          details?: Json
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          publish_status: string
+          regenerations?: number
+          run_date?: string
+          started_at?: string
+          topics_attempted?: number
+          trending_used?: boolean
+        }
+        Update: {
+          articles_published?: number
+          articles_skipped?: number
+          details?: Json
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          publish_status?: string
+          regenerations?: number
+          run_date?: string
+          started_at?: string
+          topics_attempted?: number
+          trending_used?: boolean
+        }
+        Relationships: []
+      }
+      article_pipeline_topics: {
+        Row: {
+          article_id: string | null
+          created_at: string
+          id: string
+          kind: string
+          skip_reason: string | null
+          status: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          article_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          skip_reason?: string | null
+          status?: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          article_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          skip_reason?: string | null
+          status?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_pipeline_topics_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
           author_id: string | null
@@ -590,9 +676,11 @@ export type Database = {
           featured_image: string | null
           focus_keyword: string | null
           id: string
+          is_ai_generated: boolean
           meta_description: string | null
           meta_title: string | null
           og_image: string | null
+          pipeline_run_id: string | null
           publish_at: string | null
           published_at: string | null
           robots_meta: string | null
@@ -614,9 +702,11 @@ export type Database = {
           featured_image?: string | null
           focus_keyword?: string | null
           id?: string
+          is_ai_generated?: boolean
           meta_description?: string | null
           meta_title?: string | null
           og_image?: string | null
+          pipeline_run_id?: string | null
           publish_at?: string | null
           published_at?: string | null
           robots_meta?: string | null
@@ -638,9 +728,11 @@ export type Database = {
           featured_image?: string | null
           focus_keyword?: string | null
           id?: string
+          is_ai_generated?: boolean
           meta_description?: string | null
           meta_title?: string | null
           og_image?: string | null
+          pipeline_run_id?: string | null
           publish_at?: string | null
           published_at?: string | null
           robots_meta?: string | null
@@ -651,7 +743,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "articles_pipeline_run_id_fkey"
+            columns: ["pipeline_run_id"]
+            isOneToOne: false
+            referencedRelation: "article_pipeline_runs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       campaign_spend: {
         Row: {

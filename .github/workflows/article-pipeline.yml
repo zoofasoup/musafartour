@@ -1,0 +1,45 @@
+name: Auto-article engine
+
+on:
+  schedule:
+    # 02:00 WIB (UTC+7) daily
+    - cron: "0 19 * * *"
+  workflow_dispatch:
+    inputs:
+      publish_status:
+        description: "Override PUBLISH_STATUS for this run"
+        required: false
+        type: choice
+        options: [default, dry-run, draft, publish]
+        default: default
+      articles_per_day:
+        description: "Override ARTICLES_PER_DAY for this run"
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run article pipeline
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL }}
+          ARTICLES_PER_DAY: ${{ inputs.articles_per_day != '' && inputs.articles_per_day || vars.ARTICLES_PER_DAY }}
+          MAX_TRENDING_PER_DAY: ${{ vars.MAX_TRENDING_PER_DAY }}
+          QA_MIN_WORDS: ${{ vars.QA_MIN_WORDS }}
+          PUBLISH_STATUS: ${{ (inputs.publish_status != '' && inputs.publish_status != 'default') && inputs.publish_status || vars.PUBLISH_STATUS }}
+        run: npm run pipeline:articles
