@@ -64,7 +64,7 @@ SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... ANTHROPIC_API_KEY=... PUBLISH_STA
 | `SUPABASE_SERVICE_ROLE_KEY` (Secret) | - | wajib, bukan anon key |
 | `ANTHROPIC_API_KEY` (Secret) | - | wajib |
 | `CLAUDE_MODEL` | `claude-sonnet-5` | model generasi |
-| `ARTICLES_PER_DAY` | `5` | total artikel per run |
+| `ARTICLES_PER_DAY` | `1` | total artikel per run |
 | `MAX_TRENDING_PER_DAY` | `1` | batas topik trending per run |
 | `QA_MIN_WORDS` | `900` | minimal jumlah kata |
 | `PUBLISH_STATUS` | `dry-run` | `dry-run` (cuma generate + QA, tidak menulis apa pun) / `draft` (masuk `articles` sebagai draft, perlu direview) / `publish` (langsung tayang) |

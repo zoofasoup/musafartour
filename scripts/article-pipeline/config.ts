@@ -17,7 +17,7 @@ export function loadConfig(): Config {
     supabaseServiceKey: requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
     anthropicApiKey: requireEnv("ANTHROPIC_API_KEY"),
     model: process.env.CLAUDE_MODEL || "claude-sonnet-5",
-    articlesPerDay: Number(process.env.ARTICLES_PER_DAY) || 5,
+    articlesPerDay: Number(process.env.ARTICLES_PER_DAY) || 1,
     maxTrendingPerDay: Number(process.env.MAX_TRENDING_PER_DAY) || 1,
     qaMinWords: Number(process.env.QA_MIN_WORDS) || 900,
     publishStatus: parsePublishStatus(process.env.PUBLISH_STATUS),
