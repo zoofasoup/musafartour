@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { FlyerPreview } from "@/components/admin/flyer/FlyerPreview";
 import { FlyerRowPicker } from "@/components/admin/flyer/FlyerRowPicker";
 import { exportFlyerAsImage } from "@/lib/flyer/flyerExport";
-import { FLYER_PACKAGE_COLUMNS, SAFE_ZONE_MAX_ROWS, getSeatLabel, type FlyerPackage } from "@/lib/flyer/flyerData";
+import { FLYER_PACKAGE_COLUMNS, SAFE_ZONE_MAX_ROWS, type FlyerPackage } from "@/lib/flyer/flyerData";
 
 const PREVIEW_SCALE = 0.4;
 
@@ -26,8 +26,7 @@ export default function FlyerGenerator() {
         .gte("departure_date", new Date().toISOString().slice(0, 10))
         .order("departure_date", { ascending: true });
       if (error) throw error;
-      // Sold-out departures are never shown on the flyer - excluded automatically, not just marked.
-      const rows = (data as unknown as FlyerPackage[]).filter((p) => getSeatLabel(p) !== "Sold Out!");
+      const rows = data as unknown as FlyerPackage[];
       setSelectedIds(new Set(rows.slice(0, SAFE_ZONE_MAX_ROWS).map((p) => p.id)));
       return rows;
     },
