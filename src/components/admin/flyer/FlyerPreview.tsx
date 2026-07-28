@@ -160,13 +160,13 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                       <div className="text-neutral-500" style={{ ...LINE_STYLE, fontSize: 11 }}>{monthLabel(pkg.departure_date)}</div>
                     </td>
                     <td className="py-3 px-2" style={{ borderTop: rowBorder }}>
-                      <div className="flex items-center gap-1" style={LEFT_LINE_STYLE}>
-                        <Clock className="h-3 w-3 shrink-0" />
-                        <span>{pkg.duration_days} Hari</span>
+                      <div style={{ marginBottom: 3 }}>
+                        <Clock className="h-3 w-3" style={{ display: "block", marginBottom: 1 }} />
+                        <div style={LEFT_LINE_STYLE}>{pkg.duration_days} Hari</div>
                       </div>
-                      <div className="flex items-center gap-1" style={LEFT_LINE_STYLE}>
-                        <Plane className="h-3 w-3 shrink-0" />
-                        <span>{pkg.route}</span>
+                      <div>
+                        <Plane className="h-3 w-3" style={{ display: "block", marginBottom: 1 }} />
+                        <div style={LEFT_LINE_STYLE}>{pkg.route}</div>
                       </div>
                     </td>
                     <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
