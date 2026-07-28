@@ -67,19 +67,21 @@ One additional overlay is needed: an **"Diperbarui {tanggal}"** date badge (dark
 
 ### Data source and row selection
 
-Source: the existing `packages` table (already holds title, `date`, `duration`, `airline`, `hotel_makkah` + rating, `hotel_madinah` + rating, `price`, `slots_total`, `slots_filled`) — the same table the 5-minute Google Sheet sync already keeps current. No new table needed for flyer data.
+Source: the existing `packages` table — the same table the 5-minute Google Sheet sync already keeps current (`slots_total`/`slots_filled`). No new table needed for flyer data. **Note:** verified against live data — the schema has evolved since the original migration; these are the real current column names, confirmed to reproduce the team's actual reference flyer row-for-row (e.g. `package_name="Umroh Hemat"`, `departure_date=2026-07-03`, `hemat_package_price.quad=34400000` → displays as "Rp 34,4", matching the reference image exactly).
 
 Row → column mapping:
 
 | Flyer column | Source |
 |---|---|
-| Sisa Seat | `slots_total - slots_filled` if positive and `seat_available` is true, else "Sold Out!" |
-| Keberangkatan | `date`, formatted `d MMM yyyy` (Indonesian) |
-| Judul Paket | `title`, with a "Bulan {month}" subtitle derived from `date` |
-| Durasi & Rute | `duration` + `departure_city` (+ `transit` if present) |
-| Maskapai | `airline` (text only for this version — airline logos are out of scope, `packages` has no logo asset field) |
-| Hotel Makkah / Madinah | `hotel_makkah`/`hotel_madinah` + star rating columns |
-| Harga | `price`, displayed exactly as the admin entered it (already free-text) |
+| Sisa Seat | "Sold Out!" if `is_sold_out` is true OR `slots_filled >= slots_total`, else `slots_total - slots_filled` |
+| Keberangkatan | `departure_date`, formatted `d MMM yyyy` (Indonesian) |
+| Judul Paket | `package_name`, with a "Bulan {month}" subtitle derived from `departure_date` |
+| Durasi & Rute | `duration_days` + " Hari" + `route` (route is already stored pre-formatted, e.g. `"JED-MED"`) |
+| Maskapai | `flight` (text only for this version — airline logos are out of scope, `packages` has no logo asset field) |
+| Hotel Makkah / Madinah | `makkah_hotel_name`/`makkah_hotel_star`, `madinah_hotel_name`/`madinah_hotel_star` — these base columns already resolve to the correct tier's hotel (confirmed against live data), no tier branching needed |
+| Harga | the **quad** room price (lowest tier price, matching what the reference flyer shows) from whichever tier price JSON is non-zero for that row: `available_tiers[0] === 'hemat' → hemat_package_price.quad`, `'five-star' → five_star_package_price.quad`, starts with `'pelataran' → pelataran_package_price.quad`, else → `package_price.quad` (covers the `nyaman` tier, which has no dedicated price column). Displayed formatted as millions with one decimal, e.g. `34400000 → "34,4"`. |
+
+Row eligibility: `status = 'published'` AND `departure_date >= today`, ordered by `departure_date` ascending.
 
 New admin page `/admin/flyer-generator`, gated to `admin`/`superadmin`/`content_admin` (same access pattern as other marketing-facing admin pages):
 
