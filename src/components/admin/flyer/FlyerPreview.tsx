@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, type CSSProperties } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -15,6 +15,13 @@ interface FlyerPreviewProps {
   packages: FlyerPackage[];
 }
 
+/** Single-line truncation so row/header height stays constant regardless of real data text length (long package/hotel names would otherwise wrap and blow past the fixed safe zone). */
+const TRUNCATE_STYLE: CSSProperties = {
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  display: "block",
+};
 /**
  * Rendered at true 1080x1920px (never scaled internally - the parent page
  * scales the whole node down visually for on-screen display via a CSS
@@ -47,18 +54,28 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
           <span className="text-sm font-semibold">Diperbarui {today}</span>
         </div>
 
-        <div className="absolute" style={{ top: 480, left: 40, width: 1000, height: 1310 }}>
-          <table className="w-full border-collapse" style={{ fontSize: 15 }}>
+        <div className="absolute overflow-hidden" style={{ top: 480, left: 40, width: 1000, height: 1310 }}>
+          <table className="border-collapse" style={{ fontSize: 15, width: 1000, tableLayout: "fixed" }}>
+            <colgroup>
+              <col style={{ width: 70 }} />
+              <col style={{ width: 90 }} />
+              <col style={{ width: 230 }} />
+              <col style={{ width: 90 }} />
+              <col style={{ width: 110 }} />
+              <col style={{ width: 160 }} />
+              <col style={{ width: 160 }} />
+              <col style={{ width: 90 }} />
+            </colgroup>
             <thead>
               <tr className="bg-black text-white">
-                <th className="py-4 px-2 text-left">Sisa Seat</th>
-                <th className="py-4 px-2 text-left">Keberangkatan</th>
-                <th className="py-4 px-2 text-left">Judul Paket</th>
-                <th className="py-4 px-2 text-left">Durasi &amp; Rute</th>
-                <th className="py-4 px-2 text-left">Maskapai</th>
-                <th className="py-4 px-2 text-left">Hotel Makkah</th>
-                <th className="py-4 px-2 text-left">Hotel Madinah</th>
-                <th className="py-4 px-2 text-right">Harga</th>
+                <th className="py-4 px-2 text-left"><div style={TRUNCATE_STYLE}>Sisa Seat</div></th>
+                <th className="py-4 px-2 text-left"><div style={TRUNCATE_STYLE}>Keberangkatan</div></th>
+                <th className="py-4 px-2 text-left"><div style={TRUNCATE_STYLE}>Judul Paket</div></th>
+                <th className="py-4 px-2 text-left"><div style={TRUNCATE_STYLE}>Durasi &amp; Rute</div></th>
+                <th className="py-4 px-2 text-left"><div style={TRUNCATE_STYLE}>Maskapai</div></th>
+                <th className="py-4 px-2 text-left"><div style={TRUNCATE_STYLE}>Hotel Makkah</div></th>
+                <th className="py-4 px-2 text-left"><div style={TRUNCATE_STYLE}>Hotel Madinah</div></th>
+                <th className="py-4 px-2 text-right"><div style={TRUNCATE_STYLE}>Harga</div></th>
               </tr>
             </thead>
             <tbody>
@@ -67,29 +84,26 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                 const isSoldOut = seatLabel === "Sold Out!";
                 return (
                   <tr key={pkg.id} className={isSoldOut ? "bg-neutral-200" : "bg-white"}>
-                    <td className="py-4 px-2 font-bold">{seatLabel}</td>
-                    <td className="py-4 px-2">{formatDepartureDate(pkg.departure_date)}</td>
+                    <td className="py-4 px-2 font-bold"><div style={TRUNCATE_STYLE}>{seatLabel}</div></td>
+                    <td className="py-4 px-2"><div style={TRUNCATE_STYLE}>{formatDepartureDate(pkg.departure_date)}</div></td>
                     <td className="py-4 px-2">
-                      <div className="font-bold">{pkg.package_name}</div>
-                      <div className="text-neutral-500" style={{ fontSize: 11 }}>{monthLabel(pkg.departure_date)}</div>
+                      <div className="font-bold" style={TRUNCATE_STYLE}>{pkg.package_name}</div>
+                      <div className="text-neutral-500" style={{ ...TRUNCATE_STYLE, fontSize: 11 }}>{monthLabel(pkg.departure_date)}</div>
                     </td>
                     <td className="py-4 px-2">
-                      {pkg.duration_days} Hari
-                      <br />
-                      {pkg.route}
+                      <div style={TRUNCATE_STYLE}>{pkg.duration_days} Hari</div>
+                      <div style={TRUNCATE_STYLE}>{pkg.route}</div>
                     </td>
-                    <td className="py-4 px-2">{pkg.flight}</td>
+                    <td className="py-4 px-2"><div style={TRUNCATE_STYLE}>{pkg.flight}</div></td>
                     <td className="py-4 px-2">
-                      {pkg.makkah_hotel_name}
-                      <br />
-                      {"★".repeat(pkg.makkah_hotel_star ?? 0)}
+                      <div style={TRUNCATE_STYLE}>{pkg.makkah_hotel_name}</div>
+                      <div style={TRUNCATE_STYLE}>{"★".repeat(pkg.makkah_hotel_star ?? 0)}</div>
                     </td>
                     <td className="py-4 px-2">
-                      {pkg.madinah_hotel_name}
-                      <br />
-                      {"★".repeat(pkg.madinah_hotel_star ?? 0)}
+                      <div style={TRUNCATE_STYLE}>{pkg.madinah_hotel_name}</div>
+                      <div style={TRUNCATE_STYLE}>{"★".repeat(pkg.madinah_hotel_star ?? 0)}</div>
                     </td>
-                    <td className="py-4 px-2 text-right font-bold">Rp {formatPriceJuta(getQuadPrice(pkg))}</td>
+                    <td className="py-4 px-2 text-right font-bold"><div style={TRUNCATE_STYLE}>Rp {formatPriceJuta(getQuadPrice(pkg))}</div></td>
                   </tr>
                 );
               })}
