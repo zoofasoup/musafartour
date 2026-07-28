@@ -55,6 +55,7 @@ const WebsiteSettings = lazy(() => import("./pages/admin/WebsiteSettings"));
 const Team = lazy(() => import("./pages/admin/Team"));
 const MarketingSettings = lazy(() => import("./pages/admin/MarketingSettings"));
 const AdSpend = lazy(() => import("./pages/admin/AdSpend"));
+const FlyerGenerator = lazy(() => import("./pages/admin/FlyerGenerator"));
 const SEO = lazy(() => import("./pages/admin/SEO"));
 const Profile = lazy(() => import("./pages/admin/Profile"));
 const Chat = lazy(() => import("./pages/Chat"));
@@ -387,6 +388,7 @@ const App = () => (
                     <Route path="settings" element={<WebsiteSettings />} />
                     <Route path="settings/marketing" element={<MarketingSettings />} />
                     <Route path="ad-spend" element={<AdSpend />} />
+                    <Route path="flyer-generator" element={<FlyerGenerator />} />
 
                     <Route path="seo" element={<SEO />} />
                     <Route path="profile" element={<Profile />} />

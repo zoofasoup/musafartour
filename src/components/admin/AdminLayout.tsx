@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { 
   LogOut, LayoutDashboard, Home, Image, Target, MessageSquare, 
   Images, Package, Plane, Hotel, Calendar, FileText, HelpCircle,
-  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles, PanelLeft, Backpack, Wallet
+  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles, PanelLeft, Backpack, Wallet, Download
 } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
 import {
@@ -102,6 +102,7 @@ const AdminLayout = () => {
       items: [
         { icon: FileText, label: "Artikel", path: "/admin/articles", roles: ["admin", "superadmin", "content_admin"] },
         { icon: HelpCircle, label: "FAQ", path: "/admin/faq", roles: ["admin", "superadmin", "content_admin"] },
+        { icon: Download, label: "Flyer Generator", path: "/admin/flyer-generator", roles: ["admin", "superadmin", "content_admin"] },
       ]
     },
     {
