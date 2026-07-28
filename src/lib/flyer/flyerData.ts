@@ -73,3 +73,12 @@ export function getSeatLabel(pkg: FlyerPackage): string {
   if (pkg.is_sold_out || filled >= total) return "Sold Out!";
   return String(total - filled);
 }
+
+/** Package title color by tier, matching the reference flyer's color-coded package names. Same tier-branch shape as getQuadPrice. */
+export function getTierColor(pkg: FlyerPackage): string {
+  const tier = pkg.available_tiers?.[0] ?? "";
+  if (tier === "hemat") return "#16a34a";
+  if (tier === "five-star") return "#dc2626";
+  if (tier.startsWith("pelataran")) return "#9333ea";
+  return "#2563eb";
+}
