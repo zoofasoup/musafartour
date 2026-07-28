@@ -18,11 +18,21 @@ interface FlyerPreviewProps {
   packages: FlyerPackage[];
 }
 
-/** Single-line, for text that's inherently short and structured (dates, "9 Hari", route codes) - never needs to wrap. */
+/**
+ * Single-line, for text that's inherently short and structured (dates,
+ * "9 Hari", route codes, and the JS-pre-truncated title/hotel-name lines
+ * from splitTwoLines) - never needs horizontal truncation, so no
+ * overflow:hidden. Confirmed root cause of a real-world export bug:
+ * overflow:hidden on an auto-height div is a live html2canvas clipping
+ * risk regardless of how much line-height margin it's given - it can
+ * mis-measure the wrapped/rendered height of custom-webfont text and
+ * clip the glyphs' tops against that hidden boundary. Every string that
+ * reaches this style is already length-bounded elsewhere (splitTwoLines,
+ * or a fixed short format), so the ellipsis safety net was pure
+ * downside once it started causing that.
+ */
 const LINE_STYLE: CSSProperties = {
   whiteSpace: "nowrap",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
   display: "block",
   lineHeight: 1.2,
 };
