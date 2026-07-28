@@ -25,6 +25,7 @@ const LINE_STYLE: CSSProperties = {
   display: "block",
 };
 const CENTER_LINE_STYLE: CSSProperties = { ...LINE_STYLE, textAlign: "center" };
+const LEFT_LINE_STYLE: CSSProperties = { ...LINE_STYLE, textAlign: "left" };
 
 /**
  * Header labels wrap normally (2 lines is fine, e.g. "Sisa"/"Seat") rather
@@ -113,20 +114,20 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
           <table className="border-collapse" style={{ fontSize: 14, width: 1000, tableLayout: "fixed" }}>
             <colgroup>
               <col style={{ width: 75 }} />
-              <col style={{ width: 95 }} />
-              <col style={{ width: 170 }} />
-              <col style={{ width: 95 }} />
+              <col style={{ width: 90 }} />
+              <col style={{ width: 165 }} />
               <col style={{ width: 110 }} />
-              <col style={{ width: 180 }} />
-              <col style={{ width: 180 }} />
-              <col style={{ width: 95 }} />
+              <col style={{ width: 105 }} />
+              <col style={{ width: 178 }} />
+              <col style={{ width: 178 }} />
+              <col style={{ width: 99 }} />
             </colgroup>
             <thead>
               <tr className="bg-black text-white">
                 <th className="py-3 px-1"><div style={HEADER_WRAP_STYLE}>Sisa Seat</div></th>
                 <th className="py-3 px-1"><div style={HEADER_WRAP_STYLE}>Keberangkatan</div></th>
                 <th className="py-3 px-2 text-left"><div style={LINE_STYLE}>Judul Paket</div></th>
-                <th className="py-3 px-1"><div style={HEADER_WRAP_STYLE}>Durasi &amp; Rute</div></th>
+                <th className="py-3 px-2 text-left"><div style={{ ...HEADER_WRAP_STYLE, textAlign: "left" }}>Durasi &amp; Rute</div></th>
                 <th className="py-3 px-1"><div style={HEADER_WRAP_STYLE}>Maskapai</div></th>
                 <th className="py-3 px-1"><div style={HEADER_WRAP_STYLE}>Hotel Makkah</div></th>
                 <th className="py-3 px-1"><div style={HEADER_WRAP_STYLE}>Hotel Madinah</div></th>
@@ -143,11 +144,11 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                   <tr key={pkg.id} className="bg-white">
                     <td className="py-3 px-1 font-bold text-center bg-black text-white" style={{ borderTop: rowBorder }}>
                       {isSoldOut ? (
-                        <div style={{ fontSize: 15, lineHeight: 1.15 }}>Sold<br />Out!</div>
+                        <div style={{ fontSize: 18, lineHeight: 1.15 }}>Sold<br />Out!</div>
                       ) : (
                         <>
-                          <div style={{ ...CENTER_LINE_STYLE, fontSize: 22 }}>{seatLabel}</div>
-                          <div style={{ ...CENTER_LINE_STYLE, fontSize: 10, fontWeight: 400 }} className="text-neutral-400">seat</div>
+                          <div style={{ ...CENTER_LINE_STYLE, fontSize: 27 }}>{seatLabel}</div>
+                          <div style={{ ...CENTER_LINE_STYLE, fontSize: 11, fontWeight: 400 }} className="text-neutral-400">seat</div>
                         </>
                       )}
                     </td>
@@ -158,14 +159,14 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                       <div className="font-bold" style={{ ...CLAMP_2_STYLE, color: getTierColor(pkg) }}>{pkg.package_name}</div>
                       <div className="text-neutral-500" style={{ ...LINE_STYLE, fontSize: 11 }}>{monthLabel(pkg.departure_date)}</div>
                     </td>
-                    <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
-                      <div className="flex items-center justify-center gap-1" style={CENTER_LINE_STYLE}>
+                    <td className="py-3 px-2" style={{ borderTop: rowBorder }}>
+                      <div className="flex items-center gap-1" style={LEFT_LINE_STYLE}>
                         <Clock className="h-3 w-3 shrink-0" />
-                        {pkg.duration_days} Hari
+                        <span>{pkg.duration_days} Hari</span>
                       </div>
-                      <div className="flex items-center justify-center gap-1" style={CENTER_LINE_STYLE}>
+                      <div className="flex items-center gap-1" style={LEFT_LINE_STYLE}>
                         <Plane className="h-3 w-3 shrink-0" />
-                        {pkg.route}
+                        <span>{pkg.route}</span>
                       </div>
                     </td>
                     <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
@@ -195,9 +196,9 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                       <span
                         className="bg-red-600 text-white rounded-full flex items-center justify-center shrink-0"
                         style={{
-                          width: 24,
-                          height: 24,
-                          fontSize: 9,
+                          width: 26,
+                          height: 26,
+                          fontSize: 10,
                           fontWeight: 700,
                           position: "absolute",
                           left: 0,
@@ -208,7 +209,7 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                       >
                         Rp
                       </span>
-                      <div className="font-bold text-center" style={{ fontSize: 20 }}>{formatPriceJuta(getQuadPrice(pkg))}</div>
+                      <div className="font-bold text-center" style={{ fontSize: 25 }}>{formatPriceJuta(getQuadPrice(pkg))}</div>
                     </td>
                   </tr>
                 );
