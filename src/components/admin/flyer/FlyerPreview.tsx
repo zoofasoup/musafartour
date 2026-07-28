@@ -44,6 +44,9 @@ const HEADER_WRAP_STYLE: CSSProperties = {
   overflow: "hidden",
 };
 
+/** Alternating header cell background, left to right. */
+const HEADER_CELL_COLORS = ["#000000", "#262626", "#000000", "#262626", "#000000", "#262626", "#000000", "#262626"];
+
 /** Same pattern already used in UmrohCalculator.tsx / UmrohCalculatorResult.tsx for loading the Onest font. */
 function useOnestFont() {
   useEffect(() => {
@@ -94,120 +97,124 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
         </div>
 
         <div
-          className="absolute overflow-hidden rounded-3xl border border-black/10"
+          className="absolute flex items-center"
           style={{ top: 480, left: 40, width: 1000, height: 1310 }}
         >
-          <table className="border-collapse" style={{ fontSize: 14, width: 1000, tableLayout: "fixed" }}>
-            <colgroup>
-              <col style={{ width: 95 }} />
-              <col style={{ width: 115 }} />
-              <col style={{ width: 165 }} />
-              <col style={{ width: 110 }} />
-              <col style={{ width: 105 }} />
-              <col style={{ width: 157 }} />
-              <col style={{ width: 158 }} />
-              <col style={{ width: 95 }} />
-            </colgroup>
-            <thead>
-              <tr className="bg-black text-white">
-                <th className="py-3 px-1"><div style={HEADER_WRAP_STYLE}>Sisa Seat</div></th>
-                <th className="py-3 px-1"><div style={HEADER_WRAP_STYLE}>Keberangkatan</div></th>
-                <th className="py-3 px-2 text-left"><div style={LINE_STYLE}>Judul Paket</div></th>
-                <th className="py-3 px-2 text-left"><div style={{ ...HEADER_WRAP_STYLE, textAlign: "left" }}>Durasi &amp; Rute</div></th>
-                <th className="py-3 px-1"><div style={HEADER_WRAP_STYLE}>Maskapai</div></th>
-                <th className="py-3 px-1"><div style={HEADER_WRAP_STYLE}>Hotel Makkah</div></th>
-                <th className="py-3 px-1"><div style={HEADER_WRAP_STYLE}>Hotel Madinah</div></th>
-                <th className="py-3 px-1"><div style={HEADER_WRAP_STYLE}>Harga</div></th>
-              </tr>
-            </thead>
-            <tbody>
-              {packages.map((pkg, i) => {
-                const seatLabel = getSeatLabel(pkg);
-                const isSoldOut = seatLabel === "Sold Out!";
-                const logoSrc = airlineLogos[pkg.flight];
-                const rowBorder = i > 0 ? "1px solid #e5e5e5" : "none";
-                const [titleLine1, titleLine2] = splitTwoLines(pkg.package_name, 17);
-                const [makkahLine1, makkahLine2] = splitTwoLines(pkg.makkah_hotel_name || "—", 17);
-                const [madinahLine1, madinahLine2] = splitTwoLines(pkg.madinah_hotel_name || "—", 17);
-                return (
-                  <tr key={pkg.id} className="bg-white">
-                    <td className="py-3 px-1 font-bold text-center bg-black text-white" style={{ borderTop: rowBorder }}>
-                      {isSoldOut ? (
-                        <div style={{ fontSize: 20, lineHeight: 1.05 }}>Sold<br />Out!</div>
-                      ) : (
-                        <>
-                          <div style={{ ...CENTER_LINE_STYLE, fontSize: 32, lineHeight: 1 }}>{seatLabel}</div>
-                          <div style={{ ...CENTER_LINE_STYLE, fontSize: 11, fontWeight: 400, lineHeight: 1, marginTop: -3 }} className="text-neutral-400">seat</div>
-                        </>
-                      )}
-                    </td>
-                    <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
-                      <div className="font-bold" style={{ ...CENTER_LINE_STYLE, fontSize: 13 }}>{formatDepartureDate(pkg.departure_date)}</div>
-                    </td>
-                    <td className="py-3 px-2" style={{ borderTop: rowBorder }}>
-                      <div className="font-bold" style={{ ...LINE_STYLE, color: getTierColor(pkg) }}>{titleLine1}</div>
-                      <div className="font-bold" style={{ ...LINE_STYLE, color: getTierColor(pkg) }}>{titleLine2 || " "}</div>
-                      <div className="text-neutral-500" style={{ ...LINE_STYLE, fontSize: 11 }}>{monthLabel(pkg.departure_date)}</div>
-                    </td>
-                    <td className="py-3 px-2" style={{ borderTop: rowBorder }}>
-                      <div className="flex items-center gap-1" style={{ marginBottom: 2 }}>
-                        <Clock className="h-3 w-3 shrink-0" />
-                        <div style={LEFT_LINE_STYLE}>{pkg.duration_days} Hari</div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Plane className="h-3 w-3 shrink-0" />
-                        <div style={LEFT_LINE_STYLE}>{pkg.route}</div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
-                      {logoSrc ? (
-                        <img src={logoSrc} alt={pkg.flight} style={{ height: 22, maxWidth: 100, objectFit: "contain", margin: "0 auto" }} />
-                      ) : (
-                        <div style={CENTER_LINE_STYLE}>{pkg.flight}</div>
-                      )}
-                    </td>
-                    <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
-                      <div style={CENTER_LINE_STYLE}>{makkahLine1}</div>
-                      <div style={CENTER_LINE_STYLE}>{makkahLine2 || " "}</div>
-                      {pkg.makkah_hotel_name && (
-                        <div className="text-amber-500" style={{ ...CENTER_LINE_STYLE, fontSize: 11 }}>
-                          {"★".repeat(pkg.makkah_hotel_star ?? 0)} <span className="text-neutral-400">/ Setaraf</span>
+          <div className="overflow-hidden rounded-3xl border border-black/10" style={{ width: 1000 }}>
+            <table className="border-collapse" style={{ fontSize: 14, width: 1000, tableLayout: "fixed", letterSpacing: "-0.02em" }}>
+              <colgroup>
+                <col style={{ width: 95 }} />
+                <col style={{ width: 115 }} />
+                <col style={{ width: 165 }} />
+                <col style={{ width: 110 }} />
+                <col style={{ width: 105 }} />
+                <col style={{ width: 157 }} />
+                <col style={{ width: 158 }} />
+                <col style={{ width: 95 }} />
+              </colgroup>
+              <thead>
+                <tr className="text-white">
+                  <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[0] }}><div style={HEADER_WRAP_STYLE}>Sisa Seat</div></th>
+                  <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[1] }}><div style={HEADER_WRAP_STYLE}>Keberangkatan</div></th>
+                  <th className="py-3 px-2" style={{ backgroundColor: HEADER_CELL_COLORS[2] }}><div style={HEADER_WRAP_STYLE}>Judul Paket</div></th>
+                  <th className="py-3 px-2 text-left" style={{ backgroundColor: HEADER_CELL_COLORS[3] }}><div style={{ ...HEADER_WRAP_STYLE, textAlign: "left" }}>Durasi &amp; Rute</div></th>
+                  <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[4] }}><div style={HEADER_WRAP_STYLE}>Maskapai</div></th>
+                  <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[5] }}><div style={HEADER_WRAP_STYLE}>Hotel Makkah</div></th>
+                  <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[6] }}><div style={HEADER_WRAP_STYLE}>Hotel Madinah</div></th>
+                  <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[7] }}><div style={HEADER_WRAP_STYLE}>Harga</div></th>
+                </tr>
+              </thead>
+              <tbody>
+                {packages.map((pkg, i) => {
+                  const seatLabel = getSeatLabel(pkg);
+                  const isSoldOut = seatLabel === "Sold Out!";
+                  const logoSrc = airlineLogos[pkg.flight];
+                  const rowBorder = i > 0 ? "1px solid #e5e5e5" : "none";
+                  const [titleLine1, titleLine2] = splitTwoLines(pkg.package_name, 17);
+                  const [makkahLine1, makkahLine2] = splitTwoLines(pkg.makkah_hotel_name || "—", 17);
+                  const [madinahLine1, madinahLine2] = splitTwoLines(pkg.madinah_hotel_name || "—", 17);
+                  return (
+                    <tr key={pkg.id} className="bg-white">
+                      <td className="py-3 px-1 font-bold text-center bg-black text-white" style={{ borderTop: rowBorder }}>
+                        {isSoldOut ? (
+                          <div style={{ fontSize: 20, lineHeight: 1.05 }}>Sold<br />Out!</div>
+                        ) : (
+                          <>
+                            <div style={{ ...CENTER_LINE_STYLE, fontSize: 32, lineHeight: 1 }}>{seatLabel}</div>
+                            <div style={{ ...CENTER_LINE_STYLE, fontSize: 11, fontWeight: 400, lineHeight: 1, marginTop: -3 }} className="text-neutral-400">seat</div>
+                          </>
+                        )}
+                      </td>
+                      <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
+                        <div className="font-bold" style={{ ...CENTER_LINE_STYLE, fontSize: 13 }}>{formatDepartureDate(pkg.departure_date)}</div>
+                      </td>
+                      <td className="py-3 px-2" style={{ borderTop: rowBorder }}>
+                        <div className="font-bold" style={{ ...LINE_STYLE, color: getTierColor(pkg) }}>{titleLine1}</div>
+                        {titleLine2 && (
+                          <div className="font-bold" style={{ ...LINE_STYLE, color: getTierColor(pkg) }}>{titleLine2}</div>
+                        )}
+                        <div className="text-neutral-500" style={{ ...LINE_STYLE, fontSize: 11 }}>{monthLabel(pkg.departure_date)}</div>
+                      </td>
+                      <td className="py-3 px-2" style={{ borderTop: rowBorder }}>
+                        <div className="flex items-center gap-1" style={{ marginBottom: 2 }}>
+                          <Clock className="h-3 w-3 shrink-0" />
+                          <div style={LEFT_LINE_STYLE}>{pkg.duration_days} Hari</div>
                         </div>
-                      )}
-                    </td>
-                    <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
-                      <div style={CENTER_LINE_STYLE}>{madinahLine1}</div>
-                      <div style={CENTER_LINE_STYLE}>{madinahLine2 || " "}</div>
-                      {pkg.madinah_hotel_name && (
-                        <div className="text-amber-500" style={{ ...CENTER_LINE_STYLE, fontSize: 11 }}>
-                          {"★".repeat(pkg.madinah_hotel_star ?? 0)} <span className="text-neutral-400">/ Setaraf</span>
+                        <div className="flex items-center gap-1">
+                          <Plane className="h-3 w-3 shrink-0" />
+                          <div style={LEFT_LINE_STYLE}>{pkg.route}</div>
                         </div>
-                      )}
-                    </td>
-                    <td className="py-3 px-1 bg-black text-white" style={{ borderTop: rowBorder, position: "relative" }}>
-                      <span
-                        className="bg-red-600 text-white rounded-full flex items-center justify-center shrink-0"
-                        style={{
-                          width: 26,
-                          height: 26,
-                          fontSize: 10,
-                          fontWeight: 700,
-                          position: "absolute",
-                          left: 0,
-                          top: "50%",
-                          transform: "translate(-50%, -50%)",
-                          border: "2px solid white",
-                        }}
-                      >
-                        Rp
-                      </span>
-                      <div className="font-bold text-center" style={{ fontSize: 30, lineHeight: 1 }}>{formatPriceJuta(getQuadPrice(pkg))}</div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
+                        {logoSrc ? (
+                          <img src={logoSrc} alt={pkg.flight} style={{ height: 22, maxWidth: 100, objectFit: "contain", margin: "0 auto" }} />
+                        ) : (
+                          <div style={CENTER_LINE_STYLE}>{pkg.flight}</div>
+                        )}
+                      </td>
+                      <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
+                        <div style={CENTER_LINE_STYLE}>{makkahLine1}</div>
+                        {makkahLine2 && <div style={CENTER_LINE_STYLE}>{makkahLine2}</div>}
+                        {pkg.makkah_hotel_name && (
+                          <div className="text-amber-500" style={{ ...CENTER_LINE_STYLE, fontSize: 11 }}>
+                            {"★".repeat(pkg.makkah_hotel_star ?? 0)} <span className="text-neutral-400">/ Setaraf</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
+                        <div style={CENTER_LINE_STYLE}>{madinahLine1}</div>
+                        {madinahLine2 && <div style={CENTER_LINE_STYLE}>{madinahLine2}</div>}
+                        {pkg.madinah_hotel_name && (
+                          <div className="text-amber-500" style={{ ...CENTER_LINE_STYLE, fontSize: 11 }}>
+                            {"★".repeat(pkg.madinah_hotel_star ?? 0)} <span className="text-neutral-400">/ Setaraf</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3 px-1 bg-black text-white" style={{ borderTop: rowBorder, position: "relative" }}>
+                        <span
+                          className="bg-red-600 text-white rounded-full flex items-center justify-center shrink-0"
+                          style={{
+                            width: 26,
+                            height: 26,
+                            fontSize: 10,
+                            fontWeight: 700,
+                            position: "absolute",
+                            left: 0,
+                            top: "50%",
+                            transform: "translate(-50%, -50%)",
+                            border: "2px solid white",
+                          }}
+                        >
+                          Rp
+                        </span>
+                        <div className="font-bold text-center" style={{ fontSize: 30, lineHeight: 1 }}>{formatPriceJuta(getQuadPrice(pkg))}</div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     );

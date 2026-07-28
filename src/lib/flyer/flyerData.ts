@@ -74,13 +74,23 @@ export function getSeatLabel(pkg: FlyerPackage): string {
   return String(total - filled);
 }
 
-/** Package title color by tier, matching the reference flyer's color-coded package names. Same tier-branch shape as getQuadPrice. */
+/**
+ * Package title color by tier. The brief asked for a gradient per tier
+ * (hemat 0C3316-408B53, nyaman 032961-2465C5, pelataran A3452B-CD9208,
+ * five-star 772030-D34772); tested that as CSS gradient text
+ * (background-clip:text) in the real html2canvas export and it fails
+ * outright there - html2canvas paints the background rectangle without
+ * clipping it to the text shape, so with color:transparent the title
+ * disappears entirely behind a solid block. Using the midpoint of each
+ * pair as a flat color instead, which still reads as "that tier's color
+ * family" and renders identically in the live preview and the export.
+ */
 export function getTierColor(pkg: FlyerPackage): string {
   const tier = pkg.available_tiers?.[0] ?? "";
-  if (tier === "hemat") return "#16a34a";
-  if (tier === "five-star") return "#dc2626";
-  if (tier.startsWith("pelataran")) return "#9333ea";
-  return "#2563eb";
+  if (tier === "hemat") return "#265F35";
+  if (tier === "five-star") return "#A53451";
+  if (tier.startsWith("pelataran")) return "#B86C1A";
+  return "#144793";
 }
 
 /**
