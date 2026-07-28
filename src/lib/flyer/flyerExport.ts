@@ -11,6 +11,18 @@ export async function exportFlyerAsImage(node: HTMLElement, format: "png" | "jpe
     scale: 1,
     useCORS: true,
     backgroundColor: null,
+    // The on-screen preview wraps this node in a `transform: scale(...)` div
+    // for display sizing (see FlyerGenerator.tsx). html2canvas derives
+    // element bounds from getBoundingClientRect() in the cloned document,
+    // and it only neutralizes an element's OWN transform, never an
+    // ancestor's - so without this, every child's bounding rect comes back
+    // scaled down too, producing a shrunken capture in the corner of the
+    // canvas. Clearing the ancestor's transform here only affects the
+    // cloned document html2canvas renders from, not the live on-screen DOM,
+    // so there's no visual flash for the user.
+    onclone: (_doc: Document, el: HTMLElement) => {
+      if (el.parentElement) el.parentElement.style.transform = "none";
+    },
   });
 
   const mime = format === "png" ? "image/png" : "image/jpeg";
