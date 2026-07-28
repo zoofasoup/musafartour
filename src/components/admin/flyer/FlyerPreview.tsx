@@ -144,11 +144,11 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                   <tr key={pkg.id} className="bg-white">
                     <td className="py-3 px-1 font-bold text-center bg-black text-white" style={{ borderTop: rowBorder }}>
                       {isSoldOut ? (
-                        <div style={{ fontSize: 18, lineHeight: 1.15 }}>Sold<br />Out!</div>
+                        <div style={{ fontSize: 20, lineHeight: 1.05 }}>Sold<br />Out!</div>
                       ) : (
                         <>
-                          <div style={{ ...CENTER_LINE_STYLE, fontSize: 27 }}>{seatLabel}</div>
-                          <div style={{ ...CENTER_LINE_STYLE, fontSize: 11, fontWeight: 400 }} className="text-neutral-400">seat</div>
+                          <div style={{ ...CENTER_LINE_STYLE, fontSize: 32, lineHeight: 1 }}>{seatLabel}</div>
+                          <div style={{ ...CENTER_LINE_STYLE, fontSize: 11, fontWeight: 400, lineHeight: 1.1 }} className="text-neutral-400">seat</div>
                         </>
                       )}
                     </td>
@@ -209,7 +209,7 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                       >
                         Rp
                       </span>
-                      <div className="font-bold text-center" style={{ fontSize: 25 }}>{formatPriceJuta(getQuadPrice(pkg))}</div>
+                      <div className="font-bold text-center" style={{ fontSize: 30, lineHeight: 1 }}>{formatPriceJuta(getQuadPrice(pkg))}</div>
                     </td>
                   </tr>
                 );
