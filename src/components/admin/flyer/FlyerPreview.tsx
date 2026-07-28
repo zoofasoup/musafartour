@@ -23,6 +23,7 @@ const LINE_STYLE: CSSProperties = {
   overflow: "hidden",
   textOverflow: "ellipsis",
   display: "block",
+  lineHeight: 1.15,
 };
 const CENTER_LINE_STYLE: CSSProperties = { ...LINE_STYLE, textAlign: "center" };
 const LEFT_LINE_STYLE: CSSProperties = { ...LINE_STYLE, textAlign: "left" };
@@ -114,12 +115,12 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
           <table className="border-collapse" style={{ fontSize: 14, width: 1000, tableLayout: "fixed" }}>
             <colgroup>
               <col style={{ width: 75 }} />
-              <col style={{ width: 90 }} />
+              <col style={{ width: 115 }} />
               <col style={{ width: 165 }} />
               <col style={{ width: 110 }} />
               <col style={{ width: 105 }} />
-              <col style={{ width: 178 }} />
-              <col style={{ width: 178 }} />
+              <col style={{ width: 163 }} />
+              <col style={{ width: 168 }} />
               <col style={{ width: 99 }} />
             </colgroup>
             <thead>
@@ -148,24 +149,24 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                       ) : (
                         <>
                           <div style={{ ...CENTER_LINE_STYLE, fontSize: 32, lineHeight: 1 }}>{seatLabel}</div>
-                          <div style={{ ...CENTER_LINE_STYLE, fontSize: 11, fontWeight: 400, lineHeight: 1.1 }} className="text-neutral-400">seat</div>
+                          <div style={{ ...CENTER_LINE_STYLE, fontSize: 11, fontWeight: 400, lineHeight: 1, marginTop: -3 }} className="text-neutral-400">seat</div>
                         </>
                       )}
                     </td>
                     <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
-                      <div style={CENTER_LINE_STYLE}>{formatDepartureDate(pkg.departure_date)}</div>
+                      <div style={{ ...CENTER_LINE_STYLE, fontSize: 13 }}>{formatDepartureDate(pkg.departure_date)}</div>
                     </td>
                     <td className="py-3 px-2" style={{ borderTop: rowBorder }}>
                       <div className="font-bold" style={{ ...CLAMP_2_STYLE, color: getTierColor(pkg) }}>{pkg.package_name}</div>
                       <div className="text-neutral-500" style={{ ...LINE_STYLE, fontSize: 11 }}>{monthLabel(pkg.departure_date)}</div>
                     </td>
                     <td className="py-3 px-2" style={{ borderTop: rowBorder }}>
-                      <div style={{ marginBottom: 3 }}>
-                        <Clock className="h-3 w-3" style={{ display: "block", marginBottom: 1 }} />
+                      <div className="flex items-center gap-1" style={{ marginBottom: 2 }}>
+                        <Clock className="h-3 w-3 shrink-0" />
                         <div style={LEFT_LINE_STYLE}>{pkg.duration_days} Hari</div>
                       </div>
-                      <div>
-                        <Plane className="h-3 w-3" style={{ display: "block", marginBottom: 1 }} />
+                      <div className="flex items-center gap-1">
+                        <Plane className="h-3 w-3 shrink-0" />
                         <div style={LEFT_LINE_STYLE}>{pkg.route}</div>
                       </div>
                     </td>
