@@ -56,6 +56,7 @@ const CLAMP_2_STYLE: CSSProperties = {
   WebkitBoxOrient: "vertical",
   overflow: "hidden",
   textOverflow: "ellipsis",
+  lineHeight: 1.15,
 };
 const CENTER_CLAMP_2_STYLE: CSSProperties = { ...CLAMP_2_STYLE, textAlign: "center" };
 
@@ -114,14 +115,14 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
         >
           <table className="border-collapse" style={{ fontSize: 14, width: 1000, tableLayout: "fixed" }}>
             <colgroup>
-              <col style={{ width: 75 }} />
+              <col style={{ width: 95 }} />
               <col style={{ width: 115 }} />
               <col style={{ width: 165 }} />
               <col style={{ width: 110 }} />
               <col style={{ width: 105 }} />
-              <col style={{ width: 163 }} />
-              <col style={{ width: 168 }} />
-              <col style={{ width: 99 }} />
+              <col style={{ width: 157 }} />
+              <col style={{ width: 158 }} />
+              <col style={{ width: 95 }} />
             </colgroup>
             <thead>
               <tr className="bg-black text-white">
@@ -180,7 +181,7 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                     <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
                       <div style={CENTER_CLAMP_2_STYLE}>{pkg.makkah_hotel_name || "—"}</div>
                       {pkg.makkah_hotel_name && (
-                        <div className="text-amber-500" style={CENTER_LINE_STYLE}>
+                        <div className="text-amber-500" style={{ ...CENTER_LINE_STYLE, fontSize: 11 }}>
                           {"★".repeat(pkg.makkah_hotel_star ?? 0)} <span className="text-neutral-400">/ Setaraf</span>
                         </div>
                       )}
@@ -188,7 +189,7 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                     <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
                       <div style={CENTER_CLAMP_2_STYLE}>{pkg.madinah_hotel_name || "—"}</div>
                       {pkg.madinah_hotel_name && (
-                        <div className="text-amber-500" style={CENTER_LINE_STYLE}>
+                        <div className="text-amber-500" style={{ ...CENTER_LINE_STYLE, fontSize: 11 }}>
                           {"★".repeat(pkg.madinah_hotel_star ?? 0)} <span className="text-neutral-400">/ Setaraf</span>
                         </div>
                       )}
