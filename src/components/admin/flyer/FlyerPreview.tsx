@@ -10,6 +10,7 @@ import {
   getSeatLabel,
   getTierColor,
   monthLabel,
+  splitTwoLines,
   type FlyerPackage,
 } from "@/lib/flyer/flyerData";
 
@@ -23,7 +24,7 @@ const LINE_STYLE: CSSProperties = {
   overflow: "hidden",
   textOverflow: "ellipsis",
   display: "block",
-  lineHeight: 1.15,
+  lineHeight: 1.1,
 };
 const CENTER_LINE_STYLE: CSSProperties = { ...LINE_STYLE, textAlign: "center" };
 const LEFT_LINE_STYLE: CSSProperties = { ...LINE_STYLE, textAlign: "left" };
@@ -38,27 +39,10 @@ const LEFT_LINE_STYLE: CSSProperties = { ...LINE_STYLE, textAlign: "left" };
  */
 const HEADER_WRAP_STYLE: CSSProperties = {
   textAlign: "center",
-  lineHeight: 1.2,
+  lineHeight: 1.1,
   overflowWrap: "break-word",
   overflow: "hidden",
 };
-
-/**
- * Up to 2 lines for free-text that can be genuinely long in real data
- * (package/hotel names) - a flyer can't show a mid-word "..." cutoff, so
- * this gives real names two lines' worth of room (sized so 2 lines still
- * fits the row height budget) before the ellipsis fallback would ever
- * kick in, rather than truncating almost everything to one line.
- */
-const CLAMP_2_STYLE: CSSProperties = {
-  display: "-webkit-box",
-  WebkitLineClamp: 2,
-  WebkitBoxOrient: "vertical",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  lineHeight: 1.15,
-};
-const CENTER_CLAMP_2_STYLE: CSSProperties = { ...CLAMP_2_STYLE, textAlign: "center" };
 
 /** Same pattern already used in UmrohCalculator.tsx / UmrohCalculatorResult.tsx for loading the Onest font. */
 function useOnestFont() {
@@ -142,6 +126,9 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                 const isSoldOut = seatLabel === "Sold Out!";
                 const logoSrc = airlineLogos[pkg.flight];
                 const rowBorder = i > 0 ? "1px solid #e5e5e5" : "none";
+                const [titleLine1, titleLine2] = splitTwoLines(pkg.package_name, 17);
+                const [makkahLine1, makkahLine2] = splitTwoLines(pkg.makkah_hotel_name || "—", 17);
+                const [madinahLine1, madinahLine2] = splitTwoLines(pkg.madinah_hotel_name || "—", 17);
                 return (
                   <tr key={pkg.id} className="bg-white">
                     <td className="py-3 px-1 font-bold text-center bg-black text-white" style={{ borderTop: rowBorder }}>
@@ -155,10 +142,11 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                       )}
                     </td>
                     <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
-                      <div style={{ ...CENTER_LINE_STYLE, fontSize: 13 }}>{formatDepartureDate(pkg.departure_date)}</div>
+                      <div className="font-bold" style={{ ...CENTER_LINE_STYLE, fontSize: 13 }}>{formatDepartureDate(pkg.departure_date)}</div>
                     </td>
                     <td className="py-3 px-2" style={{ borderTop: rowBorder }}>
-                      <div className="font-bold" style={{ ...CLAMP_2_STYLE, color: getTierColor(pkg) }}>{pkg.package_name}</div>
+                      <div className="font-bold" style={{ ...LINE_STYLE, color: getTierColor(pkg) }}>{titleLine1}</div>
+                      <div className="font-bold" style={{ ...LINE_STYLE, color: getTierColor(pkg) }}>{titleLine2 || " "}</div>
                       <div className="text-neutral-500" style={{ ...LINE_STYLE, fontSize: 11 }}>{monthLabel(pkg.departure_date)}</div>
                     </td>
                     <td className="py-3 px-2" style={{ borderTop: rowBorder }}>
@@ -179,7 +167,8 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                       )}
                     </td>
                     <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
-                      <div style={CENTER_CLAMP_2_STYLE}>{pkg.makkah_hotel_name || "—"}</div>
+                      <div style={CENTER_LINE_STYLE}>{makkahLine1}</div>
+                      <div style={CENTER_LINE_STYLE}>{makkahLine2 || " "}</div>
                       {pkg.makkah_hotel_name && (
                         <div className="text-amber-500" style={{ ...CENTER_LINE_STYLE, fontSize: 11 }}>
                           {"★".repeat(pkg.makkah_hotel_star ?? 0)} <span className="text-neutral-400">/ Setaraf</span>
@@ -187,7 +176,8 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                       )}
                     </td>
                     <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
-                      <div style={CENTER_CLAMP_2_STYLE}>{pkg.madinah_hotel_name || "—"}</div>
+                      <div style={CENTER_LINE_STYLE}>{madinahLine1}</div>
+                      <div style={CENTER_LINE_STYLE}>{madinahLine2 || " "}</div>
                       {pkg.madinah_hotel_name && (
                         <div className="text-amber-500" style={{ ...CENTER_LINE_STYLE, fontSize: 11 }}>
                           {"★".repeat(pkg.madinah_hotel_star ?? 0)} <span className="text-neutral-400">/ Setaraf</span>

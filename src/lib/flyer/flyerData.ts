@@ -82,3 +82,27 @@ export function getTierColor(pkg: FlyerPackage): string {
   if (tier.startsWith("pelataran")) return "#9333ea";
   return "#2563eb";
 }
+
+/**
+ * Splits free text (package/hotel names) into exactly 2 lines by word,
+ * each capped at maxChars, with any remainder past 2 lines hard-cut
+ * (never an ellipsis). Line breaks are decided here in plain JS rather
+ * than left to CSS wrapping: html2canvas (the flyer's export path)
+ * doesn't reliably reproduce the browser's own wrap decisions for
+ * height-constrained multi-line text - confirmed it can silently drop a
+ * whole word - so line 1 and line 2 are rendered as independent
+ * single-line strings instead, which both engines render identically.
+ */
+export function splitTwoLines(text: string, maxChars: number): [string, string] {
+  const words = text.split(" ");
+  let line1 = "";
+  let i = 0;
+  for (; i < words.length; i++) {
+    const candidate = line1 ? `${line1} ${words[i]}` : words[i];
+    if (candidate.length > maxChars && line1) break;
+    line1 = candidate;
+  }
+  let line2 = words.slice(i).join(" ");
+  if (line2.length > maxChars) line2 = line2.slice(0, maxChars);
+  return [line1, line2];
+}

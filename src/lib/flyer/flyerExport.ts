@@ -5,6 +5,13 @@ import html2canvas from "html2canvas";
  * FlyerPreview) and triggers a browser download of the resulting image.
  */
 export async function exportFlyerAsImage(node: HTMLElement, format: "png" | "jpeg"): Promise<void> {
+  // html2canvas rasterizes text itself rather than using the browser's own
+  // painted layout, so if the Onest webfont hasn't finished loading yet it
+  // silently substitutes a fallback font with different line-height/ascent
+  // metrics - shifting and clipping text that looks fine in the live DOM.
+  // Waiting for all in-flight font loads to settle keeps the two in sync.
+  await document.fonts.ready;
+
   const canvas = await html2canvas(node, {
     width: 1080,
     height: 1920,
