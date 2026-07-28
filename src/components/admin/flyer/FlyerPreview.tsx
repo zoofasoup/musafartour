@@ -24,7 +24,7 @@ const LINE_STYLE: CSSProperties = {
   overflow: "hidden",
   textOverflow: "ellipsis",
   display: "block",
-  lineHeight: 1.1,
+  lineHeight: 1.2,
 };
 const CENTER_LINE_STYLE: CSSProperties = { ...LINE_STYLE, textAlign: "center" };
 const LEFT_LINE_STYLE: CSSProperties = { ...LINE_STYLE, textAlign: "left" };
@@ -50,14 +50,19 @@ const CELL_CENTER_STYLE: CSSProperties = {
  * than truncating - a flyer can't show "Sisa Se..." in its own header.
  * overflowWrap handles single unbroken words like "Keberangkatan" that have
  * no space to wrap on and would otherwise just overflow the column as one
- * line; overflow:hidden clips as a last-resort safety net, not the primary
- * mechanism.
+ * line. Uses a fixed height + flex centering rather than auto-height:
+ * confirmed html2canvas can mis-measure the auto height of wrapped bold
+ * text and clip the top of the glyphs against an ancestor's overflow -
+ * a static height it never has to compute removes that risk entirely.
  */
 const HEADER_WRAP_STYLE: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
   textAlign: "center",
-  lineHeight: 1.1,
+  lineHeight: 1.25,
   overflowWrap: "break-word",
-  overflow: "hidden",
+  height: 38,
 };
 
 /** Alternating header cell background, left to right. */
@@ -133,7 +138,7 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                   <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[0] }}><div style={HEADER_WRAP_STYLE}>Sisa Seat</div></th>
                   <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[1] }}><div style={HEADER_WRAP_STYLE}>Keberangkatan</div></th>
                   <th className="py-3 px-2" style={{ backgroundColor: HEADER_CELL_COLORS[2] }}><div style={HEADER_WRAP_STYLE}>Judul Paket</div></th>
-                  <th className="py-3 px-2 text-left" style={{ backgroundColor: HEADER_CELL_COLORS[3] }}><div style={{ ...HEADER_WRAP_STYLE, textAlign: "left" }}>Durasi &amp; Rute</div></th>
+                  <th className="py-3 px-2 text-left" style={{ backgroundColor: HEADER_CELL_COLORS[3] }}><div style={{ ...HEADER_WRAP_STYLE, textAlign: "left", justifyContent: "flex-start" }}>Durasi &amp; Rute</div></th>
                   <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[4] }}><div style={HEADER_WRAP_STYLE}>Maskapai</div></th>
                   <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[5] }}><div style={HEADER_WRAP_STYLE}>Hotel Makkah</div></th>
                   <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[6] }}><div style={HEADER_WRAP_STYLE}>Hotel Madinah</div></th>
@@ -154,11 +159,11 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                       <td className="py-3 px-1 font-bold text-center bg-black text-white" style={{ borderTop: rowBorder }}>
                         <div style={CELL_CENTER_STYLE}>
                           {isSoldOut ? (
-                            <div style={{ fontSize: 20, lineHeight: 1.05 }}>Sold<br />Out!</div>
+                            <div style={{ textAlign: "center", fontSize: 20, lineHeight: 1.2 }}>Sold<br />Out!</div>
                           ) : (
                             <>
-                              <div style={{ ...CENTER_LINE_STYLE, fontSize: 32, lineHeight: 1 }}>{seatLabel}</div>
-                              <div style={{ ...CENTER_LINE_STYLE, fontSize: 11, fontWeight: 400, lineHeight: 1, marginTop: -3 }} className="text-neutral-400">seat</div>
+                              <div style={{ textAlign: "center", fontSize: 32, lineHeight: 1.2 }}>{seatLabel}</div>
+                              <div style={{ textAlign: "center", fontSize: 11, fontWeight: 400, lineHeight: 1.2, marginTop: -2 }} className="text-neutral-400">seat</div>
                             </>
                           )}
                         </div>
@@ -237,7 +242,7 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                           Rp
                         </span>
                         <div style={CELL_CENTER_STYLE}>
-                          <div className="font-bold text-center" style={{ fontSize: 30, lineHeight: 1 }}>{formatPriceJuta(getQuadPrice(pkg))}</div>
+                          <div className="font-bold text-center" style={{ fontSize: 30, lineHeight: 1.2 }}>{formatPriceJuta(getQuadPrice(pkg))}</div>
                         </div>
                       </td>
                     </tr>
