@@ -190,11 +190,12 @@ const ConditionalFloatingWhatsApp = () => {
   const isBoothPage = location.pathname === '/booth';
   const isCalcPage = location.pathname.startsWith('/kalkulator');
   const isPackageDetailPage = location.pathname.startsWith('/paket-umroh/');
+  const isFlyerPrintPage = location.pathname === '/flyer-print';
 
-  if (isAdminPage || isAgentPage || isBoothPage || isCalcPage || isPackageDetailPage) {
+  if (isAdminPage || isAgentPage || isBoothPage || isCalcPage || isPackageDetailPage || isFlyerPrintPage) {
     return null;
   }
-  
+
   return <FloatingWhatsApp />;
 };
 
