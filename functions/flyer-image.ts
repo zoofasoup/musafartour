@@ -10,8 +10,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     return new Response("Missing ids query param", { status: 400 });
   }
 
-  const browser = await puppeteer.launch(context.env.BROWSER);
+  let browser: Awaited<ReturnType<typeof puppeteer.launch>> | undefined;
   try {
+    browser = await puppeteer.launch(context.env.BROWSER);
     const page = await browser.newPage();
     await page.setViewport({ width: 1080, height: 1920 });
 
@@ -34,7 +35,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         "cache-control": "no-store",
       },
     });
+  } catch (e) {
+    return new Response(`Flyer render failed: ${e instanceof Error ? e.message : String(e)}`, {
+      status: 502,
+    });
   } finally {
-    await browser.close();
+    if (browser) await browser.close();
   }
 };
