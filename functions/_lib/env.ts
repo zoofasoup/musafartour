@@ -1,6 +1,7 @@
 export interface Env {
   SUPABASE_URL?: string;
   SUPABASE_ANON_KEY?: string;
+  BROWSER: Fetcher;
 }
 
 // Fallback to the same public URL/anon key already shipped in the client JS
