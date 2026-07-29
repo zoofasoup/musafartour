@@ -3,6 +3,7 @@ import { CheckCircle2, Clock, Plane } from "lucide-react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { airlineLogos } from "@/lib/airlineLogos";
+import { ONEST_FONT_BASE64 } from "@/lib/flyer/onestFont";
 import {
   formatDepartureDate,
   formatPriceJuta,
@@ -78,15 +79,34 @@ const HEADER_WRAP_STYLE: CSSProperties = {
 /** Alternating header cell background, left to right. */
 const HEADER_CELL_COLORS = ["#000000", "#262626", "#000000", "#262626", "#000000", "#262626", "#000000", "#262626"];
 
-/** Same pattern already used in UmrohCalculator.tsx / UmrohCalculatorResult.tsx for loading the Onest font. */
+/**
+ * Embeds Onest via a data-URI @font-face instead of the Google Fonts
+ * <link> pattern used elsewhere (UmrohCalculator.tsx etc.) - see
+ * onestFont.ts for why: html2canvas re-fetches fonts on every capture
+ * rather than reusing the browser's loaded font, and a network-loaded
+ * font is a real, confirmed source of export-only text-position drift.
+ * A data URI has nothing left to fetch.
+ */
 function useOnestFont() {
   useEffect(() => {
     if (document.getElementById("onest-font")) return;
-    const link = document.createElement("link");
-    link.id = "onest-font";
-    link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&display=swap";
-    document.head.appendChild(link);
+    const style = document.createElement("style");
+    style.id = "onest-font";
+    style.textContent = `
+      @font-face {
+        font-family: 'Onest';
+        font-style: normal;
+        font-weight: 400;
+        src: url(data:font/woff2;base64,${ONEST_FONT_BASE64}) format('woff2');
+      }
+      @font-face {
+        font-family: 'Onest';
+        font-style: normal;
+        font-weight: 700;
+        src: url(data:font/woff2;base64,${ONEST_FONT_BASE64}) format('woff2');
+      }
+    `;
+    document.head.appendChild(style);
   }, []);
 }
 
@@ -145,14 +165,14 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
               </colgroup>
               <thead>
                 <tr className="text-white">
-                  <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[0] }}><div style={HEADER_WRAP_STYLE}>Sisa Seat</div></th>
-                  <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[1] }}><div style={HEADER_WRAP_STYLE}>Keberangkatan</div></th>
-                  <th className="py-3 px-2" style={{ backgroundColor: HEADER_CELL_COLORS[2] }}><div style={HEADER_WRAP_STYLE}>Judul Paket</div></th>
-                  <th className="py-3 px-2 text-left" style={{ backgroundColor: HEADER_CELL_COLORS[3] }}><div style={{ ...HEADER_WRAP_STYLE, textAlign: "left", justifyContent: "flex-start" }}>Durasi &amp; Rute</div></th>
-                  <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[4] }}><div style={HEADER_WRAP_STYLE}>Maskapai</div></th>
-                  <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[5] }}><div style={HEADER_WRAP_STYLE}>Hotel Makkah</div></th>
-                  <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[6] }}><div style={HEADER_WRAP_STYLE}>Hotel Madinah</div></th>
-                  <th className="py-3 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[7] }}><div style={HEADER_WRAP_STYLE}>Harga</div></th>
+                  <th className="py-2 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[0] }}><div style={HEADER_WRAP_STYLE}>Sisa Seat</div></th>
+                  <th className="py-2 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[1] }}><div style={HEADER_WRAP_STYLE}>Keberangkatan</div></th>
+                  <th className="py-2 px-2" style={{ backgroundColor: HEADER_CELL_COLORS[2] }}><div style={HEADER_WRAP_STYLE}>Judul Paket</div></th>
+                  <th className="py-2 px-2 text-left" style={{ backgroundColor: HEADER_CELL_COLORS[3] }}><div style={{ ...HEADER_WRAP_STYLE, textAlign: "left", justifyContent: "flex-start" }}>Durasi &amp; Rute</div></th>
+                  <th className="py-2 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[4] }}><div style={HEADER_WRAP_STYLE}>Maskapai</div></th>
+                  <th className="py-2 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[5] }}><div style={HEADER_WRAP_STYLE}>Hotel Makkah</div></th>
+                  <th className="py-2 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[6] }}><div style={HEADER_WRAP_STYLE}>Hotel Madinah</div></th>
+                  <th className="py-2 px-1" style={{ backgroundColor: HEADER_CELL_COLORS[7] }}><div style={HEADER_WRAP_STYLE}>Harga</div></th>
                 </tr>
               </thead>
               <tbody>
@@ -166,7 +186,7 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                   const [madinahLine1, madinahLine2] = splitTwoLines(pkg.madinah_hotel_name || "—", 17);
                   return (
                     <tr key={pkg.id} className="bg-white">
-                      <td className="py-3 px-1 font-bold text-center bg-black text-white" style={{ borderTop: rowBorder }}>
+                      <td className="py-2 px-1 font-bold text-center bg-black text-white" style={{ borderTop: rowBorder }}>
                         <div style={CELL_CENTER_STYLE}>
                           {isSoldOut ? (
                             <div style={{ textAlign: "center", fontSize: 20, lineHeight: 1.2 }}>Sold<br />Out!</div>
@@ -178,12 +198,12 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
+                      <td className="py-2 px-1" style={{ borderTop: rowBorder }}>
                         <div style={CELL_CENTER_STYLE}>
                           <div className="font-bold" style={{ ...CENTER_LINE_STYLE, fontSize: 13 }}>{formatDepartureDate(pkg.departure_date)}</div>
                         </div>
                       </td>
-                      <td className="py-3 px-2" style={{ borderTop: rowBorder }}>
+                      <td className="py-2 px-2" style={{ borderTop: rowBorder }}>
                         <div style={CELL_CENTER_STYLE}>
                           <div className="font-bold" style={{ ...LINE_STYLE, color: getTierColor(pkg) }}>{titleLine1}</div>
                           {titleLine2 && (
@@ -192,7 +212,7 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                           <div className="text-neutral-500" style={{ ...LINE_STYLE, fontSize: 11 }}>{monthLabel(pkg.departure_date)}</div>
                         </div>
                       </td>
-                      <td className="py-3 px-2" style={{ borderTop: rowBorder }}>
+                      <td className="py-2 px-2" style={{ borderTop: rowBorder }}>
                         <div style={CELL_CENTER_STYLE}>
                           <div className="flex items-center gap-1" style={{ marginBottom: 2 }}>
                             <Clock className="h-3 w-3 shrink-0" />
@@ -204,7 +224,7 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
+                      <td className="py-2 px-1" style={{ borderTop: rowBorder }}>
                         <div style={CELL_CENTER_STYLE}>
                           {logoSrc ? (
                             <img src={logoSrc} alt={pkg.flight} style={{ height: 22, maxWidth: 100, objectFit: "contain", margin: "0 auto" }} />
@@ -213,7 +233,7 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
+                      <td className="py-2 px-1" style={{ borderTop: rowBorder }}>
                         <div style={CELL_CENTER_STYLE}>
                           <div style={CENTER_LINE_STYLE}>{makkahLine1}</div>
                           {makkahLine2 && <div style={CENTER_LINE_STYLE}>{makkahLine2}</div>}
@@ -224,7 +244,7 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-1" style={{ borderTop: rowBorder }}>
+                      <td className="py-2 px-1" style={{ borderTop: rowBorder }}>
                         <div style={CELL_CENTER_STYLE}>
                           <div style={CENTER_LINE_STYLE}>{madinahLine1}</div>
                           {madinahLine2 && <div style={CENTER_LINE_STYLE}>{madinahLine2}</div>}
@@ -235,7 +255,7 @@ export const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-1 bg-black text-white" style={{ borderTop: rowBorder, position: "relative" }}>
+                      <td className="py-2 px-1 bg-black text-white" style={{ borderTop: rowBorder, position: "relative" }}>
                         <span
                           className="bg-red-600 text-white rounded-full flex items-center justify-center shrink-0"
                           style={{
