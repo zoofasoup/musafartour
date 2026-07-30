@@ -1,7 +1,9 @@
+import type { BrowserWorker } from "@cloudflare/puppeteer";
+
 export interface Env {
   SUPABASE_URL?: string;
   SUPABASE_ANON_KEY?: string;
-  BROWSER: Fetcher;
+  BROWSER: BrowserWorker;
 }
 
 // Fallback to the same public URL/anon key already shipped in the client JS
