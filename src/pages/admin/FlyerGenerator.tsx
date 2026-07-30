@@ -5,12 +5,11 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { FlyerPreview } from "@/components/admin/flyer/FlyerPreview";
 import { FlyerRowPicker } from "@/components/admin/flyer/FlyerRowPicker";
-import { exportFlyerAsImage } from "@/lib/flyer/flyerExport";
 import { FLYER_PACKAGE_COLUMNS, SAFE_ZONE_MAX_ROWS, type FlyerPackage } from "@/lib/flyer/flyerData";
 
 const PREVIEW_SCALE = 0.4;
 
-/** Replaces the manual Canva redesign of the seat-availability flyer - renders live from packages data (kept fresh by the existing 5-minute Google Sheet sync) and exports via html2canvas, so there's no longer a step that can be forgotten. */
+/** Replaces the manual Canva redesign of the seat-availability flyer - renders live from packages data (kept fresh by the existing 5-minute Google Sheet sync) and exports via a real headless-browser screenshot (functions/flyer-image.ts), so the download always matches the live preview exactly. */
 export default function FlyerGenerator() {
   const previewRef = useRef<HTMLDivElement>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -54,10 +53,23 @@ export default function FlyerGenerator() {
   );
 
   const handleExport = async (format: "png" | "jpeg") => {
-    if (!previewRef.current) return;
+    if (selectedPackages.length === 0) return;
     setExporting(format);
     try {
-      await exportFlyerAsImage(previewRef.current, format);
+      const ids = selectedPackages.map((p) => p.id).join(",");
+      const res = await fetch(`/flyer-image?ids=${encodeURIComponent(ids)}&format=${format}`);
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      const ext = format === "png" ? "png" : "jpg";
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = `flyer-umroh-${dateStamp}.${ext}`;
+      link.href = objectUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(objectUrl);
       toast.success("Flyer berhasil diunduh");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Gagal membuat flyer");
