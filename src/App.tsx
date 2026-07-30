@@ -107,6 +107,7 @@ const TikTokPixelTracker = () => {
   const location = useLocation();
 
   useEffect(() => {
+    if (location.pathname === '/flyer-print') return;
     if (window.ttq) {
       window.ttq.page();
     }
@@ -117,7 +118,8 @@ const TikTokPixelTracker = () => {
 
 // Marketing Pixels Loader
 const MarketingPixelsLoader = () => {
-  useMarketingPixels();
+  const location = useLocation();
+  useMarketingPixels(location.pathname !== '/flyer-print');
   return null;
 };
 

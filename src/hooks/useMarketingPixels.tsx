@@ -31,7 +31,13 @@ function validatePixelId(id: string | null | undefined, type: 'meta' | 'tiktok' 
   return null;
 }
 
-export const useMarketingPixels = () => {
+/**
+ * @param enabled - When false, the hook still runs (rules of hooks require every
+ * hook call to be unconditional) but skips all pixel-injection side effects.
+ * Used to suppress tracker injection on /flyer-print, which is screenshotted by
+ * a headless browser on every flyer export and must not fire real pageviews.
+ */
+export const useMarketingPixels = (enabled: boolean = true) => {
   const { data: settings } = useQuery({
     queryKey: ["marketing-settings-public"],
     queryFn: async () => {
@@ -48,13 +54,14 @@ export const useMarketingPixels = () => {
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     gcTime: 10 * 60 * 1000,
+    enabled,
   });
 
   // Inject Meta Pixel
   useEffect(() => {
     const safeMetaPixelId = validatePixelId(settings?.meta_pixel_id, 'meta');
-    
-    if (settings?.meta_pixel_enabled && safeMetaPixelId) {
+
+    if (enabled && settings?.meta_pixel_enabled && safeMetaPixelId) {
       const script = document.createElement("script");
       script.innerHTML = `
         !function(f,b,e,v,n,t,s)
@@ -84,13 +91,13 @@ export const useMarketingPixels = () => {
         document.head.removeChild(noscript);
       };
     }
-  }, [settings?.meta_pixel_enabled, settings?.meta_pixel_id]);
+  }, [enabled, settings?.meta_pixel_enabled, settings?.meta_pixel_id]);
 
   // Inject TikTok Pixel
   useEffect(() => {
     const safeTiktokPixelId = validatePixelId(settings?.tiktok_pixel_id, 'tiktok');
-    
-    if (settings?.tiktok_pixel_enabled && safeTiktokPixelId) {
+
+    if (enabled && settings?.tiktok_pixel_enabled && safeTiktokPixelId) {
       // Only inject if not already loaded via hardcoded script
       if (!window.ttq) {
         const script = document.createElement("script");
@@ -108,13 +115,13 @@ export const useMarketingPixels = () => {
         };
       }
     }
-  }, [settings?.tiktok_pixel_enabled, settings?.tiktok_pixel_id]);
+  }, [enabled, settings?.tiktok_pixel_enabled, settings?.tiktok_pixel_id]);
 
   // Inject Google Analytics - deferred after page load
   useEffect(() => {
     const safeGa4Id = validatePixelId(settings?.ga4_id, 'ga4');
-    
-    if (settings?.ga4_enabled && safeGa4Id) {
+
+    if (enabled && settings?.ga4_enabled && safeGa4Id) {
       // Use requestIdleCallback to defer GA loading
       const loadGA = () => {
         const script1 = document.createElement("script");
@@ -139,7 +146,7 @@ export const useMarketingPixels = () => {
         setTimeout(loadGA, 2000);
       }
     }
-  }, [settings?.ga4_enabled, settings?.ga4_id]);
+  }, [enabled, settings?.ga4_enabled, settings?.ga4_id]);
 
   return settings;
 };
