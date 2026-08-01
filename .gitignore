@@ -19,6 +19,9 @@ dist-ssr
 .env.pipeline
 .env.pipeline.local
 
+# Agent-managed git worktrees (scratch, never part of the repo history)
+.claude/worktrees/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
