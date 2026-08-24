@@ -2234,6 +2234,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_mark_payment_settled: {
+        Args: { _admin_notes?: string; _order_id: string }
+        Returns: undefined
+      }
+      create_booking: {
+        Args: {
+          _package_id: string
+          _primary_contact_name: string
+          _primary_contact_phone: string
+          _referral_code?: string
+          _room_type: string
+          _traveler_count: number
+        }
+        Returns: string
+      }
+      create_booking_payment: {
+        Args: { _amount: number; _booking_id: string }
+        Returns: { order_id: string; total_charged: number }[]
+      }
       create_calculator_lead: { Args: { _lead: Json }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       get_calculator_lead_by_token: {
@@ -2300,7 +2319,21 @@ export type Database = {
         }
         Returns: string
       }
+      record_booking_payment_settled: {
+        Args: { _order_id: string }
+        Returns: undefined
+      }
+      record_payment_va_details: {
+        Args: {
+          _bank: string
+          _midtrans_transaction_id: string
+          _order_id: string
+          _va_number: string
+        }
+        Returns: undefined
+      }
       redirect_agent_short_link: { Args: { _code: string }; Returns: string }
+      release_expired_booking_holds: { Args: never; Returns: undefined }
       slugify: { Args: { text_input: string }; Returns: string }
     }
     Enums: {
