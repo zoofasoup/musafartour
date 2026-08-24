@@ -753,6 +753,169 @@ export type Database = {
           },
         ]
       }
+      booking_payments: {
+        Row: {
+          admin_fee: number
+          amount: number
+          bank: string | null
+          booking_id: string
+          created_at: string
+          id: string
+          midtrans_order_id: string
+          midtrans_transaction_id: string | null
+          paid_at: string | null
+          status: string
+          total_charged: number
+          va_number: string | null
+        }
+        Insert: {
+          admin_fee?: number
+          amount: number
+          bank?: string | null
+          booking_id: string
+          created_at?: string
+          id?: string
+          midtrans_order_id: string
+          midtrans_transaction_id?: string | null
+          paid_at?: string | null
+          status?: string
+          total_charged: number
+          va_number?: string | null
+        }
+        Update: {
+          admin_fee?: number
+          amount?: number
+          bank?: string | null
+          booking_id?: string
+          created_at?: string
+          id?: string
+          midtrans_order_id?: string
+          midtrans_transaction_id?: string | null
+          paid_at?: string | null
+          status?: string
+          total_charged?: number
+          va_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_travelers: {
+        Row: {
+          booking_id: string
+          created_at: string
+          date_of_birth: string | null
+          full_name: string
+          id: string
+          is_primary_contact: boolean
+          passport_number: string | null
+          phone: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          date_of_birth?: string | null
+          full_name: string
+          id?: string
+          is_primary_contact?: boolean
+          passport_number?: string | null
+          phone?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          date_of_birth?: string | null
+          full_name?: string
+          id?: string
+          is_primary_contact?: boolean
+          passport_number?: string | null
+          phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_travelers_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          agent_id: string | null
+          amount_paid: number
+          commission_credited: boolean
+          created_at: string
+          dp_required: number
+          hold_expires_at: string | null
+          id: string
+          jamaah_id: string
+          package_id: string
+          price_per_person: number
+          room_type: string
+          status: string
+          total_price: number
+          traveler_count: number
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          amount_paid?: number
+          commission_credited?: boolean
+          created_at?: string
+          dp_required: number
+          hold_expires_at?: string | null
+          id?: string
+          jamaah_id: string
+          package_id: string
+          price_per_person: number
+          room_type: string
+          status?: string
+          total_price: number
+          traveler_count: number
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          amount_paid?: number
+          commission_credited?: boolean
+          created_at?: string
+          dp_required?: number
+          hold_expires_at?: string | null
+          id?: string
+          jamaah_id?: string
+          package_id?: string
+          price_per_person?: number
+          room_type?: string
+          status?: string
+          total_price?: number
+          traveler_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_spend: {
         Row: {
           amount: number
