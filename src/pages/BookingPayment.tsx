@@ -3,6 +3,8 @@ import { useParams, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useJamaahAuth } from "@/hooks/useJamaahAuth";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -12,11 +14,16 @@ interface VaDetails {
   total_charged: number;
 }
 
+const formatRupiah = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
+
 const BookingPayment = () => {
   const { bookingId } = useParams<{ bookingId: string }>();
   const { user, loading: authLoading } = useJamaahAuth();
 
-  const [amount, setAmount] = useState<number | null>(null);
+  const [bookingStatus, setBookingStatus] = useState<string | null>(null);
+  const [dpAmount, setDpAmount] = useState<number | null>(null);
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [installmentInput, setInstallmentInput] = useState("");
   const [bookingLoading, setBookingLoading] = useState(true);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [va, setVa] = useState<VaDetails | null>(null);
@@ -29,16 +36,18 @@ const BookingPayment = () => {
       setBookingLoading(true);
       const { data, error } = await supabase
         .from("bookings")
-        .select("dp_required, status")
+        .select("dp_required, status, total_price, amount_paid")
         .eq("id", bookingId)
         .single();
 
       if (error || !data) {
         setBookingError("Booking tidak ditemukan.");
       } else if (data.status === "held") {
-        setAmount(data.dp_required);
+        setBookingStatus("held");
+        setDpAmount(data.dp_required);
       } else if (data.status === "active") {
-        setBookingError("Booking ini sudah aktif. Untuk pembayaran cicilan berikutnya, silakan hubungi admin.");
+        setBookingStatus("active");
+        setRemaining(data.total_price - data.amount_paid);
       } else {
         setBookingError("Booking ini tidak dapat menerima pembayaran saat ini.");
       }
@@ -46,6 +55,10 @@ const BookingPayment = () => {
     };
     loadBooking();
   }, [bookingId, user]);
+
+  const installmentAmount = installmentInput ? Number(installmentInput) : null;
+  const payAmount = bookingStatus === "held" ? dpAmount : installmentAmount;
+  const canPay = payAmount !== null && !Number.isNaN(payAmount) && payAmount > 0;
 
   if (authLoading) {
     return (
@@ -60,12 +73,12 @@ const BookingPayment = () => {
   }
 
   const handleCreatePayment = async () => {
-    if (!bookingId || amount === null) return;
+    if (!bookingId || !canPay || payAmount === null) return;
     setLoading(true);
 
     const { data: rpcResult, error: rpcError } = await supabase.rpc("create_booking_payment", {
       _booking_id: bookingId,
-      _amount: amount,
+      _amount: payAmount,
     });
     if (rpcError || !rpcResult?.[0]) {
       toast.error(rpcError?.message || "Gagal membuat pembayaran");
@@ -111,9 +124,32 @@ const BookingPayment = () => {
       ) : bookingError ? (
         <p className="text-sm text-destructive">{bookingError}</p>
       ) : (
-        <Button className="w-full sm:w-auto" onClick={handleCreatePayment} disabled={loading || amount === null}>
-          {loading ? "Memproses..." : "Buat Virtual Account"}
-        </Button>
+        <div className="space-y-4">
+          {bookingStatus === "active" && remaining !== null && (
+            <div className="space-y-1.5">
+              <p className="text-sm text-muted-foreground">Sisa tagihan: {formatRupiah(remaining)}</p>
+              <Label htmlFor="installment-amount">Jumlah yang ingin dibayar</Label>
+              <Input
+                id="installment-amount"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                placeholder="0"
+                value={installmentInput}
+                onChange={(e) => setInstallmentInput(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Minimum Rp 500.000, atau lunasi sisa {formatRupiah(remaining)} sekaligus
+              </p>
+            </div>
+          )}
+          {bookingStatus === "held" && dpAmount !== null && (
+            <p className="text-sm text-muted-foreground">DP: {formatRupiah(dpAmount)}</p>
+          )}
+          <Button className="w-full sm:w-auto" onClick={handleCreatePayment} disabled={loading || !canPay}>
+            {loading ? "Memproses..." : "Buat Virtual Account"}
+          </Button>
+        </div>
       )}
     </div>
   );
