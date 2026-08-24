@@ -36,7 +36,7 @@ interface Package {
   five_star_package_price?: { quad?: number; triple?: number; double?: number } | null;
   pelataran_package_price?: { quad?: number; triple?: number; double?: number } | null;
   available_tiers?: string[] | null;
-  commission_rate: number;
+  agent_commission_amount: number;
   slots_total: number;
   slots_filled: number;
   status: string;
@@ -258,7 +258,7 @@ const AgentSchedule = () => {
 
   const PackageCard = ({ pkg, compact = false }: { pkg: Package; compact?: boolean }) => {
     const price = getTierPrice(pkg).quad;
-    const commission = price * ((pkg.commission_rate || 4.5) / 100);
+    const commission = pkg.agent_commission_amount || 0;
     
     if (compact) {
       return (
@@ -476,7 +476,7 @@ const AgentSchedule = () => {
             five_star_package_price: sharePackage.five_star_package_price,
             pelataran_package_price: sharePackage.pelataran_package_price,
             available_tiers: sharePackage.available_tiers,
-            commission_rate: sharePackage.commission_rate,
+            commission_rate: null,
           }}
           agentCode={agent?.referral_code || ''}
         />

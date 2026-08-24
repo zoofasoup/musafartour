@@ -328,7 +328,7 @@ export type Database = {
           agent_id: string
           booking_date: string
           commission_amount: number
-          commission_rate: number
+          commission_rate: number | null
           created_at: string
           customer_name: string
           customer_phone: string
@@ -345,7 +345,7 @@ export type Database = {
           agent_id: string
           booking_date?: string
           commission_amount?: number
-          commission_rate?: number
+          commission_rate?: number | null
           created_at?: string
           customer_name: string
           customer_phone: string
@@ -362,7 +362,7 @@ export type Database = {
           agent_id?: string
           booking_date?: string
           commission_amount?: number
-          commission_rate?: number
+          commission_rate?: number | null
           created_at?: string
           customer_name?: string
           customer_phone?: string
@@ -1140,14 +1140,15 @@ export type Database = {
       }
       packages: {
         Row: {
+          agent_commission_amount: number
           available_tiers: string[] | null
           banner_image: string | null
           best_seller_transport: string | null
           canonical_url: string | null
           catalog_link: string | null
-          commission_rate: number | null
           created_at: string
           departure_date: string
+          dp_amount: number
           duration_days: number
           equipment_list: string | null
           excluded_items: string | null
@@ -1224,14 +1225,15 @@ export type Database = {
           waitlist_count: number | null
         }
         Insert: {
+          agent_commission_amount?: number
           available_tiers?: string[] | null
           banner_image?: string | null
           best_seller_transport?: string | null
           canonical_url?: string | null
           catalog_link?: string | null
-          commission_rate?: number | null
           created_at?: string
           departure_date: string
+          dp_amount?: number
           duration_days: number
           equipment_list?: string | null
           excluded_items?: string | null
@@ -1308,14 +1310,15 @@ export type Database = {
           waitlist_count?: number | null
         }
         Update: {
+          agent_commission_amount?: number
           available_tiers?: string[] | null
           banner_image?: string | null
           best_seller_transport?: string | null
           canonical_url?: string | null
           catalog_link?: string | null
-          commission_rate?: number | null
           created_at?: string
           departure_date?: string
+          dp_amount?: number
           duration_days?: number
           equipment_list?: string | null
           excluded_items?: string | null
@@ -2109,7 +2112,7 @@ export type Database = {
       log_agent_sale: {
         Args: {
           _agent_id: string
-          _commission_rate?: number
+          _commission_amount: number
           _customer_name: string
           _customer_phone: string
           _departure_date?: string

@@ -83,7 +83,7 @@ const AgentManagement = () => {
   const [saleCustomerPhone, setSaleCustomerPhone] = useState("");
   const [salePackageId, setSalePackageId] = useState("");
   const [saleAmount, setSaleAmount] = useState("");
-  const [saleCommissionRate, setSaleCommissionRate] = useState("4.5");
+  const [saleCommissionAmount, setSaleCommissionAmount] = useState("");
   const [saleStatus, setSaleStatus] = useState("confirmed");
   const [saleNotes, setSaleNotes] = useState("");
 
@@ -93,7 +93,7 @@ const AgentManagement = () => {
     setSaleCustomerPhone("");
     setSalePackageId("");
     setSaleAmount("");
-    setSaleCommissionRate("4.5");
+    setSaleCommissionAmount("");
     setSaleStatus("confirmed");
     setSaleNotes("");
   };
@@ -103,7 +103,7 @@ const AgentManagement = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('packages')
-        .select('id, package_name, departure_date')
+        .select('id, package_name, departure_date, agent_commission_amount')
         .eq('status', 'published')
         .order('departure_date', { ascending: false });
       if (error) throw error;
@@ -226,7 +226,7 @@ const AgentManagement = () => {
         _package_id: salePackageId || null,
         _package_name: pkg?.package_name || "",
         _sale_amount: parseFloat(saleAmount),
-        _commission_rate: parseFloat(saleCommissionRate) || 4.5,
+        _commission_amount: parseFloat(saleCommissionAmount) || pkg?.agent_commission_amount || 0,
         _departure_date: pkg?.departure_date || null,
         _status: saleStatus,
         _notes: saleNotes.trim() || null,
@@ -740,8 +740,13 @@ const AgentManagement = () => {
                 <Input type="number" value={saleAmount} onChange={(e) => setSaleAmount(e.target.value)} placeholder="35000000" />
               </div>
               <div className="space-y-1.5">
-                <Label>Komisi (%)</Label>
-                <Input type="number" step="0.1" value={saleCommissionRate} onChange={(e) => setSaleCommissionRate(e.target.value)} />
+                <Label>Komisi (Rp)</Label>
+                <Input
+                  type="number"
+                  value={saleCommissionAmount}
+                  onChange={(e) => setSaleCommissionAmount(e.target.value)}
+                  placeholder={String(publishedPackages.find((p) => p.id === salePackageId)?.agent_commission_amount ?? "500000")}
+                />
               </div>
             </div>
             <div className="space-y-1.5">
@@ -759,9 +764,9 @@ const AgentManagement = () => {
               <Label>Catatan (opsional)</Label>
               <Textarea value={saleNotes} onChange={(e) => setSaleNotes(e.target.value)} rows={2} />
             </div>
-            {saleAmount && saleCommissionRate && (
+            {saleAmount && (
               <p className="text-xs text-muted-foreground">
-                Estimasi komisi: {formatCurrency(Math.round((parseFloat(saleAmount) || 0) * (parseFloat(saleCommissionRate) || 0) / 100))}
+                Estimasi komisi: {formatCurrency(parseFloat(saleCommissionAmount) || publishedPackages.find((p) => p.id === salePackageId)?.agent_commission_amount || 0)}
               </p>
             )}
           </div>
