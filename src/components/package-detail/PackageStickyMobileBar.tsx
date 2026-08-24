@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Bell, ChevronUp } from "lucide-react";
+import { Bell, ChevronUp, CalendarCheck } from "lucide-react";
 import { formatCurrency, isPackageUnavailable } from "@/lib/utils";
 import { PackagePricingBody, type PackagePricingBodyProps } from "./PackagePricing";
 import { PackageUrgencyBar } from "./PackageUrgencyBar";
@@ -44,13 +45,24 @@ export function PackageStickyMobileBar(props: PackagePricingBodyProps) {
                   <Bell className="h-4 w-4" /> Notify Me
                 </Button>
               ) : (
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] text-muted-foreground uppercase">Total ({paxCount} orang)</p>
-                    <p className="text-base font-bold text-primary truncate">{formatCurrency(grandTotal)}</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] text-muted-foreground uppercase">Total ({paxCount} orang)</p>
+                      <p className="text-base font-bold text-primary truncate">{formatCurrency(grandTotal)}</p>
+                    </div>
+                    <Button onClick={() => setOpen(true)} className="gap-1.5 shrink-0">
+                      Lihat Rincian Harga <ChevronUp className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button onClick={() => setOpen(true)} className="gap-1.5 shrink-0">
-                    Lihat Rincian Harga <ChevronUp className="h-4 w-4" />
+
+                  {/* Direct booking path, alongside the calculator/WhatsApp flow
+                      above - additive, same principle as the desktop sidebar's
+                      Booking Sekarang button next to PackageCtaButtons. */}
+                  <Button asChild className="w-full gap-2">
+                    <Link to={`/booking/baru/${packageData.id}`}>
+                      <CalendarCheck className="h-4 w-4" /> Booking Sekarang
+                    </Link>
                   </Button>
                 </div>
               )}
