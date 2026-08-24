@@ -107,7 +107,7 @@ const BookingCreate = () => {
         </div>
         <div className="space-y-1.5">
           <Label>No. WhatsApp</Label>
-          <Input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="08..." />
+          <Input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="08..." />
         </div>
         {pkg && (
           <p className="text-sm text-muted-foreground">
