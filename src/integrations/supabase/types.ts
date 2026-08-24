@@ -327,6 +327,7 @@ export type Database = {
         Row: {
           agent_id: string
           booking_date: string
+          booking_id: string | null
           commission_amount: number
           commission_rate: number | null
           created_at: string
@@ -339,11 +340,13 @@ export type Database = {
           package_name: string
           payment_proof_url: string | null
           sale_amount: number
+          source: string
           status: string
         }
         Insert: {
           agent_id: string
           booking_date?: string
+          booking_id?: string | null
           commission_amount?: number
           commission_rate?: number | null
           created_at?: string
@@ -356,11 +359,13 @@ export type Database = {
           package_name: string
           payment_proof_url?: string | null
           sale_amount?: number
+          source?: string
           status?: string
         }
         Update: {
           agent_id?: string
           booking_date?: string
+          booking_id?: string | null
           commission_amount?: number
           commission_rate?: number | null
           created_at?: string
@@ -373,6 +378,7 @@ export type Database = {
           package_name?: string
           payment_proof_url?: string | null
           sale_amount?: number
+          source?: string
           status?: string
         }
         Relationships: [
@@ -381,6 +387,13 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_sales_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
           {
