@@ -104,7 +104,13 @@ DECLARE
   _order_id TEXT;
   _fee NUMERIC := 4000;
 BEGIN
-  SELECT * INTO _booking FROM public.bookings WHERE id = _booking_id AND jamaah_id = auth.uid();
+  -- Lock the booking row so two concurrent calls (e.g. a double-clicked
+  -- "Bayar Sekarang" button) can't both read the same amount_paid/total_price
+  -- snapshot, both pass the remaining-balance check below, and both insert a
+  -- full-remaining-amount payment row - the same FOR UPDATE pattern already
+  -- used on the packages row in create_booking and on both rows in
+  -- record_booking_payment_settled.
+  SELECT * INTO _booking FROM public.bookings WHERE id = _booking_id AND jamaah_id = auth.uid() FOR UPDATE;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Booking not found';
   END IF;
