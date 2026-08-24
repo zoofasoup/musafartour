@@ -12,9 +12,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Package, ArrowLeft } from "lucide-react";
+import { Package, ArrowLeft, CalendarCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { usePackageBySlug } from "@/hooks/usePackages";
+import { useReferralCapture } from "@/hooks/useReferralCapture";
 import { isPackageUnavailable, formatCurrency, parseListItems } from "@/lib/utils";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { SEO } from "@/components/SEO";
@@ -58,6 +59,10 @@ const PackageDetailPage = () => {
   const navigate = useNavigate();
 
   const { data: packageData, isLoading: loading } = usePackageBySlug(slug);
+
+  // Capture ?ref={agentCode} from agent share links into a first-touch
+  // cookie, read later by BookingCreate.tsx when the customer books.
+  useReferralCapture();
 
   // Calculator state
   const [selectedTier, setSelectedTier] = useState("");
@@ -306,6 +311,17 @@ const PackageDetailPage = () => {
               calculatorExpanded={calculatorExpanded}
               onToggleCalculator={() => setCalculatorExpanded((v) => !v)}
             />
+
+            {/* Direct booking path, alongside the WhatsApp CTA above - lets a
+                customer book online without going through sales chat. */}
+            <Button
+              asChild
+              className="w-full h-12 rounded-full text-base font-bold gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+            >
+              <Link to={`/booking/baru/${packageData.id}`}>
+                <CalendarCheck className="h-4 w-4" /> Booking Sekarang
+              </Link>
+            </Button>
 
             <PackagePricing
               expanded={calculatorExpanded}
