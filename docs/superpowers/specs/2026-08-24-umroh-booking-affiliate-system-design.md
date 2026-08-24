@@ -116,7 +116,7 @@ Two new Cloudflare Pages Functions:
   3. On `settled`, calls `record_booking_payment_settled(...)`, which itself guards against duplicate processing (Midtrans retries notifications on failure).
   4. Responds `200` promptly.
 
-Slot-hold expiry is enforced by a Cloudflare Cron Trigger (~every 15 minutes) calling a small Function that invokes `release_expired_booking_holds()`.
+Slot-hold expiry is enforced by `pg_cron` (~every 15 minutes, scheduled directly in Postgres) calling `release_expired_booking_holds()` — not a Cloudflare Cron Trigger, since Cron Triggers are a Workers-only feature and this project is a Pages project (`pages_build_output_dir` in `wrangler.toml`), which Pages Functions cannot use.
 
 ## Admin Views
 
