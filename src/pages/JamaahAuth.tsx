@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useJamaahAuth } from "@/hooks/useJamaahAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 const JamaahAuth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signUp, signIn } = useJamaahAuth();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
@@ -32,7 +33,7 @@ const JamaahAuth = () => {
       return;
     }
 
-    navigate("/jamaah/dashboard");
+    navigate(searchParams.get("redirect") || "/jamaah/dashboard");
   };
 
   return (

@@ -12,6 +12,7 @@ import { useRedirects } from "./hooks/useRedirects";
 import { ErrorBoundary, CHUNK_RELOAD_FLAG } from "./components/ErrorBoundary";
 import { FavoritesProvider } from "./hooks/useFavorites";
 import { AgentAuthProvider } from "./hooks/useAgentAuth";
+import { JamaahAuthProvider } from "./hooks/useJamaahAuth";
 import ScrollToTop from "./components/ScrollToTop";
 
 // Declare TikTok Pixel type
@@ -91,6 +92,13 @@ const PackageItems = lazy(() => import("./pages/admin/PackageItems"));
 const Equipment = lazy(() => import("./pages/admin/Equipment"));
 const CalculatorLeads = lazy(() => import("./pages/admin/CalculatorLeads"));
 const WhatsAppInbox = lazy(() => import("./pages/admin/WhatsAppInbox"));
+
+// Jamaah Portal / Booking
+const JamaahAuth = lazy(() => import("./pages/JamaahAuth"));
+const JamaahDashboard = lazy(() => import("./pages/JamaahDashboard"));
+const BookingCreate = lazy(() => import("./pages/BookingCreate"));
+const BookingPayment = lazy(() => import("./pages/BookingPayment"));
+const BookingManagement = lazy(() => import("./pages/admin/BookingManagement"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -207,6 +215,7 @@ const App = () => (
       <QueryClientProvider client={queryClient}>
         <FavoritesProvider>
           <AgentAuthProvider>
+          <JamaahAuthProvider>
             <TooltipProvider>
               <Toaster />
             <Sonner />
@@ -252,6 +261,12 @@ const App = () => (
                   <Route path="/set-password" element={<SetPassword />} />
                   <Route path="/packages" element={<PublicMarketingKit />} />
                   <Route path="/flyer-print" element={<FlyerPrint />} />
+
+                  {/* Jamaah Portal / Booking Routes */}
+                  <Route path="/jamaah/auth" element={<JamaahAuth />} />
+                  <Route path="/jamaah/dashboard" element={<JamaahDashboard />} />
+                  <Route path="/booking/baru/:packageId" element={<BookingCreate />} />
+                  <Route path="/booking/:bookingId/bayar" element={<BookingPayment />} />
 
                   {/* Agent Portal Routes */}
                   <Route path="/agent" element={
@@ -401,6 +416,7 @@ const App = () => (
                     <Route path="chat-rotation" element={<ChatRotation />} />
                     <Route path="url-shortener" element={<URLShortener />} />
                     <Route path="agents" element={<AgentManagement />} />
+                    <Route path="bookings" element={<BookingManagement />} />
                     <Route path="gamification" element={<Gamification />} />
                     <Route path="calculator" element={<SalesCalculator />} />
                     <Route path="calculator-leads" element={<CalculatorLeads />} />
@@ -412,6 +428,7 @@ const App = () => (
               </Suspense>
             </BrowserRouter>
           </TooltipProvider>
+          </JamaahAuthProvider>
         </AgentAuthProvider>
       </FavoritesProvider>
     </QueryClientProvider>
