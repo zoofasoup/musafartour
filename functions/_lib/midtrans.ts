@@ -29,12 +29,20 @@ export async function createMidtransVA(env: Env, orderId: string, grossAmount: n
 
   const data = (await res.json()) as {
     transaction_id: string;
+    status_code?: string;
+    status_message?: string;
     va_numbers?: { bank: string; va_number: string }[];
   };
 
   const va = data.va_numbers?.[0];
   if (!va) {
-    throw new Error("Midtrans response missing va_numbers");
+    // Midtrans's Core API can return HTTP 200 with no va_numbers on a real
+    // business-logic failure (e.g. a payment channel not activated on this
+    // merchant account) - its actual error lives in the body's own
+    // status_code/status_message, not the HTTP status. Surface both.
+    throw new Error(
+      `Midtrans response missing va_numbers (status_code=${data.status_code}, status_message=${data.status_message}, body=${JSON.stringify(data)})`
+    );
   }
 
   return { transaction_id: data.transaction_id, va_number: va.va_number, bank: va.bank };
