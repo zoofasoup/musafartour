@@ -66,6 +66,8 @@ interface ParsedPackage {
   price_triple: number;
   price_double: number;
   max_discount: number;
+  dp_amount: number;
+  agent_commission_amount: number;
   slots_remaining: number;
   banner_image: string;
   catalog_link: string;
@@ -110,6 +112,8 @@ const TEMPLATE_COLUMNS = [
   "Triple",
   "Double",
   "Maks Diskon",
+  "DP Wajib",
+  "Komisi Agent",
   "Seat Sisa",
   "Seat",
   "Fasilitas (Include & Exclude)",
@@ -215,6 +219,8 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   price_triple: ["harga triple + 3.5", "triple + 3.5", "harga triple", "triple"],
   price_double: ["harga double + 3.5", "double + 3.5", "harga double", "double"],
   max_discount: ["maks diskon", "max diskon", "diskon"],
+  dp_amount: ["dp wajib", "dp", "uang muka"],
+  agent_commission_amount: ["komisi agent", "komisi agen", "komisi"],
   banner_image: ["file flyer", "flyer", "banner"],
   catalog_link: ["file katalog", "katalog", "catalog"],
   itinerary_link: ["file itinerary", "file jadwal", "link itinerary"],
@@ -392,6 +398,8 @@ function parseExcelData(
         price_triple: parseInt(String(getVal(row, colMap.price_triple) || "0").replace(/\D/g, ""), 10) || 0,
         price_double: parseInt(String(getVal(row, colMap.price_double) || "0").replace(/\D/g, ""), 10) || 0,
         max_discount: parseInt(String(getVal(row, colMap.max_discount) || "0").replace(/\D/g, ""), 10) || 0,
+        dp_amount: parseInt(String(getVal(row, colMap.dp_amount) || "0").replace(/\D/g, ""), 10) || 0,
+        agent_commission_amount: parseInt(String(getVal(row, colMap.agent_commission_amount) || "0").replace(/\D/g, ""), 10) || 0,
         banner_image: String(getVal(row, colMap.banner_image) || "").trim(),
         catalog_link: String(getVal(row, colMap.catalog_link) || "").trim(),
         itinerary_link: String(getVal(row, colMap.itinerary_link) || "").trim(),
@@ -504,6 +512,8 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingP
     included_items: row.facilities || defaultIncludes,
     selling_points: row.selling_points || "",
     max_discount: row.max_discount || 0,
+    dp_amount: row.dp_amount || 0,
+    agent_commission_amount: row.agent_commission_amount || 0,
     banner_image: existingPkg ? existingPkg.banner_image : (row.banner_image || null),
     catalog_link: existingPkg ? existingPkg.catalog_link : (row.catalog_link || null),
     itinerary_link: existingPkg ? existingPkg.itinerary_link : (row.itinerary_link || null),
@@ -603,6 +613,8 @@ function downloadTemplate() {
       "Triple": 32900000,
       "Double": 34900000,
       "Maks Diskon": 1000000,
+      "DP Wajib": 5000000,
+      "Komisi Agent": 500000,
       "Seat Sisa": 10,
       "Seat": 40,
       "Fasilitas (Include & Exclude)": "Visa, Tiket, Hotel",
@@ -975,6 +987,8 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
                     <TableHead className="text-right">Triple</TableHead>
                     <TableHead className="text-right">Double</TableHead>
                     <TableHead className="text-right">Maks Diskon</TableHead>
+                    <TableHead className="text-right">DP Wajib</TableHead>
+                    <TableHead className="text-right">Komisi Agent</TableHead>
                     <TableHead className="text-right">Sisa / Total Seat</TableHead>
                     <TableHead>Fasilitas</TableHead>
                     <TableHead>Selling Points</TableHead>
@@ -1059,6 +1073,12 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
                         </TableCell>
                         <TableCell className="text-right tabular-nums whitespace-nowrap">
                           {row.max_discount ? `Rp ${formatNumber(row.max_discount)}` : "—"}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums whitespace-nowrap">
+                          {row.dp_amount ? `Rp ${formatNumber(row.dp_amount)}` : "—"}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums whitespace-nowrap">
+                          {row.agent_commission_amount ? `Rp ${formatNumber(row.agent_commission_amount)}` : "—"}
                         </TableCell>
                         <TableCell className="text-right tabular-nums whitespace-nowrap">
                           {row.slots_remaining} / {row.slots_total || "—"}
