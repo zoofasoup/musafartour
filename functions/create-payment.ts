@@ -50,7 +50,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   let va;
   try {
     va = await createMidtransVA(context.env, payment.midtrans_order_id, payment.total_charged);
-  } catch {
+  } catch (err) {
+    console.error("createMidtransVA failed:", err instanceof Error ? err.message : err);
     return new Response("Failed to create Midtrans VA", { status: 502 });
   }
 
