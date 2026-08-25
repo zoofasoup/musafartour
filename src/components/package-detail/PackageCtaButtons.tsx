@@ -109,7 +109,6 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
           five_star_package_price: packageData.five_star_package_price,
           pelataran_package_price: packageData.pelataran_package_price,
           available_tiers: packageData.available_tiers,
-          commission_rate: null,
         }}
         agentCode=""
       />

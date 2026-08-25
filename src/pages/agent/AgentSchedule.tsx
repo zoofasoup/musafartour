@@ -478,7 +478,6 @@ const AgentSchedule = () => {
             five_star_package_price: sharePackage.five_star_package_price,
             pelataran_package_price: sharePackage.pelataran_package_price,
             available_tiers: sharePackage.available_tiers,
-            commission_rate: null,
           }}
           agentCode={agent?.referral_code || ''}
         />

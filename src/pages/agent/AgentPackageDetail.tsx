@@ -62,7 +62,7 @@ interface Package {
   slots_total: number | null;
   slots_filled: number | null;
   slots_booked_online: number | null;
-  commission_rate: number | null;
+  agent_commission_amount: number | null;
   catalog_link: string | null;
   itinerary_link: string | null;
   included_items: string | null;
@@ -94,11 +94,6 @@ const AgentPackageDetail = () => {
   });
 
   const formatPrice = (price: number) => formatCurrency(price);
-
-  const calculateCommission = (price: number, rate: number | null) => {
-    const commissionRate = rate || 4.5;
-    return (price * commissionRate) / 100;
-  };
 
   const getSlotStatus = (pkg: Package) => {
     const total = pkg.slots_total || 40;
@@ -201,7 +196,12 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
   const slotStatus = getSlotStatus(pkg);
   const tierPrice = getTierPrice(pkg);
   const lowestPrice = tierPrice.quad;
-  const commission = calculateCommission(lowestPrice, pkg.commission_rate);
+  // Flat Rupiah commission per pax, straight off the package. The old
+  // percentage-based calculateCommission() read pkg.commission_rate, which the
+  // flat-commission migration dropped from packages - with select("*") that
+  // silently came back undefined and a "|| 4.5" fallback invented a 4.5% rate
+  // that no longer exists anywhere. Mirrors AgentSchedule.tsx.
+  const commission = pkg.agent_commission_amount || 0;
 
   const includedItems = pkg.included_items?.split("\n").filter(Boolean) || [];
   const excludedItems = pkg.excluded_items?.split("\n").filter(Boolean) || [];
@@ -291,7 +291,7 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
               <div>
                 <p className="text-sm text-muted-foreground">Komisi Anda</p>
                 <p className="text-3xl font-bold text-emerald-600">{formatPrice(commission)}</p>
-                <p className="text-sm text-muted-foreground">per pax ({pkg.commission_rate || 4.5}%)</p>
+                <p className="text-sm text-muted-foreground">per pax</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Potensi 10 Pax</p>

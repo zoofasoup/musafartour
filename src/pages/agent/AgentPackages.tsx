@@ -61,7 +61,7 @@ interface Package {
   slots_total: number | null;
   slots_filled: number | null;
   slots_booked_online: number | null;
-  commission_rate: number | null;
+  agent_commission_amount: number | null;
   catalog_link: string | null;
   available_tiers?: string[] | null;
 }
@@ -103,11 +103,6 @@ const AgentPackages = () => {
   });
 
   const formatPrice = (price: number) => formatCurrency(price);
-
-  const calculateCommission = (price: number, rate: number | null) => {
-    const commissionRate = rate || 4.5;
-    return (price * commissionRate) / 100;
-  };
 
   const getAvgHotelStars = (pkg: Package) => {
     const stars = [
@@ -270,7 +265,12 @@ const AgentPackages = () => {
             const slotStatus = getSlotStatus(pkg);
             const avgStars = getAvgHotelStars(pkg);
             const lowestPrice = getLowestQuad(pkg);
-            const commission = calculateCommission(lowestPrice, pkg.commission_rate);
+  // Flat Rupiah commission per pax, straight off the package. The old
+  // percentage-based calculateCommission() read pkg.commission_rate, which the
+  // flat-commission migration dropped from packages - with select("*") that
+  // silently came back undefined and a "|| 4.5" fallback invented a 4.5% rate
+  // that no longer exists anywhere. Mirrors AgentSchedule.tsx.
+            const commission = pkg.agent_commission_amount || 0;
 
             return (
               <Card key={pkg.id} className="overflow-hidden hover:shadow-lg transition-shadow">

@@ -36,7 +36,6 @@ interface Package {
   five_star_package_price?: Partial<PackagePrice> | null;
   pelataran_package_price?: Partial<PackagePrice> | null;
   available_tiers?: string[] | null;
-  commission_rate: number | null;
 }
 
 interface PackageShareModalProps {
