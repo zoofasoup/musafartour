@@ -121,7 +121,6 @@ const packageSchema = z.object({
   selling_points: z.string().optional(),
   max_discount: z.number().min(0, "Wajib diisi"),
   slots_total: z.number().min(1, "Wajib diisi"),
-  dp_amount: z.number().min(0, "Wajib diisi"),
   agent_commission_amount: z.number().min(0, "Wajib diisi"),
 
   // Hemat Tier
@@ -449,7 +448,6 @@ const PackageForm = () => {
       selling_points: "",
       max_discount: 0,
       slots_total: 40,
-      dp_amount: 5000000,
       agent_commission_amount: 500000,
       hemat_price_quad: 0, hemat_price_triple: 0, hemat_price_double: 0,
       hemat_transport: "Bus Eksklusif",
@@ -599,7 +597,6 @@ const PackageForm = () => {
           selling_points: d.selling_points || "",
           max_discount: d.max_discount || 0,
           slots_total: data.slots_total || 40,
-          dp_amount: data.dp_amount || 0,
           agent_commission_amount: data.agent_commission_amount || 0,
 
           hemat_makkah_hotel_name: d.hemat_makkah_hotel_name || "",
@@ -837,7 +834,6 @@ const PackageForm = () => {
         selling_points: values.selling_points || null,
         max_discount: values.max_discount || 0,
         slots_total: values.slots_total || null,
-        dp_amount: values.dp_amount || 0,
         agent_commission_amount: values.agent_commission_amount || 0,
 
         hemat_makkah_hotel_name: values.hemat_makkah_hotel_name,
@@ -1216,19 +1212,6 @@ const PackageForm = () => {
                         field.onChange(raw ? parseInt(raw, 10) : 0);
                       }} 
                       placeholder="Rp 1.000.000"
-                    />
-                  </FormControl><FormMessage /></FormItem>
-                )} />
-                <FormField control={form.control} name="dp_amount" render={({ field }) => (
-                  <FormItem className="md:col-span-3"><FormLabel>DP Wajib (Rp) <span className="text-destructive">*</span></FormLabel><FormControl>
-                    <Input
-                      type="text"
-                      value={field.value ? `Rp ${new Intl.NumberFormat('id-ID').format(field.value)}` : ''}
-                      onChange={(e) => {
-                        const raw = e.target.value.replace(/[^0-9]/g, '');
-                        field.onChange(raw ? parseInt(raw, 10) : 0);
-                      }}
-                      placeholder="Rp 5.000.000"
                     />
                   </FormControl><FormMessage /></FormItem>
                 )} />
