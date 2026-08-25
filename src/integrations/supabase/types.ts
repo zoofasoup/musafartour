@@ -870,6 +870,9 @@ export type Database = {
         Row: {
           agent_id: string | null
           amount_paid: number
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by_admin_id: string | null
           commission_credited: boolean
           created_at: string
           dp_required: number
@@ -878,6 +881,8 @@ export type Database = {
           jamaah_id: string
           package_id: string
           price_per_person: number
+          refund_due: number | null
+          refund_sent_at: string | null
           room_type: string
           status: string
           total_price: number
@@ -887,6 +892,9 @@ export type Database = {
         Insert: {
           agent_id?: string | null
           amount_paid?: number
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by_admin_id?: string | null
           commission_credited?: boolean
           created_at?: string
           dp_required: number
@@ -895,6 +903,8 @@ export type Database = {
           jamaah_id: string
           package_id: string
           price_per_person: number
+          refund_due?: number | null
+          refund_sent_at?: string | null
           room_type: string
           status?: string
           total_price: number
@@ -904,6 +914,9 @@ export type Database = {
         Update: {
           agent_id?: string | null
           amount_paid?: number
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by_admin_id?: string | null
           commission_credited?: boolean
           created_at?: string
           dp_required?: number
@@ -912,6 +925,8 @@ export type Database = {
           jamaah_id?: string
           package_id?: string
           price_per_person?: number
+          refund_due?: number | null
+          refund_sent_at?: string | null
           room_type?: string
           status?: string
           total_price?: number
@@ -2247,6 +2262,10 @@ export type Database = {
         Args: { _admin_notes?: string; _order_id: string }
         Returns: undefined
       }
+      cancel_booking: {
+        Args: { _booking_id: string; _reason: string }
+        Returns: undefined
+      }
       create_booking: {
         Args: {
           _package_id: string
@@ -2331,6 +2350,7 @@ export type Database = {
         }
         Returns: string
       }
+      mark_refund_sent: { Args: { _booking_id: string }; Returns: undefined }
       record_booking_payment_failed: {
         Args: { _new_status: string; _order_id: string }
         Returns: undefined
