@@ -9,6 +9,14 @@ interface BookingPaymentRow {
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
+  // Fail closed and loudly if the Cloudflare secret was never set (e.g. the
+  // deployment checklist step got missed). Without this, the Midtrans charge
+  // below authenticates with the literal string "undefined" and surfaces as an
+  // opaque "Failed to create Midtrans VA" 502.
+  if (!context.env.MIDTRANS_SERVER_KEY) {
+    return new Response("MIDTRANS_SERVER_KEY not configured", { status: 500 });
+  }
+
   const { url, anonKey } = getSupabaseConfig(context.env);
   const authHeader = context.request.headers.get("authorization");
   if (!authHeader) {

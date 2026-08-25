@@ -776,7 +776,9 @@ export type Database = {
           id: string
           midtrans_order_id: string
           midtrans_transaction_id: string | null
+          override_notes: string | null
           paid_at: string | null
+          settled_by_admin_id: string | null
           status: string
           total_charged: number
           va_number: string | null
@@ -790,7 +792,9 @@ export type Database = {
           id?: string
           midtrans_order_id: string
           midtrans_transaction_id?: string | null
+          override_notes?: string | null
           paid_at?: string | null
+          settled_by_admin_id?: string | null
           status?: string
           total_charged: number
           va_number?: string | null
@@ -804,7 +808,9 @@ export type Database = {
           id?: string
           midtrans_order_id?: string
           midtrans_transaction_id?: string | null
+          override_notes?: string | null
           paid_at?: string | null
+          settled_by_admin_id?: string | null
           status?: string
           total_charged?: number
           va_number?: string | null
@@ -2324,6 +2330,10 @@ export type Database = {
           _status?: string
         }
         Returns: string
+      }
+      record_booking_payment_failed: {
+        Args: { _new_status: string; _order_id: string }
+        Returns: undefined
       }
       record_booking_payment_settled: {
         Args: { _order_id: string }

@@ -45,11 +45,19 @@ const BookingManagement = () => {
 
   const handleMarkPaid = async (orderId: string) => {
     const notes = window.prompt("Alasan override manual (misal: webhook gagal masuk):");
+    // Cancel returns null; OK with an empty (or whitespace-only) box returns "".
+    // Both must abort - a forced settlement is the one action here that moves
+    // money without Midtrans confirming it, so it has to carry a real reason.
+    // admin_mark_payment_settled rejects a blank reason server-side too.
     if (notes === null) return;
+    if (!notes.trim()) {
+      toast.error("Alasan override wajib diisi");
+      return;
+    }
 
     const { error } = await supabase.rpc("admin_mark_payment_settled", {
       _order_id: orderId,
-      _admin_notes: notes,
+      _admin_notes: notes.trim(),
     });
     if (error) {
       toast.error(error.message);
@@ -95,7 +103,13 @@ const BookingManagement = () => {
                   <p className="text-sm">Rp {new Intl.NumberFormat("id-ID").format(p.amount)}</p>
                   <p className="text-xs text-muted-foreground">{p.status} · {p.midtrans_order_id}</p>
                 </div>
-                {p.status !== "settled" && (
+                {/* Only a payment still genuinely awaiting the customer can be
+                    force-settled here. Midtrans has already told us an
+                    'expired'/'failed' VA never received money, so offering a
+                    one-click "mark paid" on it is a way to credit money that
+                    provably never arrived; overriding one of those needs a more
+                    deliberate path than this button. */}
+                {p.status === "pending" && (
                   <Button size="sm" variant="outline" onClick={() => handleMarkPaid(p.midtrans_order_id)}>
                     Tandai Lunas
                   </Button>

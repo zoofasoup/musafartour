@@ -46,8 +46,15 @@ ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.booking_travelers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.booking_payments ENABLE ROW LEVEL SECURITY;
 
--- No direct INSERT policies: all writes to these three tables happen
--- through SECURITY DEFINER RPCs (Task 4), never raw client inserts.
+-- No jamaah/agent INSERT or UPDATE policies: for those roles, every write to
+-- these three tables happens through the SECURITY DEFINER RPCs (Task 4), which
+-- own the invariants (slot accounting, payment totals, commission crediting).
+-- The one deliberate exception is the admin "FOR ALL" policies below: an admin
+-- CAN write these rows directly, bypassing the RPCs. That is a trusted-operator
+-- escape hatch, not an RPC-guarded path - note that a direct row edit is not
+-- audited, whereas admin_mark_payment_settled records who overrode what and why.
+-- (Corrected by 20260825090300; the policies themselves are unchanged and the
+-- same statement is recorded as COMMENT ON POLICY there.)
 
 CREATE POLICY "Jamaah can view their own bookings"
 ON public.bookings FOR SELECT
