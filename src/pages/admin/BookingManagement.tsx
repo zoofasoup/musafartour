@@ -13,6 +13,20 @@ const STATUS_LABEL: Record<string, string> = {
   cancelled: "Dibatalkan",
 };
 
+// Pelunasan deadline: an unpaid booking gets flagged once departure is this
+// close, so admin can chase payment manually - no automatic cancellation.
+const AT_RISK_DAYS = 30;
+
+function daysUntilDeparture(departureDate: string): number {
+  const ms = new Date(departureDate).getTime() - Date.now();
+  return Math.ceil(ms / (1000 * 60 * 60 * 24));
+}
+
+function isAtRisk(status: string, departureDate: string | undefined): boolean {
+  if (!departureDate || (status !== "held" && status !== "active")) return false;
+  return daysUntilDeparture(departureDate) <= AT_RISK_DAYS;
+}
+
 const BookingManagement = () => {
   const queryClient = useQueryClient();
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -23,7 +37,7 @@ const BookingManagement = () => {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, status, total_price, amount_paid, dp_required, cancel_reason, refund_due, refund_sent_at, created_at, packages(package_name), agents(name)"
+          "id, status, total_price, amount_paid, dp_required, cancel_reason, refund_due, refund_sent_at, created_at, packages(package_name, departure_date), agents(name)"
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -32,6 +46,9 @@ const BookingManagement = () => {
   });
 
   const selectedBooking = bookings.find((b) => b.id === detailId);
+  const atRiskCount = bookings.filter(
+    (b) => isAtRisk(b.status, (b.packages as any)?.departure_date)
+  ).length;
 
   const { data: payments = [] } = useQuery({
     queryKey: ["admin-booking-payments", detailId],
@@ -118,9 +135,19 @@ const BookingManagement = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Kelola Booking</h1>
+      <div>
+        <h1 className="text-3xl font-bold">Kelola Booking</h1>
+        {atRiskCount > 0 && (
+          <p className="text-sm text-destructive font-medium mt-1">
+            {atRiskCount} booking belum lunas dengan keberangkatan {AT_RISK_DAYS} hari lagi atau kurang
+          </p>
+        )}
+      </div>
       <div className="space-y-2">
-        {bookings.map((b) => (
+        {bookings.map((b) => {
+          const departureDate = (b.packages as any)?.departure_date as string | undefined;
+          const atRisk = isAtRisk(b.status, departureDate);
+          return (
           <button
             key={b.id}
             onClick={() => setDetailId(b.id)}
@@ -133,6 +160,11 @@ const BookingManagement = () => {
                 {b.status === "cancelled" && (b.refund_due ?? 0) > 0 && !b.refund_sent_at && (
                   <span className="ml-2 text-destructive font-medium">· Refund belum dikirim</span>
                 )}
+                {atRisk && departureDate && (
+                  <span className="ml-2 text-destructive font-medium">
+                    · Belum lunas, berangkat {daysUntilDeparture(departureDate) < 0 ? "sudah lewat" : `H-${daysUntilDeparture(departureDate)}`}
+                  </span>
+                )}
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -141,7 +173,8 @@ const BookingManagement = () => {
               {(b.agents as any)?.name && ` · Agent: ${(b.agents as any).name}`}
             </p>
           </button>
-        ))}
+          );
+        })}
       </div>
 
       <Dialog open={!!detailId} onOpenChange={(open) => !open && setDetailId(null)}>
