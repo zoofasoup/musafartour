@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { 
   LogOut, LayoutDashboard, Home, Image, Target, MessageSquare, 
   Images, Package, Plane, Hotel, Calendar, FileText, HelpCircle,
-  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles, PanelLeft, Backpack, Wallet, Download
+  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles, PanelLeft, Backpack, Wallet, Download, CalendarCheck
 } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
 import {
@@ -110,6 +110,15 @@ const AdminLayout = () => {
       items: [
         { icon: UserCog, label: "Kelola Agent", path: "/admin/agents", roles: ["admin", "superadmin", "agent_admin"] },
         { icon: Trophy, label: "Gamification", path: "/admin/gamification", roles: ["admin", "superadmin", "agent_admin"] },
+        // Deliberately NOT offered to agent_admin, unlike its siblings above.
+        // The bookings and booking_payments RLS policies both check
+        // has_role('admin'), and admin_mark_payment_settled does too - and
+        // has_role treats superadmin as admin, so exactly these two roles can
+        // actually use the page. Listing agent_admin here would render an empty
+        // booking list and an override button that always errors. Widening it
+        // is a real scope decision (new RLS policies on two tables plus hiding
+        // the override for non-admins), not a nav tweak.
+        { icon: CalendarCheck, label: "Kelola Booking", path: "/admin/bookings", roles: ["admin", "superadmin"] },
       ]
     },
     {

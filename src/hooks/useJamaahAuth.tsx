@@ -6,7 +6,24 @@ interface JamaahAuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error?: string }>;
+  /**
+   * `redirect` is the post-auth destination (e.g. "/booking/baru/<id>"), the
+   * same value JamaahAuth threads through its ?redirect= search param. It is
+   * carried into emailRedirectTo so a confirmation link returns the jamaah to
+   * the booking they were in the middle of.
+   *
+   * Resolves with `needsEmailConfirmation`: Supabase returns a live session
+   * from signUp when the project has email confirmation disabled, and null
+   * when it is required. The caller has to branch on this - assuming
+   * confirmation is always required shows a "check your email" message to
+   * someone who is in fact already signed in.
+   */
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+    redirect?: string | null,
+  ) => Promise<{ success: boolean; error?: string; needsEmailConfirmation?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
 }
@@ -44,14 +61,29 @@ export const JamaahAuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
-    const { error } = await supabase.auth.signUp({
+  const signUp = async (
+    email: string,
+    password: string,
+    fullName: string,
+    redirect?: string | null,
+  ) => {
+    // Without emailRedirectTo the confirmation link falls back to the Supabase
+    // project's generic Site URL, dropping the jamaah on the homepage instead
+    // of back into the booking they started. useAgentAuth already sets one.
+    const returnTo =
+      window.location.origin +
+      "/jamaah/auth" +
+      (redirect ? `?redirect=${encodeURIComponent(redirect)}` : "");
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: { data: { full_name: fullName }, emailRedirectTo: returnTo },
     });
     if (error) return { success: false, error: error.message };
-    return { success: true };
+
+    // No session back => the project requires email confirmation.
+    return { success: true, needsEmailConfirmation: !data.session };
   };
 
   const signIn = async (email: string, password: string) => {

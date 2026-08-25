@@ -17,9 +17,37 @@ const JamaahAuth = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
+    const redirect = searchParams.get("redirect");
+
     setSubmitting(true);
-    const result =
-      mode === "login" ? await signIn(email, password) : await signUp(email, password, fullName);
+
+    if (mode === "register") {
+      const result = await signUp(email, password, fullName, redirect);
+      setSubmitting(false);
+
+      if (!result.success) {
+        toast.error(result.error || "Terjadi kesalahan");
+        return;
+      }
+
+      // Registration has two outcomes depending on whether email confirmation
+      // is enabled on the Supabase project. When it is disabled, signUp returns
+      // a live session and the jamaah is already logged in - telling them to
+      // check their email would strand them on the login form for an account
+      // they can already use. Only send them back to the login form when a
+      // confirmation is genuinely pending.
+      if (result.needsEmailConfirmation) {
+        toast.success("Akun berhasil dibuat, silakan cek email untuk verifikasi");
+        setMode("login");
+        return;
+      }
+
+      toast.success("Akun berhasil dibuat");
+      navigate(redirect || "/jamaah/dashboard");
+      return;
+    }
+
+    const result = await signIn(email, password);
     setSubmitting(false);
 
     if (!result.success) {
@@ -27,13 +55,7 @@ const JamaahAuth = () => {
       return;
     }
 
-    if (mode === "register") {
-      toast.success("Akun berhasil dibuat, silakan cek email untuk verifikasi");
-      setMode("login");
-      return;
-    }
-
-    navigate(searchParams.get("redirect") || "/jamaah/dashboard");
+    navigate(redirect || "/jamaah/dashboard");
   };
 
   return (
