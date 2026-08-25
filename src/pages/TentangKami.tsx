@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useHomepageData } from "@/hooks/useHomepageData";
 import { TestimonialCard } from "@/components/TestimonialCard";
 import { PackageCard } from "@/components/PackageCard";
-import { getTierPrice, isPackageUnavailable } from "@/lib/utils";
+import { getTierPrice, isPackageUnavailable, getSlotsTaken } from "@/lib/utils";
 import {
   Heart,
   Baby,
@@ -273,7 +273,7 @@ const TentangKami = () => {
                     isSoldOut={isPackageUnavailable(pkg)}
                     waitlistCount={pkg.waitlist_count || 0}
                     slotsTotal={pkg.slots_total}
-                    slotsFilled={pkg.slots_filled}
+                    slotsFilled={getSlotsTaken(pkg)}
                     className="h-full"
                   />
                 </motion.div>

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
 import { BulkPackageUpload } from "@/components/admin/BulkPackageUpload";
-import { formatNumber } from "@/lib/utils";
+import { formatNumber, getSlotsTaken } from "@/lib/utils";
 import { ExpandedPackageDetails } from "@/components/admin/ExpandedPackageDetails";
 
 interface Package {
@@ -39,6 +39,7 @@ interface Package {
   is_sold_out: boolean;
   slots_total: number | null;
   slots_filled: number | null;
+  slots_booked_online: number | null;
   available_tiers: string[] | null;
 }
 
@@ -138,8 +139,9 @@ const Packages = () => {
     }
     
     if (sortField === 'slots_filled') {
-      aValue = Math.max(0, (a.slots_total || 45) - (a.slots_filled || 0));
-      bValue = Math.max(0, (b.slots_total || 45) - (b.slots_filled || 0));
+      // Offline (sheet) + online bookings both consume seats.
+      aValue = Math.max(0, (a.slots_total || 45) - getSlotsTaken(a));
+      bValue = Math.max(0, (b.slots_total || 45) - getSlotsTaken(b));
     }
 
     if (typeof aValue === 'string') {
@@ -427,7 +429,8 @@ const Packages = () => {
                 ) : (
                   sortedPackages.map((pkg, index) => {
                     const total = pkg.slots_total || 45;
-                    const filled = pkg.slots_filled || 0;
+                    // Offline (sheet) + online bookings both consume seats.
+                    const filled = getSlotsTaken(pkg);
                     const sisa = Math.max(0, total - filled);
                     const availabilityPercent = Math.min(100, (filled / total) * 100);
                     

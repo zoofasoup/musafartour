@@ -1,6 +1,6 @@
 import { Progress } from "@/components/ui/progress";
 import { ShoppingCart, XCircle } from "lucide-react";
-import { cn, isPackageUnavailable } from "@/lib/utils";
+import { cn, isPackageUnavailable, getSlotsTaken } from "@/lib/utils";
 import type { PublishedPackage } from "@/hooks/usePackages";
 
 interface PackageUrgencyBarProps {
@@ -24,7 +24,8 @@ export function PackageUrgencyBar({ packageData, className }: PackageUrgencyBarP
   }
 
   const total = packageData.slots_total;
-  const filled = packageData.slots_filled || 0;
+  // Offline (sheet) + online bookings both consume seats.
+  const filled = getSlotsTaken(packageData);
   if (!total) return null;
 
   const seatPercentage = Math.min(100, Math.round((filled / total) * 100));

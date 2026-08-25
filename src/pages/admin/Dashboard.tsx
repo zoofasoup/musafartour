@@ -6,6 +6,7 @@ import { Package, FileText, Plane, BarChart, RefreshCw, AlertTriangle, Users, Ca
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getSlotsTaken } from "@/lib/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
@@ -51,7 +52,7 @@ const AdminDashboard = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from('packages')
-        .select('id, package_name, departure_date, slots_total, slots_filled, status')
+        .select('id, package_name, departure_date, slots_total, slots_filled, slots_booked_online, status')
         .eq('status', 'published')
         .gte('departure_date', new Date().toISOString().split('T')[0])
         .order('departure_date', { ascending: true })
@@ -148,7 +149,8 @@ const AdminDashboard = () => {
       const nextPkg = upcomingPackages[0];
       const daysUntil = Math.floor((new Date(nextPkg.departure_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
       const slotsTotal = nextPkg.slots_total || 45;
-      const slotsFilled = nextPkg.slots_filled || 0;
+      // Offline (sheet) + online bookings both consume seats.
+      const slotsFilled = getSlotsTaken(nextPkg);
       const sisaSeat = Math.max(0, slotsTotal - slotsFilled);
 
       if (daysUntil < 45 && sisaSeat > 0) {
@@ -265,7 +267,8 @@ const AdminDashboard = () => {
               ) : (
                 upcomingPackages?.map((pkg) => {
                   const slotsTotal = pkg.slots_total || 45;
-                  const slotsFilled = pkg.slots_filled || 0;
+                  // Offline (sheet) + online bookings both consume seats.
+                  const slotsFilled = getSlotsTaken(pkg);
                   const occupancyPercentage = Math.round((slotsFilled / slotsTotal) * 100);
                   const isHighOccupancy = occupancyPercentage > 80;
                   const sisaSeat = Math.max(0, slotsTotal - slotsFilled);

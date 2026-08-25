@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Package, Calendar, Plane, Clock, X, MessageCircle, SlidersHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { formatPriceJuta, getTierPrice, isPackageUnavailable } from "@/lib/utils";
+import { formatPriceJuta, getTierPrice, isPackageUnavailable, getSlotsTaken } from "@/lib/utils";
 import { resolveTierHotels } from "@/lib/roomCombos";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { usePublishedPackages } from "@/hooks/usePackages";
@@ -118,7 +118,8 @@ const PaketUmroh = () => {
       isSoldOut: isPackageUnavailable(pkg),
       waitlistCount: pkg.waitlist_count || 0,
       slotsTotal: pkg.slots_total,
-      slotsFilled: pkg.slots_filled,
+      // Offline (sheet) + online bookings both consume seats.
+      slotsFilled: getSlotsTaken(pkg),
     };
   });
 

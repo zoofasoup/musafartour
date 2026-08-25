@@ -1389,6 +1389,7 @@ export type Database = {
           route: string | null
           schema_type: string | null
           selling_points: string | null
+          slots_booked_online: number
           slots_filled: number | null
           slots_total: number | null
           slug: string
@@ -1474,6 +1475,7 @@ export type Database = {
           route?: string | null
           schema_type?: string | null
           selling_points?: string | null
+          slots_booked_online?: number
           slots_filled?: number | null
           slots_total?: number | null
           slug?: string
@@ -1559,6 +1561,7 @@ export type Database = {
           route?: string | null
           schema_type?: string | null
           selling_points?: string | null
+          slots_booked_online?: number
           slots_filled?: number | null
           slots_total?: number | null
           slug?: string
@@ -2251,7 +2254,10 @@ export type Database = {
       }
       create_booking_payment: {
         Args: { _amount: number; _booking_id: string }
-        Returns: { order_id: string; total_charged: number }[]
+        Returns: {
+          order_id: string
+          total_charged: number
+        }[]
       }
       create_calculator_lead: { Args: { _lead: Json }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }

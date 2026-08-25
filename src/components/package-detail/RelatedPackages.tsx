@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { PackageCard } from "@/components/PackageCard";
 import { usePublishedPackages } from "@/hooks/usePackages";
-import { getTierPrice, formatPriceJuta, isPackageUnavailable } from "@/lib/utils";
+import { getTierPrice, formatPriceJuta, isPackageUnavailable, getSlotsTaken } from "@/lib/utils";
 import { resolveTierHotels } from "@/lib/roomCombos";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -58,7 +58,7 @@ export function RelatedPackages({ currentPackageId, currentTier }: RelatedPackag
               isSoldOut={isPackageUnavailable(pkg)}
               waitlistCount={pkg.waitlist_count || 0}
               slotsTotal={pkg.slots_total}
-              slotsFilled={pkg.slots_filled}
+              slotsFilled={getSlotsTaken(pkg)}
               index={idx}
               className="w-[280px] shrink-0 snap-start"
             />

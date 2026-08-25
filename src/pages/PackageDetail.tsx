@@ -313,15 +313,22 @@ const PackageDetailPage = () => {
             />
 
             {/* Direct booking path, alongside the WhatsApp CTA above - lets a
-                customer book online without going through sales chat. */}
-            <Button
-              asChild
-              className="w-full h-12 rounded-full text-base font-bold gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
-            >
-              <Link to={`/booking/baru/${packageData.id}`}>
-                <CalendarCheck className="h-4 w-4" /> Booking Sekarang
-              </Link>
-            </Button>
+                customer book online without going through sales chat.
+                Gated on availability exactly like the WhatsApp CTA in
+                PackageCtaButtons and the mobile sticky bar's copy of this
+                button: a sold-out or already-departed package must not offer
+                a booking path that would take a DP for a seat that no longer
+                exists. create_booking enforces the same rule server-side. */}
+            {!isPackageUnavailable(packageData) && (
+              <Button
+                asChild
+                className="w-full h-12 rounded-full text-base font-bold gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+              >
+                <Link to={`/booking/baru/${packageData.id}`}>
+                  <CalendarCheck className="h-4 w-4" /> Booking Sekarang
+                </Link>
+              </Button>
+            )}
 
             <PackagePricing
               expanded={calculatorExpanded}

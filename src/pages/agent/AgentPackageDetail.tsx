@@ -26,7 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { formatCurrency, getTierPrice } from "@/lib/utils";
+import { formatCurrency, getTierPrice, getSlotsTaken } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import PackageShareModal from "@/components/package-detail/PackageShareModal";
 
@@ -61,6 +61,7 @@ interface Package {
   status: string;
   slots_total: number | null;
   slots_filled: number | null;
+  slots_booked_online: number | null;
   commission_rate: number | null;
   catalog_link: string | null;
   itinerary_link: string | null;
@@ -101,7 +102,8 @@ const AgentPackageDetail = () => {
 
   const getSlotStatus = (pkg: Package) => {
     const total = pkg.slots_total || 40;
-    const filled = pkg.slots_filled || 0;
+    // Offline (sheet) + online bookings both consume seats.
+    const filled = getSlotsTaken(pkg);
     const remaining = total - filled;
 
     if (remaining <= 0) {

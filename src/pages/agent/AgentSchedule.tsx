@@ -22,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { cn, formatCurrency, getTierPrice } from "@/lib/utils";
+import { cn, formatCurrency, getTierPrice, getSlotsTaken } from "@/lib/utils";
 import PackageShareModal from "@/components/package-detail/PackageShareModal";
 import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
 
@@ -39,6 +39,7 @@ interface Package {
   agent_commission_amount: number;
   slots_total: number;
   slots_filled: number;
+  slots_booked_online: number | null;
   status: string;
   flight: string;
   makkah_hotel_star: number | null;
@@ -55,7 +56,8 @@ const getPackageCategory = (pkg: Package): string => {
 };
 
 const getPackageStatus = (pkg: Package): 'open' | 'almost-full' | 'full' => {
-  const remaining = (pkg.slots_total || 40) - (pkg.slots_filled || 0);
+  // Offline (sheet) + online bookings both consume seats.
+  const remaining = (pkg.slots_total || 40) - getSlotsTaken(pkg);
   if (remaining <= 0) return 'full';
   if (remaining <= 5) return 'almost-full';
   return 'open';
@@ -232,7 +234,7 @@ const AgentSchedule = () => {
 
   const getStatusBadge = (pkg: Package) => {
     const status = getPackageStatus(pkg);
-    const remaining = (pkg.slots_total || 40) - (pkg.slots_filled || 0);
+    const remaining = (pkg.slots_total || 40) - getSlotsTaken(pkg);
 
     switch (status) {
       case 'open':

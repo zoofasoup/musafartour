@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { parsePackagePrice, type PackagePrice } from "@/lib/packageSchema";
+import { getSlotsTaken } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ interface PackageRow {
   timeframe: string | null;
   slots_total: number | null;
   slots_filled: number | null;
+  slots_booked_online: number | null;
   selling_points: string | null;
   included_items: string | null;
   excluded_items: string | null;
@@ -291,8 +293,10 @@ export default function PackageBrochure() {
     return items.split("\n").filter(item => item.trim() && item.trim() !== "-");
   };
 
-  const seatPercentage = currentPkg?.slots_total && currentPkg?.slots_filled
-    ? Math.min(100, Math.round((currentPkg.slots_filled / currentPkg.slots_total) * 100))
+  // Offline (sheet) + online bookings both consume seats.
+  const seatsTaken = currentPkg ? getSlotsTaken(currentPkg) : 0;
+  const seatPercentage = currentPkg?.slots_total && seatsTaken
+    ? Math.min(100, Math.round((seatsTaken / currentPkg.slots_total) * 100))
     : null;
 
   const handleWhatsApp = () => {
@@ -517,12 +521,12 @@ export default function PackageBrochure() {
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-xs text-muted-foreground tracking-tight">Ketersediaan Seat</span>
                         <span className="text-xs font-bold tracking-tighter">
-                          {currentPkg.slots_filled}/{currentPkg.slots_total}
+                          {seatsTaken}/{currentPkg.slots_total}
                         </span>
                       </div>
                       <Progress value={seatPercentage} className="h-2" />
                       <p className="text-[10px] text-muted-foreground mt-1 tracking-tight">
-                        {currentPkg.slots_total - (currentPkg.slots_filled || 0)} seat tersisa
+                        {Math.max(0, currentPkg.slots_total - seatsTaken)} seat tersisa
                       </p>
                     </div>
                   )}

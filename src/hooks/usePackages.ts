@@ -74,7 +74,10 @@ export interface PublishedPackage {
   route: string | null;
   timeframe: string | null;
   slots_total: number | null;
+  /** Seats sold offline, overwritten wholesale by the daily sheet sync. */
   slots_filled: number | null;
+  /** Seats held/sold through the online booking system. See getSlotsTaken(). */
+  slots_booked_online: number | null;
   nights_makkah: number | null;
   nights_madinah: number | null;
   nights_extra: number | null;

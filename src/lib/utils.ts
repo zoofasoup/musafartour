@@ -90,18 +90,42 @@ interface PackageAvailability {
   is_sold_out?: boolean | null;
   slots_total?: number | null;
   slots_filled?: number | null;
+  slots_booked_online?: number | null;
   departure_date?: string | null;
 }
 
 /**
+ * Seats consumed on a package, from BOTH sources that can take one:
+ *
+ *  - slots_filled is owned by the daily Google Sheet seat sync
+ *    (supabase/functions/sync-seats), which overwrites it wholesale with
+ *    slots_total - remaining. It represents seats sold offline.
+ *  - slots_booked_online is owned by the booking RPCs (create_booking /
+ *    release_expired_booking_holds), which increment and decrement it.
+ *
+ * They deliberately live in separate columns because one writer overwrites
+ * and the other counts; anything asking "how many seats are actually gone"
+ * has to add them. Always use this instead of reading slots_filled alone.
+ */
+export function getSlotsTaken(pkg: PackageAvailability): number {
+  return (pkg.slots_filled || 0) + (pkg.slots_booked_online || 0);
+}
+
+/** Seats still purchasable, never negative. Returns 0 when slots_total is unset. */
+export function getSlotsRemaining(pkg: PackageAvailability): number {
+  if (!pkg.slots_total) return 0;
+  return Math.max(0, pkg.slots_total - getSlotsTaken(pkg));
+}
+
+/**
  * A package is unbookable if it's manually flagged sold out, its seats are
- * full (slots_filled >= slots_total), or its departure date has already
- * passed - a package can go stale on a public listing without anyone
+ * full (offline + online bookings >= slots_total), or its departure date has
+ * already passed - a package can go stale on a public listing without anyone
  * flipping is_sold_out or the sheet ever reporting 0 seats left.
  */
 export function isPackageUnavailable(pkg: PackageAvailability): boolean {
   if (pkg.is_sold_out) return true;
-  if (pkg.slots_total && (pkg.slots_filled || 0) >= pkg.slots_total) return true;
+  if (pkg.slots_total && getSlotsTaken(pkg) >= pkg.slots_total) return true;
   if (pkg.departure_date) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

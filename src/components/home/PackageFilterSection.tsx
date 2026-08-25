@@ -22,7 +22,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import type { PackageData } from "@/hooks/useHomepageData";
-import { formatPriceJuta, getTierPrice, isPackageUnavailable } from "@/lib/utils";
+import { formatPriceJuta, getTierPrice, isPackageUnavailable, getSlotsTaken } from "@/lib/utils";
 import { resolveTierHotels } from "@/lib/roomCombos";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 
@@ -124,7 +124,8 @@ export const PackageFilterSection = ({
       isSoldOut: isPackageUnavailable(pkg),
       waitlistCount: pkg.waitlist_count || 0,
       slotsTotal: pkg.slots_total,
-      slotsFilled: pkg.slots_filled,
+      // Offline (sheet) + online bookings both consume seats.
+      slotsFilled: getSlotsTaken(pkg),
     };
   });
 
