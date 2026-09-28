@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { cn, getOptimizedImageUrl } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const LazyImage = ({ className, alt, src, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => {
+export const LazyImage = ({ className, alt, src, fetchPriority, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => {
   const [loaded, setLoaded] = useState(false);
 
   const defaultSrc = getOptimizedImageUrl(src);
@@ -21,6 +21,8 @@ export const LazyImage = ({ className, alt, src, ...props }: React.ImgHTMLAttrib
           className // Put original classname here so object-cover, object-top, etc applies
         )}
         onLoad={() => setLoaded(true)}
+        // react-dom 18.3 doesn't recognize the camelCase `fetchPriority` prop yet — pass the lowercase DOM attribute directly
+        {...(fetchPriority ? { fetchpriority: fetchPriority } : {})}
         {...props}
       />
     </div>

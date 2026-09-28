@@ -96,7 +96,8 @@ export const LazyImage = ({
         onLoad={() => setIsLoaded(true)}
         loading={isHero ? 'eager' : 'lazy'}
         decoding="async"
-        fetchPriority={fetchPriority}
+        // react-dom 18.3 doesn't recognize the camelCase `fetchPriority` prop yet — pass the lowercase DOM attribute directly
+        {...{ fetchpriority: fetchPriority }}
         sizes={responsiveSizes}
         {...props}
       />

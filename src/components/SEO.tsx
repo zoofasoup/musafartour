@@ -28,7 +28,9 @@ export const SEO = ({
       const { data } = await supabase
         .from('seo_settings')
         .select('*')
-        .single();
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
       return data;
     },
     enabled: useDefaults,

@@ -69,12 +69,12 @@ const TentangKami = () => {
       <section className="relative overflow-hidden bg-background text-foreground">
         <div className="relative z-10 container mx-auto px-6 md:px-8 py-24 md:py-32 text-center max-w-4xl">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
-            <motion.p variants={fadeUp} className="text-accent font-semibold text-sm tracking-widest uppercase mb-6">
+            <motion.p variants={fadeUp} className="text-foreground font-semibold text-sm tracking-widest uppercase mb-6">
               Bukan Safar Biasa
             </motion.p>
             <motion.h1 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter leading-[1.1] mb-6">
               Umroh Bersama Keluarga,{" "}
-              <span className="text-accent">Tanpa Cemas Sedikitpun.</span>
+              <span className="text-foreground/70">Tanpa Cemas Sedikitpun.</span>
             </motion.h1>
             <motion.p variants={fadeUp} className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-10 tracking-tight leading-relaxed">
               Membawa orang tua yang sudah sepuh atau si kecil ke Tanah Suci bukan hal sederhana. Musafar Tour dirancang khusus supaya seluruh keluarga bisa beribadah dengan tenang, bersama.
@@ -333,8 +333,8 @@ const TentangKami = () => {
 
             {/* Pembayaran */}
             <motion.div variants={fadeUp} className="rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-7">
-              <div className="bg-accent/10 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
-                <CreditCard className="h-6 w-6 text-accent" />
+              <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
+                <CreditCard className="h-6 w-6 text-primary" />
               </div>
               <h3 className="font-bold text-base tracking-tight mb-4 text-foreground">Pembayaran Resmi & Aman</h3>
               <p className="text-sm text-muted-foreground mb-4">

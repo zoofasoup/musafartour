@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { User, Users, ChevronUp, ShoppingCart, Share2 } from "lucide-react";
+import { User, Users, ChevronUp, ShoppingCart, Share2, Bell } from "lucide-react";
 import { cn, isPackageUnavailable, formatPriceJuta } from "@/lib/utils";
 import { useFavorites } from "@/hooks/useFavorites";
 import { PackageUrgencyBar } from "./PackageUrgencyBar";
@@ -14,6 +14,7 @@ interface PackageCtaButtonsProps {
   onSoloWhatsApp: () => void;
   calculatorExpanded: boolean;
   onToggleCalculator: () => void;
+  handleNotifyMe: () => void;
 }
 
 /**
@@ -22,10 +23,11 @@ interface PackageCtaButtonsProps {
  * to just what applies here: no quantity stepper, no separate "Chat" item
  * since "Berangkat Sendiri" already is the WhatsApp path.
  */
-export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculatorExpanded, onToggleCalculator }: PackageCtaButtonsProps) {
+export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculatorExpanded, onToggleCalculator, handleNotifyMe }: PackageCtaButtonsProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const [shareOpen, setShareOpen] = useState(false);
   const isFav = isFavorite(packageData.id);
+  const unavailable = isPackageUnavailable(packageData);
 
   const handleWishlist = () => {
     toggleFavorite({
@@ -40,32 +42,40 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
 
   return (
     <div className="rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-4 space-y-3">
-      {!isPackageUnavailable(packageData) && (
+      {!unavailable && (
         <PackageUrgencyBar packageData={packageData} className="justify-center" />
       )}
 
-      <div className="space-y-1">
-        <Button
-          id="tour-cta-solo"
-          onClick={onSoloWhatsApp}
-          className="w-full h-12 rounded-full text-base font-bold gap-2 border-2 border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400 text-slate-900 shadow-sm"
-        >
-          <User className="h-4 w-4" /> Berangkat Sendiri
+      {unavailable ? (
+        <Button onClick={handleNotifyMe} className="w-full h-12 rounded-full text-base font-bold gap-2" variant="outline">
+          <Bell className="h-4 w-4" /> Notify Me
         </Button>
-        <p className="text-center text-xs text-muted-foreground">Untuk 1 orang, tanpa rombongan</p>
-      </div>
+      ) : (
+        <>
+          <div className="space-y-1">
+            <Button
+              id="tour-cta-solo"
+              onClick={onSoloWhatsApp}
+              className="w-full h-12 rounded-full text-base font-bold gap-2 border-2 border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400 text-slate-900 shadow-sm"
+            >
+              <User className="h-4 w-4" /> Berangkat Sendiri
+            </Button>
+            <p className="text-center text-xs text-muted-foreground">Untuk 1 orang, tanpa rombongan</p>
+          </div>
 
-      <div className="space-y-1">
-        <Button
-          id="tour-cta-calculator"
-          onClick={onToggleCalculator}
-          className="w-full h-12 rounded-full text-base font-bold gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
-        >
-          {calculatorExpanded ? <ChevronUp className="h-4 w-4" /> : <Users className="h-4 w-4" />}
-          {calculatorExpanded ? "Tutup Kalkulator" : "Hitung Ramai-ramai"}
-        </Button>
-        <p className="text-center text-xs text-muted-foreground">Untuk 2 orang atau lebih</p>
-      </div>
+          <div className="space-y-1">
+            <Button
+              id="tour-cta-calculator"
+              onClick={onToggleCalculator}
+              className="w-full h-12 rounded-full text-base font-bold gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+            >
+              {calculatorExpanded ? <ChevronUp className="h-4 w-4" /> : <Users className="h-4 w-4" />}
+              {calculatorExpanded ? "Tutup Kalkulator" : "Hitung Ramai-ramai"}
+            </Button>
+            <p className="text-center text-xs text-muted-foreground">Untuk 2 orang atau lebih</p>
+          </div>
+        </>
+      )}
 
       <div className="flex items-center justify-center pt-1 border-t border-border">
         <button

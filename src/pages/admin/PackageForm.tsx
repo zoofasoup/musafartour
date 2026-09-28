@@ -26,6 +26,11 @@ import { cn } from "@/lib/utils";
 import { compressAndConvertToWebP, generateContextualFileName } from "@/lib/imageUtils";
 import { AddHotelModal } from "@/components/admin/AddHotelModal";
 import { BasicInfoTab } from "@/components/admin/package-form/BasicInfoTab";
+import { MarketingAutoGeneratorModal } from "@/components/admin/MarketingAutoGeneratorModal";
+import html2canvas from "html2canvas";
+import { Download } from "lucide-react";
+import { SinglePackageFlyer } from "@/components/admin/flyer/SinglePackageFlyer";
+import { CogsCalculator } from "@/components/admin/cogs/CogsCalculator";
 import { PricingTab } from "@/components/admin/package-form/PricingTab";
 import { MediaContentTab } from "@/components/admin/package-form/MediaContentTab";
 import { FasilitasTab } from "@/components/admin/package-form/FasilitasTab";
@@ -122,6 +127,7 @@ const packageSchema = z.object({
   max_discount: z.number().min(0, "Wajib diisi"),
   slots_total: z.number().min(1, "Wajib diisi"),
   agent_commission_amount: z.number().min(0, "Wajib diisi"),
+  cogs_data: z.any().optional(),
 
   // Hemat Tier
   hemat_makkah_hotel_name: z.string().optional(),
@@ -399,12 +405,13 @@ const PackageForm = () => {
   const { id } = useParams();
   const [currentStep, setCurrentStep] = useState(1);
   const steps = [
-    { id: 1, title: "Informasi Dasar", description: "Nama, tanggal, penerbangan" },
-    { id: 2, title: "Harga & Hotel", description: "Akomodasi dan transportasi" },
-    { id: 3, title: "Fasilitas", description: "Includes & Excludes" },
-    { id: 4, title: "Media & Konten", description: "Foto, flyer, dan katalog" }
+    { id: 1, title: "Paket In General", description: "Detail dasar & daftar fasilitas" },
+    { id: 2, title: "Kalkulasi COGS", description: "Penentuan HPP, Hotel & Harga Jual" },
+    { id: 3, title: "Itinerary & Marketing", description: "Jadwal perjalanan & hasil Flyer" }
   ];
   const [loading, setLoading] = useState(false);
+  const [showAutoGenerator, setShowAutoGenerator] = useState(false);
+  const [savedPackageTitle, setSavedPackageTitle] = useState("");
   const [initialLoading, setInitialLoading] = useState(!!id);
   const [bannerPreview, setBannerPreview] = useState<string>("");
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -755,6 +762,72 @@ const PackageForm = () => {
     toast.error("Mohon lengkapi semua field yang wajib diisi");
   };
 
+  
+  const getSelectedHotels = () => {
+    const tier = form.watch("available_tiers")?.[0] || "hemat";
+    let mPrefix = tier === "nyaman" ? "makkah" : `${tier.replace("-", "_")}_makkah`;
+    let madPrefix = tier === "nyaman" ? "madinah" : `${tier.replace("-", "_")}_madinah`;
+    
+    return [
+      {
+        location: "Makkah",
+        name: form.watch(mPrefix + "_hotel_name" as any) || "Pilih Hotel",
+        stars: form.watch(mPrefix + "_hotel_star" as any) || 0
+      },
+      {
+        location: "Madinah",
+        name: form.watch(madPrefix + "_hotel_name" as any) || "Pilih Hotel",
+        stars: form.watch(madPrefix + "_hotel_star" as any) || 0
+      }
+    ];
+  };
+
+  const handleDownloadFlyer = async () => {
+    const element = document.getElementById('flyer-capture');
+    if (!element) return;
+    try {
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const data = canvas.toDataURL('image/jpeg', 0.9);
+      const link = document.createElement('a');
+      link.href = data;
+      link.download = `flyer-${form.watch("package_name") || 'paket'}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  
+  const handleCogsChange = (cogsData: any, prices: any) => {
+    form.setValue("cogs_data", cogsData, { shouldDirty: true });
+    
+    // Update prices based on COGS
+    if (prices) {
+      form.setValue("price_quad", prices.quad, { shouldValidate: true, shouldDirty: true });
+      form.setValue("price_triple", prices.triple, { shouldValidate: true, shouldDirty: true });
+      form.setValue("price_double", prices.double, { shouldValidate: true, shouldDirty: true });
+    }
+
+    // Sync hotels from COGS to form for Flyer rendering
+    if (cogsData?.land_arrangement?.hotels) {
+      const makkahHotel = cogsData.land_arrangement.hotels.find((h: any) => h.city.toLowerCase().includes("makkah"));
+      const madinahHotel = cogsData.land_arrangement.hotels.find((h: any) => h.city.toLowerCase().includes("madinah"));
+      
+      const tier = form.watch("available_tiers")?.[0] || "hemat";
+      let mPrefix = tier === "nyaman" ? "makkah" : `${tier.replace("-", "_")}_makkah`;
+      let madPrefix = tier === "nyaman" ? "madinah" : `${tier.replace("-", "_")}_madinah`;
+      
+      if (makkahHotel) {
+        form.setValue((mPrefix + "_hotel_name") as any, makkahHotel.name, { shouldDirty: true });
+      }
+      if (madinahHotel) {
+        form.setValue((madPrefix + "_hotel_name") as any, madinahHotel.name, { shouldDirty: true });
+      }
+    }
+  };
+
   const onSubmit = async (values: PackageFormValues) => {
     setLoading(true);
     setUploadingImages(true);
@@ -835,6 +908,7 @@ const PackageForm = () => {
         max_discount: values.max_discount || 0,
         slots_total: values.slots_total || null,
         agent_commission_amount: values.agent_commission_amount || 0,
+        cogs_data: values.cogs_data ?? null,
 
         hemat_makkah_hotel_name: values.hemat_makkah_hotel_name,
         hemat_makkah_hotel_star: values.hemat_makkah_hotel_star,
@@ -903,7 +977,8 @@ const PackageForm = () => {
       }
 
       setHasUnsavedChanges(false);
-      navigate("/admin/packages");
+      setSavedPackageTitle(values.title);
+      setShowAutoGenerator(true);
     } catch (error: any) {
       toast.error("Gagal menyimpan paket: " + error.message);
     } finally {
@@ -1105,6 +1180,54 @@ const PackageForm = () => {
               </div>
             </div>
             
+            {/* Live Flyer Preview Right Panel */}
+            <div className="hidden lg:block sticky top-24 h-[calc(100vh-8rem)]">
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-4 sticky top-24">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <h3 className="font-semibold text-sm text-slate-800 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    Live Preview
+                  </h3>
+                  
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Flyer Template</span>
+                  <button type="button" onClick={handleDownloadFlyer} className="flex items-center gap-1 text-xs bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition-colors">
+                    <Download className="w-3 h-3" /> Export JPG
+                  </button>
+                </div>
+
+                </div>
+                
+                <div className="w-full relative">
+                  <div id="flyer-capture" className="w-full relative shadow-lg">
+                    <SinglePackageFlyer 
+                    tier={form.watch("available_tiers")?.[0]}
+                    title={form.watch("package_name")}
+                    timeframe={form.watch("timeframe")}
+                    priceQuad={form.watch("price_quad") || 29900000}
+                    priceTriple={form.watch("price_triple") || 31900000}
+                    priceDouble={form.watch("price_double") || 33900000}
+                    departureDate={form.watch("departure_date")}
+                    duration={form.watch("duration_days")}
+                    flightType={form.watch("flight_type")}
+                    flightRoute={form.watch("route")}
+                    airlineName={form.watch("flight")}
+                    startCity={form.watch("start_airport")}
+                    nightsMakkah={form.watch("nights_makkah")}
+                    nightsMadinah={form.watch("nights_madinah")}
+                    facilities={dbStandardItems || []}
+                    hotels={getSelectedHotels()}
+                  />
+                  </div>
+                </div>
+                
+                <div className="text-xs text-center text-slate-500 mt-2 bg-slate-50 p-2 rounded-lg">
+                  <span className="font-semibold text-slate-700">Auto-Generated!</span><br/>
+                  Desain template akan otomatis menyesuaikan dengan Tier yang Anda pilih (Hemat, Reguler, Premium, VIP).
+                </div>
+              </div>
+            </div>
+            
             {/* Hotel Kota + */}
             <div className="border border-primary/10 p-6 rounded-lg bg-white shadow-sm flex flex-col gap-3">
               <h4 className="font-semibold text-primary/80">Hotel Kota Tambahan (Opsional)</h4>
@@ -1246,7 +1369,7 @@ const PackageForm = () => {
               <Button variant="ghost" size="sm" type="button" onClick={() => safeNavigate("/admin/packages")} className="rounded-full">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <span className="font-serif text-lg tracking-tight font-medium">{id ? "Edit Paket" : "Tambah Paket"}</span>
+              <span className="text-lg tracking-tight font-medium">{id ? "Edit Paket" : "Tambah Paket"}</span>
             </div>
             <div className="flex items-center gap-3">
               <FormField control={form.control} name="status" render={({ field }) => (
@@ -1276,16 +1399,27 @@ const PackageForm = () => {
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto">
+        <div className="w-full max-w-[1700px] mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold tracking-tight">{id ? "Edit Paket" : "Tambah Paket"}</h1>
             <p className="text-muted-foreground mt-1">Lengkapi informasi paket umroh langkah demi langkah</p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-10 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr_400px] xl:grid-cols-[280px_1fr_450px] gap-6 items-start">
             {/* Sidebar Stepper */}
             <div className="sticky top-24 hidden lg:block border border-primary/10 bg-white p-6 rounded-lg shadow-sm">
-              <VerticalStepper steps={steps} currentStep={currentStep} onStepClick={setCurrentStep} />
+              
+                <VerticalStepper 
+                  steps={steps} 
+                  currentStep={currentStep} 
+                  onStepClick={(stepId) => {
+                    // Only allow navigating backward freely
+                    if (stepId < currentStep) {
+                      setCurrentStep(stepId);
+                    }
+                  }} 
+                />
+
             </div>
 
             {/* Form Content */}
@@ -1306,32 +1440,50 @@ const PackageForm = () => {
                 </div>
               </div>
 
-              <div className={currentStep === 1 ? "block" : "hidden"}>
+              <div className={currentStep === 1 ? "block space-y-8" : "hidden"}>
                 <BasicInfoTab form={form} />
+                <div className="pt-8 border-t border-slate-200">
+                  <FasilitasTab 
+                    form={form}
+                    dbStandardItems={dbStandardItems} 
+                    dbOptionalItems={dbOptionalItems} 
+                    dbExcludeItems={dbExcludeItems}
+                    AddItemInput={AddItemInput}
+                  />
+                </div>
               </div>
               
-              <div className={currentStep === 2 ? "block" : "hidden"}>
-                <PricingTab 
-                  form={form} 
-                  hasHemat={hasHemat} 
-                  hasNyaman={hasNyaman} 
-                  hasFiveStar={hasFiveStar} 
-                  hasPelataranHemat={hasPelataranHemat} 
-                  renderTierSection={renderTierSection} 
-                />
+              <div className={currentStep === 2 ? "block space-y-8" : "hidden"}>
+                <div className="w-full xl:w-[150%] xl:-ml-[25%]">
+                  <CogsCalculator
+                    packageId={id && id !== 'new' && id !== 'add' ? id : undefined}
+                    initialData={form.getValues("cogs_data")} packageData={form.getValues()}
+                    onChange={handleCogsChange}
+                  />
+                </div>
+                {hasNyaman && renderTierSection("Nyaman (Best Seller)", "makkah", "madinah", "price", "best_seller_transport")}
+                {hasHemat && renderTierSection("Hemat", "hemat_makkah", "hemat_madinah", "hemat_price", "hemat_transport")}
+                {hasFiveStar && renderTierSection("Five Star / Premium", "five_star_makkah", "five_star_madinah", "five_star_price", "five_star_transport")}
+                {hasPelataranHemat && renderTierSection("Pelataran Hemat", "pelataran_makkah", "pelataran_madinah", "pelataran_price", "pelataran_transport")}
               </div>
 
-              <div className={currentStep === 3 ? "block" : "hidden"}>
-                <FasilitasTab 
-                  form={form}
-                  dbStandardItems={dbStandardItems} 
-                  dbOptionalItems={dbOptionalItems} 
-                  dbExcludeItems={dbExcludeItems}
-                  AddItemInput={AddItemInput}
-                />
-              </div>
+              
 
-              <div className={currentStep === 4 ? "block" : "hidden"}>
+              <div className={currentStep === 3 ? "block space-y-8" : "hidden"}>
+                <Card className="shadow-sm border-primary/10 overflow-hidden mb-10 rounded-lg">
+                  <CardHeader className="bg-primary/5 border-b border-primary/10 px-8 py-6">
+                    <CardTitle className="text-2xl text-primary font-bold tracking-tight">Itinerary Perjalanan</CardTitle>
+                    <CardDescription className="text-base mt-1">Jadwal kegiatan harian jemaah</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-8">
+                    <FormField control={form.control} name="itinerary" render={({ field }) => (
+                      <FormItem><FormLabel>Deskripsi Itinerary Singkat <span className="text-destructive">*</span></FormLabel><FormControl>
+                        <textarea className="flex min-h-[150px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" {...field} value={field.value || ""} placeholder="Tuliskan gambaran ringkas itinerary..." />
+                      </FormControl><FormMessage /></FormItem>
+                    )} />
+                  </CardContent>
+                </Card>
+                
                 <MediaContentTab 
                   form={form}
                   loading={loading}
@@ -1354,17 +1506,35 @@ const PackageForm = () => {
                   {currentStep > 1 ? "Sebelumnya" : "Batal"}
                 </Button>
                 
-                {currentStep < 4 ? (
+                
+                {currentStep < 3 ? (
                   <Button 
                     type="button" 
                     onClick={async () => {
-                      // Trigger validation based on step (simplified, we just proceed for now or you can add specific field validation)
-                      setCurrentStep(currentStep + 1);
-                      const mainScrollContainer = document.querySelector('main');
-                      if (mainScrollContainer) {
-                        mainScrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                      let fieldsToValidate = [];
+                      if (currentStep === 1) {
+                        fieldsToValidate = [
+                          "package_name", "departure_date", "duration_days", "flight", 
+                          "flight_type", "available_tiers", "timeframe", "start_airport", 
+                          "route", "nights_makkah", "nights_madinah"
+                        ];
+                      } else if (currentStep === 2) {
+                        // For COGS, ensure they at least calculated and we have prices
+                        fieldsToValidate = ["price_quad", "price_double"];
+                      }
+                      
+                      const isValid = await form.trigger(fieldsToValidate as any);
+                      
+                      if (isValid) {
+                        setCurrentStep(currentStep + 1);
+                        const mainScrollContainer = document.querySelector('main');
+                        if (mainScrollContainer) {
+                          mainScrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                        } else {
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
                       } else {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        toast.error("Mohon lengkapi semua isian wajib di langkah ini sebelum melanjutkan", { duration: 3000 });
                       }
                     }}
                     className="rounded-md px-8"
@@ -1372,6 +1542,7 @@ const PackageForm = () => {
                     Selanjutnya
                   </Button>
                 ) : (
+
                   <div className="flex items-center gap-3">
                     <Button
                       type="button"
@@ -1409,6 +1580,12 @@ const PackageForm = () => {
           onOpenChange={setHotelModalOpen}
           location={hotelModalLocation}
           onSuccess={handleHotelAdded}
+        />
+        <MarketingAutoGeneratorModal 
+          open={showAutoGenerator} 
+          onOpenChange={(open) => { setShowAutoGenerator(open); if (!open) navigate("/admin/product-development"); }} 
+          packageId={id} 
+          packageTitle={savedPackageTitle} 
         />
         </div>
       </form>

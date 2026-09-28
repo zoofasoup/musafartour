@@ -326,7 +326,7 @@ const AdminDashboard = () => {
                         {agentInitials(agent.name)}
                       </div>
                       {i === 0 && (
-                        <div className="absolute -top-2 -right-2 text-xl filter drop-shadow-sm">👑</div>
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-xl filter drop-shadow-sm">👑</div>
                       )}
                     </div>
                     <div>

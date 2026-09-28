@@ -5,6 +5,29 @@ import { parsePackagePrice, type PackagePrice } from '@/lib/packageSchema';
 const STALE_TIME = 5 * 60 * 1000; // 5 minutes
 const LONG_CACHE_TIME = 10 * 60 * 1000; // 10 minutes
 
+// Explicit allowlist for the public site. Excludes admin-only/business-sensitive
+// columns on the same table (cogs_data, agent_commission_amount, cogs_status, etc.) —
+// never widen this back to select('*'), that would leak supplier costs/margins publicly.
+const PUBLIC_PACKAGE_COLUMNS = [
+  'id', 'slug', 'package_name', 'departure_date', 'duration_days', 'flight', 'flight_type',
+  'banner_image', 'package_price', 'five_star_package_price', 'hemat_package_price',
+  'pelataran_package_price', 'available_tiers',
+  'makkah_hotel_name', 'makkah_hotel_star', 'makkah_distance', 'makkah_duration_walk',
+  'madinah_hotel_name', 'madinah_hotel_star', 'madinah_distance', 'madinah_duration_walk',
+  'five_star_makkah_hotel_name', 'five_star_makkah_hotel_star', 'five_star_makkah_distance', 'five_star_makkah_duration_walk',
+  'five_star_madinah_hotel_name', 'five_star_madinah_hotel_star', 'five_star_madinah_distance', 'five_star_madinah_duration_walk',
+  'hemat_makkah_hotel_name', 'hemat_makkah_hotel_star', 'hemat_makkah_distance', 'hemat_makkah_duration_walk',
+  'hemat_madinah_hotel_name', 'hemat_madinah_hotel_star', 'hemat_madinah_distance', 'hemat_madinah_duration_walk',
+  'pelataran_makkah_hotel_name', 'pelataran_makkah_hotel_star', 'pelataran_makkah_distance', 'pelataran_makkah_duration_walk',
+  'pelataran_madinah_hotel_name', 'pelataran_madinah_hotel_star', 'pelataran_madinah_distance', 'pelataran_madinah_duration_walk',
+  'best_seller_transport', 'five_star_transport', 'hemat_transport', 'pelataran_transport',
+  'selling_points', 'included_items', 'excluded_items', 'equipment_list', 'catalog_link',
+  'itinerary_link', 'itinerary', 'gallery_images',
+  'start_airport', 'route', 'timeframe', 'slots_total', 'slots_filled', 'slots_booked_online',
+  'nights_makkah', 'nights_madinah', 'nights_extra', 'hotel_extra', 'is_sold_out', 'sold_out_date',
+  'waitlist_count', 'meta_title', 'meta_description', 'og_image', 'canonical_url',
+].join(', ');
+
 export interface PublishedPackage {
   id: string;
   slug: string | null;
@@ -112,7 +135,7 @@ export const usePublishedPackages = () => {
     queryFn: async (): Promise<PublishedPackage[]> => {
       const { data, error } = await supabase
         .from('packages')
-        .select('*')
+        .select(PUBLIC_PACKAGE_COLUMNS)
         .eq('status', 'published')
         .order('departure_date', { ascending: true });
 
@@ -132,7 +155,7 @@ export const usePackageBySlug = (
     queryFn: async (): Promise<PublishedPackage | null> => {
       const { data, error } = await supabase
         .from('packages')
-        .select('*')
+        .select(PUBLIC_PACKAGE_COLUMNS)
         .eq('slug', slug!)
         .eq('status', 'published')
         .maybeSingle();

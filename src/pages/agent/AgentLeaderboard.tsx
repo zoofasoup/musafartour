@@ -47,9 +47,8 @@ export default function AgentLeaderboard() {
     queryKey: ["agent-leaderboard", leaderboardPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("agents")
+        .from("agent_leaderboard")
         .select("id, name, total_sales, total_commission, level")
-        .eq("status", "active")
         .order("total_sales", { ascending: false })
         .limit(100);
       
