@@ -132,6 +132,13 @@ export type Database = {
             foreignKeyName: "agent_challenge_progress_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
+            referencedRelation: "agent_leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_challenge_progress_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
             referencedRelation: "agents"
             referencedColumns: ["id"]
           },
@@ -210,6 +217,13 @@ export type Database = {
             foreignKeyName: "agent_earned_badges_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
+            referencedRelation: "agent_leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_earned_badges_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
             referencedRelation: "agents"
             referencedColumns: ["id"]
           },
@@ -278,6 +292,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "agent_points_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: true
+            referencedRelation: "agent_leaderboard"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "agent_points_agent_id_fkey"
             columns: ["agent_id"]
@@ -386,6 +407,13 @@ export type Database = {
             foreignKeyName: "agent_sales_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
+            referencedRelation: "agent_leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_sales_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
             referencedRelation: "agents"
             referencedColumns: ["id"]
           },
@@ -441,6 +469,13 @@ export type Database = {
             foreignKeyName: "agent_short_links_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
+            referencedRelation: "agent_leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_short_links_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
             referencedRelation: "agents"
             referencedColumns: ["id"]
           },
@@ -487,6 +522,13 @@ export type Database = {
           status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "agent_withdrawals_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_leaderboard"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "agent_withdrawals_agent_id_fkey"
             columns: ["agent_id"]
@@ -582,6 +624,13 @@ export type Database = {
           wa_number?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "agents_referred_by_id_fkey"
+            columns: ["referred_by_id"]
+            isOneToOne: false
+            referencedRelation: "agent_leaderboard"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "agents_referred_by_id_fkey"
             columns: ["referred_by_id"]
@@ -938,6 +987,13 @@ export type Database = {
             foreignKeyName: "bookings_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
+            referencedRelation: "agent_leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
             referencedRelation: "agents"
             referencedColumns: ["id"]
           },
@@ -983,6 +1039,24 @@ export type Database = {
           period_end?: string
           period_start?: string
           platform?: string
+        }
+        Relationships: []
+      }
+      cogs_defaults: {
+        Row: {
+          data: Json
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          data: Json
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          data?: Json
+          id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1343,6 +1417,8 @@ export type Database = {
           best_seller_transport: string | null
           canonical_url: string | null
           catalog_link: string | null
+          cogs_data: Json | null
+          cogs_status: string | null
           created_at: string
           departure_date: string
           dp_amount: number
@@ -1429,6 +1505,8 @@ export type Database = {
           best_seller_transport?: string | null
           canonical_url?: string | null
           catalog_link?: string | null
+          cogs_data?: Json | null
+          cogs_status?: string | null
           created_at?: string
           departure_date: string
           dp_amount?: number
@@ -1515,6 +1593,8 @@ export type Database = {
           best_seller_transport?: string | null
           canonical_url?: string | null
           catalog_link?: string | null
+          cogs_data?: Json | null
+          cogs_status?: string | null
           created_at?: string
           departure_date?: string
           dp_amount?: number
@@ -2255,7 +2335,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      agent_leaderboard: {
+        Row: {
+          id: string | null
+          level: string | null
+          name: string | null
+          total_commission: number | null
+          total_sales: number | null
+        }
+        Insert: {
+          id?: string | null
+          level?: string | null
+          name?: string | null
+          total_commission?: number | null
+          total_sales?: number | null
+        }
+        Update: {
+          id?: string | null
+          level?: string | null
+          name?: string | null
+          total_commission?: number | null
+          total_sales?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_mark_payment_settled: {
@@ -2397,12 +2500,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2426,11 +2529,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2451,11 +2554,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2476,11 +2579,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2493,11 +2596,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

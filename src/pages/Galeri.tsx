@@ -112,7 +112,7 @@ const Galeri = () => {
           <div className="space-y-16">
             {Object.entries(groupedGalleries).map(([category, images]) => (
               <div key={category}>
-                <h2 className="text-2xl font-bold mb-6 text-center">{category}</h2>
+                <h2 className="text-2xl font-bold mb-6 text-center capitalize">{category}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {images.map((image, imgIndex) => (
                     <div

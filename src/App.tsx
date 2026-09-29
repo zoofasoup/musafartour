@@ -4,7 +4,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useParams, Navigate } from "react-router-dom";
+import { useReferralCapture, captureReferral } from "./hooks/useReferralCapture";
+import { SEO as SeoTags } from "./components/SEO";
 import { HelmetProvider } from 'react-helmet-async';
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 import { useMarketingPixels } from "./hooks/useMarketingPixels";
@@ -36,11 +38,14 @@ const ArtikelDetail = lazy(() => import("./pages/ArtikelDetail"));
 const Kontak = lazy(() => import("./pages/Kontak"));
 const JadwalUmroh = lazy(() => import("./pages/JadwalUmroh"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const KebijakanPrivasi = lazy(() => import("./pages/Legal").then((m) => ({ default: m.KebijakanPrivasi })));
+const SyaratKetentuan = lazy(() => import("./pages/Legal").then((m) => ({ default: m.SyaratKetentuan })));
 const Auth = lazy(() => import("./pages/Auth"));
 const AdminSetup = lazy(() => import("./pages/AdminSetup"));
 const SetPassword = lazy(() => import("./pages/SetPassword"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const Packages = lazy(() => import("./pages/admin/Packages"));
+const ProductDevelopment = lazy(() => import("./pages/admin/ProductDevelopment"));
 const PackageForm = lazy(() => import("./pages/admin/PackageForm"));
 const ArticlesPage = lazy(() => import("./pages/admin/Articles"));
 const ArticleForm = lazy(() => import("./pages/admin/ArticleForm"));
@@ -55,6 +60,7 @@ const FAQAdmin = lazy(() => import("./pages/admin/FAQ"));
 const WebsiteSettings = lazy(() => import("./pages/admin/WebsiteSettings"));
 const Team = lazy(() => import("./pages/admin/Team"));
 const MarketingSettings = lazy(() => import("./pages/admin/MarketingSettings"));
+const MasterCOGS = lazy(() => import("./pages/admin/MasterCOGS"));
 const AdSpend = lazy(() => import("./pages/admin/AdSpend"));
 const FlyerGenerator = lazy(() => import("./pages/admin/FlyerGenerator"));
 const FlyerPrint = lazy(() => import("./pages/FlyerPrint"));
@@ -135,6 +141,52 @@ const MarketingPixelsLoader = () => {
 const RedirectsHandler = () => {
   useRedirects();
   return null;
+};
+
+// Title (+ noindex for private flows) for routes whose page doesn't render its own <SEO>.
+// Without this, SPA navigation left the previous page's title in the tab. Pages that do
+// render <SEO> mount deeper in the tree, so their tags take precedence.
+const ROUTE_META: { match: (p: string) => boolean; title: string; description?: string; noindex?: boolean }[] = [
+  { match: (p) => p === "/auth", title: "Login Admin - Musafar Tour", noindex: true },
+  { match: (p) => p === "/admin/setup", title: "Setup Admin - Musafar Tour", noindex: true },
+  { match: (p) => p.startsWith("/admin"), title: "Admin - Musafar Tour", noindex: true },
+  { match: (p) => p === "/set-password", title: "Atur Password - Musafar Tour", noindex: true },
+  { match: (p) => p.startsWith("/jamaah"), title: "Portal Jamaah - Musafar Tour", noindex: true },
+  { match: (p) => p.startsWith("/booking"), title: "Booking Umroh - Musafar Tour", noindex: true },
+  {
+    match: (p) => p === "/agent/register",
+    title: "Daftar Jadi Agen Umroh - Musafar Tour",
+    description: "Bergabung menjadi agen umroh Musafar Tour: komisi per jamaah, materi marketing siap pakai, dan dukungan tim.",
+  },
+  { match: (p) => p.startsWith("/agent"), title: "Portal Agen - Musafar Tour", noindex: true },
+  { match: (p) => p === "/booth", title: "Musafar Tour", noindex: true },
+  { match: (p) => p === "/packages", title: "Marketing Kit - Musafar Tour", noindex: true },
+  {
+    match: (p) => p === "/kalkulator",
+    title: "Kalkulator Tabungan Umroh - Musafar Tour",
+    description: "Hitung berapa yang perlu ditabung per hari dan per bulan untuk berangkat umroh bersama keluarga.",
+  },
+  { match: (p) => p.startsWith("/kalkulator/hasil"), title: "Hasil Kalkulator Umroh - Musafar Tour", noindex: true },
+];
+
+const RouteMeta = () => {
+  const { pathname } = useLocation();
+  const meta = ROUTE_META.find((m) => m.match(pathname));
+  if (!meta) return null;
+  return <SeoTags title={meta.title} description={meta.description} noindex={meta.noindex} useDefaults={false} />;
+};
+
+// ?ref={agentCode} can land on any page (home, articles, calculator), not just package detail.
+const ReferralCaptureListener = () => {
+  useReferralCapture();
+  return null;
+};
+
+// Agent personal link /r/{code}: record the referral, then show the packages.
+const AgentReferralRedirect = () => {
+  const { code } = useParams();
+  captureReferral(code);
+  return <Navigate to="/paket-umroh" replace />;
 };
 
 // Radix Dialog/Sheet/Select sometimes fail to release the `pointer-events:
@@ -231,6 +283,8 @@ const App = () => (
               <TikTokPixelTracker />
               <MarketingPixelsLoader />
               <RedirectsHandler />
+              <ReferralCaptureListener />
+              <RouteMeta />
               <AuthHashRedirectHandler />
               <ChunkReloadFlagCleaner />
               <Suspense
@@ -250,9 +304,12 @@ const App = () => (
                   <Route path="/artikel/:slug" element={<ArtikelDetail />} />
                   <Route path="/kontak" element={<Kontak />} />
                   <Route path="/jadwal-umroh" element={<JadwalUmroh />} />
+                  <Route path="/kebijakan-privasi" element={<KebijakanPrivasi />} />
+                  <Route path="/syarat-ketentuan" element={<SyaratKetentuan />} />
                   <Route path="/chat" element={<Chat />} />
                   <Route path="/s/:code" element={<ShortLinkRedirect />} />
                   <Route path="/l/:code" element={<AgentShortLinkRedirect />} />
+                  <Route path="/r/:code" element={<AgentReferralRedirect />} />
                   <Route path="/booth" element={<BoothLead />} />
                   <Route path="/kalkulator" element={<UmrohCalculator />} />
                   <Route path="/kalkulator/hasil/:id" element={<UmrohCalculatorResult />} />
@@ -391,6 +448,7 @@ const App = () => (
                     <Route path="packages" element={<Packages />} />
                     <Route path="packages/new" element={<PackageForm />} />
                     <Route path="packages/:id" element={<PackageForm />} />
+                    <Route path="product-development" element={<ProductDevelopment />} />
                     <Route path="hotels" element={<Hotels />} />
                     <Route path="hotels/new" element={<HotelForm />} />
                     <Route path="hotels/:id" element={<HotelForm />} />
@@ -420,6 +478,7 @@ const App = () => (
                     <Route path="gamification" element={<Gamification />} />
                     <Route path="calculator" element={<SalesCalculator />} />
                     <Route path="calculator-leads" element={<CalculatorLeads />} />
+                    <Route path="master-cogs" element={<MasterCOGS />} />
                     <Route path="whatsapp-inbox" element={<WhatsAppInbox />} />
                     <Route path="brochure/:slug" element={<PackageBrochure />} />
                   </Route>

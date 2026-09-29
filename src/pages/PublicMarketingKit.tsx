@@ -5,6 +5,7 @@ import { MaterialsList } from '../components/MaterialsList';
 import { Search, Loader2, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { todayJakarta } from '@/lib/utils';
 
 const PublicMarketingKit = () => {
   const [data, setData] = useState<Campaign[]>([]);
@@ -25,6 +26,7 @@ const PublicMarketingKit = () => {
           .from('packages')
           .select('id, package_name, departure_date, banner_image, catalog_link, itinerary_link')
           .eq('status', 'published')
+          .gte('departure_date', todayJakarta())
           .order('departure_date', { ascending: true });
           
         if (packagesError) throw packagesError;

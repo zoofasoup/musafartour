@@ -73,7 +73,7 @@ export const generateArticleSchema = (data: ArticleData) => {
       name: "Musafar Tour",
       logo: {
         "@type": "ImageObject",
-        url: "https://musafartour.com/logo.png",
+        url: "https://musafartour.com/logo.webp",
       },
     },
     datePublished: data.publishedDate,

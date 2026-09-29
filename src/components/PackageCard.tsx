@@ -2,11 +2,11 @@ import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, Heart, ChevronLeft, ChevronRight, Bell, Users, ShieldCheck, CheckCircle2, ShoppingCart, Armchair } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useFavorites } from "@/hooks/useFavorites";
-import { toast } from "@/hooks/use-toast";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { getPriceBadgeStyle, getOptimizedImageUrl } from "@/lib/utils";
+import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { airlineLogos } from "@/lib/airlineLogos";
 
 interface PackageCardProps {
@@ -65,7 +65,6 @@ export const PackageCard = ({
   imageClassName = "aspect-square",
   cartButtonTourId,
 }: PackageCardProps) => {
-  const navigate = useNavigate();
   const { isFavorite, toggleFavorite } = useFavorites();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -99,12 +98,7 @@ export const PackageCard = ({
   const [isAnimating, setIsAnimating] = useState(false);
   const heartRef = useRef<HTMLButtonElement>(null);
 
-  const handleClick = () => {
-    const urlParam = slug || id;
-    if (urlParam) {
-      navigate(`/paket-umroh/${urlParam}`);
-    }
-  };
+  const href = slug || id ? `/paket-umroh/${slug || id}` : undefined;
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -120,12 +114,12 @@ export const PackageCard = ({
     });
   };
 
+  // Waitlist via WhatsApp - the old toast promised a notification but saved nothing.
   const handleNotifyMe = (e: React.MouseEvent) => {
     e.stopPropagation();
-    toast({
-      title: "Notifikasi Aktif",
-      description: `Kami akan memberitahu Anda jika ada seat tersedia untuk ${title}`,
-    });
+    redirectToWhatsApp(
+      `Assalamu'alaikum Musafar Tour,\n\nSaya ingin masuk waitlist untuk paket *${title}* (${date}).\n\nMohon kabari saya jika ada seat kosong, atau info jadwal terdekat lainnya. Terima kasih.`
+    );
   };
 
   const handlePrevImage = (e: React.MouseEvent) => {
@@ -144,11 +138,10 @@ export const PackageCard = ({
   };
 
   return (
-    <article 
-      onClick={handleClick}
+    <article
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`cursor-pointer group flex flex-col bg-card rounded-3xl border border-border shadow-sm p-2 md:p-2.5 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 ease-out ${isSoldOut ? 'opacity-90' : ''} ${className}`}
+      className={`relative cursor-pointer group flex flex-col bg-card rounded-3xl border border-border shadow-sm p-2 md:p-2.5 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 ease-out ${isSoldOut ? 'opacity-90' : ''} ${className}`}
     >
       {/* Image Container */}
       <div className="relative w-full h-[160px] md:h-[170px] shrink-0 bg-muted rounded-2xl md:rounded-[20px] overflow-hidden">
@@ -255,7 +248,19 @@ export const PackageCard = ({
           {/* Header: Date & Duration */}
           <div className="flex items-baseline gap-2">
             <h3 className="font-bold text-lg text-foreground tracking-tight">
-              {date}
+              {/* Stretched link: the whole card is clickable, but it's a real <a>
+                  (crawlable, long-press/new-tab) without nesting buttons in it. */}
+              {href ? (
+                <Link
+                  to={href}
+                  aria-label={`${title}, berangkat ${date}`}
+                  className="after:absolute after:inset-0 after:z-[15] after:rounded-3xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-primary"
+                >
+                  {date}
+                </Link>
+              ) : (
+                date
+              )}
             </h3>
             <span className="font-semibold text-sm text-muted-foreground">
               · {duration}
@@ -296,15 +301,15 @@ export const PackageCard = ({
         <div className="mt-auto pt-4 flex items-center justify-between">
           {isSoldOut ? (
             <div className="space-y-2 w-full">
-              <p className="text-sm text-muted-foreground line-through px-1">{displayPrice} Quad</p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full gap-2 rounded-full h-9 text-sm font-semibold"
+              <p className="text-sm text-muted-foreground line-through px-1">{displayPrice}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="relative z-20 w-full gap-2 rounded-full h-10 text-sm font-semibold"
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleNotifyMe(e); }}
               >
                 <Bell className="w-4 h-4" />
-                Notify Me
+                Gabung Waitlist
               </Button>
             </div>
           ) : (
@@ -319,7 +324,7 @@ export const PackageCard = ({
                 id={cartButtonTourId}
                 ref={heartRef}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleFavoriteClick(e); }}
-                className={`flex items-center justify-center w-9 h-9 rounded-full shadow-md transition-colors ${
+                className={`relative z-20 flex items-center justify-center w-10 h-10 rounded-full shadow-md transition-colors ${
                   isFav ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-200 hover:bg-slate-300'
                 } ${isAnimating ? 'animate-cart-pop' : ''}`}
                 aria-label={isFav ? "Keluarkan dari keranjang" : "Masukkan ke keranjang"}

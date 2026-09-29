@@ -72,7 +72,7 @@ const AgentDashboard = () => {
       const monthEnd = endOfMonth(new Date());
 
       const thisMonth = (data || [])
-        .filter((s) => s.status === 'paid' && new Date(s.booking_date) >= monthStart && new Date(s.booking_date) <= monthEnd)
+        .filter((s) => (s.status === 'confirmed' || s.status === 'paid') && new Date(s.booking_date) >= monthStart && new Date(s.booking_date) <= monthEnd)
         .reduce((sum, s) => sum + Number(s.commission_amount), 0);
 
       const pending = (data || [])

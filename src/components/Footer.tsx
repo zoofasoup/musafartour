@@ -22,9 +22,10 @@ const Footer = () => {
     "@type": "TravelAgency",
     "name": "Musafar Tour",
     "image": "https://musafartour.com/logo.webp",
-    "@id": "https://musafartour.com",
+    // Same @id as the homepage's Organization block so search engines merge them into one business.
+    "@id": "https://musafartour.com/#organization",
     "url": "https://musafartour.com",
-    "telephone": phone,
+    "telephone": String(phone).replace(/[^\d+]/g, "").replace(/^0/, "+62"),
     "address": {
       "@type": "PostalAddress",
       "streetAddress": address,
@@ -88,20 +89,22 @@ const Footer = () => {
             <div className="grid grid-cols-2 gap-8 md:mt-24">
               <div>
                 <h4 className="font-medium text-white mb-6 text-lg">Menu</h4>
-                <ul className="space-y-4 text-white/60">
-                  <li><Link to="/" className="hover:text-white transition-colors">Beranda</Link></li>
-                  <li><Link to="/paket-umroh" className="hover:text-white transition-colors">Paket Umroh</Link></li>
-                  <li><Link to="/tentang-kami" className="hover:text-white transition-colors">Tentang Kami</Link></li>
-                  <li><Link to="/galeri" className="hover:text-white transition-colors">Galeri</Link></li>
+                <ul className="space-y-2 text-white/60">
+                  <li><Link to="/" className="inline-block py-1.5 hover:text-white transition-colors">Beranda</Link></li>
+                  <li><Link to="/paket-umroh" className="inline-block py-1.5 hover:text-white transition-colors">Paket Umroh</Link></li>
+                  <li><Link to="/jadwal-umroh" className="inline-block py-1.5 hover:text-white transition-colors">Jadwal Keberangkatan</Link></li>
+                  <li><Link to="/artikel" className="inline-block py-1.5 hover:text-white transition-colors">Artikel</Link></li>
+                  <li><Link to="/tentang-kami" className="inline-block py-1.5 hover:text-white transition-colors">Tentang Kami</Link></li>
+                  <li><Link to="/galeri" className="inline-block py-1.5 hover:text-white transition-colors">Galeri</Link></li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-medium text-white mb-6 text-lg">Support</h4>
-                <ul className="space-y-4 text-white/60">
-                  <li><Link to="/kontak" className="hover:text-white transition-colors">FAQs</Link></li>
-                  <li><Link to="/tentang-kami" className="hover:text-white transition-colors">Kebijakan Privasi</Link></li>
-                  <li><Link to="/tentang-kami" className="hover:text-white transition-colors">Syarat & Ketentuan</Link></li>
-                  <li><Link to="/kontak" className="hover:text-white transition-colors">Kontak</Link></li>
+                <ul className="space-y-2 text-white/60">
+                  <li><Link to="/#faq" className="inline-block py-1.5 hover:text-white transition-colors">FAQs</Link></li>
+                  <li><Link to="/kebijakan-privasi" className="inline-block py-1.5 hover:text-white transition-colors">Kebijakan Privasi</Link></li>
+                  <li><Link to="/syarat-ketentuan" className="inline-block py-1.5 hover:text-white transition-colors">Syarat & Ketentuan</Link></li>
+                  <li><Link to="/kontak" className="inline-block py-1.5 hover:text-white transition-colors">Kontak</Link></li>
                 </ul>
               </div>
             </div>
@@ -111,7 +114,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-white/10 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center text-sm font-medium text-white">
-          <p>2025 © Musafar Tour</p>
+          <p>{new Date().getFullYear()} © Musafar Tour</p>
           <p className="mt-4 md:mt-0 text-white/40">Made by Musawara Creative</p>
         </div>
       </div>

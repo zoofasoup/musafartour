@@ -22,7 +22,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { cn, formatCurrency, getTierPrice, getSlotsTaken } from "@/lib/utils";
+import { cn, formatCurrency, getTierPrice, getSlotsTaken, todayJakarta } from "@/lib/utils";
+import { AGENT_PACKAGE_COLUMNS } from "@/hooks/usePackages";
 import PackageShareModal from "@/components/package-detail/PackageShareModal";
 import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
 
@@ -90,13 +91,13 @@ const AgentSchedule = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('packages')
-        .select('*')
+        .select(AGENT_PACKAGE_COLUMNS)
         .eq('status', 'published')
-        .gte('departure_date', new Date().toISOString().split('T')[0])
+        .gte('departure_date', todayJakarta())
         .order('departure_date', { ascending: true });
-      
+
       if (error) throw error;
-      return data as Package[];
+      return data as unknown as Package[];
     },
   });
 

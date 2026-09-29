@@ -9,23 +9,20 @@
 -- ============================================================
 -- 1. New hotels (no existing match in public.hotels)
 -- ============================================================
-INSERT INTO public.hotels (name, city_name, star_rating, distance, walking_duration) VALUES
-  ('Mukhtara Al Gharbi', 'Madinah', 3, '700 meter', '6-10 menit'),
+-- Only the 2 hotels we have real star/distance/duration data for go in here.
+-- hotels.star_rating is NOT NULL with CHECK (1-5), and distance/walking_duration are
+-- NOT NULL too — there's no honest way to insert "unknown" for those. The other 8
+-- hotels found in the audit (Marwa Rayhan by Rotana, Novotel, AGT, ODST Al Madinah,
+-- Snood Ajyad, Ramada Dar Fayzen, Olayan Ajyad Prestige, Olayan Al Haram) have zero
+-- real rating/distance data anywhere in the packages that reference them — add those
+-- via the admin "Add Hotel" form, which prompts for the real numbers, instead of
+-- fabricating plausible-looking data into a real hotel's record here.
+INSERT INTO public.hotels (name, location, star_rating, distance, walking_duration) VALUES
+  ('Mukhtara Al Gharbi', 'madinah', 3, '700 meter', '6-10 menit'),
   -- LOW CONFIDENCE: merged "fajr badea 4" (Umroh Pelataran) + "fajar bade 4" (Umroh Nyaman
   -- 2X Jumat) as the same hotel (likely typos of the same name); used the former's distance/
   -- duration. Please verify these are actually the same property.
-  ('Fajr Badee', 'Makkah', 3, '800 meter', '12-15 menit'),
-  ('Marwa Rayhan by Rotana', 'Makkah', NULL, NULL, NULL),
-  ('Novotel', 'Madinah', NULL, NULL, NULL),
-  ('AGT', 'Madinah', NULL, NULL, NULL),
-  ('ODST Al Madinah', 'Madinah', NULL, NULL, NULL),
-  ('Snood Ajyad', 'Makkah', NULL, NULL, NULL),
-  ('Ramada Dar Fayzen', 'Makkah', NULL, NULL, NULL),
-  -- LOW CONFIDENCE: merged "Olayan Ajyad/prestige" (Umroh Pelataran) + "PRESTIGE" (Umroh
-  -- Nyaman Syawal) — the slash in the first name suggests the admin themselves was noting
-  -- an alt name. Please verify.
-  ('Olayan Ajyad Prestige', 'Makkah', NULL, NULL, NULL),
-  ('Olayan Al Haram', 'Makkah', NULL, NULL, NULL)
+  ('Fajr Badee', 'makkah', 3, '800 meter', '12-15 menit')
 ON CONFLICT DO NOTHING;
 
 -- ============================================================

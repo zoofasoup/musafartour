@@ -1,5 +1,5 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,9 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Package, ArrowLeft, CalendarCheck } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
 import { usePackageBySlug } from "@/hooks/usePackages";
 import { useReferralCapture } from "@/hooks/useReferralCapture";
-import { isPackageUnavailable, formatCurrency, parseListItems } from "@/lib/utils";
+import { isPackageUnavailable, isPackageDeparted, formatCurrency, parseListItems, getSlotsRemaining, getOptimizedImageUrl } from "@/lib/utils";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { SEO } from "@/components/SEO";
 import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/structuredData";
@@ -102,6 +101,18 @@ const PackageDetailPage = () => {
     return generateRoomCombos(adults, price, discount);
   }, [price, adults, discount]);
 
+  // Seats still bookable (adults + children). Undefined when no seat limit is set.
+  const seatsLeft = packageData?.slots_total ? getSlotsRemaining(packageData) : undefined;
+
+  // The calculator defaulted to 2 adults even when only 1 seat was left.
+  useEffect(() => {
+    if (seatsLeft && adults + children > seatsLeft) {
+      setChildren(0);
+      setAdults(Math.max(1, seatsLeft));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seatsLeft]);
+
   const safeComboIdx = combos.length > 0 ? Math.min(selectedComboIdx, combos.length - 1) : 0;
   const selectedCombo = combos[safeComboIdx] || null;
   const grandTotal = selectedCombo ? selectedCombo.totalRoomCost + childTotal + infantTotal : 0;
@@ -156,11 +167,16 @@ const PackageDetailPage = () => {
     redirectToWhatsApp(msg);
   };
 
+  // Waitlist goes through WhatsApp like every other CTA - the old toast
+  // promised a notification but never recorded who asked.
   const handleNotifyMe = () => {
-    toast({
-      title: "Notifikasi Aktif",
-      description: `Kami akan memberitahu Anda jika ada seat tersedia untuk ${packageData?.package_name}`,
-    });
+    if (!packageData) return;
+    let msg = `Assalamu'alaikum Musafar Tour,\n\n`;
+    msg += `Saya ingin masuk waitlist untuk paket berikut:\n\n`;
+    msg += `📦 *Paket:* ${packageData.package_name}\n`;
+    msg += `📅 *Keberangkatan:* ${fmtDate(packageData.departure_date)}\n\n`;
+    msg += `Mohon kabari saya jika ada seat kosong, atau info jadwal terdekat lainnya. Terima kasih.`;
+    redirectToWhatsApp(msg);
   };
 
   if (loading) {
@@ -205,16 +221,23 @@ const PackageDetailPage = () => {
   const hasImages = !!(packageData.banner_image || packageData.gallery_images?.length);
 
   const pageUrl = packageData.canonical_url || `${SITE_URL}/paket-umroh/${packageData.slug}`;
-  const pageTitle = packageData.meta_title || `Paket Umroh ${packageData.package_name} - Musafar Tour`;
+  // Package names already start with "Umroh" ("Umroh Hemat"), which rendered as "Paket Umroh Umroh Hemat".
+  const displayName = /^umroh\b/i.test(packageData.package_name)
+    ? packageData.package_name
+    : `Umroh ${packageData.package_name}`;
+  const pageTitle =
+    packageData.meta_title || `Paket ${displayName} ${fmtDate(packageData.departure_date)} - Musafar Tour`;
   const pageDescription =
     packageData.meta_description ||
-    `Daftar Paket Umroh ${packageData.package_name} bersama Musafar Tour. Berangkat ${fmtDate(packageData.departure_date)}, durasi ${packageData.duration_days} hari.`;
-  const pageImage = packageData.og_image || packageData.banner_image || undefined;
+    `Daftar Paket ${displayName} bersama Musafar Tour. Berangkat ${fmtDate(packageData.departure_date)}, durasi ${packageData.duration_days} hari${price?.quad ? `, mulai ${formatCurrency(price.quad)}/orang` : ""}.`;
+  // Originals are up to 2.5 MB; share previews and schema only need ~1200px.
+  const shareImage = packageData.og_image || packageData.banner_image || packageData.gallery_images?.[0];
+  const pageImage = shareImage ? getOptimizedImageUrl(shareImage, 1200) : undefined;
 
   const { "@context": _pc, ...productSchema } = generateProductSchema({
-    name: `Paket Umroh ${packageData.package_name}`,
+    name: `Paket ${displayName}`,
     description: pageDescription,
-    image: packageData.banner_image || packageData.gallery_images?.[0],
+    image: pageImage,
     price: price?.quad || 0,
     currency: "IDR",
     availability: isPackageUnavailable(packageData) ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
@@ -238,6 +261,7 @@ const PackageDetailPage = () => {
         ogImage={pageImage}
         canonicalUrl={pageUrl}
         structuredData={structuredData}
+        noindex={isPackageDeparted(packageData)}
       />
       <Navbar />
 
@@ -339,6 +363,7 @@ const PackageDetailPage = () => {
               setCustomerName={setCustomerName}
               handleWhatsApp={handleWhatsApp}
               handleNotifyMe={handleNotifyMe}
+              maxPax={seatsLeft}
             />
           </div>
         </div>
@@ -367,6 +392,7 @@ const PackageDetailPage = () => {
         setCustomerName={setCustomerName}
         handleWhatsApp={handleWhatsApp}
         handleNotifyMe={handleNotifyMe}
+        maxPax={seatsLeft}
       />
 
       <Footer />

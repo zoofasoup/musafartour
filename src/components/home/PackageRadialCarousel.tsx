@@ -113,7 +113,7 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
       {/* The Spinning Wheel */}
       <div className="absolute top-[140px] md:top-[200px] left-1/2 -translate-x-1/2 w-[2400px] h-[2400px]">
         <motion.div 
-          className="w-full h-full rounded-full cursor-grab active:cursor-grabbing touch-none md:touch-pan-y"
+          className="w-full h-full rounded-full cursor-grab active:cursor-grabbing touch-pan-y"
           animate={controls}
           onPanStart={handlePanStart}
           onPan={handlePan}

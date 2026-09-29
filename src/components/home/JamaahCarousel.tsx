@@ -22,7 +22,7 @@ export const JamaahCarousel = () => {
 
   useEffect(() => {
     if (isInView) {
-      const controls = animate(count, 2000, { duration: 2.5, ease: "easeOut" });
+      const controls = animate(count, 3000, { duration: 2.5, ease: "easeOut" });
       return controls.stop;
     }
   }, [isInView]);
@@ -68,7 +68,7 @@ export const JamaahCarousel = () => {
     <section className="py-16 md:py-20 bg-gradient-to-b from-muted/30 to-background overflow-hidden">
       <div className="container mx-auto px-6 md:px-8 mb-10">
         <div className="text-center max-w-3xl mx-auto">
-          <h2 ref={countRef} className="text-5xl md:text-7xl font-display font-bold text-primary mb-3 flex items-center justify-center gap-2">
+          <h2 ref={countRef} className="text-[2.5rem] sm:text-5xl md:text-7xl font-display font-bold text-primary mb-3 flex items-center justify-center gap-2 whitespace-nowrap">
             <motion.span>{rounded}</motion.span>+ Jamaah
           </h2>
           <p className="text-xl md:text-2xl text-foreground/80 font-medium">

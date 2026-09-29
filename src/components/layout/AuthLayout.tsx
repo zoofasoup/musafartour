@@ -40,7 +40,7 @@ export const AuthLayout = ({
           
           <div className="max-w-xl animate-fade-up">
             <h1 className="text-4xl lg:text-5xl font-bold leading-tight tracking-tight drop-shadow-lg">
-              Welcome
+              Selamat Datang
             </h1>
           </div>
         </div>

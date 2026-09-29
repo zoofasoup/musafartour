@@ -111,6 +111,7 @@ const BookingPayment = () => {
   const amountValid =
     parsedAmount !== null &&
     !Number.isNaN(parsedAmount) &&
+    Number.isInteger(parsedAmount) && // whole rupiah only; Midtrans rejects decimal IDR
     parsedAmount > 0 &&
     parsedAmount >= minAmount &&
     (maxAmount === 0 || parsedAmount <= maxAmount);

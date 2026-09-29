@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { LazyImage } from "@/components/LazyImage";
-import { BookOpen, Clock, User } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { Input } from "@/components/ui/input";
+import { BookOpen, Clock, User, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -24,10 +23,16 @@ interface Article {
   author_id?: string;
   author_name?: string;
   meta_description?: string;
+  content?: string;
 }
 
+// ~200 words/minute; the list used to show a hard-coded "5 menit" on every article.
+const readMinutes = (html?: string) => {
+  const words = (html || "").replace(/<[^>]*>/g, " ").split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+};
+
 const Artikel = () => {
-  const [email, setEmail] = useState("");
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -35,8 +40,6 @@ const Artikel = () => {
   const [hasMore, setHasMore] = useState(true);
   
   const ITEMS_PER_PAGE = 9;
-  const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchArticles(1);
@@ -51,7 +54,7 @@ const Artikel = () => {
 
     const { data, error } = await supabase
       .from("articles")
-      .select("*")
+      .select("id, title, slug, excerpt, featured_image, category, created_at, author_name, meta_description, content")
       .eq("status", "published")
       .or(`publish_at.is.null,publish_at.lte.${new Date().toISOString()}`)
       .order("created_at", { ascending: false })
@@ -80,28 +83,11 @@ const Artikel = () => {
     fetchArticles(nextPage);
   };
 
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email && email.includes("@")) {
-      toast({
-        title: "Berhasil berlangganan!",
-        description: "Terima kasih telah berlangganan newsletter kami.",
-      });
-      setEmail("");
-    } else {
-      toast({
-        title: "Email tidak valid",
-        description: "Mohon masukkan alamat email yang benar.",
-        variant: "destructive",
-      });
-    }
-  };
-
 
   return (
     <div className="min-h-screen bg-background">
       <SEO 
-        title="Artikel & Tips Umroh - Panduan Lengkap Perjalanan Spiritual"
+        title="Artikel & Tips Umroh - Musafar Tour"
         description="Baca artikel dan tips lengkap seputar umroh, haji, persiapan ibadah, dan wisata religi. Panduan praktis untuk jamaah pemula hingga berpengalaman."
         keywords="artikel umroh, tips umroh, panduan haji, persiapan umroh, tips ibadah"
         canonicalUrl="https://musafartour.com/artikel"
@@ -154,14 +140,15 @@ const Artikel = () => {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {articles.map((article) => (
-                <article 
-                  key={article.id} 
-                  className="bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow cursor-pointer"
-                  onClick={() => navigate(`/artikel/${article.slug}`)}
+                <Link
+                  key={article.id}
+                  to={`/artikel/${article.slug}`}
+                  className="block bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow"
                 >
+                <article>
                   <div className="relative h-48 overflow-hidden">
                     <LazyImage
-                      src={article.featured_image || "https://images.unsplash.com/photo-1591604021695-0c69b7c05981?w=800&h=400&fit=crop"}
+                      src={article.featured_image || "/og-default.jpg"}
                       alt={article.title}
                       className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
                     />
@@ -188,7 +175,7 @@ const Artikel = () => {
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          <span>5 menit</span>
+                          <span>{readMinutes(article.content)} menit</span>
                         </div>
                       </div>
                     </div>
@@ -197,6 +184,7 @@ const Artikel = () => {
                     </p>
                   </div>
                 </article>
+                </Link>
               ))}
             </div>
             
@@ -217,27 +205,26 @@ const Artikel = () => {
         )}
       </section>
 
-      {/* Newsletter CTA */}
+      {/* Updates CTA: the old email "newsletter" form showed success but stored nothing. */}
       <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-6 md:px-8">
           <div className="max-w-2xl mx-auto text-center bg-card p-8 rounded-lg shadow-md">
             <BookOpen className="h-12 w-12 mx-auto mb-4 text-primary" />
-            <h2 className="text-2xl font-bold mb-4">Dapatkan Tips Terbaru</h2>
+            <h2 className="text-2xl font-bold mb-4">Dapatkan Tips & Info Promo Terbaru</h2>
             <p className="text-muted-foreground mb-6">
-              Berlangganan newsletter kami untuk mendapatkan artikel, tips, dan informasi terbaru seputar Umroh dan Haji
+              Kami kirimkan artikel, tips persiapan, dan info jadwal umroh terbaru langsung ke WhatsApp Anda.
             </p>
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
-              <Input
-                type="email"
-                placeholder="Email Anda"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <Button type="submit" className="bg-accent hover:bg-accent/90">
-                Berlangganan
-              </Button>
-            </form>
+            <Button
+              size="lg"
+              className="gap-2"
+              onClick={() =>
+                redirectToWhatsApp(
+                  "Assalamu'alaikum Musafar Tour, saya ingin menerima info artikel, tips, dan promo umroh terbaru via WhatsApp."
+                )
+              }
+            >
+              <MessageCircle className="h-4 w-4" /> Kabari Saya via WhatsApp
+            </Button>
           </div>
         </div>
       </section>

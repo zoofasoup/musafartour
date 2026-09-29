@@ -977,7 +977,7 @@ const PackageForm = () => {
       }
 
       setHasUnsavedChanges(false);
-      setSavedPackageTitle(values.title);
+      setSavedPackageTitle(values.package_name);
       setShowAutoGenerator(true);
     } catch (error: any) {
       toast.error("Gagal menyimpan paket: " + error.message);

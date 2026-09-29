@@ -25,7 +25,7 @@ export const FAQSection = ({ faqItems }: FAQSectionProps) => {
   };
 
   return (
-    <section className="py-16 md:py-24 bg-background">
+    <section id="faq" className="py-16 md:py-24 bg-background scroll-mt-20">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}

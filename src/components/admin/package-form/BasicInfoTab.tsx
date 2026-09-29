@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,54 @@ export const BasicInfoTab = ({ form }: { form: any }) => {
           <FormField control={form.control} name="package_name" render={({ field }) => (
             <FormItem><FormLabel>Nama Paket *</FormLabel><FormControl><Input {...field} placeholder="Umroh Hemat 9 Hari" /></FormControl><FormMessage /></FormItem>
           )} />
+          {/* Tier Selection Move */}
+          {/* Tier Selection - clickable boxes */}
+      <Card data-form-section className="shadow-md border-slate-200 overflow-hidden mb-6">
+        <CardHeader className="bg-slate-50/80 border-b border-slate-100 pb-4">
+          <CardTitle>Tier Paket</CardTitle>
+          <CardDescription>Pilih satu tier untuk paket ini</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <FormField
+            control={form.control}
+            name="available_tiers"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <RadioGroup
+                    value={field.value?.[0] || ""}
+                    onValueChange={(val) => field.onChange([val])}
+                    className="grid grid-cols-2 md:grid-cols-4 gap-3"
+                  >
+                    {[
+                      { value: "hemat", label: "Hemat" },
+                      { value: "nyaman", label: "Nyaman" },
+                      { value: "five-star", label: "Five Star" },
+                      { value: "pelataran-hemat", label: "Pelataran Hemat" },
+                    ].map((tier) => (
+                      <label
+                        key={tier.value}
+                        htmlFor={`tier-${tier.value}`}
+                        className={cn(
+                          "flex items-center gap-2 rounded-lg border p-3 cursor-pointer transition-all",
+                          field.value?.[0] === tier.value
+                            ? "border-primary bg-primary/5 ring-2 ring-primary/20 opacity-100"
+                            : "opacity-50 hover:opacity-100 hover:bg-slate-50 border-slate-200"
+                        )}
+                      >
+                        <RadioGroupItem value={tier.value} id={`tier-${tier.value}`} />
+                        <span className="font-medium text-sm">{tier.label}</span>
+                      </label>
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </CardContent>
+      </Card>
+
           <div className="space-y-4">
             <FormField control={form.control} name="timeframe" render={({ field }) => (
               <FormItem><FormLabel>Timeframe <span className="text-destructive">*</span></FormLabel><FormControl><Input {...field} placeholder="Bulan November" /></FormControl><FormMessage /></FormItem>

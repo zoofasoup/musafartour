@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { PUBLIC_PACKAGE_COLUMNS } from "@/hooks/usePackages";
+import { todayJakarta } from "@/lib/utils";
 
 export type PackageData = Tables<"packages"> & {
   package_price: {
@@ -24,12 +26,13 @@ export type WebsiteSettings = Tables<"website_settings">;
 const fetchPackages = async (): Promise<PackageData[]> => {
   const { data, error } = await supabase
     .from("packages")
-    .select("*")
+    .select(PUBLIC_PACKAGE_COLUMNS)
     .eq("status", "published")
+    .gte("departure_date", todayJakarta())
     .order("departure_date", { ascending: true });
 
   if (error) throw error;
-  return (data as PackageData[]) || [];
+  return (data as unknown as PackageData[]) || [];
 };
 
 const fetchHeroData = async (): Promise<HeroData | null> => {

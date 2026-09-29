@@ -10,6 +10,8 @@ interface SEOProps {
   canonicalUrl?: string;
   structuredData?: object;
   useDefaults?: boolean;
+  /** Keep this page out of search results (private flows, 404, departed trips). */
+  noindex?: boolean;
 }
 
 export const SEO = ({ 
@@ -19,7 +21,8 @@ export const SEO = ({
   ogImage,
   canonicalUrl,
   structuredData,
-  useDefaults = true
+  useDefaults = true,
+  noindex = false,
 }: SEOProps) => {
   // Fetch global SEO settings
   const { data: globalSettings } = useQuery({
@@ -41,7 +44,7 @@ export const SEO = ({
   const finalTitle = title || globalSettings?.site_title || 'Musafar Tour';
   const finalDescription = description || globalSettings?.site_description || '';
   const finalKeywords = keywords || globalSettings?.default_keywords || '';
-  const finalOgImage = ogImage || globalSettings?.default_og_image || "https://storage.googleapis.com/gpt-engineer-file-uploads/E3HH8pcvNtWabcauiIpC4SxdTkY2/social-images/social-1761537927169-banner design.jpg";
+  const finalOgImage = ogImage || globalSettings?.default_og_image || "https://musafartour.com/og-default.jpg";
   const url = canonicalUrl || (typeof window !== 'undefined' ? window.location.href : '');
 
   return (
@@ -49,6 +52,7 @@ export const SEO = ({
       <title>{finalTitle}</title>
       <meta name="description" content={finalDescription} />
       {finalKeywords && <meta name="keywords" content={finalKeywords} />}
+      {noindex && <meta name="robots" content="noindex, nofollow" />}
       
       {/* Open Graph / Facebook */}
       <meta property="og:type" content="website" />

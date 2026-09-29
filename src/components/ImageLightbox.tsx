@@ -21,7 +21,8 @@ export const ImageLightbox = ({
 }: ImageLightboxProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl w-full p-0 bg-black/95">
+      {/* Hide shadcn's built-in close X; this viewer has its own larger one below. */}
+      <DialogContent className="max-w-7xl w-full p-0 bg-black/95 [&>button:last-child]:hidden">
         <div className="relative w-full h-[80vh] flex items-center justify-center">
           <Button
             variant="ghost"

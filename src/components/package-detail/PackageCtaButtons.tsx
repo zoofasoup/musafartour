@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { User, Users, ChevronUp, ShoppingCart, Share2, Bell } from "lucide-react";
-import { cn, isPackageUnavailable, formatPriceJuta } from "@/lib/utils";
+import { cn, isPackageUnavailable, isPackageDeparted, formatPriceJuta } from "@/lib/utils";
 import { useFavorites } from "@/hooks/useFavorites";
 import { PackageUrgencyBar } from "./PackageUrgencyBar";
 import PackageShareModal from "./PackageShareModal";
@@ -28,6 +29,7 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
   const [shareOpen, setShareOpen] = useState(false);
   const isFav = isFavorite(packageData.id);
   const unavailable = isPackageUnavailable(packageData);
+  const departed = isPackageDeparted(packageData);
 
   const handleWishlist = () => {
     toggleFavorite({
@@ -46,10 +48,20 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
         <PackageUrgencyBar packageData={packageData} className="justify-center" />
       )}
 
-      {unavailable ? (
-        <Button onClick={handleNotifyMe} className="w-full h-12 rounded-full text-base font-bold gap-2" variant="outline">
-          <Bell className="h-4 w-4" /> Notify Me
-        </Button>
+      {departed ? (
+        <div className="space-y-2 text-center">
+          <p className="text-sm text-muted-foreground">Rombongan paket ini sudah berangkat.</p>
+          <Button asChild className="w-full h-12 rounded-full text-base font-bold">
+            <Link to="/paket-umroh">Lihat Paket Lainnya</Link>
+          </Button>
+        </div>
+      ) : unavailable ? (
+        <div className="space-y-1">
+          <Button onClick={handleNotifyMe} className="w-full h-12 rounded-full text-base font-bold gap-2" variant="outline">
+            <Bell className="h-4 w-4" /> Gabung Waitlist
+          </Button>
+          <p className="text-center text-xs text-muted-foreground">Kami kabari via WhatsApp jika ada seat kosong</p>
+        </div>
       ) : (
         <>
           <div className="space-y-1">

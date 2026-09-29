@@ -10,6 +10,21 @@ Disallow: /auth
 Disallow: /kemitraan
 Disallow: /kantor
 
+# Private flows and internal tools
+Disallow: /jamaah/
+Disallow: /booking/
+Disallow: /set-password
+Disallow: /booth
+Disallow: /flyer-print
+Disallow: /packages
+Disallow: /kalkulator/hasil/
+Disallow: /chat
+Disallow: /s/
+Disallow: /l/
+Disallow: /r/
+Allow: /agent/register
+Disallow: /agent/
+
 # Allow all other pages
 Allow: /
 

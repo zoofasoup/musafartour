@@ -123,8 +123,13 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      // If user exists in auth but not in agents table (e.g. Google Sign In)
-      if (!data && !error && user.email) {
+      // If user exists in auth but not in agents table (e.g. Google Sign In).
+      // This provider wraps the whole app, so only auto-create on agent pages: otherwise
+      // every jamaah who logs in got an agent row (and an admin "new agent" alert).
+      // /agent/register creates its own row, so skip there to avoid racing it.
+      const path = window.location.pathname;
+      const onAgentPage = path.startsWith("/agent") && !path.startsWith("/agent/register");
+      if (!data && !error && user.email && onAgentPage) {
         const referralCode = await generateReferralCode();
         // Generate a random dummy phone number to satisfy the UNIQUE constraint 
         // until they complete onboarding

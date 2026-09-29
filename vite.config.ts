@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: "Musafar Tour - Paket Umroh & Haji",
         short_name: "Musafar Tour",
-        description: "Paket umroh mulai 20 jutaan dengan pelayanan terbaik.",
+        description: "Paket umroh hemat hingga five star dengan pelayanan terbaik.",
         theme_color: "#c22543",
         background_color: "#f2f2f2",
         display: "standalone",
@@ -31,7 +31,20 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
-        navigateFallbackDenylist: [/^\/~oauth/],
+        // /artikel is server-rendered by functions/artikel for SEO; serving the cached SPA
+        // shell there gave returning visitors (and crawlers with a SW) a page with no meta tags.
+        navigateFallbackDenylist: [/^\/~oauth/, /^\/artikel/, /^\/sitemap\.xml/, /^\/robots\.txt/],
+        // Admin-only screens are large and most visitors never open them; they still load
+        // on demand, they just aren't pre-downloaded for every visitor.
+        globIgnores: [
+          "**/assets/js/PackageForm-*.js",
+          "**/assets/js/ArticleForm-*.js",
+          "**/assets/js/ChatRotation-*.js",
+          "**/assets/js/Packages-*.js",
+          "**/assets/js/CogsCalculator-*.js",
+          "**/assets/js/FlyerPreview-*.js",
+          "**/assets/js/AgentManagement-*.js",
+        ],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/lcpjuaxiwbdzdozitwzi\.supabase\.co\/rest\/v1\/(packages|gallery_images|hero_section|testimonials|faq_items|selling_points)/,

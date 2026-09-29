@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { 
   LogOut, LayoutDashboard, Home, Image, Target, MessageSquare, 
   Images, Package, Plane, Hotel, Calendar, FileText, HelpCircle,
-  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles, PanelLeft, Backpack, Wallet, Download, CalendarCheck
+  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles, PanelLeft, Backpack, Wallet, Download, CalendarCheck, PenTool
 } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
 import {
@@ -71,12 +71,19 @@ const AdminLayout = () => {
       ]
     },
     {
-      label: "CONTENT MANAGEMENT",
+      label: "SALES & OPERATIONS",
       items: [
-        { icon: Image, label: "Hero Section", path: "/admin/hero", roles: ["admin", "superadmin", "content_admin"] },
-        { icon: Target, label: "Selling Points", path: "/admin/selling-points", roles: ["admin", "superadmin", "content_admin"] },
-        { icon: MessageSquare, label: "Testimonials", path: "/admin/testimonials", roles: ["admin", "superadmin", "content_admin"] },
-        { icon: Images, label: "Gallery", path: "/admin/gallery", roles: ["admin", "superadmin", "content_admin"] },
+        // Deliberately NOT offered to agent_admin, unlike its siblings above.
+        // The bookings and booking_payments RLS policies both check
+        // has_role('admin'), and admin_mark_payment_settled does too - and
+        // has_role treats superadmin as admin, so exactly these two roles can
+        // actually use the page. Listing agent_admin here would render an empty
+        // booking list and an override button that always errors. Widening it
+        // is a real scope decision (new RLS policies on two tables plus hiding
+        // the override for non-admins), not a nav tweak.
+        { icon: CalendarCheck, label: "Kelola Booking", path: "/admin/bookings", roles: ["admin", "superadmin"] },
+        { icon: MessageCircleMore, label: "WhatsApp Inbox", path: "/admin/whatsapp-inbox", roles: ["admin", "superadmin", "sales"] },
+        { icon: Sparkles, label: "Calculator Leads", path: "/admin/calculator-leads", roles: ["admin", "superadmin", "product_admin", "sales"] },
       ]
     },
     {
@@ -87,49 +94,43 @@ const AdminLayout = () => {
         { icon: ListChecks, label: "Fasilitas Paket", path: "/admin/package-items", roles: ["admin", "superadmin", "product_admin"] },
         { icon: Backpack, label: "Perlengkapan", path: "/admin/equipment", roles: ["admin", "superadmin", "product_admin"] },
         { icon: Calendar, label: "Jadwal Keberangkatan", path: "/admin/jadwal", roles: ["admin", "superadmin", "product_admin"] },
+      ]
+    },
+    {
+      label: "TOOLS & FINANCE",
+      items: [
         { icon: Calculator, label: "Kalkulator Harga", path: "/admin/calculator", roles: ["admin", "superadmin", "product_admin"] },
-        { icon: Sparkles, label: "Calculator Leads", path: "/admin/calculator-leads", roles: ["admin", "superadmin", "product_admin", "sales"] },
+        { icon: Calculator, label: "Master COGS", path: "/admin/master-cogs", roles: ["admin", "superadmin", "product_admin"] },
       ]
     },
     {
-      label: "SALES",
+      label: "WEBSITE & CONTENT",
       items: [
-        { icon: MessageCircleMore, label: "WhatsApp Inbox", path: "/admin/whatsapp-inbox", roles: ["admin", "superadmin", "sales"] },
-      ]
-    },
-    {
-      label: "CONTENT & BLOG",
-      items: [
+        { icon: Image, label: "Hero Section", path: "/admin/hero", roles: ["admin", "superadmin", "content_admin"] },
+        { icon: Target, label: "Selling Points", path: "/admin/selling-points", roles: ["admin", "superadmin", "content_admin"] },
+        { icon: MessageSquare, label: "Testimonials", path: "/admin/testimonials", roles: ["admin", "superadmin", "content_admin"] },
+        { icon: Images, label: "Gallery", path: "/admin/gallery", roles: ["admin", "superadmin", "content_admin"] },
         { icon: FileText, label: "Artikel", path: "/admin/articles", roles: ["admin", "superadmin", "content_admin"] },
         { icon: HelpCircle, label: "FAQ", path: "/admin/faq", roles: ["admin", "superadmin", "content_admin"] },
-        { icon: Download, label: "Flyer Generator", path: "/admin/flyer-generator", roles: ["admin", "superadmin", "content_admin"] },
       ]
     },
     {
-      label: "AGENTS",
+      label: "MARKETING & AGENTS",
       items: [
         { icon: UserCog, label: "Kelola Agent", path: "/admin/agents", roles: ["admin", "superadmin", "agent_admin"] },
         { icon: Trophy, label: "Gamification", path: "/admin/gamification", roles: ["admin", "superadmin", "agent_admin"] },
-        // Deliberately NOT offered to agent_admin, unlike its siblings above.
-        // The bookings and booking_payments RLS policies both check
-        // has_role('admin'), and admin_mark_payment_settled does too - and
-        // has_role treats superadmin as admin, so exactly these two roles can
-        // actually use the page. Listing agent_admin here would render an empty
-        // booking list and an override button that always errors. Widening it
-        // is a real scope decision (new RLS policies on two tables plus hiding
-        // the override for non-admins), not a nav tweak.
-        { icon: CalendarCheck, label: "Kelola Booking", path: "/admin/bookings", roles: ["admin", "superadmin"] },
+        { icon: Download, label: "Flyer Generator", path: "/admin/flyer-generator", roles: ["admin", "superadmin", "content_admin"] },
+        { icon: TrendingUp, label: "Marketing Settings", path: "/admin/settings/marketing", roles: ["admin", "superadmin", "advertiser"] },
+        { icon: Wallet, label: "Ad Spend", path: "/admin/ad-spend", roles: ["admin", "superadmin", "advertiser"] },
+        { icon: MessageCircleMore, label: "Chat Rotation", path: "/admin/chat-rotation", roles: ["admin", "superadmin", "advertiser"] },
+        { icon: Link2, label: "URL Shortener", path: "/admin/url-shortener", roles: ["admin", "superadmin", "advertiser"] },
+        { icon: Search, label: "SEO", path: "/admin/seo", roles: ["admin", "superadmin", "content_admin"] },
       ]
     },
     {
       label: "SETTINGS",
       items: [
         { icon: Settings, label: "Website Settings", path: "/admin/settings", roles: ["admin", "superadmin"] },
-        { icon: TrendingUp, label: "Marketing Settings", path: "/admin/settings/marketing", roles: ["admin", "superadmin", "advertiser"] },
-        { icon: Wallet, label: "Ad Spend", path: "/admin/ad-spend", roles: ["admin", "superadmin", "advertiser"] },
-        { icon: MessageCircleMore, label: "Chat Rotation", path: "/admin/chat-rotation", roles: ["admin", "superadmin", "advertiser"] },
-        { icon: Link2, label: "URL Shortener", path: "/admin/url-shortener", roles: ["admin", "superadmin", "advertiser"] },
-        { icon: Search, label: "SEO", path: "/admin/seo", roles: ["admin", "superadmin", "content_admin"] },
         { icon: Users, label: "Team", path: "/admin/team", roles: ["admin", "superadmin"] },
       ]
     }
@@ -176,13 +177,13 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
   const avatarEmoji = user?.user_metadata?.avatar_emoji || "😎";
 
   return (
-    <div className="h-svh flex w-full bg-[#F1F5F9] overflow-hidden" style={{ "--sidebar-background": "transparent" } as React.CSSProperties}>
-        <Sidebar collapsible="icon" className="border-none h-svh bg-transparent text-slate-600">
-        <SidebarHeader className="border-b border-slate-200/50 pt-4 pb-2">
+    <div className="h-svh flex w-full bg-white overflow-hidden">
+        <Sidebar collapsible="icon" className="border-r border-slate-200 h-svh bg-[#FAFAFA] text-slate-600">
+        <SidebarHeader className="border-b border-slate-200 pt-4 pb-2">
           {open ? (
-            <div className="flex items-center justify-between px-4 pb-2">
+            <div className="flex items-center justify-between px-2 pb-2">
               <div 
-                className="h-8 w-28 bg-slate-800 [mask-image:url('/logo.webp')] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:left] [-webkit-mask-image:url('/logo.webp')] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:left]"
+                className="h-8 w-28 bg-slate-900 [mask-image:url('/logo.webp')] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:left] [-webkit-mask-image:url('/logo.webp')] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:left]"
                 aria-label="Musafar Tour"
               />
               <SidebarTrigger className="text-slate-500 hover:bg-slate-200 rounded-lg" />
@@ -193,7 +194,7 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
                 <SidebarMenuButton 
                   onClick={toggleSidebar} 
                   tooltip="Expand Sidebar" 
-                  className="hover:bg-slate-200/50 rounded-lg transition-all duration-300 ease-in-out mx-2 text-slate-500"
+                  className="hover:bg-slate-200 transition-all duration-300 ease-in-out text-slate-500"
                 >
                   <PanelLeft className="h-4 w-4" />
                 </SidebarMenuButton>
@@ -202,7 +203,7 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
           )}
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Back to Website" className="hover:bg-white hover:shadow-sm rounded-lg transition-all duration-300 ease-in-out mx-2 text-slate-600 mt-2">
+              <SidebarMenuButton asChild tooltip="Back to Website" className="hover:bg-white hover:shadow-sm hover:border-slate-200 border border-transparent rounded-lg transition-all duration-300 ease-in-out text-slate-600 mt-2">
                 <Link to="/">
                   <Home className="h-4 w-4" />
                   <span className="font-medium">Back to Website</span>
@@ -212,11 +213,11 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
           </SidebarMenu>
         </SidebarHeader>
 
-        <SidebarContent className="px-2 py-2">
+        <SidebarContent className="py-2">
           {menuSections.map((section: any, idx: number) => (
-            <SidebarGroup key={idx}>
+            <SidebarGroup key={idx} className="mb-2">
               {section.label && (
-                <SidebarGroupLabel className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold px-2 mb-1">
+                <SidebarGroupLabel className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold px-2 mb-2">
                   {section.label}
                 </SidebarGroupLabel>
               )}
@@ -229,15 +230,15 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
                       <SidebarMenuItem key={item.path} className="mb-1">
                         <SidebarMenuButton
                           asChild
-                          className={`transition-all duration-300 ease-in-out rounded-lg ${
+                          className={`transition-all duration-200 ease-in-out rounded-lg ${
                             active
-                              ? "bg-white shadow-sm text-slate-900 border border-slate-100"
-                              : "text-slate-500 hover:bg-slate-200/50 hover:text-slate-800"
+                              ? "bg-white shadow-sm text-slate-900 border border-slate-200"
+                              : "text-slate-500 hover:bg-slate-200/50 hover:text-slate-800 border border-transparent"
                           }`}
                           tooltip={item.label}
                         >
                           <Link to={item.path}>
-                            <Icon className={`h-4 w-4 ${active ? "text-slate-900" : ""}`} />
+                            <Icon className={`h-[18px] w-[18px] ${active ? "text-slate-900" : ""}`} />
                             <span className={active ? "font-semibold text-slate-900" : "font-medium"}>{item.label}</span>
                           </Link>
                         </SidebarMenuButton>
@@ -250,7 +251,7 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
           ))}
         </SidebarContent>
 
-        <SidebarFooter className="px-4 pt-2 pb-4 flex flex-col gap-2 border-t border-slate-200/50">
+        <SidebarFooter className="pb-4 flex flex-col gap-2 border-t border-slate-200">
           <SidebarMenu>
             <SidebarMenuItem>
               <NotificationDropdown />
@@ -261,13 +262,13 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild tooltip="Profil" className="hover:bg-slate-200/50 transition-all duration-300">
                 <Link to="/admin/profile">
-                  <Avatar className="h-8 w-8 rounded-full">
-                    <AvatarFallback className="bg-slate-100 text-lg">
+                  <Avatar className="h-8 w-8 rounded-full border border-slate-200">
+                    <AvatarFallback className="bg-white text-lg font-semibold text-slate-800">
                       {avatarEmoji}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight overflow-hidden">
-                    <span className="truncate font-semibold text-slate-700 group-hover:text-slate-900 leading-tight">
+                    <span className="truncate font-semibold text-slate-800 group-hover:text-slate-900 leading-tight">
                       {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email}
                     </span>
                     <span className="truncate text-[10px] text-slate-500 leading-tight capitalize">
@@ -290,9 +291,33 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
         </SidebarFooter>
       </Sidebar>
 
-      <div className="flex-1 h-svh p-2 sm:p-4">
-        <main className="h-full w-full overflow-auto bg-[#F8FAFC] flex flex-col rounded-xl border border-slate-200/60 relative shadow-sm">
-          <div className="p-6 sm:p-8 md:p-10 flex-1">
+      <div className="flex-1 h-svh">
+        <main className="h-full w-full overflow-auto bg-white flex flex-col relative">
+          
+          {/* Top Header matching the design */}
+          <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 sm:px-10 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
+              <span>Main Menu</span>
+              <span className="text-slate-300">/</span>
+              <span className="text-slate-800 font-semibold flex items-center gap-2">
+                <LayoutDashboard className="w-4 h-4" />
+                {menuSections.flatMap(s => s.items).find(i => i.path === location.pathname)?.label || 'Dashboard'}
+              </span>
+            </div>
+            
+            <div className="hidden md:flex items-center">
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Search anything..." 
+                  className="pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-full text-sm w-[280px] focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-300 transition-all text-slate-800 placeholder:text-slate-400"
+                />
+              </div>
+            </div>
+          </header>
+
+          <div className="p-6 sm:p-10 flex-1">
             <Suspense
               fallback={
                 <div className="flex items-center justify-center py-12 h-full">

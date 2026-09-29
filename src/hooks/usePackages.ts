@@ -1,6 +1,7 @@
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { parsePackagePrice, type PackagePrice } from '@/lib/packageSchema';
+import { todayJakarta } from '@/lib/utils';
 
 const STALE_TIME = 5 * 60 * 1000; // 5 minutes
 const LONG_CACHE_TIME = 10 * 60 * 1000; // 10 minutes
@@ -8,7 +9,7 @@ const LONG_CACHE_TIME = 10 * 60 * 1000; // 10 minutes
 // Explicit allowlist for the public site. Excludes admin-only/business-sensitive
 // columns on the same table (cogs_data, agent_commission_amount, cogs_status, etc.) —
 // never widen this back to select('*'), that would leak supplier costs/margins publicly.
-const PUBLIC_PACKAGE_COLUMNS = [
+export const PUBLIC_PACKAGE_COLUMNS = [
   'id', 'slug', 'package_name', 'departure_date', 'duration_days', 'flight', 'flight_type',
   'banner_image', 'package_price', 'five_star_package_price', 'hemat_package_price',
   'pelataran_package_price', 'available_tiers',
@@ -27,6 +28,9 @@ const PUBLIC_PACKAGE_COLUMNS = [
   'nights_makkah', 'nights_madinah', 'nights_extra', 'hotel_extra', 'is_sold_out', 'sold_out_date',
   'waitlist_count', 'meta_title', 'meta_description', 'og_image', 'canonical_url',
 ].join(', ');
+
+// Agents also need their flat commission; still no COGS/margin data.
+export const AGENT_PACKAGE_COLUMNS = `${PUBLIC_PACKAGE_COLUMNS}, agent_commission_amount, commission_rate, status`;
 
 export interface PublishedPackage {
   id: string;
@@ -137,6 +141,7 @@ export const usePublishedPackages = () => {
         .from('packages')
         .select(PUBLIC_PACKAGE_COLUMNS)
         .eq('status', 'published')
+        .gte('departure_date', todayJakarta())
         .order('departure_date', { ascending: true });
 
       if (error) throw error;

@@ -145,9 +145,9 @@ const PaketUmroh = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO 
-        title="Paket Umroh 2025 Terlengkap & Terpercaya - Musafar Tour"
-        description="Pilih paket umroh terbaik: 9 hari, 12 hari, plus Turki. Harga mulai 20 juta, hotel bintang 5, keberangkatan fleksibel. Daftar sekarang!"
-        keywords="paket umroh 2025, harga umroh, paket umroh murah, jadwal umroh 2025, umroh hemat"
+        title="Paket Umroh 2026 Terlengkap & Terpercaya - Musafar Tour"
+        description="Pilih paket umroh terbaik: hemat hingga five star, 9 dan 12 hari, keberangkatan setiap bulan. Berizin resmi Kemenag. Daftar sekarang!"
+        keywords="paket umroh 2026, harga umroh, paket umroh murah, jadwal umroh 2026, umroh hemat"
         canonicalUrl="https://musafartour.com/paket-umroh"
       />
       <Navbar />

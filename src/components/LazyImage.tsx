@@ -76,7 +76,9 @@ export const LazyImage = ({
   const defaultSrc = optimizedSrc;
 
   return (
-    <div className="relative overflow-hidden">
+    // w-full h-full so the image fills fixed-height containers (article thumbnails
+    // were leaving a blank strip under the photo).
+    <div className="relative overflow-hidden w-full h-full">
       {!isLoaded && (
         <div className={cn(
           "absolute inset-0 bg-muted animate-pulse",

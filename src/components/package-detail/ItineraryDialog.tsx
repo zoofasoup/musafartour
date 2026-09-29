@@ -53,7 +53,9 @@ export function ItineraryDialog({ packageName, itinerary, trigger, accent }: Iti
       .filter((d): d is ItineraryDay => d !== null);
   }, [itinerary]);
 
-  if (days.length === 0) return null;
+  // Hide until there's a real day-by-day plan: several packages only have a single
+  // "Makkah - Madinah" line, which rendered as "1 hari perjalanan" on 9-12 day trips.
+  if (!days.some((d) => d.activities.length > 0)) return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

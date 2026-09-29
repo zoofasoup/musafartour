@@ -1,12 +1,13 @@
-import { fetchArticleBySlug, fetchPublishedArticles, fetchWebsiteSettings } from "../_lib/data";
-import { escapeHtml, formatDateId, renderShell, sanitizeBodyHtml } from "../_lib/render";
+import { fetchArticleBySlug, fetchMarketingPixels, fetchPublishedArticles, fetchWebsiteSettings } from "../_lib/data";
+import { escapeHtml, formatDateId, renderShell, sanitizeBodyHtml, truncateDescription } from "../_lib/render";
 import type { Env } from "../_lib/env";
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const slug = context.params.slug as string;
-  const [article, settings] = await Promise.all([
+  const [article, settings, pixels] = await Promise.all([
     fetchArticleBySlug(context.env, slug),
     fetchWebsiteSettings(context.env),
+    fetchMarketingPixels(context.env),
   ]);
 
   if (!article) {
@@ -14,18 +15,37 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   }
 
   const canonical = `https://musafartour.com/artikel/${article.slug}`;
-  const description = article.meta_description || article.excerpt || article.title;
+  const description = truncateDescription(article.meta_description || article.excerpt || article.title);
+  const siteName = settings?.site_name || "Musafar Tour";
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
-    headline: article.title,
-    description,
-    image: article.featured_image || undefined,
-    datePublished: article.created_at,
-    author: { "@type": "Organization", name: article.author_name || "Tim Musafar Tour" },
-    publisher: { "@type": "Organization", name: settings?.site_name || "Musafar Tour" },
-    mainEntityOfPage: canonical,
+    "@graph": [
+      {
+        "@type": "Article",
+        headline: article.title,
+        description,
+        image: article.featured_image || undefined,
+        datePublished: article.created_at,
+        dateModified: article.updated_at || article.created_at,
+        author: { "@type": "Organization", name: article.author_name || "Tim Musafar Tour" },
+        publisher: {
+          "@type": "Organization",
+          "@id": "https://musafartour.com/#organization",
+          name: siteName,
+          logo: { "@type": "ImageObject", url: "https://musafartour.com/logo.webp" },
+        },
+        mainEntityOfPage: canonical,
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Beranda", item: "https://musafartour.com/" },
+          { "@type": "ListItem", position: 2, name: "Artikel", item: "https://musafartour.com/artikel" },
+          { "@type": "ListItem", position: 3, name: article.title, item: canonical },
+        ],
+      },
+    ],
   };
 
   const related = (await fetchPublishedArticles(context.env, 4))
@@ -47,7 +67,7 @@ ${article.excerpt ? `<div class="excerpt">${escapeHtml(article.excerpt)}</div>` 
 ${
   related.length
     ? `<div style="margin-top:48px">
-<h2 style="font-family:Outfit,sans-serif;font-size:1.2rem">Artikel Lainnya</h2>
+<h2 style="font-size:1.2rem">Artikel Lainnya</h2>
 <div class="card-list">
 ${related
   .map(
@@ -67,6 +87,7 @@ ${related
     jsonLd,
     bodyContent,
     settings,
+    pixels,
   });
 
   return new Response(html, {

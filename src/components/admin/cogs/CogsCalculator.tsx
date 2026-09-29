@@ -442,7 +442,7 @@ export const CogsCalculator = ({ packageId, initialData, packageData, onSaved, i
       // Cmd + Shift + A (Mac) or Ctrl + Shift + A (Win)
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.code === 'KeyA') {
         e.preventDefault();
-        addExpenseItem('add_ons');
+        addAddOn();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -468,7 +468,7 @@ export const CogsCalculator = ({ packageId, initialData, packageData, onSaved, i
       const fetchTemplate = async () => {
         const { data: tmpl } = await supabase.from('cogs_defaults').select('data').eq('id', 'default').single();
         if (tmpl && tmpl.data) {
-          let parsed = tmpl.data;
+          const parsed = tmpl.data as unknown as CogsDataV2;
           
           if (packageData) {
             if (packageData.flight && parsed.indo_expenses.esensial[0]) {

@@ -28,7 +28,7 @@ All colors MUST be HSL.
     --muted: 180 4% 95%;
     --muted-foreground: 0 0% 35%;
 
-    --accent: 42 100% 50%;
+    --accent: 210 40% 96.1%;
     --accent-foreground: 0 0% 15%;
 
     --destructive: 347 99% 40%;
@@ -38,7 +38,7 @@ All colors MUST be HSL.
     --input: 180 4% 95%;
     --ring: 347 99% 40%;
 
-    --radius: 1.5rem;
+    --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -76,8 +76,8 @@ All colors MUST be HSL.
     --muted: 0 0% 20%;
     --muted-foreground: 180 0% 60%;
 
-    --accent: 42 100% 50%;
-    --accent-foreground: 0 0% 15%;
+    --accent: 0 0% 20%;
+    --accent-foreground: 180 4% 95%;
 
     --destructive: 347 99% 40%;
     --destructive-foreground: 180 4% 95%;
@@ -217,6 +217,13 @@ All colors MUST be HSL.
   }
   .animate-scroll-photos {
     animation-duration: 35s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-scroll-logos,
+  .animate-scroll-photos {
+    animation-play-state: paused;
   }
 }
 

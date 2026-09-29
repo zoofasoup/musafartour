@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { useHomepageData } from "@/hooks/useHomepageData";
 import { TestimonialCard } from "@/components/TestimonialCard";
 import { PackageCard } from "@/components/PackageCard";
-import { getTierPrice, isPackageUnavailable, getSlotsTaken } from "@/lib/utils";
+import { getTierPrice, isPackageUnavailable, getSlotsTaken, formatPriceJuta } from "@/lib/utils";
+import { resolveTierHotels } from "@/lib/roomCombos";
+import type { PublishedPackage } from "@/hooks/usePackages";
+import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
 import {
   Heart,
   Baby,
@@ -253,22 +257,28 @@ const TentangKami = () => {
               [...packages]
                 .sort((a, b) => Number(isPackageUnavailable(a)) - Number(isPackageUnavailable(b)))
                 .slice(0, 3)
-                .map((pkg, i) => (
+                .map((pkg, i) => {
+                  // Same as RelatedPackages: show the package's own tier hotels, not the
+                  // legacy base fields (empty or mismatched stars on hemat/five-star-only packages).
+                  const tier = pkg.available_tiers?.[0] || "nyaman";
+                  const tierHotels = resolveTierHotels(pkg as unknown as PublishedPackage, tier);
+                  return (
                 <motion.div key={pkg.id} variants={fadeUp} className="h-full">
                   <PackageCard
                     id={pkg.id}
-                    slug={pkg.slug}
+                    slug={pkg.slug || undefined}
                     image={pkg.banner_image || "/placeholder.svg"}
                     title={pkg.package_name}
-                    price={getTierPrice(pkg).quad ? `Rp ${getTierPrice(pkg).quad.toLocaleString("id-ID")}` : "Harga tidak tersedia"}
-                    date={new Date(pkg.departure_date).toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
+                    price={formatPriceJuta(getTierPrice(pkg).quad)}
+                    date={format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId })}
                     duration={`${pkg.duration_days} Hari`}
-                    airline={pkg.flight || "Saudia Airlines"}
-                    hotelMakkah={pkg.makkah_hotel_name || ""}
-                    hotelMakkahRating={pkg.makkah_hotel_star || 4}
-                    hotelMadinah={pkg.madinah_hotel_name || ""}
-                    hotelMadinahRating={pkg.madinah_hotel_star || 4}
-                    category={pkg.available_tiers?.[0] || "nyaman"}
+                    airline={pkg.flight}
+                    hotelMakkah={tierHotels.makkah.name || undefined}
+                    hotelMakkahRating={tierHotels.makkah.star || undefined}
+                    hotelMadinah={tierHotels.madinah.name || undefined}
+                    hotelMadinahRating={tierHotels.madinah.star || undefined}
+                    category={tier}
+                    index={i}
                     seatAvailable={!isPackageUnavailable(pkg)}
                     isSoldOut={isPackageUnavailable(pkg)}
                     waitlistCount={pkg.waitlist_count || 0}
@@ -277,7 +287,8 @@ const TentangKami = () => {
                     className="h-full"
                   />
                 </motion.div>
-              ))
+                  );
+                })
             ) : (
               <div className="col-span-full text-center text-muted-foreground py-10">Belum ada paket tersedia.</div>
             )}

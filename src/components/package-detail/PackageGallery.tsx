@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { cn, isPackageUnavailable, getOptimizedImageUrl } from "@/lib/utils";
+import { cn, isPackageUnavailable, isPackageDeparted, getOptimizedImageUrl } from "@/lib/utils";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { LazyImage } from "@/components/ui/lazy-image";
 import type { PublishedPackage } from "@/hooks/usePackages";
@@ -40,7 +40,7 @@ export function PackageGallery({ packageData }: PackageGalleryProps) {
         {unavailable && (
           <div className="absolute top-4 left-4 z-10">
             <Badge className="bg-destructive text-destructive-foreground border-0 shadow text-sm px-3 py-1">
-              SOLD OUT
+              {isPackageDeparted(packageData) ? "SUDAH BERANGKAT" : "SOLD OUT"}
             </Badge>
           </div>
         )}

@@ -52,9 +52,10 @@ const Index = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": ["TravelAgency", "Organization"],
+    "@id": "https://musafartour.com/#organization",
     name: websiteSettings?.site_name || "Musafar Tour",
     url: "https://musafartour.com",
-    logo: "https://musafartour.com/logo.png",
+    logo: "https://musafartour.com/logo.webp",
     description:
       websiteSettings?.site_tagline ||
       "Travel umroh dan haji terpercaya dengan pelayanan terbaik sejak 2015",
@@ -81,9 +82,9 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <SEO
-        title={pageSEO?.meta_title || "Musafar Tour - Paket Umroh & Haji Terpercaya 2025"}
-        description={pageSEO?.meta_description || "Paket umroh mulai 20 jutaan dengan pelayanan terbaik. Hotel bintang 5, katering Indonesia, pembimbing berpengalaman. Daftar sekarang!"}
-        keywords={pageSEO?.focus_keyword || "paket umroh, travel umroh terpercaya, umroh 2025, haji khusus, wisata halal"}
+        title={pageSEO?.meta_title || "Musafar Tour - Paket Umroh & Haji Terpercaya 2026"}
+        description={pageSEO?.meta_description || "Paket umroh hemat hingga five star dengan pelayanan terbaik. Katering Indonesia, pembimbing berpengalaman, berizin resmi Kemenag. Daftar sekarang!"}
+        keywords={pageSEO?.focus_keyword || "paket umroh, travel umroh terpercaya, umroh 2026, haji khusus, wisata halal"}
         canonicalUrl={pageSEO?.canonical_url || "https://musafartour.com/"}
         ogImage={pageSEO?.og_image}
         structuredData={structuredData}

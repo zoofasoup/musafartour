@@ -1,7 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Star, Heart, ShieldCheck } from "lucide-react";
-import musafarLogo from "@/assets/musafar-logo.svg";
-import { LazyImage } from "@/components/ui/lazy-image";
 import type { HeroData, WebsiteSettings } from "@/hooks/useHomepageData";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { useNavigate } from "react-router-dom";
@@ -12,114 +10,112 @@ interface HeroSectionProps {
   isLoading?: boolean;
 }
 
-const mosaicPhotos = [
-  "/gallery/jamaah-1.jpg",
-  "/gallery/jamaah-2.jpg",
-  "/gallery/jamaah-3.jpg",
-  "/gallery/jamaah-4.jpg",
-  "/hero.webp",
-];
-
-export const HeroSection = ({ heroData, websiteSettings, isLoading }: HeroSectionProps) => {
+// Props are still passed by Index but the hero content is static; it no longer
+// waits on the hero_section query, so it paints immediately as the LCP element.
+export const HeroSection = (_props: HeroSectionProps) => {
   const navigate = useNavigate();
 
   const handleWhatsAppClick = () => {
     redirectToWhatsApp("Halo Musamin, saya tertarik untuk berkonsultasi mengenai paket Umroh.");
   };
 
-  const renderSkeleton = () => (
-    <div className="w-full min-h-screen bg-background pt-32 pb-16 flex flex-col items-center justify-start relative overflow-hidden">
-      <div className="w-full max-w-4xl px-4 text-center z-10">
-        <div className="h-16 w-3/4 max-w-2xl mx-auto mb-6 bg-muted animate-pulse rounded" />
-        <div className="h-6 w-2/3 max-w-xl mx-auto mb-10 bg-muted animate-pulse rounded" />
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full px-6 md:px-8 mb-10">
-          <div className="h-14 w-full sm:w-48 bg-muted animate-pulse rounded-full" />
-          <div className="h-14 w-full sm:w-48 bg-muted animate-pulse rounded-full" />
-        </div>
-      </div>
-      <div className="mt-8 w-full max-w-[1600px] mx-auto px-6 md:px-8 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {[1, 2, 3, 4, 5].map(i => <div key={i} className="aspect-[3/4] bg-muted animate-pulse rounded-2xl" />)}
-      </div>
-    </div>
-  );
-
   return (
-    <section className="relative w-full flex flex-col items-center justify-start pt-32 md:pt-40 pb-12 overflow-hidden bg-background">
-      {isLoading ? (
-        renderSkeleton()
-      ) : (
+    <section className="relative w-full h-[90vh] min-h-[650px] flex items-center justify-start overflow-hidden">
+      {
         <>
-          <div className="relative z-10 container mx-auto px-6 md:px-8 flex flex-col items-center justify-start text-center">
-            {/* Header Text Block - Clean typography on light background */}
-            <div className="max-w-4xl mx-auto space-y-4 md:space-y-6 mb-10 animate-fade-in opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
-              <h1 className="text-4xl md:text-6xl lg:text-[4.5rem] font-display font-bold text-[#1c1c1c] tracking-tight leading-[1.05]">
-                Umroh & Haji Nyaman, Bukan Sekadar Safar Biasa.
-              </h1>
-              
-              <p className="text-lg md:text-2xl text-[#1c1c1c]/70 max-w-2xl mx-auto font-medium">
-                Teman Perjalanan Keluarga Membangun Memori di Tanah Suci
-              </p>
-            </div>
-
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-full px-6 md:px-8 mb-8 animate-fade-in opacity-0" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
-              <Button
-                size="lg"
-                className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-base md:text-lg px-8 w-full sm:w-auto h-14 rounded-full transition-all hover:scale-105 shadow-lg shadow-accent/20"
-                onClick={() => navigate("/paket-umroh")}
-              >
-                Lihat Semua Paket
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="bg-transparent border-[#1c1c1c]/20 text-[#1c1c1c] hover:bg-[#1c1c1c]/5 hover:text-[#1c1c1c] font-semibold text-base md:text-lg px-8 w-full sm:w-auto h-14 rounded-full transition-all hover:scale-105 group"
-                onClick={handleWhatsAppClick}
-              >
-                <MessageCircle className="mr-2 h-5 w-5 text-destructive group-hover:scale-110 transition-transform" />
-                <span>Tanya CS (Gratis)</span>
-                <Heart className="ml-2 h-4 w-4 text-destructive/70" />
-              </Button>
-            </div>
-
-            {/* Trust Signals Badge */}
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 justify-center mb-10 animate-fade-in opacity-0" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
-              <div className="flex gap-1 text-accent">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
-                ))}
-              </div>
-              <div className="flex items-center gap-1.5 bg-green-500/10 text-green-700 px-3 py-1 rounded-full border border-green-500/20">
-                <ShieldCheck className="h-4 w-4" />
-                <p className="text-sm sm:text-base font-semibold">Berizin Resmi Kemenag PPIU: {websiteSettings?.ppiu_license_number || "17102200953750002"}</p>
-              </div>
-            </div>
-            
-            {/* Scroll Indicator */}
-            <div className="animate-bounce opacity-40 flex flex-col items-center gap-2 mb-10">
-              <span className="text-[#1c1c1c]/50 text-xs font-semibold tracking-widest uppercase">Scroll</span>
-              <div className="w-[1px] h-8 bg-gradient-to-b from-[#1c1c1c]/50 to-transparent" />
-            </div>
-
-            {/* Mosaic Photo Grid */}
-            <div className="w-full max-w-[1600px] mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 animate-fade-in opacity-0" style={{ animationDelay: '0.8s', animationFillMode: 'forwards' }}>
-              {mosaicPhotos.map((photo, i) => (
-                <div key={i} className="aspect-[3/4] rounded-2xl overflow-hidden bg-muted group relative shadow-md">
-                  <LazyImage
-                    src={photo}
-                    alt={`Jamaah Musafar Tour ${i + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    loading={i < 2 ? "eager" : "lazy"}
-                  />
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500" />
-                </div>
-              ))}
-            </div>
+          {/* Background Image */}
+          <div className="absolute inset-0 z-0">
+            <img
+              src="/hero-1920.webp"
+              srcSet="/hero-1024.webp 1024w, /hero-1920.webp 1920w"
+              sizes="100vw"
+              alt="Musafar Tour Hero"
+              className="w-full h-full object-cover object-top"
+              loading="eager"
+              decoding="async"
+              {...{ fetchpriority: "high" }}
+            />
+            {/* Gradient Overlay for Text Readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/40 to-black/80" />
+            {/* Subtle bottom gradient to blend into the next section */}
+            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
           </div>
 
+          <div className="relative z-10 w-full max-w-[1600px] mx-auto px-6 md:px-12 flex flex-col justify-center h-full pt-16">
+            <div className="max-w-4xl text-white mx-auto text-center flex flex-col items-center">
+              {/* Trust Badge */}
+              <div 
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-6 animate-fade-in opacity-0"
+                style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}
+              >
+                <ShieldCheck className="h-4 w-4 text-green-400" />
+                Berizin Resmi Kemenag PPIU
+              </div>
+              
+              {/* Main Title */}
+              <h1 
+                className="text-[2rem] sm:text-5xl md:text-[3.25rem] lg:text-6xl xl:text-7xl text-balance font-display font-bold leading-[1.1] tracking-tight mb-6 animate-fade-in opacity-0"
+                style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}
+              >
+                Umroh & Haji Nyaman, <br className="hidden md:block" /> Bukan Sekadar Safar Biasa.
+              </h1>
+              
+              {/* Subtitle */}
+              <p 
+                className="text-lg md:text-2xl text-white/90 font-medium mb-10 max-w-2xl animate-fade-in opacity-0"
+                style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}
+              >
+                Teman Perjalanan Keluarga Membangun Memori di Tanah Suci
+              </p>
+              
+              {/* CTAs */}
+              <div 
+                className="flex flex-col sm:flex-row gap-4 mb-12 animate-fade-in opacity-0 justify-center"
+                style={{ animationDelay: '0.8s', animationFillMode: 'forwards' }}
+              >
+                <Button
+                  size="lg"
+                  className="bg-white text-black hover:bg-white/90 font-bold text-base md:text-lg px-8 w-full sm:w-auto h-14 rounded-full transition-all hover:scale-105"
+                  onClick={() => navigate("/paket-umroh")}
+                >
+                  Lihat Semua Paket
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="bg-black/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 hover:text-white font-semibold text-base md:text-lg px-8 w-full sm:w-auto h-14 rounded-full transition-all hover:scale-105 group"
+                  onClick={handleWhatsAppClick}
+                >
+                  <MessageCircle className="mr-2 h-5 w-5 text-white group-hover:scale-110 transition-transform" />
+                  <span>Tanya CS (Gratis)</span>
+                  <Heart className="ml-2 h-4 w-4 text-white/70" />
+                </Button>
+              </div>
 
+              {/* Reviews/Trust Signals */}
+              <div 
+                className="flex items-center gap-4 animate-fade-in opacity-0"
+                style={{ animationDelay: '1s', animationFillMode: 'forwards' }}
+              >
+                <div className="flex -space-x-3">
+                  <div className="w-10 h-10 rounded-full border-2 border-slate-900 bg-muted overflow-hidden"><img src="/gallery/jamaah-1-avatar.webp" alt="" width={40} height={40} className="w-full h-full object-cover" /></div>
+                  <div className="w-10 h-10 rounded-full border-2 border-slate-900 bg-muted overflow-hidden"><img src="/gallery/jamaah-2-avatar.webp" alt="" width={40} height={40} className="w-full h-full object-cover" /></div>
+                  <div className="w-10 h-10 rounded-full border-2 border-slate-900 bg-muted overflow-hidden"><img src="/gallery/jamaah-3-avatar.webp" alt="" width={40} height={40} className="w-full h-full object-cover" /></div>
+                </div>
+                <div className="flex flex-col">
+                  <div className="flex gap-1 text-yellow-400">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star key={i} className="w-3 h-3 fill-current" />
+                    ))}
+                  </div>
+                  <span className="text-white/80 text-xs font-medium">3000+ Jamaah Puas</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
         </>
-      )}
+      }
     </section>
   );
 };

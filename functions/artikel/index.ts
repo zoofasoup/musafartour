@@ -1,11 +1,12 @@
-import { fetchPublishedArticles, fetchWebsiteSettings } from "../_lib/data";
+import { fetchMarketingPixels, fetchPublishedArticles, fetchWebsiteSettings } from "../_lib/data";
 import { escapeHtml, formatDateId, renderShell } from "../_lib/render";
 import type { Env } from "../_lib/env";
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
-  const [articles, settings] = await Promise.all([
+  const [articles, settings, pixels] = await Promise.all([
     fetchPublishedArticles(context.env, 30),
     fetchWebsiteSettings(context.env),
+    fetchMarketingPixels(context.env),
   ]);
 
   const bodyContent = `
@@ -29,8 +30,10 @@ ${articles.length === 0 ? "<p>Belum ada artikel tersedia.</p>" : ""}`;
     title: "Artikel & Tips Umroh - Musafar Tour",
     description: "Panduan, tips, dan informasi bermanfaat seputar perjalanan umroh dan haji dari tim Musafar Tour.",
     canonical: "https://musafartour.com/artikel",
+    ogImage: "https://musafartour.com/og-default.jpg",
     bodyContent,
     settings,
+    pixels,
   });
 
   return new Response(html, {

@@ -5,10 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ShieldCheck, Eye, EyeOff, KeyRound } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Loader2, Eye, EyeOff, KeyRound } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo.svg";
 import { getSafeErrorMessage } from "@/lib/errorHandler";
 import { z } from "zod";
@@ -23,20 +21,6 @@ const loginSchema = z.object({
   password: z.string()
     .min(1, { message: "Password tidak boleh kosong" })
     .max(100, { message: "Password terlalu panjang" })
-});
-
-// Schema untuk signup - enforce aturan password ketat
-const signupSchema = z.object({
-  email: z.string()
-    .trim()
-    .email({ message: "Email tidak valid" })
-    .max(255, { message: "Email terlalu panjang" }),
-  password: z.string()
-    .min(8, { message: "Password minimal 8 karakter" })
-    .max(100, { message: "Password terlalu panjang" })
-    .regex(/[A-Z]/, { message: "Password harus mengandung huruf besar" })
-    .regex(/[a-z]/, { message: "Password harus mengandung huruf kecil" })
-    .regex(/[0-9]/, { message: "Password harus mengandung angka" })
 });
 
 const emailSchema = z.string()
@@ -159,48 +143,6 @@ const Auth = () => {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      // Gunakan signupSchema - enforce aturan password ketat untuk akun baru
-      const validatedData = signupSchema.parse({ email, password });
-      
-      const redirectUrl = `${window.location.origin}/admin`;
-      
-      const { data, error } = await supabase.auth.signUp({
-        email: validatedData.email,
-        password: validatedData.password,
-        options: {
-          emailRedirectTo: redirectUrl
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Registrasi berhasil!",
-        description: "Akun Anda telah dibuat. Silakan login.",
-      });
-    } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        toast({
-          title: "Validasi gagal",
-          description: error.errors[0].message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Registrasi gagal",
-          description: getSafeErrorMessage(error),
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -399,13 +341,9 @@ const Auth = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-              
-              <TabsContent value="signin">
+          {/* Sign-in only: team members get accounts through the invite on the admin Team
+              page, so a public sign-up form and the first-admin setup link aren't needed here.
+              /admin/setup is still reachable directly and gated by its secret code. */}
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signin-email">Email</Label>
@@ -454,69 +392,9 @@ const Auth = () => {
                   </Button>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Sign In
+                    Masuk
                   </Button>
                 </form>
-              </TabsContent>
-            
-              <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="admin@musafartour.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="signup-password"
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={6}
-                        className="pr-10"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Sign Up
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-          <div className="mt-8 pt-6 border-t text-center animate-fade-in">
-            <Link to="/admin/setup">
-              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-primary">
-                <ShieldCheck className="h-4 w-4" />
-                Setup Admin Pertama
-              </Button>
-            </Link>
-            <p className="text-xs text-muted-foreground mt-2">
-              Belum ada admin? Setup admin pertama dengan kode rahasia
-            </p>
-          </div>
         </div>
       )}
     </AuthLayout>

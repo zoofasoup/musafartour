@@ -30,6 +30,8 @@ const JamaahDashboard = () => {
         .select(
           "id, status, total_price, amount_paid, room_type, traveler_count, packages(package_name, departure_date)"
         )
+        // RLS also returns bookings where this user is the referring agent; only show their own.
+        .eq("jamaah_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;

@@ -126,12 +126,17 @@ export function getSlotsRemaining(pkg: PackageAvailability): number {
 export function isPackageUnavailable(pkg: PackageAvailability): boolean {
   if (pkg.is_sold_out) return true;
   if (pkg.slots_total && getSlotsTaken(pkg) >= pkg.slots_total) return true;
-  if (pkg.departure_date) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (new Date(pkg.departure_date) < today) return true;
-  }
-  return false;
+  return isPackageDeparted(pkg);
+}
+
+/** Today's date (YYYY-MM-DD) in Indonesia's timezone, to compare against `departure_date`. */
+export function todayJakarta(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+}
+
+/** The trip has already left: unlike sold out, there's nothing to book or wait for. */
+export function isPackageDeparted(pkg: { departure_date?: string | null }): boolean {
+  return !!pkg.departure_date && pkg.departure_date.slice(0, 10) < todayJakarta();
 }
 
 export interface TierAccentClasses {

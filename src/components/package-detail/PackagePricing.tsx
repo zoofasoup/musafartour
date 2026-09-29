@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { BedDouble, Users, PersonStanding, Baby, Sparkles, Crown, MessageCircle, Bell, Minus, Plus } from "lucide-react";
-import { cn, isPackageUnavailable, formatCurrency } from "@/lib/utils";
+import { cn, isPackageUnavailable, isPackageDeparted, formatCurrency } from "@/lib/utils";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackagePrice } from "@/lib/packageSchema";
 import type { RoomCombo } from "@/lib/roomCombos";
@@ -11,12 +11,12 @@ import type { RoomCombo } from "@/lib/roomCombos";
 function CounterInput({ value, onChange, min = 0, max = 99 }: { value: number; onChange: (v: number) => void; min?: number; max?: number }) {
   return (
     <div className="flex items-center gap-1.5">
-      <Button type="button" variant="outline" size="icon" className="h-7 w-7 shrink-0 rounded-full" onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min}>
-        <Minus className="h-3 w-3" />
+      <Button type="button" variant="outline" size="icon" aria-label="Kurangi" className="h-10 w-10 shrink-0 rounded-full" onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min}>
+        <Minus className="h-4 w-4" />
       </Button>
       <span className="text-lg font-bold min-w-[2rem] text-center">{value}</span>
-      <Button type="button" variant="outline" size="icon" className="h-7 w-7 shrink-0 rounded-full" onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max}>
-        <Plus className="h-3 w-3" />
+      <Button type="button" variant="outline" size="icon" aria-label="Tambah" className="h-10 w-10 shrink-0 rounded-full" onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max}>
+        <Plus className="h-4 w-4" />
       </Button>
     </div>
   );
@@ -45,6 +45,8 @@ export interface PackagePricingBodyProps {
   setCustomerName: (val: string) => void;
   handleWhatsApp: () => void;
   handleNotifyMe: () => void;
+  /** Seats left (adults + children); undefined when the package has no seat limit set. */
+  maxPax?: number;
 }
 
 /** The calculator's actual content, shared between the desktop sticky sidebar and the mobile Sheet. */
@@ -71,7 +73,9 @@ export function PackagePricingBody({
   setCustomerName,
   handleWhatsApp,
   handleNotifyMe,
+  maxPax,
 }: PackagePricingBodyProps) {
+  const seatCap = maxPax ?? 99;
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center gap-2 mb-1">
@@ -102,7 +106,7 @@ export function PackagePricingBody({
             <Users className="h-3.5 w-3.5 text-blue-500" />
             <span className="text-xs font-semibold">Dewasa</span>
           </div>
-          <CounterInput value={adults} onChange={(v) => { setAdults(v); setSelectedComboIdx(0); }} min={1} />
+          <CounterInput value={adults} onChange={(v) => { setAdults(v); setSelectedComboIdx(0); }} min={1} max={Math.max(1, seatCap - children)} />
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -112,7 +116,7 @@ export function PackagePricingBody({
               <span className="text-[10px] text-muted-foreground ml-1">25jt · Sharing bed</span>
             </div>
           </div>
-          <CounterInput value={children} onChange={setChildren} />
+          <CounterInput value={children} onChange={setChildren} max={Math.max(0, seatCap - adults)} />
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -124,6 +128,9 @@ export function PackagePricingBody({
           </div>
           <CounterInput value={infants} onChange={setInfants} />
         </div>
+        {maxPax !== undefined && maxPax <= 5 && (
+          <p className="text-[11px] text-destructive font-medium">Tersisa {maxPax} seat untuk paket ini.</p>
+        )}
       </div>
 
       <Separator />
@@ -205,7 +212,7 @@ export function PackagePricingBody({
               placeholder="Nama jamaah..."
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              className="text-xs h-8"
+              className="text-base h-10"
             />
             <Button onClick={handleWhatsApp} className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold">
               <MessageCircle className="h-4 w-4" /> Kirim via WhatsApp
@@ -214,11 +221,11 @@ export function PackagePricingBody({
         </>
       )}
 
-      {isPackageUnavailable(packageData) && (
+      {isPackageUnavailable(packageData) && !isPackageDeparted(packageData) && (
         <>
           <Separator />
           <Button onClick={handleNotifyMe} className="w-full gap-2 text-sm font-bold" variant="outline">
-            <Bell className="h-4 w-4" /> Notify Me
+            <Bell className="h-4 w-4" /> Gabung Waitlist
           </Button>
         </>
       )}

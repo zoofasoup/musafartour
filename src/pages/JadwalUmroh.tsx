@@ -1,51 +1,64 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Plane, Clock, Package } from "lucide-react";
+import { Calendar, Plane, Clock, Package, Bell } from "lucide-react";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { usePublishedPackages } from "@/hooks/usePackages";
+import { TIER_LABELS } from "@/components/package-detail/TierSelector";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { getTierPrice } from "@/lib/utils";
+import { isPackageUnavailable } from "@/lib/utils";
+
+const monthKey = (date: string) => format(new Date(date), "yyyy-MM");
+const monthLabel = (date: string) => format(new Date(date), "MMMM yyyy", { locale: localeId });
 
 const JadwalUmroh = () => {
   const [month, setMonth] = useState<string>("all");
-  const [packageType, setPackageType] = useState<string>("all");
+  const [tier, setTier] = useState<string>("all");
   const [airline, setAirline] = useState<string>("all");
   const [flightType, setFlightType] = useState<string>("all");
 
+  // Only upcoming departures come back from this hook.
   const { data: packages = [], isLoading: loading } = usePublishedPackages();
 
-  const getCategoryFromPrice = (price: number) => {
-    if (price < 25000000) return "budget";
-    if (price <= 40000000) return "comfort";
-    return "five-star";
-  };
-
-  const getMonthFromDate = (date: string) => {
-    return format(new Date(date), "MMMM yyyy", { locale: localeId }).toLowerCase();
-  };
+  // Filter options come from the actual schedule, not a hard-coded list.
+  const options = useMemo(() => {
+    const months = new Map<string, string>();
+    const tiers = new Set<string>();
+    const airlines = new Set<string>();
+    packages.forEach((p) => {
+      months.set(monthKey(p.departure_date), monthLabel(p.departure_date));
+      (p.available_tiers || []).forEach((t) => tiers.add(t));
+      if (p.flight) airlines.add(p.flight);
+    });
+    return {
+      months: [...months.entries()].sort(([a], [b]) => a.localeCompare(b)),
+      tiers: [...tiers],
+      airlines: [...airlines].sort(),
+    };
+  }, [packages]);
 
   const filteredPackages = packages.filter((pkg) => {
-    const pkgCategory = getCategoryFromPrice(getTierPrice(pkg).quad);
-    const pkgMonth = getMonthFromDate(pkg.departure_date);
-    
-    const categoryMatch = packageType === "all" || pkgCategory === packageType;
-    const monthMatch = month === "all" || pkgMonth.includes(month.toLowerCase());
-    const airlineMatch = airline === "all" || pkg.flight.toLowerCase().includes(airline);
-    const flightTypeMatch = flightType === "all" || 
-      (flightType === "direct" && pkg.flight_type.toLowerCase() === "direct") ||
-      (flightType === "transit" && pkg.flight_type.toLowerCase() === "transit");
-
-    return categoryMatch && monthMatch && airlineMatch && flightTypeMatch;
+    const monthMatch = month === "all" || monthKey(pkg.departure_date) === month;
+    const tierMatch = tier === "all" || (pkg.available_tiers || []).includes(tier);
+    const airlineMatch = airline === "all" || pkg.flight === airline;
+    const flightTypeMatch = flightType === "all" || (pkg.flight_type || "").toLowerCase() === flightType;
+    return monthMatch && tierMatch && airlineMatch && flightTypeMatch;
   });
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Jadwal Keberangkatan Umroh 2026 - Musafar Tour"
+        description="Jadwal keberangkatan umroh Musafar Tour terbaru: tanggal, maskapai, dan sisa seat setiap rombongan. Berangkat setiap bulan dengan kuota terbatas."
+        canonicalUrl="https://musafartour.com/jadwal-umroh"
+      />
       <Navbar />
       
       {/* Header */}
@@ -69,25 +82,21 @@ const JadwalUmroh = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Bulan</SelectItem>
-                <SelectItem value="juni">Juni 2025</SelectItem>
-                <SelectItem value="juli">Juli 2025</SelectItem>
-                <SelectItem value="agustus">Agustus 2025</SelectItem>
-                <SelectItem value="september">September 2025</SelectItem>
-                <SelectItem value="oktober">Oktober 2025</SelectItem>
-                <SelectItem value="november">November 2025</SelectItem>
-                <SelectItem value="desember">Desember 2025</SelectItem>
+                {options.months.map(([key, label]) => (
+                  <SelectItem key={key} value={key} className="capitalize">{label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
-            <Select value={packageType} onValueChange={setPackageType}>
+            <Select value={tier} onValueChange={setTier}>
               <SelectTrigger>
                 <SelectValue placeholder="Jenis Paket" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua Jenis</SelectItem>
-                <SelectItem value="budget">Budget</SelectItem>
-                <SelectItem value="comfort">Comfort</SelectItem>
-                <SelectItem value="five-star">Bintang 5</SelectItem>
+                <SelectItem value="all">Semua Paket</SelectItem>
+                {options.tiers.map((t) => (
+                  <SelectItem key={t} value={t}>{TIER_LABELS[t] || t}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -97,11 +106,9 @@ const JadwalUmroh = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Maskapai</SelectItem>
-                <SelectItem value="garuda">Garuda Indonesia</SelectItem>
-                <SelectItem value="saudia">Saudia</SelectItem>
-                <SelectItem value="lion">Lion Air</SelectItem>
-                <SelectItem value="qatar">Qatar Airways</SelectItem>
-                <SelectItem value="emirates">Emirates</SelectItem>
+                {options.airlines.map((a) => (
+                  <SelectItem key={a} value={a}>{a}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -110,7 +117,7 @@ const JadwalUmroh = () => {
                 <SelectValue placeholder="Jenis Penerbangan" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua Jenis</SelectItem>
+                <SelectItem value="all">Semua Penerbangan</SelectItem>
                 <SelectItem value="direct">Direct</SelectItem>
                 <SelectItem value="transit">Transit</SelectItem>
               </SelectContent>
@@ -121,7 +128,7 @@ const JadwalUmroh = () => {
             className="w-full text-primary hover:text-primary hover:bg-primary/5"
             onClick={() => {
               setMonth("all");
-              setPackageType("all");
+              setTier("all");
               setAirline("all");
               setFlightType("all");
             }}
@@ -153,15 +160,17 @@ const JadwalUmroh = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredPackages.map((pkg) => (
+            {filteredPackages.map((pkg) => {
+              const soldOut = isPackageUnavailable(pkg);
+              const depDate = format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId });
+              return (
               <div key={pkg.id} className="bg-card p-6 rounded-lg shadow-md border hover:shadow-lg transition-shadow">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <Calendar className="h-5 w-5 text-primary" />
-                      <span className="font-bold text-lg">
-                        {format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId })}
-                      </span>
+                      <span className="font-bold text-lg">{depDate}</span>
+                      {soldOut && <Badge variant="destructive">Penuh</Badge>}
                     </div>
                     <h3 className="text-xl font-semibold mb-2">{pkg.package_name}</h3>
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -173,28 +182,43 @@ const JadwalUmroh = () => {
                         <Plane className="h-4 w-4" />
                         {pkg.flight}
                       </div>
-                      <span className="text-accent font-medium">
-                        {pkg.flight_type === "direct" ? "Direct" : "Transit"}
+                      <span className="font-medium text-foreground">
+                        {(pkg.flight_type || "").toLowerCase() === "direct" ? "Direct" : "Transit"}
                       </span>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Link to="/paket-umroh">
-                      <Button variant="outline">Lihat Detail</Button>
-                    </Link>
-                    <Button 
-                      className="bg-accent hover:bg-accent/90"
-                      onClick={() => {
-                        const message = `Halo Musafar Tour, saya ingin mendaftar untuk ${pkg.package_name} dengan keberangkatan ${format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId })}.`;
-                        redirectToWhatsApp(message);
-                      }}
-                    >
-                      Daftar Sekarang
+                    <Button variant="outline" asChild>
+                      <Link to={`/paket-umroh/${pkg.slug || pkg.id}`}>Lihat Detail</Link>
                     </Button>
+                    {soldOut ? (
+                      <Button
+                        variant="outline"
+                        className="gap-2"
+                        onClick={() =>
+                          redirectToWhatsApp(
+                            `Halo Musafar Tour, saya ingin masuk waitlist untuk ${pkg.package_name} dengan keberangkatan ${depDate}. Mohon kabari jika ada seat kosong.`
+                          )
+                        }
+                      >
+                        <Bell className="h-4 w-4" /> Gabung Waitlist
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() =>
+                          redirectToWhatsApp(
+                            `Halo Musafar Tour, saya ingin mendaftar untuk ${pkg.package_name} dengan keberangkatan ${depDate}.`
+                          )
+                        }
+                      >
+                        Daftar Sekarang
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

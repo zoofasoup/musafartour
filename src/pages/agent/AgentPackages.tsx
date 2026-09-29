@@ -30,7 +30,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { formatCurrency, getSlotsTaken } from "@/lib/utils";
+import { formatCurrency, getSlotsTaken, todayJakarta } from "@/lib/utils";
+import { AGENT_PACKAGE_COLUMNS } from "@/hooks/usePackages";
 import PackageShareModal from "@/components/package-detail/PackageShareModal";
 
 interface PackagePrice {
@@ -93,8 +94,9 @@ const AgentPackages = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("packages")
-        .select("*")
+        .select(AGENT_PACKAGE_COLUMNS)
         .eq("status", "published")
+        .gte("departure_date", todayJakarta())
         .order("departure_date", { ascending: true });
 
       if (error) throw error;

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Bell, ChevronUp, CalendarCheck } from "lucide-react";
-import { formatCurrency, isPackageUnavailable } from "@/lib/utils";
+import { formatCurrency, isPackageUnavailable, isPackageDeparted } from "@/lib/utils";
 import { PackagePricingBody, type PackagePricingBodyProps } from "./PackagePricing";
 import { PackageUrgencyBar } from "./PackageUrgencyBar";
 
@@ -40,9 +40,13 @@ export function PackageStickyMobileBar(props: PackagePricingBodyProps) {
               </div>
             )}
             <div className="border-t bg-card/95 backdrop-blur-sm shadow-[0_-4px_12px_rgba(0,0,0,0.06)] px-4 py-3">
-              {unavailable ? (
+              {isPackageDeparted(packageData) ? (
+                <Button asChild className="w-full">
+                  <Link to="/paket-umroh">Sudah berangkat · Lihat Paket Lainnya</Link>
+                </Button>
+              ) : unavailable ? (
                 <Button onClick={handleNotifyMe} className="w-full gap-2" variant="outline">
-                  <Bell className="h-4 w-4" /> Notify Me
+                  <Bell className="h-4 w-4" /> Gabung Waitlist
                 </Button>
               ) : (
                 <div className="space-y-2">
@@ -56,14 +60,7 @@ export function PackageStickyMobileBar(props: PackagePricingBodyProps) {
                     </Button>
                   </div>
 
-                  {/* Direct booking path, alongside the calculator/WhatsApp flow
-                      above - additive, same principle as the desktop sidebar's
-                      Booking Sekarang button next to PackageCtaButtons. */}
-                  <Button asChild className="w-full gap-2">
-                    <Link to={`/booking/baru/${packageData.id}`}>
-                      <CalendarCheck className="h-4 w-4" /> Booking Sekarang
-                    </Link>
-                  </Button>
+                  {/* Direct online booking button removed per user request (all CTAs to WhatsApp) */}
                 </div>
               )}
             </div>

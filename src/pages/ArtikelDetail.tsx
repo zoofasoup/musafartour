@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 import { Clock, User, ArrowLeft, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -130,10 +131,37 @@ const ArtikelDetail = () => {
     );
   }
 
+  const canonical = `https://musafartour.com/artikel/${article.slug}`;
+  const rawDescription = (article.meta_description || article.excerpt || article.title).replace(/\s+/g, " ").trim();
+  const description = rawDescription.length > 155 ? `${rawDescription.slice(0, 154)}…` : rawDescription;
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Matches the server-rendered version (functions/artikel/[slug].ts) for client-side navigation. */}
+      <SEO
+        title={`${article.title} - Musafar Tour`}
+        description={description}
+        canonicalUrl={canonical}
+        ogImage={article.featured_image || undefined}
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: article.title,
+          description,
+          image: article.featured_image || undefined,
+          datePublished: article.created_at,
+          author: { "@type": "Organization", name: article.author_name || "Tim Musafar Tour" },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://musafartour.com/#organization",
+            name: "Musafar Tour",
+            logo: { "@type": "ImageObject", url: "https://musafartour.com/logo.webp" },
+          },
+          mainEntityOfPage: canonical,
+        }}
+      />
       <Navbar />
-      
+
       <article className="container mx-auto px-6 md:px-8 py-12">
         <div className="max-w-3xl mx-auto">
           {/* Back Button */}
@@ -173,7 +201,7 @@ const ArtikelDetail = () => {
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              <span>5 menit baca</span>
+              <span>{Math.max(1, Math.round((article.content || "").replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length / 200))} menit baca</span>
             </div>
           </div>
 

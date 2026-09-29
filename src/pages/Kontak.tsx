@@ -63,17 +63,11 @@ ${formData.message}`;
     const whatsappUrl = formatWhatsAppUrl(whatsapp, message);
     window.open(whatsappUrl, "_blank");
 
+    // Nothing is sent until the user taps send in WhatsApp, so don't claim it was,
+    // and keep the form filled in case they close WhatsApp without sending.
     toast({
-      title: "Pesan terkirim!",
-      description: "Anda akan diarahkan ke WhatsApp untuk mengirim pesan.",
-    });
-
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      subject: "",
-      message: "",
+      title: "Lanjutkan di WhatsApp",
+      description: "Pesan Anda sudah disiapkan. Tekan kirim di WhatsApp untuk mengirimkannya.",
     });
   };
 
@@ -209,7 +203,7 @@ ${formData.message}`;
                 <label className="block text-sm font-medium mb-2">Nomor Telepon</label>
                 <Input 
                   type="tel" 
-                  placeholder="0819-1740-3797"
+                  placeholder="08xx-xxxx-xxxx"
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
                 />

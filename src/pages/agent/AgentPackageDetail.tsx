@@ -27,6 +27,7 @@ import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { formatCurrency, getTierPrice, getSlotsTaken } from "@/lib/utils";
+import { AGENT_PACKAGE_COLUMNS } from "@/hooks/usePackages";
 import { useToast } from "@/hooks/use-toast";
 import PackageShareModal from "@/components/package-detail/PackageShareModal";
 
@@ -83,7 +84,7 @@ const AgentPackageDetail = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("packages")
-        .select("*")
+        .select(AGENT_PACKAGE_COLUMNS)
         .eq("id", packageId)
         .single();
 

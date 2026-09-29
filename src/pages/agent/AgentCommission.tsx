@@ -189,9 +189,12 @@ const AgentCommission = () => {
     },
   });
 
+  // Commissions are credited as 'confirmed' (booking lunas / admin log); 'paid' is legacy.
+  const isEarned = (s: Sale) => s.status === 'confirmed' || s.status === 'paid';
+
   // Calculate stats
   const totalEarned = sales
-    .filter(s => s.status === 'paid')
+    .filter(isEarned)
     .reduce((sum, s) => sum + Number(s.commission_amount), 0);
   
   const pendingCommission = sales
@@ -214,7 +217,7 @@ const AgentCommission = () => {
   });
 
   const monthEarned = monthSales
-    .filter(s => s.status === 'paid')
+    .filter(isEarned)
     .reduce((sum, s) => sum + Number(s.commission_amount), 0);
 
   // Filter and sort sales for table
@@ -285,6 +288,8 @@ const AgentCommission = () => {
       case 'paid':
       case 'completed':
         return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Dibayar</Badge>;
+      case 'confirmed':
+        return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Terkonfirmasi</Badge>;
       case 'pending':
         return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Pending</Badge>;
       case 'processing':

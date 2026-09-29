@@ -16,14 +16,31 @@ const navLinks = [
   { href: "/tentang-kami", label: "Tentang Kami" },
 ];
 
+// The mobile menu has room for the pages the desktop bar leaves out.
+const mobileExtraLinks = [
+  { href: "/jadwal-umroh", label: "Jadwal Keberangkatan" },
+  { href: "/kalkulator", label: "Kalkulator Tabungan Umroh" },
+  { href: "/kontak", label: "Kontak" },
+];
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
   const { favorites } = useFavorites();
   // Only entry point to the jamaah portal from the public site - without it a
   // logged-in customer has no way back to /jamaah/dashboard from anywhere.
   const { user: jamaahUser } = useJamaahAuth();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -43,14 +60,35 @@ const Navbar = () => {
   }, []);
 
   const isActive = (path: string) => location.pathname === path;
+  const isHome = location.pathname === "/";
+  const isTransparent = isHome && !isScrolled && !isOpen;
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Close the mobile menu on navigation, and stop the page behind it from scrolling while open.
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isOpen]);
+
   const navbarContent = (
-    <nav className="fixed top-0 left-0 right-0 z-[100] w-full bg-background/95 backdrop-blur-sm border-b transition-all duration-300">
+    <nav
+      // z-[45]: above page content and the z-40 floating buttons, below dialogs/sheets (z-50),
+      // so open overlays properly cover the navbar.
+      className={`fixed top-0 left-0 right-0 z-[45] w-full transition-all duration-300 ${isTransparent ? "bg-transparent border-transparent text-white" : "bg-background/95 backdrop-blur-sm border-b text-foreground"}`}
+      style={{ willChange: "transform", transform: "translateZ(0)" }}
+    >
       <div className="container mx-auto px-6 md:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -58,7 +96,7 @@ const Navbar = () => {
             {/* Dynamic color logo using CSS mask */}
             <div 
               className={`h-8 w-32 md:h-10 md:w-40 bg-current transition-colors duration-300 [mask-image:url('/logo.webp')] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:left] [-webkit-mask-image:url('/logo.webp')] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:left] ${
-                isDarkMode ? "text-white" : "text-foreground"
+                isTransparent ? "text-white" : (isDarkMode ? "text-white" : "text-foreground")
               }`}
               aria-label="Musafar Tour"
             />
@@ -71,7 +109,7 @@ const Navbar = () => {
                 key={link.href}
                 to={link.href}
                 className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActive(link.href) ? "text-primary" : "text-foreground"
+                  isActive(link.href) ? "text-primary" : (isTransparent ? "text-white/90 hover:text-white" : "text-foreground")
                 }`}
               >
                 {link.label}
@@ -121,7 +159,7 @@ const Navbar = () => {
           {/* Mobile Menu Button */}
           <div className="flex md:hidden items-center gap-2">
             <FavoritesDrawer>
-              <button id="tour-navbar-cart-mobile" className="relative p-2 rounded-full hover:bg-accent transition-colors">
+              <button id="tour-navbar-cart-mobile" className="relative p-2.5 rounded-full hover:bg-accent transition-colors" aria-label="Keranjang belanja">
                 <ShoppingCart className={`h-5 w-5 ${favorites.length > 0 ? 'fill-primary text-primary' : ''}`} />
                 {favorites.length > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
@@ -133,22 +171,24 @@ const Navbar = () => {
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="p-2 text-foreground"
+              aria-label={isOpen ? "Tutup menu" : "Buka menu"}
+              aria-expanded={isOpen}
             >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className={`h-6 w-6 ${isTransparent ? "text-white" : ""}`} />}
             </button>
           </div>
         </div>
 
         {/* Mobile Menu Content */}
         {isOpen && (
-          <div className="md:hidden py-4 border-t animate-fade-in space-y-4">
-            {navLinks.map((link) => (
+          <div className="md:hidden py-4 border-t animate-fade-in space-y-1 max-h-[calc(100dvh-4rem)] overflow-y-auto">
+            {[...navLinks, ...mobileExtraLinks].map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
                 onClick={() => setIsOpen(false)}
-                className={`block py-2 text-sm font-medium transition-colors hover:text-primary ${
-                  isActive(link.href) ? "text-primary" : "text-foreground"
+                className={`block py-3 text-base font-medium transition-colors hover:text-primary ${
+                  isActive(link.href) ? "text-primary" : (isTransparent ? "text-white/90 hover:text-white" : "text-foreground")
                 }`}
               >
                 {link.label}
@@ -201,7 +241,7 @@ const Navbar = () => {
   return (
     <>
       {/* Spacer to prevent layout shifting since navbar is now fixed */}
-      <div className="h-16 w-full bg-transparent" />
+      {!isHome && <div className="h-16 w-full bg-transparent" />}
       {mounted && createPortal(navbarContent, document.body)}
     </>
   );

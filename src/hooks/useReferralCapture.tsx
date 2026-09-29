@@ -16,14 +16,18 @@ function setCookie(name: string, value: string, days: number) {
 
 /** First-touch referral attribution: only sets the cookie if one doesn't
  * already exist, so a later agent's link never overwrites an earlier one. */
+export function captureReferral(code: string | null | undefined) {
+  const ref = code?.trim();
+  if (ref && !getCookie(COOKIE_NAME)) {
+    setCookie(COOKIE_NAME, ref, COOKIE_DAYS);
+  }
+}
+
 export function useReferralCapture() {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    const ref = searchParams.get("ref");
-    if (ref && !getCookie(COOKIE_NAME)) {
-      setCookie(COOKIE_NAME, ref, COOKIE_DAYS);
-    }
+    captureReferral(searchParams.get("ref"));
   }, [searchParams]);
 }
 
