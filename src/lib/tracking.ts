@@ -94,11 +94,66 @@ function sendMeta(name: string, params: EventParams, dedupe: Dedupe | null, even
   if (typeof window === "undefined" || isInternalBrowser()) return;
   if (dedupe && !claim({ ...dedupe, key: `meta:${dedupe.key}` })) return;
   if (typeof window.fbq === "function") {
-    // eventID lets a future Conversions API send deduplicate against this browser event.
     window.fbq("track", name, params, { eventID });
   } else if (pending.length < 20) {
     pending.push({ name, params, eventID });
   }
+  // Server copy with the same eventID: Meta keeps one, and it still arrives when
+  // the pixel is blocked.
+  if (CAPI_EVENTS.has(name)) sendCapi(name, params, eventID);
+}
+
+// ---------------------------------------------------------------------------
+// Meta Conversions API (functions/meta-capi.ts relays these to Meta).
+// ---------------------------------------------------------------------------
+
+const CAPI_EVENTS = new Set(["Lead", "AddToCart", "ViewContent"]);
+const FBC_KEY = "musafar_fbc";
+
+// A visitor arriving from a Meta ad carries ?fbclid=. The pixel turns it into the
+// _fbc cookie, but if the pixel is blocked we keep our own copy in Meta's fbc format.
+if (typeof window !== "undefined") {
+  try {
+    const fbclid = new URLSearchParams(window.location.search).get("fbclid");
+    if (fbclid) localStorage.setItem(FBC_KEY, `fb.1.${Date.now()}.${fbclid.slice(0, 400)}`);
+  } catch {
+    /* ignore */
+  }
+}
+
+const readCookie = (name: string) =>
+  document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]+)`))?.[1];
+
+function sendCapi(name: string, params: EventParams, eventID: string) {
+  let storedFbc: string | undefined;
+  try {
+    storedFbc = localStorage.getItem(FBC_KEY) ?? undefined;
+  } catch {
+    /* ignore */
+  }
+  const body = {
+    event_name: name,
+    event_id: eventID,
+    event_source_url: window.location.href,
+    custom_data: params,
+    fbp: readCookie("_fbp"),
+    fbc: readCookie("_fbc") ?? storedFbc,
+    external_id: storedId(window.localStorage, VISITOR_KEY, memVisitor),
+  };
+  // Local development: the pixel already reports; don't send server events from localhost.
+  if (import.meta.env.DEV) {
+    console.debug("[meta-capi]", body);
+    return;
+  }
+  // keepalive: the WhatsApp tab opening must not cancel the request.
+  fetch("/meta-capi", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+    keepalive: true,
+  }).catch(() => {
+    /* tracking must never break a click */
+  });
 }
 
 const pending: PendingEvent[] = [];

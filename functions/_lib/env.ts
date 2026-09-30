@@ -6,6 +6,8 @@ export interface Env {
   SUPABASE_SERVICE_ROLE_KEY: string;
   MIDTRANS_SERVER_KEY: string;
   BROWSER: BrowserWorker;
+  /** Meta Conversions API token (Events Manager > Settings > Conversions API). Secret. */
+  META_CAPI_ACCESS_TOKEN?: string;
 }
 
 // Fallback to the same public URL/anon key already shipped in the client JS
