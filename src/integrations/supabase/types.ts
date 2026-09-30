@@ -1865,6 +1865,54 @@ export type Database = {
         }
         Relationships: []
       }
+      site_events: {
+        Row: {
+          created_at: string
+          device: string | null
+          event: string
+          id: number
+          lead_source: string | null
+          package_id: string | null
+          path: string
+          referrer_host: string | null
+          session_id: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          visitor_id: string
+        }
+        Insert: {
+          created_at?: string
+          device?: string | null
+          event: string
+          id?: number
+          lead_source?: string | null
+          package_id?: string | null
+          path: string
+          referrer_host?: string | null
+          session_id: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visitor_id: string
+        }
+        Update: {
+          created_at?: string
+          device?: string | null
+          event?: string
+          id?: number
+          lead_source?: string | null
+          package_id?: string | null
+          path?: string
+          referrer_host?: string | null
+          session_id?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visitor_id?: string
+        }
+        Relationships: []
+      }
       short_link_clicks: {
         Row: {
           clicked_at: string
@@ -2431,6 +2479,10 @@ export type Database = {
       }
       create_calculator_lead: { Args: { _lead: Json }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      get_analytics_summary: {
+        Args: { _from: string; _to: string }
+        Returns: Json
+      }
       get_calculator_lead_by_token: {
         Args: { _token: string }
         Returns: {

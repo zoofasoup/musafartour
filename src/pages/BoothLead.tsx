@@ -146,7 +146,7 @@ const BoothLead = () => {
       // If online, sync immediately and open WhatsApp
       await syncOfflineLeads();
       const message = `Assalamu'alaikum, saya ${result.data.name} (WA: ${result.data.whatsapp}). Saya baru saja mengunjungi booth Musafar Tour dan tertarik dengan paket umroh. Mohon informasi lebih lanjut. Terima kasih!`;
-      await redirectToWhatsApp(message);
+      await redirectToWhatsApp(message, "booth");
       setPendingCount(0);
     } else {
       // Offline: just save, will sync later

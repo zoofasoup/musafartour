@@ -30,7 +30,7 @@ export const FavoritesDrawer = ({ children }: FavoritesDrawerProps) => {
       message += `${index + 1}. *${pkg.title}*${dateText}Harga: ${pkg.price}\n`;
     });
     message += "Mohon informasi lebih lanjut mengenai ketersediaan dan detail paket tersebut. Terima kasih.";
-    redirectToWhatsApp(message);
+    redirectToWhatsApp(message, "cart_drawer");
   };
 
   return (

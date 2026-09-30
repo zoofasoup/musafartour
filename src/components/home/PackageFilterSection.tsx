@@ -253,7 +253,7 @@ export const PackageFilterSection = ({
             <Button
               size="sm"
               className="gap-2"
-              onClick={() => redirectToWhatsApp("Halo Musafar Tour, saya mencari paket umroh yang belum tersedia di website. Bisa dibantu?")}
+              onClick={() => redirectToWhatsApp("Halo Musafar Tour, saya mencari paket umroh yang belum tersedia di website. Bisa dibantu?", "home_package_request")}
             >
               <MessageCircle className="h-4 w-4" />
               Hubungi via WhatsApp

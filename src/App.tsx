@@ -10,6 +10,7 @@ import { SEO as SeoTags } from "./components/SEO";
 import { HelmetProvider } from 'react-helmet-async';
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 import { useMarketingPixels } from "./hooks/useMarketingPixels";
+import { logPageView, isInternalBrowser } from "./lib/tracking";
 import { useRedirects } from "./hooks/useRedirects";
 import { ErrorBoundary, CHUNK_RELOAD_FLAG } from "./components/ErrorBoundary";
 import { FavoritesProvider } from "./hooks/useFavorites";
@@ -55,6 +56,7 @@ const Team = lazy(() => import("./pages/admin/Team"));
 const MarketingSettings = lazy(() => import("./pages/admin/MarketingSettings"));
 const MasterCOGS = lazy(() => import("./pages/admin/MasterCOGS"));
 const AdSpend = lazy(() => import("./pages/admin/AdSpend"));
+const Analytics = lazy(() => import("./pages/admin/Analytics"));
 const FlyerGenerator = lazy(() => import("./pages/admin/FlyerGenerator"));
 const FlyerPrint = lazy(() => import("./pages/FlyerPrint"));
 const SEO = lazy(() => import("./pages/admin/SEO"));
@@ -126,9 +128,17 @@ const TikTokPixelTracker = () => {
 // Marketing Pixels Loader
 const MarketingPixelsLoader = () => {
   const location = useLocation();
-  // PageView is sent once per person when the pixel loads (see src/lib/tracking.ts),
-  // deliberately not on every route change.
-  useMarketingPixels(location.pathname !== '/flyer-print');
+  // No ad pixels on internal pages or in staff browsers (flag set on admin login),
+  // so the team's own browsing doesn't count as traffic or join retargeting audiences.
+  // /flyer-print is screenshotted by a headless browser on every flyer export.
+  const internalPage = location.pathname === '/flyer-print' || /^\/(admin|agent)(\/|$)/.test(location.pathname);
+  useMarketingPixels(!internalPage && !isInternalBrowser());
+
+  // First-party analytics records every page view for the admin Analytics dashboard.
+  useEffect(() => {
+    logPageView();
+  }, [location.pathname]);
+
   return null;
 };
 
@@ -461,6 +471,7 @@ const App = () => (
                     <Route path="settings" element={<WebsiteSettings />} />
                     <Route path="settings/marketing" element={<MarketingSettings />} />
                     <Route path="ad-spend" element={<AdSpend />} />
+                    <Route path="analytics" element={<Analytics />} />
                     <Route path="flyer-generator" element={<FlyerGenerator />} />
 
                     <Route path="seo" element={<SEO />} />

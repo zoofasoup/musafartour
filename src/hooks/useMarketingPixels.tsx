@@ -3,6 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { flushPendingPixelEvents, trackMetaPageView, trackTikTokPageView } from "@/lib/tracking";
 
+// Module-level: the load's PageView must be sent once even if the hook re-runs.
+let metaPageViewSent = false;
+
 // Validate pixel IDs to prevent XSS injection
 function validatePixelId(id: string | null | undefined, type: 'meta' | 'tiktok' | 'ga4'): string | null {
   if (!id) return null;
@@ -77,15 +80,23 @@ export const useMarketingPixels = (enabled: boolean = true) => {
       `;
       document.head.appendChild(script);
       // The inline script runs synchronously on append, so fbq exists now.
-      // PageView goes through the once-per-person check instead of firing on every
-      // visit, then anything clicked before the pixel loaded is sent.
-      trackMetaPageView();
+      // One PageView per page load; after that the pixel's own History listener
+      // sends a PageView on each SPA route change (Meta's recommended setup).
+      // The effect re-runs when leaving and re-entering internal pages, so guard
+      // against a second PageView in the same load (the listener already sent it).
+      if (window.fbq) window.fbq.disablePushState = false;
+      if (!metaPageViewSent) {
+        metaPageViewSent = true;
+        trackMetaPageView();
+      }
       flushPendingPixelEvents();
       // (The old <noscript> fallback was removed: an <img> created from JavaScript
       // loads immediately, so it sent a second PageView on every page load.)
 
       return () => {
         document.head.removeChild(script);
+        // Entering an internal page (admin/agent): stop route-change PageViews.
+        if (window.fbq) window.fbq.disablePushState = true;
       };
     }
   }, [enabled, settings?.meta_pixel_enabled, settings?.meta_pixel_id]);

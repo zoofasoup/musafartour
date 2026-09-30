@@ -1,11 +1,12 @@
 import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
 import { Suspense } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { markInternalBrowser } from "@/lib/tracking";
 import { Button } from "@/components/ui/button";
 import { 
   LogOut, LayoutDashboard, Home, Image, Target, MessageSquare, 
   Images, Package, Plane, Hotel, Calendar, FileText, HelpCircle,
-  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles, PanelLeft, Backpack, Wallet, Download, CalendarCheck, PenTool
+  Settings, Users, TrendingUp, Search, UserCircle, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles, PanelLeft, Backpack, Wallet, Download, CalendarCheck, PenTool, BarChart3
 } from "lucide-react";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
 import {
@@ -43,6 +44,10 @@ const AdminLayout = () => {
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
+
+  // A browser that has opened the admin panel belongs to staff: exclude it from
+  // ad pixels and site analytics from now on (see src/lib/tracking.ts).
+  if (userRole) markInternalBrowser();
 
   if (!userRole) {
     return (
@@ -124,6 +129,8 @@ const AdminLayout = () => {
         { icon: UserCog, label: "Kelola Agent", path: "/admin/agents", roles: ["admin", "superadmin", "agent_admin"] },
         { icon: Trophy, label: "Gamification", path: "/admin/gamification", roles: ["admin", "superadmin", "agent_admin"] },
         { icon: Download, label: "Flyer Generator", path: "/admin/flyer-generator", roles: ["admin", "superadmin", "content_admin"] },
+        // Access is enforced in get_analytics_summary (admin/superadmin/advertiser).
+        { icon: BarChart3, label: "Analytics", path: "/admin/analytics", roles: ["admin", "superadmin", "advertiser"] },
         { icon: TrendingUp, label: "Marketing Settings", path: "/admin/settings/marketing", roles: ["admin", "superadmin", "advertiser"] },
         { icon: Wallet, label: "Ad Spend", path: "/admin/ad-spend", roles: ["admin", "superadmin", "advertiser"] },
         { icon: MessageCircleMore, label: "Chat Rotation", path: "/admin/chat-rotation", roles: ["admin", "superadmin", "advertiser"] },

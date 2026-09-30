@@ -197,7 +197,8 @@ const JadwalUmroh = () => {
                         className="gap-2"
                         onClick={() =>
                           redirectToWhatsApp(
-                            `Halo Musafar Tour, saya ingin masuk waitlist untuk ${pkg.package_name} dengan keberangkatan ${depDate}. Mohon kabari jika ada seat kosong.`
+                            `Halo Musafar Tour, saya ingin masuk waitlist untuk ${pkg.package_name} dengan keberangkatan ${depDate}. Mohon kabari jika ada seat kosong.`,
+                            "jadwal_waitlist"
                           )
                         }
                       >
@@ -207,7 +208,8 @@ const JadwalUmroh = () => {
                       <Button
                         onClick={() =>
                           redirectToWhatsApp(
-                            `Halo Musafar Tour, saya ingin mendaftar untuk ${pkg.package_name} dengan keberangkatan ${depDate}.`
+                            `Halo Musafar Tour, saya ingin mendaftar untuk ${pkg.package_name} dengan keberangkatan ${depDate}.`,
+                            "jadwal_daftar"
                           )
                         }
                       >

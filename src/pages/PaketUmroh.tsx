@@ -258,7 +258,7 @@ const PaketUmroh = () => {
             <Button
               className="gap-2"
               onClick={() => {
-                redirectToWhatsApp("Halo Musafar Tour, saya mencari paket umroh yang belum tersedia di website. Bisa dibantu?");
+                redirectToWhatsApp("Halo Musafar Tour, saya mencari paket umroh yang belum tersedia di website. Bisa dibantu?", "paket_umroh_request");
               }}
             >
               <MessageCircle className="h-4 w-4" />

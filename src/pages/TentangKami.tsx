@@ -41,7 +41,7 @@ const TentangKami = () => {
   const { packages, packagesLoading, testimonials, websiteSettings } = useHomepageData();
 
   const handleWhatsApp = () => {
-    redirectToWhatsApp("Assalamu'alaikum, saya ingin konsultasi tentang paket umroh Musafar Tour");
+    redirectToWhatsApp("Assalamu'alaikum, saya ingin konsultasi tentang paket umroh Musafar Tour", "tentang_kami");
   };
 
   const address = websiteSettings?.address || "Commercial Park Harapan Indah, Ruko Emerald Blok EB 1 No.28, Medan Satria, Kota Bekasi, Jawa Barat 17131";

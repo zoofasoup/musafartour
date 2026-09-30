@@ -17,24 +17,24 @@ const PIXEL_ID = {
 };
 
 /**
- * Inline version of claimOnce() in src/lib/tracking.ts: each person sends PageView
- * once, ever, across these article pages and the SPA (same localStorage key).
- * If storage is blocked it falls back to sending, i.e. once per page load.
+ * Staff browsers (flag set on admin login, see markInternalBrowser in
+ * src/lib/tracking.ts) load no tracking tags at all.
  */
-const ONCE_KEY = "musafar_px_once";
-const onceScript = (key: string, call: string) =>
-  `try{var s=JSON.parse(localStorage.getItem('${ONCE_KEY}')||'{}');if(!s['${key}']){s['${key}']=Date.now();localStorage.setItem('${ONCE_KEY}',JSON.stringify(s));${call};}}catch(e){${call};}`;
+const INTERNAL_KEY = "musafar_internal";
+const unlessInternal = (code: string) =>
+  `<script>(function(){try{if(localStorage.getItem('${INTERNAL_KEY}')==='1')return;}catch(e){}${code}})();</script>`;
 
 function renderPixels(p: MarketingPixels | undefined): string {
   if (!p) return "";
   const out: string[] = [];
   const meta = p.meta_pixel_enabled && p.meta_pixel_id?.trim();
   if (meta && PIXEL_ID.meta.test(meta)) {
-    out.push(`<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${meta}');${onceScript("meta:PageView", "fbq('track','PageView')")}</script>`);
+    // One PageView per article page load (each article is a full page).
+    out.push(unlessInternal(`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${meta}');fbq('track','PageView');`));
   }
   const tt = p.tiktok_pixel_enabled && p.tiktok_pixel_id?.trim();
   if (tt && PIXEL_ID.tiktok.test(tt)) {
-    out.push(`<script>!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=d.createElement("script");n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=d.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};ttq.load('${tt}');${onceScript("tiktok:PageView", "ttq.page()")}}(window,document,'ttq');</script>`);
+    out.push(unlessInternal(`!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=d.createElement("script");n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=d.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};ttq.load('${tt}');ttq.page();}(window,document,'ttq');`));
   }
   const ga = p.ga4_enabled && p.ga4_id?.trim();
   if (ga && PIXEL_ID.ga4.test(ga)) {

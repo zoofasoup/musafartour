@@ -219,7 +219,8 @@ const Artikel = () => {
               className="gap-2"
               onClick={() =>
                 redirectToWhatsApp(
-                  "Assalamu'alaikum Musafar Tour, saya ingin menerima info artikel, tips, dan promo umroh terbaru via WhatsApp."
+                  "Assalamu'alaikum Musafar Tour, saya ingin menerima info artikel, tips, dan promo umroh terbaru via WhatsApp.",
+                  "artikel_subscribe"
                 )
               }
             >

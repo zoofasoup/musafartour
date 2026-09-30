@@ -16,7 +16,7 @@ export const HeroSection = (_props: HeroSectionProps) => {
   const navigate = useNavigate();
 
   const handleWhatsAppClick = () => {
-    redirectToWhatsApp("Halo Musamin, saya tertarik untuk berkonsultasi mengenai paket Umroh.");
+    redirectToWhatsApp("Halo Musamin, saya tertarik untuk berkonsultasi mengenai paket Umroh.", "home_hero");
   };
 
   return (
