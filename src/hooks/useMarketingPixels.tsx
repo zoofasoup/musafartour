@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { flushPendingPixelEvents } from "@/lib/tracking";
+import { flushPendingPixelEvents, trackMetaPageView, trackTikTokPageView } from "@/lib/tracking";
 
 // Validate pixel IDs to prevent XSS injection
 function validatePixelId(id: string | null | undefined, type: 'meta' | 'tiktok' | 'ga4'): string | null {
@@ -74,25 +74,18 @@ export const useMarketingPixels = (enabled: boolean = true) => {
         s.parentNode.insertBefore(t,s)}(window, document,'script',
         'https://connect.facebook.net/en_US/fbevents.js');
         fbq('init', '${safeMetaPixelId}');
-        fbq('track', 'PageView');
       `;
       document.head.appendChild(script);
-      // The inline script runs synchronously on append, so fbq exists now:
-      // send any Lead/AddToCart clicked before the pixel finished loading.
+      // The inline script runs synchronously on append, so fbq exists now.
+      // PageView goes through the once-per-person check instead of firing on every
+      // visit, then anything clicked before the pixel loaded is sent.
+      trackMetaPageView();
       flushPendingPixelEvents();
-
-      const noscript = document.createElement("noscript");
-      const img = document.createElement("img");
-      img.height = 1;
-      img.width = 1;
-      img.style.display = "none";
-      img.src = `https://www.facebook.com/tr?id=${encodeURIComponent(safeMetaPixelId)}&ev=PageView&noscript=1`;
-      noscript.appendChild(img);
-      document.head.appendChild(noscript);
+      // (The old <noscript> fallback was removed: an <img> created from JavaScript
+      // loads immediately, so it sent a second PageView on every page load.)
 
       return () => {
         document.head.removeChild(script);
-        document.head.removeChild(noscript);
       };
     }
   }, [enabled, settings?.meta_pixel_enabled, settings?.meta_pixel_id]);
@@ -109,10 +102,11 @@ export const useMarketingPixels = (enabled: boolean = true) => {
           !function (w, d, t) {
             w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
             ttq.load('${safeTiktokPixelId}');
-            ttq.page();
           }(window, document, 'ttq');
         `;
         document.head.appendChild(script);
+        // Once per person, like the Meta PageView.
+        trackTikTokPageView();
 
         return () => {
           document.head.removeChild(script);

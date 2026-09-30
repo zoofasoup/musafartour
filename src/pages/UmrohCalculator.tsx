@@ -21,6 +21,7 @@ import { Computing } from "@/components/calculator/steps/CommonSteps";
 import { IntroStep, ModePicker } from "@/components/calculator/steps/IntroStep";
 import { Q_Monthly, Q_Pilgrims, Q_Savings, Q_Timeframe, Q_PickPackage } from "@/components/calculator/steps/QuestionSteps";
 import { Wrapped } from "@/components/calculator/steps/WrappedResults";
+import { trackLead } from "@/lib/tracking";
 
 const leadSchema = z.object({
   name: z.string().trim().min(2, "Nama minimal 2 karakter").max(100),
@@ -198,12 +199,8 @@ export default function UmrohCalculator() {
       return;
     }
 
-    try {
-      const fbq = (window as any).fbq;
-      if (typeof fbq === "function") {
-        fbq("track", "Lead", { content_name: "Umroh Financial Planner" }, { eventID: eventId });
-      }
-    } catch {}
+    // Same once-per-person Lead as the WhatsApp buttons; eventId is kept for CAPI dedup.
+    trackLead("umroh_calculator", undefined, eventId);
 
     navigate(`/kalkulator/hasil/${(data as any).share_token ?? data.id}`);
   };

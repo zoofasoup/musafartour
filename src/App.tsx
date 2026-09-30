@@ -1,5 +1,5 @@
 // Cache bust commit 2026-07-19: force rebuild, CSS asset was missing from production
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,7 +10,6 @@ import { SEO as SeoTags } from "./components/SEO";
 import { HelmetProvider } from 'react-helmet-async';
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 import { useMarketingPixels } from "./hooks/useMarketingPixels";
-import { trackPageView } from "./lib/tracking";
 import { useRedirects } from "./hooks/useRedirects";
 import { ErrorBoundary, CHUNK_RELOAD_FLAG } from "./components/ErrorBoundary";
 import { FavoritesProvider } from "./hooks/useFavorites";
@@ -127,21 +126,9 @@ const TikTokPixelTracker = () => {
 // Marketing Pixels Loader
 const MarketingPixelsLoader = () => {
   const location = useLocation();
+  // PageView is sent once per person when the pixel loads (see src/lib/tracking.ts),
+  // deliberately not on every route change.
   useMarketingPixels(location.pathname !== '/flyer-print');
-
-  // The pixel's own PageView only fires on the first page of a visit; in this SPA
-  // every later page change was invisible to Meta/TikTok. Skip the first render
-  // (already counted) and internal pages.
-  const firstPath = useRef(true);
-  useEffect(() => {
-    if (firstPath.current) {
-      firstPath.current = false;
-      return;
-    }
-    if (location.pathname === '/flyer-print' || location.pathname.startsWith('/admin')) return;
-    trackPageView();
-  }, [location.pathname]);
-
   return null;
 };
 
