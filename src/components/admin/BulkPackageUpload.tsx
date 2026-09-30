@@ -21,7 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, X, RefreshCw } from "lucide-react";
+import { Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn, formatNumber } from "@/lib/utils";
 
@@ -36,9 +36,66 @@ export interface HotelRecord {
 export interface ExistingPackage {
   id: string;
   slug: string;
+  tier: string | null;
   banner_image: string | null;
   catalog_link: string | null;
   itinerary_link: string | null;
+}
+
+/** Existing packages grouped by departure date (several tiers can share a date). */
+type ExistingPackageMap = Record<string, ExistingPackage[]>;
+
+/**
+ * Find the package a sheet row should update. Matching by date alone used to pick an
+ * arbitrary package when two tiers depart the same day (e.g. Five-star and Nyaman on
+ * 23 Jan), so the Nyaman row tried to overwrite the Five-star package.
+ */
+function findExistingPackage(map: ExistingPackageMap | undefined, date: string, tier: string): ExistingPackage | undefined {
+  const candidates = map?.[date];
+  if (!candidates?.length) return undefined;
+  const sameTier = candidates.find((p) => p.tier === tier);
+  if (sameTier) return sameTier;
+  // Only one package on that date: treat it as the same package (tier may have been corrected in the sheet).
+  return candidates.length === 1 ? candidates[0] : undefined;
+}
+
+const formatRowLabel = (row: { departure_date: string; tier: string; duration_days: number; package_name: string }) => {
+  const date = row.departure_date
+    ? new Date(`${row.departure_date}T00:00:00`).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+    : "Tanpa tanggal";
+  return `${date} · ${row.package_name || row.tier} · ${row.duration_days} hari`;
+};
+
+/** Turn a database error into something an admin can act on, in plain Indonesian. */
+function friendlyImportError(err: unknown): string {
+  const e = (err ?? {}) as { code?: string; message?: string; details?: string };
+  const msg = `${e.message ?? ""} ${e.details ?? ""}`.toLowerCase();
+
+  if (e.code === "23505" || msg.includes("duplicate key")) {
+    if (msg.includes("slug")) {
+      return "Sudah ada paket lain dengan nama dan tanggal yang sama. Cek daftar paket: mungkin paket ini sudah ada, atau ganti Judul Paket di file Excel.";
+    }
+    return "Data ini bentrok dengan paket yang sudah ada.";
+  }
+  if (e.code === "42501" || msg.includes("row-level security") || msg.includes("permission denied")) {
+    return "Akun kamu tidak punya izin menyimpan paket. Coba logout lalu login lagi sebagai admin.";
+  }
+  if (e.code === "23502" || msg.includes("null value")) {
+    const column = e.message?.match(/column "([^"]+)"/)?.[1];
+    return column
+      ? `Ada kolom wajib yang kosong (${column.replace(/_/g, " ")}). Lengkapi baris ini di file Excel.`
+      : "Ada kolom wajib yang kosong. Lengkapi baris ini di file Excel.";
+  }
+  if (e.code === "22P02" || e.code === "22007" || e.code === "22008" || msg.includes("invalid input syntax")) {
+    return "Ada isian dengan format salah (angka, harga, atau tanggal). Cek baris ini di file Excel.";
+  }
+  if (e.code === "23514" || msg.includes("check constraint")) {
+    return "Ada isian yang nilainya tidak diperbolehkan (misalnya seat terisi lebih banyak dari total seat).";
+  }
+  if (msg.includes("failed to fetch") || msg.includes("network")) {
+    return "Koneksi internet terputus. Cek koneksi lalu coba lagi.";
+  }
+  return "Paket ini gagal disimpan. Detail teknis ada di bawah; kirim ke tim developer kalau masih gagal.";
 }
 
 interface ParsedPackage {
@@ -292,7 +349,7 @@ function parseExcelData(
   worksheet: XLSX.WorkSheet,
   referenceData?: { flights: string[]; airports: string[]; routes: string[] },
   hotels?: HotelRecord[],
-  existingPackages?: Record<string, ExistingPackage>
+  existingPackages?: ExistingPackageMap
 ): ParsedPackage[] {
   const rawData = XLSX.utils.sheet_to_json<unknown[]>(worksheet, { header: 1, defval: "" });
   if (rawData.length < 2) return [];
@@ -339,7 +396,7 @@ function parseExcelData(
       const departureDateStr = parseDate(getVal(row, colMap.departure_date));
       const packageName = String(getVal(row, colMap.package_name) || "").trim();
       const slug = slugify(packageName, departureDateStr);
-      const isUpdate = existingPackages ? !!existingPackages[departureDateStr] : false;
+      const isUpdate = !!findExistingPackage(existingPackages, departureDateStr, tier);
       
       const rawFlight = String(getVal(row, colMap.flight) || "").trim();
       const flight = referenceData ? findClosestString(rawFlight, referenceData.flights) : rawFlight;
@@ -429,10 +486,9 @@ function findHotel(hotels: HotelRecord[], name: string, location: string): Hotel
   );
 }
 
-function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingPackages: Record<string, ExistingPackage>, defaultIncludes: string, defaultExcludes: string) {
+function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingPkg: ExistingPackage | undefined, defaultIncludes: string, defaultExcludes: string) {
   const makkahHotel = row.hotel_makkah_record;
   const madinahHotel = row.hotel_madinah_record;
-  const existingPkg = existingPackages[row.departure_date];
 
   const priceJson = { quad: row.price_quad, triple: row.price_triple, double: row.price_double };
 
@@ -573,6 +629,18 @@ function buildUpsertPayload(row: ParsedPackage, hotels: HotelRecord[], existingP
     pelataran_madinah_duration_walk: row.tier === "pelataran-hemat" ? (madinahHotel?.walking_duration || null) : null,
   };
 
+  if (existingPkg) {
+    // Updating a live package: the sheet only owns the trip data. Sending these used to
+    // unpublish every synced package (status -> draft), change its URL, wipe its
+    // gallery/waitlist/sold-out flag, and zero the agent commission when that column was empty.
+    delete payload.status;
+    delete payload.slug;
+    delete payload.gallery_images;
+    delete payload.is_sold_out;
+    delete payload.waitlist_count;
+    if (!row.agent_commission_amount) delete payload.agent_commission_amount;
+  }
+
   // Hapus semua field yang bernilai null agar database menggunakan nilai bawaan (default)
   // Ini sama persis dengan kelakuan PackageForm yang tidak mengirimkan field kosong
   const cleanedPayload: Record<string, unknown> = {};
@@ -631,17 +699,13 @@ export interface BulkPackageUploadProps {
   onSuccess: () => void;
 }
 
-const GOOGLE_SHEET_ID = "11R3Dv7YNJEYj0NLCY-xm4OH2PuZ_T85jsbizPJNQsn0";
-const SHEET_NAME = "ALL PACKAGES_FIX";
-
 export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackageUploadProps) => {
   const [parsedData, setParsedData] = useState<ParsedPackage[]>([]);
   const [step, setStep] = useState<"upload" | "preview" | "importing">("upload");
   const [importProgress, setImportProgress] = useState({ done: 0, total: 0, errors: 0 });
   const [fileName, setFileName] = useState("");
-  const [isFetchingSheet, setIsFetchingSheet] = useState(false);
   const [hotels, setHotels] = useState<HotelRecord[]>([]);
-  const [existingPackages, setExistingPackages] = useState<Record<string, ExistingPackage>>({});
+  const [existingPackages, setExistingPackages] = useState<ExistingPackageMap>({});
   const [selectedRowIndices, setSelectedRowIndices] = useState<Set<number>>(new Set());
   const [referenceData, setReferenceData] = useState<{ flights: string[]; airports: string[]; routes: string[] }>({
     flights: [],
@@ -654,21 +718,23 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
   useEffect(() => {
     if (open) {
       const fetchRef = async () => {
-        const { data } = await supabase.from("packages").select("id, flight, start_airport, route, slug, departure_date, banner_image, catalog_link, itinerary_link");
+        const { data } = await supabase.from("packages").select("id, flight, start_airport, route, slug, departure_date, available_tiers, banner_image, catalog_link, itinerary_link");
         if (data) {
           const flights = new Set<string>();
           const airports = new Set<string>();
           const routes = new Set<string>();
-          const exMap: Record<string, ExistingPackage> = {};
+          const exMap: ExistingPackageMap = {};
           data.forEach((p) => {
             if (p.departure_date) {
-              exMap[p.departure_date] = {
+              const date = p.departure_date.slice(0, 10);
+              (exMap[date] ??= []).push({
                 id: p.id,
                 slug: p.slug,
+                tier: p.available_tiers?.[0] ?? null,
                 banner_image: p.banner_image,
                 catalog_link: p.catalog_link,
                 itinerary_link: p.itinerary_link,
-              };
+              });
             }
             if (p.flight) flights.add(p.flight.trim());
             if (p.start_airport) airports.add(p.start_airport.trim());
@@ -712,7 +778,6 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
     setStep("upload");
     setImportProgress({ done: 0, total: 0, errors: 0 });
     setFileName("");
-    setIsFetchingSheet(false);
   }, []);
 
   const handleClose = () => {
@@ -754,39 +819,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
     reader.readAsArrayBuffer(file);
   };
 
-  const handleGoogleSheetsSync = async () => {
-    setIsFetchingSheet(true);
-    try {
-      const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Gagal mengunduh Google Sheet");
-      
-      const csvText = await response.text();
-      const wb = XLSX.read(csvText, { type: "string", cellDates: true });
-      
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const parsed = parseExcelData(ws, referenceData, hotels, existingPackages);
-      
-      if (parsed.length === 0) {
-        toast.error("File kosong atau format tidak sesuai");
-        setIsFetchingSheet(false);
-        return;
-      }
-
-      setFileName("Google Sheets (Sync)");
-      setParsedData(parsed);
-      setSelectedRowIndices(new Set(parsed.filter(r => r.errors.length === 0).map(r => r.rowIndex)));
-      setStep("preview");
-      toast.success(`${parsed.length} baris berhasil diparsing dari Google Sheets`);
-    } catch (err) {
-      toast.error("Gagal sinkronisasi: " + (err as Error).message);
-    } finally {
-      setIsFetchingSheet(false);
-    }
-  };
-
-  const [lastErrorMsg, setLastErrorMsg] = useState<string>("");
-  const [lastErrorPayload, setLastErrorPayload] = useState<any>(null);
+  const [failures, setFailures] = useState<{ label: string; message: string; technical: string }[]>([]);
 
   const handleImport = async () => {
     const validRows = parsedData.filter((row) => row.errors.length === 0 && selectedRowIndices.has(row.rowIndex));
@@ -797,18 +830,16 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
 
     setStep("importing");
     setImportProgress({ done: 0, total: validRows.length, errors: 0 });
-    setLastErrorMsg("");
-    setLastErrorPayload(null);
+    setFailures([]);
 
     let successCount = 0;
     let errorCount = 0;
-    let lastErr = "";
-    let lastPayload = null;
+    const failed: { label: string; message: string; technical: string }[] = [];
 
     for (const row of validRows) {
+      const existingPkg = findExistingPackage(existingPackages, row.departure_date, row.tier);
       try {
-        const payload = buildUpsertPayload(row, hotels, existingPackages, defaultIncludes, defaultExcludes);
-        const existingPkg = existingPackages[row.departure_date];
+        const payload = buildUpsertPayload(row, hotels, existingPkg, defaultIncludes, defaultExcludes);
         let error;
 
         if (existingPkg) {
@@ -824,27 +855,31 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
           error = insertErr;
         }
 
-        if (error) {
-          lastPayload = payload;
-          throw error;
-        }
+        if (error) throw error;
         successCount++;
       } catch (err) {
         console.error(`Row ${row.rowIndex} error:`, err);
         errorCount++;
-        lastErr = (err as Error).message || JSON.stringify(err);
-        setLastErrorMsg(lastErr);
-        if (lastPayload) setLastErrorPayload(lastPayload);
+        const e = err as { code?: string; message?: string; details?: string };
+        failed.push({
+          label: formatRowLabel(row),
+          message: friendlyImportError(err),
+          technical: [e.code, e.message, e.details].filter(Boolean).join(" · ") || JSON.stringify(err),
+        });
+        setFailures([...failed]);
       }
       setImportProgress({ done: successCount + errorCount, total: validRows.length, errors: errorCount });
     }
 
+    // Refresh the package list whenever anything was saved, not only on a clean run,
+    // so the admin sees the synced data without reloading the page.
+    if (successCount > 0) onSuccess();
+
     if (errorCount === 0) {
       toast.success(`${successCount} paket berhasil disimpan!`);
-      onSuccess();
       setTimeout(handleClose, 1500);
     } else {
-      toast.error(`${successCount} berhasil, ${errorCount} gagal. Pesan error: ${lastErr}`);
+      toast.error(`${successCount} paket tersimpan, ${errorCount} gagal. Lihat penjelasannya di bawah.`);
       // Do not auto-close so user can read the error!
     }
   };
@@ -896,25 +931,12 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
               </label>
             </div>
 
+            {/* The Google Sheets pull is retired: the website is the only source of truth
+                for package data. Excel upload stays for adding many new packages at once. */}
             <div className="flex gap-4 w-full max-w-md">
               <Button variant="outline" onClick={downloadTemplate} className="flex-1 text-muted-foreground">
                 <Download className="mr-2 h-4 w-4" />
                 Template Excel
-              </Button>
-              <Button 
-                variant="default" 
-                onClick={handleGoogleSheetsSync} 
-                disabled={isFetchingSheet}
-                className="flex-1 bg-green-600 hover:bg-green-700"
-              >
-                {isFetchingSheet ? (
-                  "Menarik Data..."
-                ) : (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Tarik Langsung Google Sheets
-                  </>
-                )}
               </Button>
             </div>
           </div>
@@ -1122,22 +1144,23 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
             <p className="text-lg font-medium">
               Mengimport {importProgress.done} / {importProgress.total} paket...
             </p>
-            {importProgress.errors > 0 && (
-              <div className="flex flex-col items-center justify-center space-y-2 w-full max-w-2xl text-center">
-                <p className="text-sm font-bold text-destructive">{importProgress.errors} gagal</p>
-                {lastErrorMsg && (
-                  <div className="flex flex-col w-full text-left gap-2">
-                    <p className="text-xs text-destructive/90 font-mono bg-destructive/10 p-2 rounded-md break-words">
-                      {lastErrorMsg}
-                    </p>
-                    {lastErrorPayload && (
-                      <div className="mt-2 text-[10px] bg-slate-900 text-slate-300 p-3 rounded-md overflow-auto max-h-64 font-mono w-full">
-                        <p className="text-muted-foreground mb-2 border-b border-slate-700 pb-1">Debug Payload (Screenshot & Kirimkan Ini):</p>
-                        <pre>{JSON.stringify(lastErrorPayload, null, 2)}</pre>
-                      </div>
-                    )}
-                  </div>
-                )}
+            {failures.length > 0 && (
+              <div className="flex flex-col w-full max-w-2xl gap-2 text-left">
+                <p className="text-sm font-semibold text-destructive text-center">
+                  {failures.length} paket belum tersimpan
+                </p>
+                <ul className="flex flex-col gap-2 max-h-72 overflow-auto">
+                  {failures.map((f, i) => (
+                    <li key={i} className="rounded-md border border-destructive/30 bg-destructive/5 p-3">
+                      <p className="text-sm font-medium">{f.label}</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">{f.message}</p>
+                      <details className="mt-1.5">
+                        <summary className="cursor-pointer text-xs text-muted-foreground">Detail teknis</summary>
+                        <p className="mt-1 font-mono text-[11px] break-words text-muted-foreground">{f.technical}</p>
+                      </details>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
             <div className="w-64 h-2 bg-muted rounded-full overflow-hidden">

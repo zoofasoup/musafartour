@@ -2,6 +2,7 @@ import musafarLogo from "@/assets/musafar-logo.svg";
 import { Instagram, Facebook, Youtube, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useHomepageData } from "@/hooks/useHomepageData";
+import { trackWhatsAppLead } from "@/lib/tracking";
 
 const FALLBACK_PHONE = "021-38312137";
 const FALLBACK_WHATSAPP = "6281917403797";
@@ -63,6 +64,7 @@ const Footer = () => {
                   href={`https://wa.me/${whatsapp}?text=Halo%20Musamin,%20saya%20ingin%20mendapatkan%20info%20promo%20paket%20umroh%20terbaru`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackWhatsAppLead("footer")}
                   className="flex items-center gap-2 text-emerald-400 font-semibold hover:text-emerald-300 transition-colors text-lg"
                 >
                   Hubungi via WhatsApp <ArrowRight className="w-5 h-5" />

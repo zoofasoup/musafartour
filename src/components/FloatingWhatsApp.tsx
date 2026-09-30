@@ -29,7 +29,7 @@ const FloatingWhatsApp = () => {
       });
     }
 
-    redirectToWhatsApp("Halo Musafar Tour, saya tertarik dengan paket umroh Anda. Saya tahu dari website.");
+    redirectToWhatsApp("Halo Musafar Tour, saya tertarik dengan paket umroh Anda. Saya tahu dari website.", "floating_button");
   };
 
   if (!mounted) return null;

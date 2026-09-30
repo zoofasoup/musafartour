@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Star, Heart, ChevronLeft, ChevronRight, Bell, Users, ShieldCheck, CheckCircle2, ShoppingCart, Armchair } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useFavorites } from "@/hooks/useFavorites";
+import { toRupiah } from "@/lib/tracking";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { getPriceBadgeStyle, getOptimizedImageUrl } from "@/lib/utils";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
@@ -111,6 +112,7 @@ export const PackageCard = ({
       image,
       price: displayPrice,
       date,
+      value: toRupiah(price),
     });
   };
 
@@ -118,7 +120,9 @@ export const PackageCard = ({
   const handleNotifyMe = (e: React.MouseEvent) => {
     e.stopPropagation();
     redirectToWhatsApp(
-      `Assalamu'alaikum Musafar Tour,\n\nSaya ingin masuk waitlist untuk paket *${title}* (${date}).\n\nMohon kabari saya jika ada seat kosong, atau info jadwal terdekat lainnya. Terima kasih.`
+      `Assalamu'alaikum Musafar Tour,\n\nSaya ingin masuk waitlist untuk paket *${title}* (${date}).\n\nMohon kabari saya jika ada seat kosong, atau info jadwal terdekat lainnya. Terima kasih.`,
+      "package_card_waitlist",
+      { id: packageId, name: title, value: toRupiah(price) }
     );
   };
 

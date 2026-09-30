@@ -1409,6 +1409,45 @@ export type Database = {
         }
         Relationships: []
       }
+      package_change_log: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          actor_name: string | null
+          changes: Json
+          created_at: string
+          id: string
+          package_id: string
+          package_label: string | null
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          actor_name?: string | null
+          changes?: Json
+          created_at?: string
+          id?: string
+          package_id: string
+          package_label?: string | null
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          actor_name?: string | null
+          changes?: Json
+          created_at?: string
+          id?: string
+          package_id?: string
+          package_label?: string | null
+          reason?: string | null
+        }
+        Relationships: []
+      }
       packages: {
         Row: {
           agent_commission_amount: number
@@ -1417,6 +1456,7 @@ export type Database = {
           best_seller_transport: string | null
           canonical_url: string | null
           catalog_link: string | null
+          change_reason: string | null
           cogs_data: Json | null
           cogs_status: string | null
           created_at: string
@@ -1505,6 +1545,7 @@ export type Database = {
           best_seller_transport?: string | null
           canonical_url?: string | null
           catalog_link?: string | null
+          change_reason?: string | null
           cogs_data?: Json | null
           cogs_status?: string | null
           created_at?: string
@@ -1593,6 +1634,7 @@ export type Database = {
           best_seller_transport?: string | null
           canonical_url?: string | null
           catalog_link?: string | null
+          change_reason?: string | null
           cogs_data?: Json | null
           cogs_status?: string | null
           created_at?: string
@@ -2485,6 +2527,7 @@ export type Database = {
         | "agent_admin"
         | "advertiser"
         | "sales"
+        | "product_contributor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2624,6 +2667,7 @@ export const Constants = {
         "agent_admin",
         "advertiser",
         "sales",
+        "product_contributor",
       ],
     },
   },

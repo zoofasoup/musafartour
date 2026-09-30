@@ -6,6 +6,7 @@ import {
   extractUTMParams,
   type CSNumber,
 } from '@/lib/whatsappRotation';
+import { trackWhatsAppLead, type TrackedPackage } from '@/lib/tracking';
 
 // Hash IP for privacy
 const hashIP = async (ip: string): Promise<string> => {
@@ -46,8 +47,12 @@ export const saveClickToDatabase = async (
 /**
  * Redirect to WhatsApp using weighted CS rotation.
  * Falls back to /chat route if no CS numbers are configured.
+ *
+ * Every WhatsApp button goes through here, so this is where the Lead event fires.
+ * It fires before the CS lookup so a slow network can't lose it.
  */
-export const redirectToWhatsApp = async (message: string) => {
+export const redirectToWhatsApp = async (message: string, source = "whatsapp_button", pkg?: TrackedPackage) => {
+  trackWhatsAppLead(source, pkg);
   const cs = await getNextCS();
 
   if (!cs) {

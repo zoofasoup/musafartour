@@ -17,6 +17,7 @@ import { usePackageBySlug } from "@/hooks/usePackages";
 import { useReferralCapture } from "@/hooks/useReferralCapture";
 import { isPackageUnavailable, isPackageDeparted, formatCurrency, parseListItems, getSlotsRemaining, getOptimizedImageUrl } from "@/lib/utils";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
+import { trackViewContent } from "@/lib/tracking";
 import { SEO } from "@/components/SEO";
 import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/structuredData";
 import { format } from "date-fns";
@@ -113,6 +114,17 @@ const PackageDetailPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seatsLeft]);
 
+  // Meta ViewContent (catalog / dynamic ads): once per package opened.
+  const quadPrice = price?.quad || 0;
+  useEffect(() => {
+    if (!packageData?.id) return;
+    trackViewContent({ id: packageData.id, name: packageData.package_name, value: quadPrice || undefined, category: effectiveTier });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [packageData?.id]);
+
+  const trackedPackage = (value?: number) =>
+    packageData ? { id: packageData.id, name: packageData.package_name, value: value || quadPrice || undefined, category: effectiveTier } : undefined;
+
   const safeComboIdx = combos.length > 0 ? Math.min(selectedComboIdx, combos.length - 1) : 0;
   const selectedCombo = combos[safeComboIdx] || null;
   const grandTotal = selectedCombo ? selectedCombo.totalRoomCost + childTotal + infantTotal : 0;
@@ -148,7 +160,8 @@ const PackageDetailPage = () => {
     }
     msg += `\nMohon informasi lebih lanjut mengenai ketersediaan dan proses pendaftarannya. Terima kasih.`;
 
-    redirectToWhatsApp(msg);
+    // Lead value = the quote the customer just built.
+    redirectToWhatsApp(msg, "package_calculator", trackedPackage(grandTotal));
   };
 
   // Skips the calculator entirely - for a solo jamaah who just wants to ask
@@ -164,7 +177,7 @@ const PackageDetailPage = () => {
     if (price?.quad) msg += `💰 *Harga mulai dari:* ${formatCurrency(price.quad)}/orang\n`;
     msg += `\nMohon info lebih lanjut mengenai opsi kamar untuk 1 orang. Terima kasih.`;
 
-    redirectToWhatsApp(msg);
+    redirectToWhatsApp(msg, "package_solo", trackedPackage());
   };
 
   // Waitlist goes through WhatsApp like every other CTA - the old toast
@@ -176,7 +189,7 @@ const PackageDetailPage = () => {
     msg += `📦 *Paket:* ${packageData.package_name}\n`;
     msg += `📅 *Keberangkatan:* ${fmtDate(packageData.departure_date)}\n\n`;
     msg += `Mohon kabari saya jika ada seat kosong, atau info jadwal terdekat lainnya. Terima kasih.`;
-    redirectToWhatsApp(msg);
+    redirectToWhatsApp(msg, "package_waitlist", trackedPackage());
   };
 
   if (loading) {

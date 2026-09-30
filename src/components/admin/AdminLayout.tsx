@@ -67,7 +67,7 @@ const AdminLayout = () => {
   const menuSectionsRaw = [
     {
       items: [
-        { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin", "superadmin", "product_admin", "content_admin", "agent_admin"] },
+        { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin", "superadmin", "product_admin", "product_contributor", "content_admin", "agent_admin"] },
       ]
     },
     {
@@ -89,7 +89,11 @@ const AdminLayout = () => {
     {
       label: "PRODUCTS & SERVICES",
       items: [
-        { icon: Package, label: "Paket Umroh", path: "/admin/packages", roles: ["admin", "superadmin", "product_admin"] },
+        // product_contributor may browse packages read-only (RLS gives them SELECT only).
+        { icon: Package, label: "Paket Umroh", path: "/admin/packages", roles: ["admin", "superadmin", "product_admin", "product_contributor"] },
+        // The package form sends users here after saving; it was missing from the menu,
+        // so the route guard bounced them to the dashboard.
+        { icon: PenTool, label: "Product Development", path: "/admin/product-development", roles: ["admin", "superadmin", "product_admin", "product_contributor"] },
         { icon: Hotel, label: "Hotel", path: "/admin/hotels", roles: ["admin", "superadmin", "product_admin"] },
         { icon: ListChecks, label: "Fasilitas Paket", path: "/admin/package-items", roles: ["admin", "superadmin", "product_admin"] },
         { icon: Backpack, label: "Perlengkapan", path: "/admin/equipment", roles: ["admin", "superadmin", "product_admin"] },

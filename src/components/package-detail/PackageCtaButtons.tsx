@@ -39,6 +39,7 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
       image: packageData.banner_image || "",
       price: price?.quad ? formatPriceJuta(price.quad) : "",
       date: packageData.departure_date,
+      value: price?.quad || undefined,
     });
   };
 

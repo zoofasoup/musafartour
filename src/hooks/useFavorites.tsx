@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from '@/hooks/use-toast';
+import { trackAddToCart } from '@/lib/tracking';
 
 interface FavoritePackage {
   id: string;
@@ -8,6 +9,8 @@ interface FavoritePackage {
   image: string;
   price: string;
   date?: string;
+  /** Quad price in rupiah, sent as the AddToCart value. */
+  value?: number;
 }
 
 interface FavoritesContextType {
@@ -32,6 +35,8 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
 
   const addFavorite = (pkg: FavoritePackage) => {
     setFavorites(prev => [...prev, pkg]);
+    // The cart button on cards and the detail page both land here.
+    trackAddToCart({ id: pkg.id, name: pkg.title, value: pkg.value });
     toast({
       title: "Ditambahkan ke favorit",
       description: pkg.title,

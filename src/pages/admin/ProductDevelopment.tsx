@@ -11,8 +11,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Search, Copy, Edit2, CalendarDays } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { canEditPackages, packageStatusBadgeClass, packageStatusLabel } from "@/lib/packageStatus";
 
 export default function ProductDevelopment() {
+  const { userRole } = useAuth();
+  const canEdit = canEditPackages(userRole);
   const [packages, setPackages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -120,6 +124,7 @@ export default function ProductDevelopment() {
                   <TableRow className="bg-white hover:bg-white">
                     <TableHead className="w-[40%]">Nama Paket</TableHead>
                     <TableHead>Keberangkatan</TableHead>
+                    <TableHead>Status Paket</TableHead>
                     <TableHead>Status COGS</TableHead>
                     <TableHead className="text-right">Aksi</TableHead>
                   </TableRow>
@@ -132,7 +137,12 @@ export default function ProductDevelopment() {
                         {pkg.departure_date ? format(new Date(pkg.departure_date), 'dd MMM yyyy') : '-'}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={pkg.cogs_status === 'Saved' ? 'default' : 'secondary'} 
+                        <Badge variant="outline" className={packageStatusBadgeClass(pkg.status)}>
+                          {packageStatusLabel(pkg.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={pkg.cogs_status === 'Saved' ? 'default' : 'secondary'}
                                className={pkg.cogs_status === 'Saved' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border-none' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border-none'}>
                           {pkg.cogs_status === 'Saved' ? 'Tersimpan' : 'Draft'}
                         </Badge>
@@ -142,18 +152,19 @@ export default function ProductDevelopment() {
                           <DialogTrigger asChild>
                             <Button variant="default" size="sm" className="shadow-none mr-2">
                               <Edit2 className="h-4 w-4 mr-1.5" />
-                              Manage COGS
+                              {canEdit ? "Manage COGS" : "Lihat COGS"}
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                               <DialogTitle>COGS - {pkg.package_name}</DialogTitle>
                             </DialogHeader>
-                            <CogsCalculator 
-                              packageId={pkg.id} 
-                              initialData={pkg.cogs_data} 
+                            <CogsCalculator
+                              packageId={pkg.id}
+                              initialData={pkg.cogs_data}
                               packageData={pkg}
                               onSaved={fetchPackages}
+                              readOnly={!canEdit}
                             />
                           </DialogContent>
                         </Dialog>

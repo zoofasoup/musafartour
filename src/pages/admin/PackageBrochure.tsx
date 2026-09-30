@@ -232,14 +232,14 @@ export default function PackageBrochure() {
   const { slug } = useParams();
   const navigate = useNavigate();
 
-  // Fetch all published packages for sidebar
+  // Final and live packages: Final means the data is fixed, so a brochure may be made.
   const { data: packages = [], isLoading } = useQuery({
     queryKey: ["brochure-packages"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("packages")
         .select("*")
-        .eq("status", "published")
+        .in("status", ["final", "published"])
         .order("departure_date", { ascending: true });
       if (error) throw error;
       return data as PackageRow[];

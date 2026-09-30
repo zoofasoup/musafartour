@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { flushPendingPixelEvents } from "@/lib/tracking";
 
 // Validate pixel IDs to prevent XSS injection
 function validatePixelId(id: string | null | undefined, type: 'meta' | 'tiktok' | 'ga4'): string | null {
@@ -76,6 +77,9 @@ export const useMarketingPixels = (enabled: boolean = true) => {
         fbq('track', 'PageView');
       `;
       document.head.appendChild(script);
+      // The inline script runs synchronously on append, so fbq exists now:
+      // send any Lead/AddToCart clicked before the pixel finished loading.
+      flushPendingPixelEvents();
 
       const noscript = document.createElement("noscript");
       const img = document.createElement("img");

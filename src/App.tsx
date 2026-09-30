@@ -1,5 +1,5 @@
 // Cache bust commit 2026-07-19: force rebuild, CSS asset was missing from production
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,19 +10,13 @@ import { SEO as SeoTags } from "./components/SEO";
 import { HelmetProvider } from 'react-helmet-async';
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 import { useMarketingPixels } from "./hooks/useMarketingPixels";
+import { trackPageView } from "./lib/tracking";
 import { useRedirects } from "./hooks/useRedirects";
 import { ErrorBoundary, CHUNK_RELOAD_FLAG } from "./components/ErrorBoundary";
 import { FavoritesProvider } from "./hooks/useFavorites";
 import { AgentAuthProvider } from "./hooks/useAgentAuth";
 import { JamaahAuthProvider } from "./hooks/useJamaahAuth";
 import ScrollToTop from "./components/ScrollToTop";
-
-// Declare TikTok Pixel type
-declare global {
-  interface Window {
-    ttq: any;
-  }
-}
 
 // Eager load homepage and admin layout (layout must not be lazy to persist across navigation)
 import Index from "./pages/Index";
@@ -134,6 +128,20 @@ const TikTokPixelTracker = () => {
 const MarketingPixelsLoader = () => {
   const location = useLocation();
   useMarketingPixels(location.pathname !== '/flyer-print');
+
+  // The pixel's own PageView only fires on the first page of a visit; in this SPA
+  // every later page change was invisible to Meta/TikTok. Skip the first render
+  // (already counted) and internal pages.
+  const firstPath = useRef(true);
+  useEffect(() => {
+    if (firstPath.current) {
+      firstPath.current = false;
+      return;
+    }
+    if (location.pathname === '/flyer-print' || location.pathname.startsWith('/admin')) return;
+    trackPageView();
+  }, [location.pathname]);
+
   return null;
 };
 

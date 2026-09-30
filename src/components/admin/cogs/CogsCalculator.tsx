@@ -7,6 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Save, Plus, Trash2, Undo2, Redo2, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ChangeReasonDialog } from '@/components/admin/ChangeReasonDialog';
+import { packageStatusLabel, statusNeedsChangeReason } from '@/lib/packageStatus';
 
 // --- DATA MODELS ---
 
@@ -209,7 +211,7 @@ const InputCell = ({ value, onChange, type = "number", className = "", options, 
   return inputEl;
 };
 
-export const CogsCalculator = ({ packageId, initialData, packageData, onSaved, isTemplate, onChange }: { packageId?: string; initialData?: any; packageData?: any; onSaved?: () => void, isTemplate?: boolean, onChange?: (data: CogsDataV2, prices: RoomPricing) => void }) => {
+export const CogsCalculator = ({ packageId, initialData, packageData, onSaved, isTemplate, onChange, readOnly }: { packageId?: string; initialData?: any; packageData?: any; onSaved?: () => void, isTemplate?: boolean, onChange?: (data: CogsDataV2, prices: RoomPricing) => void, /** Contributors: view the numbers, no save button. */ readOnly?: boolean }) => {
   const [data, setData] = useState<CogsDataV2>(() => {
     let parsed: CogsDataV2;
     if (!initialData || initialData.version !== "2.0") {
@@ -541,7 +543,16 @@ export const CogsCalculator = ({ packageId, initialData, packageData, onSaved, i
     setData(prev => ({ ...prev, pricing: { ...prev.pricing, [type]: { ...prev.pricing[type], [field]: val } } }));
   };
 
-  const saveCogs = async () => {
+  // Saving COGS also rewrites package_price, so a Final/live package must say why.
+  const needsReason = !isTemplate && statusNeedsChangeReason(packageData?.status);
+  const [reasonOpen, setReasonOpen] = useState(false);
+
+  const requestSave = () => {
+    if (needsReason) setReasonOpen(true);
+    else saveCogs();
+  };
+
+  const saveCogs = async (changeReason?: string) => {
     if (!isTemplate && !packageId) {
       toast.error("Simpan paket terlebih dahulu (tombol Simpan utama) sebelum menyimpan COGS secara terpisah.");
       return;
@@ -576,16 +587,24 @@ export const CogsCalculator = ({ packageId, initialData, packageData, onSaved, i
       } else {
         const res = await supabase
           .from('packages')
-          .update({ 
-            cogs_data: dataToSave as any, 
+          .update({
+            cogs_data: dataToSave as any,
             cogs_status: 'Saved',
-            package_price: packagePriceObj
+            package_price: packagePriceObj,
+            ...(changeReason ? { change_reason: changeReason } : {}),
           })
-          .eq('id', packageId);
+          .eq('id', packageId)
+          .select('id');
         error = res.error;
+        // RLS rejects a write by returning zero rows rather than an error;
+        // without this check the toast below claimed success for a save that never happened.
+        if (!error && (res.data?.length ?? 0) === 0) {
+          throw new Error("Akun kamu tidak punya izin mengubah paket ini.");
+        }
       }
-        
+
       if (error) throw error;
+      setReasonOpen(false);
       toast.success(isTemplate ? "Template Master COGS berhasil disimpan!" : "HPP / COGS berhasil disimpan dan disinkronkan dengan Harga Paket");
       if (onSaved) onSaved();
     } catch (e: any) {
@@ -607,12 +626,23 @@ export const CogsCalculator = ({ packageId, initialData, packageData, onSaved, i
           <Button variant="outline" size="sm" onClick={handleRedo} disabled={historyIndex >= history.length - 1} className="shadow-sm">
             <Redo2 className="w-4 h-4 mr-1.5" /> Redo
           </Button>
-          <Button onClick={saveCogs} disabled={isSaving} className="shadow-sm">
-            <Save className="w-4 h-4 mr-2" /> Simpan Data COGS
-          </Button>
+          {readOnly ? (
+            <span className="text-sm text-muted-foreground">Mode lihat saja</span>
+          ) : (
+            <Button onClick={requestSave} disabled={isSaving} className="shadow-sm">
+              <Save className="w-4 h-4 mr-2" /> Simpan Data COGS
+            </Button>
+          )}
         </div>
       </div>
-      
+      <ChangeReasonDialog
+        open={reasonOpen}
+        onOpenChange={setReasonOpen}
+        onConfirm={(reason) => saveCogs(reason)}
+        statusLabel={packageStatusLabel(packageData?.status)}
+        loading={isSaving}
+      />
+
       <div className="bg-white border border-slate-300 shadow-sm rounded-lg overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>

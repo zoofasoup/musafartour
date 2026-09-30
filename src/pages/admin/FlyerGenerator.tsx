@@ -21,7 +21,8 @@ export default function FlyerGenerator() {
       const { data, error } = await supabase
         .from("packages")
         .select(FLYER_PACKAGE_COLUMNS)
-        .eq("status", "published")
+        // Final = data is fixed and promo material may be made, even before it goes live.
+        .in("status", ["final", "published"])
         .gte("departure_date", new Date().toISOString().slice(0, 10))
         .order("departure_date", { ascending: true });
       if (error) throw error;

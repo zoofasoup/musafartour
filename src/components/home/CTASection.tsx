@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
 import type { WebsiteSettings } from "@/hooks/useHomepageData";
+import { trackWhatsAppLead } from "@/lib/tracking";
 
 interface CTASectionProps {
   websiteSettings: WebsiteSettings | null | undefined;
@@ -8,6 +9,7 @@ interface CTASectionProps {
 
 export const CTASection = ({ websiteSettings }: CTASectionProps) => {
   const handleWhatsAppClick = () => {
+    trackWhatsAppLead("home_cta_section");
     const whatsappNumber = websiteSettings?.whatsapp_number || "6281917403797";
     window.open(
       `https://wa.me/${whatsappNumber}?text=Halo%20Musamin,%20saya%20tertarik%20untuk%20mengetahui%20lebih%20lanjut%20tentang%20paket%20Umroh`,

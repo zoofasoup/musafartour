@@ -17,7 +17,8 @@ import { format } from "date-fns";
 
 const roleOptions = [
   { value: "superadmin", label: "Super Admin (Full Access)" },
-  { value: "product_admin", label: "Product Admin (Musafar Team)" },
+  { value: "product_admin", label: "Product PIC (ubah & finalkan paket)" },
+  { value: "product_contributor", label: "Product Contributor (lihat & usul)" },
   { value: "content_admin", label: "Content Admin (Marketing)" },
   { value: "agent_admin", label: "Agent Admin (Partner Support)" },
   { value: "sales", label: "Sales" },
@@ -27,6 +28,7 @@ const roleOptions = [
 const roleColors: Record<string, string> = {
   superadmin: "bg-red-100 text-red-800",
   product_admin: "bg-blue-100 text-blue-800",
+  product_contributor: "bg-sky-50 text-sky-800",
   content_admin: "bg-green-100 text-green-800",
   agent_admin: "bg-purple-100 text-purple-800",
   sales: "bg-amber-100 text-amber-800",

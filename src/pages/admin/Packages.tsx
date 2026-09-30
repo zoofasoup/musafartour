@@ -6,7 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, RefreshCw, Route } from "lucide-react";
+import { Plus, Edit, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, RefreshCw, Route, History, BadgeCheck } from "lucide-react";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useAuth } from "@/hooks/useAuth";
+import { canEditPackages, packageStatusBadgeClass, packageStatusLabel } from "@/lib/packageStatus";
+import { PackageChangeLog } from "@/components/admin/PackageChangeLog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import {
@@ -89,6 +93,10 @@ const formatJt = (amount: number | undefined) => {
 
 const Packages = () => {
   const navigate = useNavigate();
+  const { userRole } = useAuth();
+  // Contributors can browse every package but only the PIC/superadmin may change them.
+  const canEdit = canEditPackages(userRole);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -278,7 +286,19 @@ const Packages = () => {
       fetchPackages();
       handleExitSelectionMode();
     }},
-    { ...commonBulkActions.publish, handler: async (ids: string[]) => {
+    {
+      id: "final",
+      label: "Tandai Final",
+      icon: <BadgeCheck className="h-4 w-4" />,
+      confirmMessage: "Tandai {count} paket sebagai Final? Setelah Final, setiap perubahan wajib diberi alasan.",
+      handler: async (ids: string[]) => {
+        const { error } = await supabase.from("packages").update({ status: 'final' }).in("id", ids);
+        if (error) throw error;
+        fetchPackages();
+        handleExitSelectionMode();
+      },
+    },
+    { ...commonBulkActions.publish, label: "Tayangkan", confirmMessage: "Tayangkan {count} paket di website?", handler: async (ids: string[]) => {
       const { error } = await supabase.from("packages").update({ status: 'published' }).in("id", ids);
       if (error) throw error;
       fetchPackages();
@@ -317,11 +337,19 @@ const Packages = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Paket Umroh</h1>
-          <p className="text-muted-foreground">Kelola paket umroh Anda</p>
+          <p className="text-muted-foreground">
+            {canEdit ? "Kelola paket umroh Anda" : "Mode lihat saja: perubahan paket dilakukan oleh PIC produk"}
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button 
-            variant={selectionMode ? "secondary" : "outline"} 
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)} className="flex items-center gap-2">
+            <History className="h-4 w-4" />
+            Riwayat Perubahan
+          </Button>
+          {canEdit && (
+          <>
+          <Button
+            variant={selectionMode ? "secondary" : "outline"}
             onClick={() => selectionMode ? handleExitSelectionMode() : setSelectionMode(true)}
             size="sm"
           >
@@ -329,7 +357,7 @@ const Packages = () => {
           </Button>
           <Button variant="outline" size="sm" onClick={() => setImportOpen(true)} className="flex items-center gap-2">
             <FileSpreadsheet className="h-4 w-4" />
-            Upload / Sync Google Sheets
+            Upload Excel
           </Button>
           <Button
             variant="outline"
@@ -355,6 +383,8 @@ const Packages = () => {
             <Plus className="mr-2 h-4 w-4" />
             Tambah Paket
           </Button>
+          </>
+          )}
         </div>
       </div>
 
@@ -511,11 +541,8 @@ const Packages = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col items-start gap-1">
-                              <Badge 
-                                variant={pkg.status === "published" ? "default" : "secondary"}
-                                className={pkg.status === "published" ? "bg-emerald-500 hover:bg-emerald-600 border-transparent" : ""}
-                              >
-                                {pkg.status === "published" ? "Published" : "Draft"}
+                              <Badge variant="outline" className={packageStatusBadgeClass(pkg.status)}>
+                                {packageStatusLabel(pkg.status)}
                               </Badge>
                               {pkg.is_sold_out && (
                                 <Badge variant="destructive" className="text-[10px] px-1 py-0 h-4">Sold Out</Badge>
@@ -528,18 +555,22 @@ const Packages = () => {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-slate-500 hover:text-blue-600 hover:bg-blue-50"
+                                aria-label={canEdit ? "Edit paket" : "Lihat paket"}
                                 onClick={(e) => { e.stopPropagation(); navigate(`/admin/packages/${pkg.id}`); }}
                               >
-                                <Edit className="h-4 w-4" />
+                                {canEdit ? <Edit className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-slate-500 hover:text-destructive hover:bg-destructive/10"
-                                onClick={(e) => { e.stopPropagation(); setDeleteId(pkg.id); }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              {canEdit && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-slate-500 hover:text-destructive hover:bg-destructive/10"
+                                  aria-label="Hapus paket"
+                                  onClick={(e) => { e.stopPropagation(); setDeleteId(pkg.id); }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -582,6 +613,16 @@ const Packages = () => {
         onOpenChange={setImportOpen}
         onSuccess={fetchPackages}
       />
+
+      <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader className="mb-4">
+            <SheetTitle>Riwayat Perubahan Paket</SheetTitle>
+            <SheetDescription>Siapa mengubah apa, kapan, dan alasannya. 100 perubahan terakhir.</SheetDescription>
+          </SheetHeader>
+          {historyOpen && <PackageChangeLog />}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

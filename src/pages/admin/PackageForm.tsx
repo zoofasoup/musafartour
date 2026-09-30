@@ -35,6 +35,12 @@ import { PricingTab } from "@/components/admin/package-form/PricingTab";
 import { MediaContentTab } from "@/components/admin/package-form/MediaContentTab";
 import { FasilitasTab } from "@/components/admin/package-form/FasilitasTab";
 import { VerticalStepper } from "@/components/admin/package-form/VerticalStepper";
+import { ChangeReasonDialog } from "@/components/admin/ChangeReasonDialog";
+import { PackageChangeLog } from "@/components/admin/PackageChangeLog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { History } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { PACKAGE_STATUSES, canEditPackages, packageStatusLabel, statusNeedsChangeReason } from "@/lib/packageStatus";
 
 const SearchableHotelSelect = ({ 
   hotels, 
@@ -435,6 +441,16 @@ const PackageForm = () => {
   const [hotelModalTier, setHotelModalTier] = useState<"best_seller" | "five_star" | "">("best_seller");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
+  const { userRole } = useAuth();
+  // Contributors open the same form read-only; only the PIC/superadmin may save.
+  const canEdit = canEditPackages(userRole);
+  const isExistingPackage = !!id && id !== "new" && id !== "add";
+  // Status as stored in the database (not the dropdown), which decides whether a
+  // change needs a reason: once Final or live, every edit must say why.
+  const [savedStatus, setSavedStatus] = useState<string | null>(null);
+  const [pendingSave, setPendingSave] = useState<PackageFormValues | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+
   const form = useForm<PackageFormValues>({
     resolver: zodResolver(packageSchema),
     defaultValues: {
@@ -668,6 +684,7 @@ const PackageForm = () => {
           is_sold_out: data.is_sold_out || false,
           waitlist_count: data.waitlist_count || 0,
         });
+        setSavedStatus(data.status);
       }
     } catch (error: any) {
       toast.error("Gagal memuat data: " + error.message);
@@ -828,7 +845,20 @@ const PackageForm = () => {
     }
   };
 
-  const onSubmit = async (values: PackageFormValues) => {
+  /** Entry point for every save: asks for a reason first when the stored package is Final or live. */
+  const handleSave = (values: PackageFormValues) => {
+    if (!canEdit) {
+      toast.error("Akun kamu hanya bisa melihat paket. Perubahan dilakukan oleh PIC produk.");
+      return;
+    }
+    if (isExistingPackage && statusNeedsChangeReason(savedStatus)) {
+      setPendingSave(values);
+      return;
+    }
+    onSubmit(values);
+  };
+
+  const onSubmit = async (values: PackageFormValues, changeReason?: string) => {
     setLoading(true);
     setUploadingImages(true);
     try {
@@ -964,11 +994,16 @@ const PackageForm = () => {
         status: values.status,
         is_sold_out: values.is_sold_out,
         waitlist_count: values.waitlist_count,
+        // Moved into package_change_log by the database trigger, then cleared.
+        // Only sent when given, so plain saves never depend on the column.
+        ...(changeReason ? { change_reason: changeReason } : {}),
       };
 
-      if (id && id !== 'new' && id !== 'add') {
-        const { error } = await supabase.from("packages").update(packageData).eq("id", id);
+      if (isExistingPackage) {
+        const { data: updated, error } = await supabase.from("packages").update(packageData).eq("id", id).select("id");
         if (error) throw error;
+        // RLS rejects a write by returning zero rows, not an error.
+        if (!updated?.length) throw new Error("Akun kamu tidak punya izin mengubah paket ini.");
         toast.success("Paket berhasil diupdate");
       } else {
         const { error } = await supabase.from("packages").insert(packageData);
@@ -976,6 +1011,8 @@ const PackageForm = () => {
         toast.success("Paket berhasil dibuat");
       }
 
+      setSavedStatus(values.status);
+      setPendingSave(null);
       setHasUnsavedChanges(false);
       setSavedPackageTitle(values.package_name);
       setShowAutoGenerator(true);
@@ -1361,7 +1398,7 @@ const PackageForm = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit, handleValidationError)} className="space-y-6 pb-12 bg-background min-h-[calc(100vh-4rem)] -m-6 p-6 md:-m-8 md:p-8">
+      <form onSubmit={form.handleSubmit(handleSave, handleValidationError)} className="space-y-6 pb-12 bg-background min-h-[calc(100vh-4rem)] -m-6 p-6 md:-m-8 md:p-8">
         {/* Sticky top action bar */}
         <div className="sticky top-0 z-40 -mx-6 -mt-6 px-6 py-3 md:-mx-8 md:-mt-8 md:px-8 bg-white/95 backdrop-blur border-b shadow-sm mb-8">
           <div className="flex items-center justify-between gap-4">
@@ -1369,40 +1406,63 @@ const PackageForm = () => {
               <Button variant="ghost" size="sm" type="button" onClick={() => safeNavigate("/admin/packages")} className="rounded-full">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <span className="text-lg tracking-tight font-medium">{id ? "Edit Paket" : "Tambah Paket"}</span>
+              <span className="text-lg tracking-tight font-medium">
+                {!canEdit ? "Lihat Paket" : id ? "Edit Paket" : "Tambah Paket"}
+              </span>
             </div>
             <div className="flex items-center gap-3">
+              {isExistingPackage && (
+                <Button type="button" variant="outline" size="sm" onClick={() => setHistoryOpen(true)} className="gap-2">
+                  <History className="h-4 w-4" />
+                  Riwayat
+                </Button>
+              )}
               <FormField control={form.control} name="status" render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger className="w-[130px] h-9">
+                <Select onValueChange={field.onChange} value={field.value} disabled={!canEdit}>
+                  <SelectTrigger className="w-[130px] h-9" aria-label="Status paket">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="published">Published</SelectItem>
+                    {PACKAGE_STATUSES.map((s) => (
+                      <SelectItem key={s.value} value={s.value} title={s.description}>
+                        {s.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               )} />
               <Button type="button" variant="outline" size="sm" onClick={() => safeNavigate("/admin/packages")}>
-                Batal
+                {canEdit ? "Batal" : "Kembali"}
               </Button>
-              <Button
-                type="submit"
-                size="sm"
-                disabled={loading || uploadingImages}
-                data-save-btn
-                className="bg-primary"
-              >
-                {uploadingImages ? "Uploading..." : loading ? "Menyimpan..." : "Simpan"}
-              </Button>
+              {canEdit && (
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={loading || uploadingImages}
+                  data-save-btn
+                  className="bg-primary"
+                >
+                  {uploadingImages ? "Uploading..." : loading ? "Menyimpan..." : "Simpan"}
+                </Button>
+              )}
             </div>
           </div>
         </div>
 
         <div className="w-full max-w-[1700px] mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">{id ? "Edit Paket" : "Tambah Paket"}</h1>
-            <p className="text-muted-foreground mt-1">Lengkapi informasi paket umroh langkah demi langkah</p>
+            <h1 className="text-3xl font-bold tracking-tight">{!canEdit ? "Lihat Paket" : id ? "Edit Paket" : "Tambah Paket"}</h1>
+            <p className="text-muted-foreground mt-1">
+              {canEdit
+                ? "Lengkapi informasi paket umroh langkah demi langkah"
+                : "Mode lihat saja. Perubahan paket dilakukan oleh PIC produk."}
+            </p>
+            {canEdit && isExistingPackage && statusNeedsChangeReason(savedStatus) && (
+              <p className="mt-3 inline-block rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                Paket ini sudah <strong>{packageStatusLabel(savedStatus)}</strong>. Setiap perubahan akan diminta alasannya dan
+                tercatat di Riwayat.
+              </p>
+            )}
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr_400px] xl:grid-cols-[280px_1fr_450px] gap-6 items-start">
@@ -1440,6 +1500,8 @@ const PackageForm = () => {
                 </div>
               </div>
 
+              {/* A disabled fieldset locks every input inside it for read-only contributors. */}
+              <fieldset disabled={!canEdit} className="m-0 min-w-0 border-0 p-0">
               <div className={currentStep === 1 ? "block space-y-8" : "hidden"}>
                 <BasicInfoTab form={form} />
                 <div className="pt-8 border-t border-slate-200">
@@ -1457,8 +1519,11 @@ const PackageForm = () => {
                 <div className="w-full xl:w-[150%] xl:-ml-[25%]">
                   <CogsCalculator
                     packageId={id && id !== 'new' && id !== 'add' ? id : undefined}
-                    initialData={form.getValues("cogs_data")} packageData={form.getValues()}
+                    initialData={form.getValues("cogs_data")}
+                    // Stored status, not the dropdown, decides whether a reason is required.
+                    packageData={{ ...form.getValues(), status: savedStatus ?? form.getValues("status") }}
                     onChange={handleCogsChange}
+                    readOnly={!canEdit}
                   />
                 </div>
                 {hasNyaman && renderTierSection("Nyaman (Best Seller)", "makkah", "madinah", "price", "best_seller_transport")}
@@ -1494,7 +1559,8 @@ const PackageForm = () => {
                   ImageDropZone={ImageDropZone} DocDropZone={DocDropZone}
                 />
               </div>
-              
+              </fieldset>
+
               {/* Navigation Buttons */}
               <div className="flex items-center justify-between pt-6 border-t border-primary/10">
                 <Button 
@@ -1541,40 +1607,66 @@ const PackageForm = () => {
                   >
                     Selanjutnya
                   </Button>
-                ) : (
+                ) : !canEdit ? null : (
 
                   <div className="flex items-center gap-3">
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={async () => {
+                      onClick={() => {
                         const data = form.getValues();
-                        if (!data.package_name) {
-                          import("sonner").then(m => m.toast.error("Judul paket wajib diisi untuk menyimpan draft"));
-                          return;
+                        // Drafts may be saved half-filled; Final/live packages must pass validation.
+                        // This used to force status "draft", which quietly took live packages off the website.
+                        if (data.status === "draft") {
+                          if (!data.package_name) {
+                            toast.error("Judul paket wajib diisi untuk menyimpan draft");
+                            return;
+                          }
+                          handleSave(data);
+                        } else {
+                          form.handleSubmit(handleSave, handleValidationError)();
                         }
-                        await onSubmit({ ...data, status: "draft" } as any);
                       }}
                       disabled={loading || uploadingImages}
                       className="rounded-md px-6 border-primary/20 hover:bg-slate-50"
                     >
-                      {loading ? "Menyimpan..." : "Simpan Draft"}
+                      {loading ? "Menyimpan..." : `Simpan (${packageStatusLabel(form.watch("status"))})`}
                     </Button>
-                    <Button
-                      type="submit"
-                      disabled={loading || uploadingImages}
-                      data-save-btn
-                      className="rounded-md px-8"
-                      onClick={() => form.setValue("status", "published")}
-                    >
-                      {uploadingImages ? "Uploading..." : loading ? "Memproses..." : "Publish Paket"}
-                    </Button>
+                    {form.watch("status") !== "published" && (
+                      <Button
+                        type="submit"
+                        disabled={loading || uploadingImages}
+                        data-save-btn
+                        className="rounded-md px-8"
+                        onClick={() => form.setValue("status", "published")}
+                      >
+                        {uploadingImages ? "Uploading..." : loading ? "Memproses..." : "Tayangkan Paket"}
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
             </div>
           </div>
 
+        <ChangeReasonDialog
+          open={!!pendingSave}
+          onOpenChange={(open) => { if (!open) setPendingSave(null); }}
+          onConfirm={(reason) => { if (pendingSave) onSubmit(pendingSave, reason); }}
+          statusLabel={packageStatusLabel(savedStatus)}
+          loading={loading}
+        />
+        {isExistingPackage && (
+          <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+            <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+              <SheetHeader className="mb-4">
+                <SheetTitle>Riwayat Perubahan</SheetTitle>
+                <SheetDescription>Siapa mengubah paket ini, kapan, dan alasannya.</SheetDescription>
+              </SheetHeader>
+              {historyOpen && <PackageChangeLog packageId={id} />}
+            </SheetContent>
+          </Sheet>
+        )}
         <AddHotelModal
           open={hotelModalOpen}
           onOpenChange={setHotelModalOpen}
