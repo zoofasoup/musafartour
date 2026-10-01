@@ -72,21 +72,22 @@ const AdminLayout = () => {
   const menuSectionsRaw = [
     {
       items: [
-        { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin", "superadmin", "product_admin", "product_contributor", "content_admin", "agent_admin"] },
+        { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin", "superadmin", "product_admin", "product_contributor", "content_admin", "agent_admin", "cs_admin"] },
+      ]
+    },
+    {
+      // Offline booking. cs_admin (CS Administrasi) records; the owner verifies payments
+      // (enforced in the database, see 20261001090100_offline_jamaah_registrations.sql).
+      label: "JAMAAH & KEUANGAN",
+      items: [
+        { icon: CalendarCheck, label: "Data Jamaah", path: "/admin/jamaah", roles: ["admin", "superadmin", "cs_admin"] },
+        { icon: Wallet, label: "Verifikasi Pembayaran", path: "/admin/jamaah/pembayaran", roles: ["admin", "superadmin", "cs_admin"] },
+        { icon: BarChart3, label: "Laporan Keuangan", path: "/admin/jamaah/keuangan", roles: ["admin", "superadmin"] },
       ]
     },
     {
       label: "SALES & OPERATIONS",
       items: [
-        // Deliberately NOT offered to agent_admin, unlike its siblings above.
-        // The bookings and booking_payments RLS policies both check
-        // has_role('admin'), and admin_mark_payment_settled does too - and
-        // has_role treats superadmin as admin, so exactly these two roles can
-        // actually use the page. Listing agent_admin here would render an empty
-        // booking list and an override button that always errors. Widening it
-        // is a real scope decision (new RLS policies on two tables plus hiding
-        // the override for non-admins), not a nav tweak.
-        { icon: CalendarCheck, label: "Kelola Booking", path: "/admin/bookings", roles: ["admin", "superadmin"] },
         { icon: MessageCircleMore, label: "WhatsApp Inbox", path: "/admin/whatsapp-inbox", roles: ["admin", "superadmin", "sales"] },
         { icon: Sparkles, label: "Calculator Leads", path: "/admin/calculator-leads", roles: ["admin", "superadmin", "product_admin", "sales"] },
       ]

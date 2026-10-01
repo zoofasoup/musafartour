@@ -15,7 +15,6 @@ import { useRedirects } from "./hooks/useRedirects";
 import { ErrorBoundary, CHUNK_RELOAD_FLAG } from "./components/ErrorBoundary";
 import { FavoritesProvider } from "./hooks/useFavorites";
 import { AgentAuthProvider } from "./hooks/useAgentAuth";
-import { JamaahAuthProvider } from "./hooks/useJamaahAuth";
 import ScrollToTop from "./components/ScrollToTop";
 
 // Eager load homepage and admin layout (layout must not be lazy to persist across navigation)
@@ -94,12 +93,10 @@ const Equipment = lazy(() => import("./pages/admin/Equipment"));
 const CalculatorLeads = lazy(() => import("./pages/admin/CalculatorLeads"));
 const WhatsAppInbox = lazy(() => import("./pages/admin/WhatsAppInbox"));
 
-// Jamaah Portal / Booking
-const JamaahAuth = lazy(() => import("./pages/JamaahAuth"));
-const JamaahDashboard = lazy(() => import("./pages/JamaahDashboard"));
-const BookingCreate = lazy(() => import("./pages/BookingCreate"));
-const BookingPayment = lazy(() => import("./pages/BookingPayment"));
-const BookingManagement = lazy(() => import("./pages/admin/BookingManagement"));
+// Offline booking: jamaah registrations, payment verification, finance
+const Jamaah = lazy(() => import("./pages/admin/Jamaah"));
+const JamaahPayments = lazy(() => import("./pages/admin/JamaahPayments"));
+const JamaahFinance = lazy(() => import("./pages/admin/JamaahFinance"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -156,8 +153,6 @@ const ROUTE_META: { match: (p: string) => boolean; title: string; description?: 
   { match: (p) => p === "/admin/setup", title: "Setup Admin - Musafar Tour", noindex: true },
   { match: (p) => p.startsWith("/admin"), title: "Admin - Musafar Tour", noindex: true },
   { match: (p) => p === "/set-password", title: "Atur Password - Musafar Tour", noindex: true },
-  { match: (p) => p.startsWith("/jamaah"), title: "Portal Jamaah - Musafar Tour", noindex: true },
-  { match: (p) => p.startsWith("/booking"), title: "Booking Umroh - Musafar Tour", noindex: true },
   {
     match: (p) => p === "/agent/register",
     title: "Daftar Jadi Agen Umroh - Musafar Tour",
@@ -272,7 +267,6 @@ const App = () => (
       <QueryClientProvider client={queryClient}>
         <FavoritesProvider>
           <AgentAuthProvider>
-          <JamaahAuthProvider>
             <TooltipProvider>
               <Toaster />
             <Sonner />
@@ -323,12 +317,6 @@ const App = () => (
                   <Route path="/set-password" element={<SetPassword />} />
                   <Route path="/packages" element={<PublicMarketingKit />} />
                   <Route path="/flyer-print" element={<FlyerPrint />} />
-
-                  {/* Jamaah Portal / Booking Routes */}
-                  <Route path="/jamaah/auth" element={<JamaahAuth />} />
-                  <Route path="/jamaah/dashboard" element={<JamaahDashboard />} />
-                  <Route path="/booking/baru/:packageId" element={<BookingCreate />} />
-                  <Route path="/booking/:bookingId/bayar" element={<BookingPayment />} />
 
                   {/* Agent Portal Routes */}
                   <Route path="/agent" element={
@@ -480,7 +468,9 @@ const App = () => (
                     <Route path="chat-rotation" element={<ChatRotation />} />
                     <Route path="url-shortener" element={<URLShortener />} />
                     <Route path="agents" element={<AgentManagement />} />
-                    <Route path="bookings" element={<BookingManagement />} />
+                    <Route path="jamaah" element={<Jamaah />} />
+                    <Route path="jamaah/pembayaran" element={<JamaahPayments />} />
+                    <Route path="jamaah/keuangan" element={<JamaahFinance />} />
                     <Route path="gamification" element={<Gamification />} />
                     <Route path="calculator" element={<SalesCalculator />} />
                     <Route path="calculator-leads" element={<CalculatorLeads />} />
@@ -493,7 +483,6 @@ const App = () => (
               </Suspense>
             </BrowserRouter>
           </TooltipProvider>
-          </JamaahAuthProvider>
         </AgentAuthProvider>
       </FavoritesProvider>
     </QueryClientProvider>

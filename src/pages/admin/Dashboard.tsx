@@ -52,7 +52,7 @@ const AdminDashboard = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from('packages')
-        .select('id, package_name, departure_date, slots_total, slots_filled, slots_booked_online, status')
+        .select('id, package_name, departure_date, slots_total, slots_filled, slots_booked_online, seat_source, slots_registered, status')
         .eq('status', 'published')
         .gte('departure_date', new Date().toISOString().split('T')[0])
         .order('departure_date', { ascending: true })

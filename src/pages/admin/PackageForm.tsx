@@ -41,6 +41,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { History } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { PACKAGE_STATUSES, canEditPackages, packageStatusLabel, statusNeedsChangeReason } from "@/lib/packageStatus";
+import { tierFieldNames } from "@/lib/roomCombos";
 
 const SearchableHotelSelect = ({ 
   hotels, 
@@ -603,6 +604,7 @@ const PackageForm = () => {
 
         form.reset({
           package_name: data.package_name,
+          slug: data.slug,
           departure_date: data.departure_date,
           duration_days: data.duration_days,
           flight: data.flight,
@@ -781,20 +783,22 @@ const PackageForm = () => {
 
   
   const getSelectedHotels = () => {
-    const tier = form.watch("available_tiers")?.[0] || "hemat";
-    let mPrefix = tier === "nyaman" ? "makkah" : `${tier.replace("-", "_")}_makkah`;
-    let madPrefix = tier === "nyaman" ? "madinah" : `${tier.replace("-", "_")}_madinah`;
-    
+    // "pelataran-hemat" used to become "pelataran_hemat_makkah_*", a field that
+    // doesn't exist, so Pelataran flyers always showed "Pilih Hotel".
+    const fields = tierFieldNames(form.watch("available_tiers")?.[0] || "hemat");
+    const makkahStar = fields.makkahHotelName.replace("_name", "_star");
+    const madinahStar = fields.madinahHotelName.replace("_name", "_star");
+
     return [
       {
         location: "Makkah",
-        name: form.watch(mPrefix + "_hotel_name" as any) || "Pilih Hotel",
-        stars: form.watch(mPrefix + "_hotel_star" as any) || 0
+        name: form.watch(fields.makkahHotelName as any) || "Pilih Hotel",
+        stars: form.watch(makkahStar as any) || 0
       },
       {
         location: "Madinah",
-        name: form.watch(madPrefix + "_hotel_name" as any) || "Pilih Hotel",
-        stars: form.watch(madPrefix + "_hotel_star" as any) || 0
+        name: form.watch(fields.madinahHotelName as any) || "Pilih Hotel",
+        stars: form.watch(madinahStar as any) || 0
       }
     ];
   };
@@ -817,31 +821,24 @@ const PackageForm = () => {
   };
 
   
+  // Called by CogsCalculator on every user edit, so the main Save keeps the COGS
+  // sheet and writes its prices/hotels into the package's own tier fields.
   const handleCogsChange = (cogsData: any, prices: any) => {
     form.setValue("cogs_data", cogsData, { shouldDirty: true });
-    
-    // Update prices based on COGS
+    const fields = tierFieldNames(form.getValues("available_tiers")?.[0]);
+
     if (prices) {
-      form.setValue("price_quad", prices.quad, { shouldValidate: true, shouldDirty: true });
-      form.setValue("price_triple", prices.triple, { shouldValidate: true, shouldDirty: true });
-      form.setValue("price_double", prices.double, { shouldValidate: true, shouldDirty: true });
+      form.setValue(`${fields.formPricePrefix}_quad` as any, prices.quad, { shouldValidate: true, shouldDirty: true });
+      form.setValue(`${fields.formPricePrefix}_triple` as any, prices.triple, { shouldValidate: true, shouldDirty: true });
+      form.setValue(`${fields.formPricePrefix}_double` as any, prices.double, { shouldValidate: true, shouldDirty: true });
     }
 
     // Sync hotels from COGS to form for Flyer rendering
     if (cogsData?.land_arrangement?.hotels) {
       const makkahHotel = cogsData.land_arrangement.hotels.find((h: any) => h.city.toLowerCase().includes("makkah"));
       const madinahHotel = cogsData.land_arrangement.hotels.find((h: any) => h.city.toLowerCase().includes("madinah"));
-      
-      const tier = form.watch("available_tiers")?.[0] || "hemat";
-      let mPrefix = tier === "nyaman" ? "makkah" : `${tier.replace("-", "_")}_makkah`;
-      let madPrefix = tier === "nyaman" ? "madinah" : `${tier.replace("-", "_")}_madinah`;
-      
-      if (makkahHotel) {
-        form.setValue((mPrefix + "_hotel_name") as any, makkahHotel.name, { shouldDirty: true });
-      }
-      if (madinahHotel) {
-        form.setValue((madPrefix + "_hotel_name") as any, madinahHotel.name, { shouldDirty: true });
-      }
+      if (makkahHotel?.name) form.setValue(fields.makkahHotelName as any, makkahHotel.name, { shouldDirty: true });
+      if (madinahHotel?.name) form.setValue(fields.madinahHotelName as any, madinahHotel.name, { shouldDirty: true });
     }
   };
 
@@ -890,12 +887,15 @@ const PackageForm = () => {
         return name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
       };
 
-      let slug = values.slug;
-      if (values.status === 'published' && !slug) {
+      // An existing package keeps its slug forever: it is the public URL used in ads,
+      // shares and Google. (The form never loaded the slug, so every save of a live
+      // package generated a new one in a different date format.) A new package always
+      // gets one, whatever its status, since slug is NOT NULL in the database.
+      let slug = isExistingPackage ? undefined : values.slug;
+      if (!isExistingPackage && !slug) {
         const baseSlug = generateSlug(values.package_name);
-        const departureDate = new Date(values.departure_date);
-        const formattedDate = format(departureDate, 'dd-MMM-yyyy').toLowerCase();
-        const slugWithDate = `${baseSlug}-${formattedDate}`;
+        // Same yyyy-MM-dd format as the existing slugs (e.g. umroh-hemat-2026-10-11).
+        const slugWithDate = `${baseSlug}-${String(values.departure_date).slice(0, 10)}`;
         const { data: existingPackages } = await supabase.from("packages").select("slug").eq("slug", slugWithDate);
         if (existingPackages && existingPackages.length > 0) {
           let counter = 2;

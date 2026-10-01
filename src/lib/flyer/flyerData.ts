@@ -19,6 +19,8 @@ export interface FlyerPackage {
   slots_total: number | null;
   slots_filled: number | null;
   slots_booked_online: number | null;
+  seat_source?: string | null;
+  slots_registered?: number | null;
   available_tiers: string[] | null;
   package_price: TierPrice | null;
   hemat_package_price: TierPrice | null;
@@ -31,7 +33,7 @@ export interface FlyerPackage {
 }
 
 export const FLYER_PACKAGE_COLUMNS =
-  "id,package_name,departure_date,duration_days,flight,route,is_sold_out,slots_total,slots_filled,slots_booked_online,available_tiers,package_price,hemat_package_price,five_star_package_price,pelataran_package_price,makkah_hotel_name,makkah_hotel_star,madinah_hotel_name,madinah_hotel_star";
+  "id,package_name,departure_date,duration_days,flight,route,is_sold_out,slots_total,slots_filled,slots_booked_online,seat_source,slots_registered,available_tiers,package_price,hemat_package_price,five_star_package_price,pelataran_package_price,makkah_hotel_name,makkah_hotel_star,madinah_hotel_name,madinah_hotel_star";
 
 /** Max rows (including the header row, so 16 data rows) that fit the measured 1310px-tall safe zone at the team's original ~78px row height. */
 export const SAFE_ZONE_MAX_ROWS = 16;

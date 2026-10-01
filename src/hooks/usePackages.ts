@@ -24,7 +24,7 @@ export const PUBLIC_PACKAGE_COLUMNS = [
   'best_seller_transport', 'five_star_transport', 'hemat_transport', 'pelataran_transport',
   'selling_points', 'included_items', 'excluded_items', 'equipment_list', 'catalog_link',
   'itinerary_link', 'itinerary', 'gallery_images',
-  'start_airport', 'route', 'timeframe', 'slots_total', 'slots_filled', 'slots_booked_online',
+  'start_airport', 'route', 'timeframe', 'slots_total', 'slots_filled', 'slots_booked_online', 'seat_source', 'slots_registered',
   'nights_makkah', 'nights_madinah', 'nights_extra', 'hotel_extra', 'is_sold_out', 'sold_out_date',
   'waitlist_count', 'meta_title', 'meta_description', 'og_image', 'canonical_url',
 ].join(', ');
@@ -105,6 +105,8 @@ export interface PublishedPackage {
   slots_filled: number | null;
   /** Seats held/sold through the online booking system. See getSlotsTaken(). */
   slots_booked_online: number | null;
+  seat_source?: string | null;
+  slots_registered?: number | null;
   nights_makkah: number | null;
   nights_madinah: number | null;
   nights_extra: number | null;

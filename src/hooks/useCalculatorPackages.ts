@@ -24,7 +24,7 @@ export const useCalculatorTiers = () => {
       const { data, error } = await supabase
         .from("packages")
         .select(
-          "id, package_name, departure_date, package_price, hemat_package_price, five_star_package_price, pelataran_package_price, available_tiers, is_sold_out, slots_total, slots_filled, slots_booked_online",
+          "id, package_name, departure_date, package_price, hemat_package_price, five_star_package_price, pelataran_package_price, available_tiers, is_sold_out, slots_total, slots_filled, slots_booked_online, seat_source, slots_registered",
         )
         .eq("status", "published")
         .order("departure_date", { ascending: true });

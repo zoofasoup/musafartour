@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -8,6 +8,8 @@ import { Save, Plus, Trash2, Undo2, Redo2, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ChangeReasonDialog } from '@/components/admin/ChangeReasonDialog';
+import { tierFieldNames } from '@/lib/roomCombos';
+import { computeCogs } from '@/lib/cogs';
 import { packageStatusLabel, statusNeedsChangeReason } from '@/lib/packageStatus';
 
 // --- DATA MODELS ---
@@ -88,6 +90,65 @@ const DEFAULT_COGS_V2: CogsDataV2 = {
 
 // --- HELPER COMPONENT ---
 const formatIdr = (val: number) => Math.round(val).toLocaleString('id-ID');
+
+/**
+ * Pre-fill a COGS sheet from the package: airline, the hotels of the package's
+ * own tier (previously always the Nyaman columns, so Hemat/Five-star/Pelataran
+ * sheets showed the wrong hotel), and its facilities as add-on rows.
+ * Works on a copy: it used to mutate the form's cogs_data object in place.
+ */
+function applyPackageSync(source: CogsDataV2, packageData: any): CogsDataV2 {
+  const parsed: CogsDataV2 = JSON.parse(JSON.stringify(source));
+  if (!packageData) return parsed;
+
+  if (packageData.flight && parsed.indo_expenses.esensial[0]) {
+    parsed.indo_expenses.esensial[0].name = 'Tiket Pesawat';
+    parsed.indo_expenses.esensial[0].provider = packageData.flight;
+  }
+
+  const fields = tierFieldNames(packageData.available_tiers?.[0]);
+  const makkah = packageData[fields.makkahHotelName];
+  const madinah = packageData[fields.madinahHotelName];
+  if (makkah && parsed.land_arrangement.hotels[0]) parsed.land_arrangement.hotels[0].name = makkah;
+  if (madinah && parsed.land_arrangement.hotels[1]) parsed.land_arrangement.hotels[1].name = madinah;
+
+  if (packageData.included_items && typeof packageData.included_items === 'string') {
+    const items = packageData.included_items.split(',').map((i: string) => i.trim()).filter(Boolean);
+    items.forEach((itemName: string, idx: number) => {
+      const exists = parsed.indo_expenses.add_ons.some(a => a.name.toLowerCase() === itemName.toLowerCase());
+      if (!exists) {
+        parsed.indo_expenses.add_ons.push({
+          id: 'ao_sync_' + Date.now() + '_' + idx,
+          name: itemName,
+          checked: true,
+          double: 0, triple: 0, quad: 0
+        });
+      }
+    });
+  }
+  return parsed;
+}
+
+/**
+ * The price that goes on the package: selling price minus the "gimmick" discount
+ * (shown as a strike-through), falling back to the selling price.
+ */
+function sellingPrice(data: CogsDataV2) {
+  const gimmick = data.lain_lain.find(item => item.name.toLowerCase().includes('gimmick')) || { double: 0, triple: 0, quad: 0 };
+  const discounted = {
+    quad: data.pricing.harga_jual.quad - gimmick.quad,
+    triple: data.pricing.harga_jual.triple - gimmick.triple,
+    double: data.pricing.harga_jual.double - gimmick.double,
+  };
+  return {
+    harga_diskon: discounted,
+    packagePrice: {
+      quad: discounted.quad > 0 ? discounted.quad : data.pricing.harga_jual.quad,
+      triple: discounted.triple > 0 ? discounted.triple : data.pricing.harga_jual.triple,
+      double: discounted.double > 0 ? discounted.double : data.pricing.harga_jual.double,
+    },
+  };
+}
 
 
 // --- STYLED COMPONENTS FOR SPREADSHEET ---
@@ -212,49 +273,33 @@ const InputCell = ({ value, onChange, type = "number", className = "", options, 
 };
 
 export const CogsCalculator = ({ packageId, initialData, packageData, onSaved, isTemplate, onChange, readOnly }: { packageId?: string; initialData?: any; packageData?: any; onSaved?: () => void, isTemplate?: boolean, onChange?: (data: CogsDataV2, prices: RoomPricing) => void, /** Contributors: view the numbers, no save button. */ readOnly?: boolean }) => {
-  const [data, setData] = useState<CogsDataV2>(() => {
-    let parsed: CogsDataV2;
-    if (!initialData || initialData.version !== "2.0") {
-      parsed = JSON.parse(JSON.stringify(DEFAULT_COGS_V2));
-    } else {
-      parsed = initialData as CogsDataV2;
-    }
-
-    if (packageData) {
-      // 1. Sync Maskapai (Flight)
-      if (packageData.flight) {
-        parsed.indo_expenses.esensial[0].name = 'Tiket Pesawat';
-        parsed.indo_expenses.esensial[0].provider = packageData.flight;
-      }
-
-      // 2. Sync Hotels
-      if (packageData.makkah_hotel_name && parsed.land_arrangement.hotels[0]) {
-        parsed.land_arrangement.hotels[0].name = packageData.makkah_hotel_name;
-      }
-      if (packageData.madinah_hotel_name && parsed.land_arrangement.hotels[1]) {
-        parsed.land_arrangement.hotels[1].name = packageData.madinah_hotel_name;
-      }
-
-      // 3. Sync Fasilitas (Add-ons)
-      if (packageData.included_items && typeof packageData.included_items === 'string') {
-        const items = packageData.included_items.split(',').map((i: string) => i.trim()).filter(Boolean);
-        items.forEach((itemName: string, idx: number) => {
-          const exists = parsed.indo_expenses.add_ons.some(a => a.name.toLowerCase() === itemName.toLowerCase());
-          if (!exists) {
-            parsed.indo_expenses.add_ons.push({
-              id: 'ao_sync_' + Date.now() + '_' + idx,
-              name: itemName,
-              checked: true,
-              double: 0, triple: 0, quad: 0
-            });
-          }
-        });
-      }
-    }
-
-    return parsed;
-  });
+  const [data, setData] = useState<CogsDataV2>(() =>
+    applyPackageSync(
+      initialData && initialData.version === "2.0" ? (initialData as CogsDataV2) : DEFAULT_COGS_V2,
+      packageData
+    )
+  );
   const [isSaving, setIsSaving] = useState(false);
+
+  // Report edits to the parent form (PackageForm) so its Save keeps them. This was
+  // never called before: COGS typed into a new package was lost on save, and on an
+  // existing package the main Save wrote back the COGS/prices loaded at page open.
+  // Only user edits are reported: the initial state and the master-template load
+  // are the baseline, so opening a package never rewrites its prices.
+  const baselineRef = useRef<string | null>(null);
+  const resetBaselineRef = useRef(false);
+  const dirtyRef = useRef(false);
+  useEffect(() => {
+    const serialized = JSON.stringify(data);
+    if (baselineRef.current === null || resetBaselineRef.current) {
+      baselineRef.current = serialized;
+      resetBaselineRef.current = false;
+      return;
+    }
+    if (serialized !== baselineRef.current) dirtyRef.current = true;
+    if (dirtyRef.current && onChange) onChange(data, sellingPrice(data).packagePrice);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
 
   // -- HISTORY (UNDO/REDO) --
   const [history, setHistory] = useState<string[]>([]);
@@ -324,77 +369,11 @@ export const CogsCalculator = ({ packageId, initialData, packageData, onSaved, i
 
   // -- CALCULATIONS --
   
-  // 1. HOTEL (SAR)
-  const totalHotelSar = data.land_arrangement.hotels.reduce((acc, curr) => ({
-    double: acc.double + curr.double, triple: acc.triple + curr.triple, quad: acc.quad + curr.quad
-  }), { double: 0, triple: 0, quad: 0 });
-
-  // 2. HOTEL (USD)
-  const sarToUsd = (sar: number) => data.rates.sar_usd > 0 ? sar / data.rates.sar_usd : 0;
-  const totalHotelUsd = {
-    double: sarToUsd(totalHotelSar.double), triple: sarToUsd(totalHotelSar.triple), quad: sarToUsd(totalHotelSar.quad)
-  };
-
-  // 3. HANDLING & VISA (USD)
-  const totalHandlingUsd = data.land_arrangement.handling.reduce((acc, curr) => ({
-    double: acc.double + curr.double, triple: acc.triple + curr.triple, quad: acc.quad + curr.quad
-  }), { double: 0, triple: 0, quad: 0 });
-
-  const totalVisaUsd = data.land_arrangement.visa.reduce((acc, curr) => ({
-    double: acc.double + curr.double, triple: acc.triple + curr.triple, quad: acc.quad + curr.quad
-  }), { double: 0, triple: 0, quad: 0 });
-
-  // TOTAL SAUDI (USD)
-  const totalSaudiUsd = {
-    double: totalHotelUsd.double + totalHandlingUsd.double + totalVisaUsd.double,
-    triple: totalHotelUsd.triple + totalHandlingUsd.triple + totalVisaUsd.triple,
-    quad: totalHotelUsd.quad + totalHandlingUsd.quad + totalVisaUsd.quad,
-  };
-
-  // TOTAL SAUDI (IDR)
-  const usdToIdr = (usd: number) => usd * data.rates.usd_idr;
-  const totalSaudiIdr = {
-    double: usdToIdr(totalSaudiUsd.double), triple: usdToIdr(totalSaudiUsd.triple), quad: usdToIdr(totalSaudiUsd.quad)
-  };
-
-  // TOTAL INDONESIA (IDR) (Only checked items)
-  const sumChecked = (items: ExpenseItem[]) => items.filter(i => i.checked && i.id !== 'e6' && i.id !== 'e7').reduce((acc, curr) => ({
-    double: acc.double + curr.double, triple: acc.triple + curr.triple, quad: acc.quad + curr.quad
-  }), { double: 0, triple: 0, quad: 0 });
-
-  const totalEsensialIdr = sumChecked(data.indo_expenses.esensial);
-  const totalAddonsIdr = sumChecked(data.indo_expenses.add_ons);
-  
-  const totalIndoIdr = {
-    double: totalEsensialIdr.double + totalAddonsIdr.double,
-    triple: totalEsensialIdr.triple + totalAddonsIdr.triple,
-    quad: totalEsensialIdr.quad + totalAddonsIdr.quad,
-  };
-
-  // TOTAL INDO + SAUDI (IDR)
-  const totalIndoSaudiIdr = {
-    double: totalSaudiIdr.double + totalIndoIdr.double,
-    triple: totalSaudiIdr.triple + totalIndoIdr.triple,
-    quad: totalSaudiIdr.quad + totalIndoIdr.quad,
-  };
-
-  // TOTAL LAIN-LAIN (IDR)
-  const totalLainLainIdr = data.lain_lain.reduce((acc, curr) => ({
-    double: acc.double + curr.double, triple: acc.triple + curr.triple, quad: acc.quad + curr.quad
-  }), { double: 0, triple: 0, quad: 0 });
-
-  // GRAND TOTAL COGS (IDR)
-  const finalCogsIdr = {
-    double: totalIndoSaudiIdr.double + totalLainLainIdr.double,
-    triple: totalIndoSaudiIdr.triple + totalLainLainIdr.triple,
-    quad: totalIndoSaudiIdr.quad + totalLainLainIdr.quad,
-  };
-
-  const profit = {
-    double: data.pricing.harga_jual.double - finalCogsIdr.double,
-    triple: data.pricing.harga_jual.triple - finalCogsIdr.triple,
-    quad: data.pricing.harga_jual.quad - finalCogsIdr.quad,
-  };
+  // Shared with the finance report (src/lib/cogs.ts) so both use the same formula.
+  const {
+    totalHotelSar, totalHotelUsd, totalHandlingUsd, totalVisaUsd, totalSaudiUsd, totalSaudiIdr,
+    totalEsensialIdr, totalAddonsIdr, totalIndoIdr, totalIndoSaudiIdr, totalLainLainIdr, finalCogsIdr, profit,
+  } = computeCogs(data);
 
   // -- HANDLERS --
   
@@ -469,37 +448,11 @@ export const CogsCalculator = ({ packageId, initialData, packageData, onSaved, i
     if (!isTemplate && (!initialData || initialData.version !== "2.0")) {
       const fetchTemplate = async () => {
         const { data: tmpl } = await supabase.from('cogs_defaults').select('data').eq('id', 'default').single();
-        if (tmpl && tmpl.data) {
-          const parsed = tmpl.data as unknown as CogsDataV2;
-          
-          if (packageData) {
-            if (packageData.flight && parsed.indo_expenses.esensial[0]) {
-              parsed.indo_expenses.esensial[0].name = 'Tiket Pesawat';
-              parsed.indo_expenses.esensial[0].provider = packageData.flight;
-            }
-            if (packageData.makkah_hotel_name && parsed.land_arrangement.hotels[0]) {
-              parsed.land_arrangement.hotels[0].name = packageData.makkah_hotel_name;
-            }
-            if (packageData.madinah_hotel_name && parsed.land_arrangement.hotels[1]) {
-              parsed.land_arrangement.hotels[1].name = packageData.madinah_hotel_name;
-            }
-            if (packageData.included_items && typeof packageData.included_items === 'string') {
-              const items = packageData.included_items.split(',').map((i: string) => i.trim()).filter(Boolean);
-              items.forEach((itemName: string, idx: number) => {
-                const exists = parsed.indo_expenses.add_ons.some((a: any) => a.name.toLowerCase() === itemName.toLowerCase());
-                if (!exists) {
-                  parsed.indo_expenses.add_ons.push({
-                    id: 'ao_sync_' + Date.now() + '_' + idx,
-                    name: itemName,
-                    checked: true,
-                    double: 0, triple: 0, quad: 0
-                  });
-                }
-              });
-            }
-          }
-          
-          setData(parsed);
+        // Don't replace a sheet the user already started typing into.
+        if (tmpl && tmpl.data && !dirtyRef.current) {
+          // The template is a starting point, not an edit: it must not rewrite the form's prices.
+          resetBaselineRef.current = true;
+          setData(applyPackageSync(tmpl.data as unknown as CogsDataV2, packageData));
         }
       };
       fetchTemplate();
@@ -559,19 +512,10 @@ export const CogsCalculator = ({ packageId, initialData, packageData, onSaved, i
     }
     setIsSaving(true);
     try {
-      const gimmickFeeItem = data.lain_lain.find(item => item.name.toLowerCase().includes('gimmick')) || { double: 0, triple: 0, quad: 0 };
-      const computedHargaDiskon = {
-        quad: data.pricing.harga_jual.quad - gimmickFeeItem.quad,
-        triple: data.pricing.harga_jual.triple - gimmickFeeItem.triple,
-        double: data.pricing.harga_jual.double - gimmickFeeItem.double,
-      };
+      const { harga_diskon: computedHargaDiskon, packagePrice: packagePriceObj } = sellingPrice(data);
+      // Each tier has its own price column (see tierFieldNames).
+      const { priceColumn } = tierFieldNames(packageData?.available_tiers?.[0]);
 
-      const packagePriceObj = {
-        quad: computedHargaDiskon.quad > 0 ? computedHargaDiskon.quad : data.pricing.harga_jual.quad,
-        triple: computedHargaDiskon.triple > 0 ? computedHargaDiskon.triple : data.pricing.harga_jual.triple,
-        double: computedHargaDiskon.double > 0 ? computedHargaDiskon.double : data.pricing.harga_jual.double,
-      };
-      
       const dataToSave = {
         ...data,
         pricing: {
@@ -590,7 +534,7 @@ export const CogsCalculator = ({ packageId, initialData, packageData, onSaved, i
           .update({
             cogs_data: dataToSave as any,
             cogs_status: 'Saved',
-            package_price: packagePriceObj,
+            [priceColumn]: packagePriceObj,
             ...(changeReason ? { change_reason: changeReason } : {}),
           })
           .eq('id', packageId)
@@ -620,16 +564,16 @@ export const CogsCalculator = ({ packageId, initialData, packageData, onSaved, i
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold uppercase tracking-tight">Kalkulator HPP / COGS</h2>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleUndo} disabled={historyIndex <= 0} className="shadow-sm">
+          <Button type="button" variant="outline" size="sm" onClick={handleUndo} disabled={historyIndex <= 0} className="shadow-sm">
             <Undo2 className="w-4 h-4 mr-1.5" /> Undo
           </Button>
-          <Button variant="outline" size="sm" onClick={handleRedo} disabled={historyIndex >= history.length - 1} className="shadow-sm">
+          <Button type="button" variant="outline" size="sm" onClick={handleRedo} disabled={historyIndex >= history.length - 1} className="shadow-sm">
             <Redo2 className="w-4 h-4 mr-1.5" /> Redo
           </Button>
           {readOnly ? (
             <span className="text-sm text-muted-foreground">Mode lihat saja</span>
           ) : (
-            <Button onClick={requestSave} disabled={isSaving} className="shadow-sm">
+            <Button type="button" onClick={requestSave} disabled={isSaving} className="shadow-sm">
               <Save className="w-4 h-4 mr-2" /> Simpan Data COGS
             </Button>
           )}

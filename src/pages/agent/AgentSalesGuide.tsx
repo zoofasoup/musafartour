@@ -175,8 +175,8 @@ const AgentSalesGuide = () => {
         <CardContent className="space-y-3 text-sm">
           <ul className="space-y-1.5 list-disc pl-5">
             <li>DP <strong>{fmt(5_000_000)}/pax</strong> untuk booking seat - <strong>non-refundable</strong>.</li>
-            <li>Pelunasan maksimal <strong>H-35</strong> sebelum keberangkatan.</li>
-            <li>Tersedia cicilan <strong>0% hingga 12 bulan</strong>.</li>
+            <li>Pelunasan maksimal <strong>H-30</strong> sebelum keberangkatan.</li>
+            <li>Cicilan <strong>bebas</strong>: kapan saja dan berapa saja, asal lunas H-30. Semua transfer hanya ke rekening PT Musa Amanah Wisata.</li>
             <li>Harga mengikuti asumsi kurs USD = <strong>{fmt(USD_KURS)}</strong>; harga final dikonfirmasi saat pendaftaran.</li>
             <li>Harga & program bisa berubah sewaktu-waktu mengikuti kebijakan pemerintah Indonesia/Arab Saudi, hotel, dan maskapai - selalu sampaikan ini di awal supaya jamaah tidak kaget.</li>
             <li>Jamaah bisa <strong>upgrade kamar atau kelas penerbangan</strong> di luar harga paket - ini peluang upsell, tawarkan kalau relevan.</li>

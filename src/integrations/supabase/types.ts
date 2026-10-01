@@ -349,6 +349,7 @@ export type Database = {
           agent_id: string
           booking_date: string
           booking_id: string | null
+          registration_id: string | null
           commission_amount: number
           commission_rate: number | null
           created_at: string
@@ -368,6 +369,7 @@ export type Database = {
           agent_id: string
           booking_date?: string
           booking_id?: string | null
+          registration_id?: string | null
           commission_amount?: number
           commission_rate?: number | null
           created_at?: string
@@ -387,6 +389,7 @@ export type Database = {
           agent_id?: string
           booking_date?: string
           booking_id?: string | null
+          registration_id?: string | null
           commission_amount?: number
           commission_rate?: number | null
           created_at?: string
@@ -1448,6 +1451,255 @@ export type Database = {
         }
         Relationships: []
       }
+      jamaah_audit_log: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          actor_name: string | null
+          changes: Json
+          created_at: string
+          id: string
+          registration_id: string | null
+          row_id: string
+          table_name: string
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          actor_name?: string | null
+          changes?: Json
+          created_at?: string
+          id?: string
+          registration_id?: string | null
+          row_id: string
+          table_name: string
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          actor_name?: string | null
+          changes?: Json
+          created_at?: string
+          id?: string
+          registration_id?: string | null
+          row_id?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
+      jamaah_groups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          notes: string | null
+          package_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          package_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          package_id?: string
+        }
+        Relationships: []
+      }
+      jamaah_payments: {
+        Row: {
+          amount: number
+          bank_account: string
+          id: string
+          notes: string | null
+          paid_on: string
+          payer_name: string | null
+          proof_path: string | null
+          recorded_at: string
+          recorded_by: string | null
+          registration_id: string
+          reject_reason: string | null
+          status: string
+          transfer_id: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          amount: number
+          bank_account: string
+          id?: string
+          notes?: string | null
+          paid_on: string
+          payer_name?: string | null
+          proof_path?: string | null
+          recorded_at?: string
+          recorded_by?: string | null
+          registration_id: string
+          reject_reason?: string | null
+          status?: string
+          transfer_id?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          amount?: number
+          bank_account?: string
+          id?: string
+          notes?: string | null
+          paid_on?: string
+          payer_name?: string | null
+          proof_path?: string | null
+          recorded_at?: string
+          recorded_by?: string | null
+          registration_id?: string
+          reject_reason?: string | null
+          status?: string
+          transfer_id?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
+      jamaah_registrations: {
+        Row: {
+          agent_id: string | null
+          birth_place: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          created_by: string | null
+          date_of_birth: string | null
+          discount: number
+          domicile: string | null
+          equipment_size: string | null
+          equipment_taken_at: string | null
+          full_name: string
+          gender: string | null
+          group_id: string | null
+          id: string
+          ktp_path: string | null
+          list_price: number
+          mahram_name: string | null
+          mahram_relation: string | null
+          meningitis_vaccinated_at: string | null
+          nik: string | null
+          notes: string | null
+          package_id: string
+          passport_expiry: string | null
+          passport_issue_office: string | null
+          passport_issued_at: string | null
+          passport_number: string | null
+          passport_path: string | null
+          phone: string | null
+          photo_path: string | null
+          polio_vaccinated_at: string | null
+          price_note: string | null
+          referral_note: string | null
+          refund_amount: number | null
+          refund_paid_at: string | null
+          room_type: string
+          roommate_note: string | null
+          start_city: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          birth_place?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          date_of_birth?: string | null
+          discount?: number
+          domicile?: string | null
+          equipment_size?: string | null
+          equipment_taken_at?: string | null
+          full_name: string
+          gender?: string | null
+          group_id?: string | null
+          id?: string
+          ktp_path?: string | null
+          list_price: number
+          mahram_name?: string | null
+          mahram_relation?: string | null
+          meningitis_vaccinated_at?: string | null
+          nik?: string | null
+          notes?: string | null
+          package_id: string
+          passport_expiry?: string | null
+          passport_issue_office?: string | null
+          passport_issued_at?: string | null
+          passport_number?: string | null
+          passport_path?: string | null
+          phone?: string | null
+          photo_path?: string | null
+          polio_vaccinated_at?: string | null
+          price_note?: string | null
+          referral_note?: string | null
+          refund_amount?: number | null
+          refund_paid_at?: string | null
+          room_type: string
+          roommate_note?: string | null
+          start_city?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          birth_place?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          date_of_birth?: string | null
+          discount?: number
+          domicile?: string | null
+          equipment_size?: string | null
+          equipment_taken_at?: string | null
+          full_name?: string
+          gender?: string | null
+          group_id?: string | null
+          id?: string
+          ktp_path?: string | null
+          list_price?: number
+          mahram_name?: string | null
+          mahram_relation?: string | null
+          meningitis_vaccinated_at?: string | null
+          nik?: string | null
+          notes?: string | null
+          package_id?: string
+          passport_expiry?: string | null
+          passport_issue_office?: string | null
+          passport_issued_at?: string | null
+          passport_number?: string | null
+          passport_path?: string | null
+          phone?: string | null
+          photo_path?: string | null
+          polio_vaccinated_at?: string | null
+          price_note?: string | null
+          referral_note?: string | null
+          refund_amount?: number | null
+          refund_paid_at?: string | null
+          room_type?: string
+          roommate_note?: string | null
+          start_city?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       packages: {
         Row: {
           agent_commission_amount: number
@@ -1528,6 +1780,8 @@ export type Database = {
           selling_points: string | null
           slots_booked_online: number
           slots_filled: number | null
+          seat_source: string
+          slots_registered: number
           slots_total: number | null
           slug: string
           sold_out_date: string | null
@@ -1617,6 +1871,8 @@ export type Database = {
           selling_points?: string | null
           slots_booked_online?: number
           slots_filled?: number | null
+          seat_source?: string
+          slots_registered?: number
           slots_total?: number | null
           slug?: string
           sold_out_date?: string | null
@@ -1706,6 +1962,8 @@ export type Database = {
           selling_points?: string | null
           slots_booked_online?: number
           slots_filled?: number | null
+          seat_source?: string
+          slots_registered?: number
           slots_total?: number | null
           slug?: string
           sold_out_date?: string | null
@@ -2449,6 +2707,18 @@ export type Database = {
         }
         Relationships: []
       }
+      jamaah_registration_balances: {
+        Row: {
+          agreed_price: number | null
+          due_date: string | null
+          outstanding: number | null
+          package_id: string | null
+          paid_pending: number | null
+          paid_verified: number | null
+          registration_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_mark_payment_settled: {
@@ -2479,6 +2749,15 @@ export type Database = {
       }
       create_calculator_lead: { Args: { _lead: Json }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      list_agent_options: {
+        Args: never
+        Returns: {
+          id: string
+          name: string
+          referral_code: string
+          status: string
+        }[]
+      }
       get_analytics_summary: {
         Args: { _from: string; _to: string }
         Returns: Json
@@ -2580,6 +2859,7 @@ export type Database = {
         | "advertiser"
         | "sales"
         | "product_contributor"
+        | "cs_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2720,6 +3000,7 @@ export const Constants = {
         "advertiser",
         "sales",
         "product_contributor",
+        "cs_admin",
       ],
     },
   },

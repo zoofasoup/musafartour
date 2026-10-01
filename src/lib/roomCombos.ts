@@ -25,14 +25,32 @@ export function resolveTierPrice(pkg: PublishedPackage, tier: string): PackagePr
   }
 }
 
-export function resolveTierHotels(pkg: PublishedPackage, tier: string): PackageHotels {
-  const prefixMap: Record<string, string> = {
-    "five-star": "five_star_",
-    "hemat": "hemat_",
-    "pelataran-hemat": "pelataran_",
-    "nyaman": "",
+const TIER_COLUMN_PREFIX: Record<string, string> = {
+  "five-star": "five_star_",
+  "hemat": "hemat_",
+  "pelataran-hemat": "pelataran_",
+  "nyaman": "",
+};
+
+/**
+ * Where a tier's data lives, for code that WRITES it (admin form, COGS save).
+ * Each tier has its own columns; writing a Hemat price into package_price (the
+ * Nyaman column) left the Hemat price on the website unchanged.
+ */
+export function tierFieldNames(tier: string | null | undefined) {
+  const p = TIER_COLUMN_PREFIX[tier ?? ""] ?? "";
+  return {
+    /** packages column holding { quad, triple, double } */
+    priceColumn: p ? `${p}package_price` : "package_price",
+    /** PackageForm field prefix: `${formPricePrefix}_quad` etc. */
+    formPricePrefix: p ? `${p}price` : "price",
+    makkahHotelName: `${p}makkah_hotel_name`,
+    madinahHotelName: `${p}madinah_hotel_name`,
   };
-  const p = prefixMap[tier] ?? "";
+}
+
+export function resolveTierHotels(pkg: PublishedPackage, tier: string): PackageHotels {
+  const p = TIER_COLUMN_PREFIX[tier] ?? "";
   const get = (field: string) => (pkg as any)[`${p}${field}`];
   return {
     makkah: {

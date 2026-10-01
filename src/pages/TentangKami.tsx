@@ -337,7 +337,7 @@ const TentangKami = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <ChevronRight className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
-                  Pelunasan aman H-35 keberangkatan
+                  Cicilan bebas, lunas H-30 keberangkatan
                 </li>
               </ul>
             </motion.div>

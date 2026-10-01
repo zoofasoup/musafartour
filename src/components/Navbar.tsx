@@ -2,12 +2,11 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, MessageCircle, ShoppingCart, CalendarCheck } from "lucide-react";
+import { Menu, X, MessageCircle, ShoppingCart } from "lucide-react";
 import musafarLogoLight from "@/assets/musafar-logo.svg";
 import musafarLogoDark from "@/assets/musafar-logo-dark.svg";
 import { FavoritesDrawer } from "./FavoritesDrawer";
 import { useFavorites } from "@/hooks/useFavorites";
-import { useJamaahAuth } from "@/hooks/useJamaahAuth";
 
 const navLinks = [
   { href: "/paket-umroh", label: "Paket Umroh" },
@@ -29,9 +28,6 @@ const Navbar = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
   const { favorites } = useFavorites();
-  // Only entry point to the jamaah portal from the public site - without it a
-  // logged-in customer has no way back to /jamaah/dashboard from anywhere.
-  const { user: jamaahUser } = useJamaahAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -119,18 +115,6 @@ const Navbar = () => {
 
           {/* Desktop Right Side */}
           <div className="hidden md:flex items-center gap-3">
-            {jamaahUser && (
-              <Link
-                to="/jamaah/dashboard"
-                className={`flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-primary ${
-                  isActive("/jamaah/dashboard") ? "text-primary" : "text-foreground"
-                }`}
-              >
-                <CalendarCheck className="h-4 w-4" />
-                Booking Saya
-              </Link>
-            )}
-
             {/* Favorites Button */}
             <FavoritesDrawer>
               <button id="tour-navbar-cart" className="relative p-2 rounded-full hover:bg-accent transition-colors" aria-label="Keranjang belanja">
@@ -194,18 +178,6 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
-            {jamaahUser && (
-              <Link
-                to="/jamaah/dashboard"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-1.5 py-2 text-sm font-medium transition-colors hover:text-primary ${
-                  isActive("/jamaah/dashboard") ? "text-primary" : "text-foreground"
-                }`}
-              >
-                <CalendarCheck className="h-4 w-4" />
-                Booking Saya
-              </Link>
-            )}
             <div className="pt-4 border-t mt-4">
               <Link to="/kontak" onClick={() => setIsOpen(false)}>
                 <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">

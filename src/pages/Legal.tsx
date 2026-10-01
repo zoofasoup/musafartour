@@ -87,7 +87,7 @@ export const KebijakanPrivasi = () => (
           [
             "Data yang Anda berikan: nama, nomor WhatsApp/telepon, email, dan pesan saat mengisi formulir, kalkulator tabungan umroh, atau menghubungi kami.",
             "Data pendaftaran perjalanan: data jamaah yang diperlukan untuk booking, visa, tiket, dan asuransi (misalnya nama sesuai paspor, tanggal lahir, nomor paspor, dan kontak darurat).",
-            "Data pembayaran: nominal dan status pembayaran. Pembayaran diproses melalui Virtual Account oleh mitra pembayaran kami (Midtrans); kami tidak menyimpan data kartu atau PIN rekening Anda.",
+            "Data pembayaran: nominal, tanggal, rekening tujuan, dan bukti transfer ke rekening resmi PT Musa Amanah Wisata. Kami tidak meminta dan tidak menyimpan PIN, kata sandi, atau data kartu Anda.",
             "Data teknis: halaman yang dikunjungi, perangkat, dan sumber kunjungan (misalnya tautan iklan atau kode referensi agen).",
           ],
         ],
@@ -155,8 +155,8 @@ export const SyaratKetentuan = () => (
         body: [
           [
             "Uang Muka (DP) sebesar Rp 5.000.000 per jamaah.",
-            "Pelunasan dapat dicicil dan harus lunas paling lambat H-35 sebelum tanggal keberangkatan.",
-            "Pembayaran hanya melalui Virtual Account resmi yang diterbitkan situs ini atau rekening resmi atas nama PT Musa Amanah Wisata. Kami tidak bertanggung jawab atas transfer ke rekening lain.",
+            "Pelunasan dapat dicicil kapan saja dan berapa saja, dan harus lunas paling lambat H-30 sebelum tanggal keberangkatan.",
+            "Pembayaran hanya melalui transfer ke rekening resmi atas nama PT Musa Amanah Wisata: BCA 1643337111, BSI 7213170788, atau BNI 1784469461. Kami tidak bertanggung jawab atas transfer ke rekening lain.",
           ],
         ],
       },
@@ -166,7 +166,7 @@ export const SyaratKetentuan = () => (
           [
             "Jika jamaah membatalkan keikutsertaan, Uang Muka (DP) tidak dapat dikembalikan.",
             "Seluruh pembayaran di atas DP dikembalikan penuh, tanpa biaya pembatalan tambahan.",
-            "Pembayaran yang diterima setelah booking kedaluwarsa atau dibatalkan akan dikembalikan penuh.",
+            "Pembayaran yang diterima setelah pendaftaran dibatalkan akan dikembalikan penuh.",
           ],
         ],
       },

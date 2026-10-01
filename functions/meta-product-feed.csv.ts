@@ -16,11 +16,14 @@ interface PackageRow {
   pelataran_package_price: { quad: number; double: number; triple: number } | null;
   slots_total: number | null;
   slots_filled: number | null;
+  slots_booked_online: number | null;
+  seat_source: string | null;
+  slots_registered: number | null;
   is_sold_out: boolean;
 }
 
 const PACKAGE_COLUMNS =
-  "id,slug,package_name,departure_date,duration_days,route,banner_image,meta_description,available_tiers,package_price,hemat_package_price,five_star_package_price,pelataran_package_price,slots_total,slots_filled,is_sold_out";
+  "id,slug,package_name,departure_date,duration_days,route,banner_image,meta_description,available_tiers,package_price,hemat_package_price,five_star_package_price,pelataran_package_price,slots_total,slots_filled,slots_booked_online,seat_source,slots_registered,is_sold_out";
 
 /**
  * Lowest-tier ("quad") price for a package. Tier price data is split across
@@ -39,9 +42,11 @@ function getQuadPrice(pkg: PackageRow): number {
   return pkg.package_price?.quad ?? 0;
 }
 
+/** Same seat rule as getSlotsTaken in src/lib/utils.ts (kept in sync by hand). */
 function isAvailable(pkg: PackageRow): boolean {
   const total = pkg.slots_total ?? 0;
-  const filled = pkg.slots_filled ?? 0;
+  const offline = pkg.seat_source === "website" ? pkg.slots_registered ?? 0 : pkg.slots_filled ?? 0;
+  const filled = offline + (pkg.slots_booked_online ?? 0);
   return !pkg.is_sold_out && filled < total;
 }
 
