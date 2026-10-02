@@ -1577,6 +1577,7 @@ export type Database = {
           birth_place: string | null
           cancel_reason: string | null
           cancelled_at: string | null
+          commission_skipped: boolean
           created_at: string
           created_by: string | null
           date_of_birth: string | null
@@ -1619,6 +1620,7 @@ export type Database = {
           birth_place?: string | null
           cancel_reason?: string | null
           cancelled_at?: string | null
+          commission_skipped?: boolean
           created_at?: string
           created_by?: string | null
           date_of_birth?: string | null
@@ -1661,6 +1663,7 @@ export type Database = {
           birth_place?: string | null
           cancel_reason?: string | null
           cancelled_at?: string | null
+          commission_skipped?: boolean
           created_at?: string
           created_by?: string | null
           date_of_birth?: string | null
@@ -2749,6 +2752,10 @@ export type Database = {
       }
       create_calculator_lead: { Args: { _lead: Json }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      import_jamaah_rows: {
+        Args: { _package_id: string; _rows: Json }
+        Returns: number
+      }
       list_agent_options: {
         Args: never
         Returns: {

@@ -1,3 +1,4 @@
+import { todayJakarta } from "@/lib/utils";
 /**
  * Package lifecycle and who may change it.
  *
@@ -42,3 +43,15 @@ export const PACKAGE_VIEWER_ROLES = [...PACKAGE_EDITOR_ROLES, "product_contribut
 
 export const canEditPackages = (role: string | null | undefined) =>
   !!role && PACKAGE_EDITOR_ROLES.includes(role);
+
+/**
+ * Whole days from today (Jakarta) until departure: positive = still ahead, 0 = leaves today,
+ * negative = already left. Same "today" as the public site's departed filter.
+ */
+export const daysUntilDeparture = (departureDate: string, today: string = todayJakarta()) => {
+  const day = (d: string) => Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10));
+  return Math.round((day(departureDate) - day(today)) / 86_400_000);
+};
+
+/** Postgres foreign-key violation: the package still has jamaah registered on it. */
+export const PACKAGE_HAS_JAMAAH_MESSAGE = "Paket ini sudah punya data jamaah, jadi tidak bisa dihapus.";

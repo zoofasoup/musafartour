@@ -9,7 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Edit, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, RefreshCw, Route, History, BadgeCheck } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
-import { canEditPackages, packageStatusBadgeClass, packageStatusLabel } from "@/lib/packageStatus";
+import { PACKAGE_HAS_JAMAAH_MESSAGE, canEditPackages, daysUntilDeparture, packageStatusBadgeClass, packageStatusLabel } from "@/lib/packageStatus";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PackageChangeLog } from "@/components/admin/PackageChangeLog";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -25,7 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
 import { BulkPackageUpload } from "@/components/admin/BulkPackageUpload";
-import { formatNumber, getSlotsTaken } from "@/lib/utils";
+import { formatNumber, getSlotsTaken, isPackageDeparted } from "@/lib/utils";
 import { ExpandedPackageDetails } from "@/components/admin/ExpandedPackageDetails";
 
 interface Package {
@@ -40,6 +42,7 @@ interface Package {
   five_star_package_price?: any;
   pelataran_package_price?: any;
   status: string;
+  banner_image?: string | null;
   is_sold_out: boolean;
   slots_total: number | null;
   slots_filled: number | null;
@@ -49,6 +52,12 @@ interface Package {
 
 type SortField = 'package_name' | 'departure_date' | 'slots_filled' | 'package_price' | 'status';
 type SortDirection = 'asc' | 'desc';
+type TripTab = 'upcoming' | 'departed' | 'all';
+
+/** Soonest departure first for what's ahead; most recent first for what already left. */
+const defaultDirection = (tab: TripTab): SortDirection => (tab === 'upcoming' ? 'asc' : 'desc');
+
+const isForeignKeyError = (error: any) => error?.code === '23503';
 
 /** Price column for a given tier slug */
 const priceForTier = (pkg: Package, tier: string) => {
@@ -101,7 +110,9 @@ const Packages = () => {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [sortField, setSortField] = useState<SortField>('departure_date');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [tab, setTab] = useState<TripTab>('upcoming');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sortDirection, setSortDirection] = useState<SortDirection>(defaultDirection('upcoming'));
   const [selectionMode, setSelectionMode] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -132,7 +143,25 @@ const Packages = () => {
     return sortDirection === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />;
   };
 
-  const sortedPackages = [...packages].sort((a, b) => {
+  const departedCount = packages.filter(isPackageDeparted).length;
+  const upcomingCount = packages.length - departedCount;
+  const unpublishedUpcoming = packages.filter((p) => !isPackageDeparted(p) && p.status !== 'published').length;
+
+  const handleTabChange = (value: string) => {
+    setTab(value as TripTab);
+    setSortField('departure_date');
+    setSortDirection(defaultDirection(value as TripTab));
+    setExpandedId(null);
+    clearSelection();
+  };
+
+  const visiblePackages = packages.filter((p) => {
+    if (tab === 'upcoming' && isPackageDeparted(p)) return false;
+    if (tab === 'departed' && !isPackageDeparted(p)) return false;
+    return statusFilter === 'all' || p.status === statusFilter;
+  });
+
+  const sortedPackages = [...visiblePackages].sort((a, b) => {
     let aValue: any = a[sortField];
     let bValue: any = b[sortField];
 
@@ -259,7 +288,7 @@ const Packages = () => {
       toast.success("Paket berhasil dihapus");
       fetchPackages();
     } catch (error: any) {
-      toast.error("Gagal menghapus paket");
+      toast.error(isForeignKeyError(error) ? PACKAGE_HAS_JAMAAH_MESSAGE : "Gagal menghapus paket");
     } finally {
       setDeleteId(null);
     }
@@ -282,7 +311,7 @@ const Packages = () => {
   const bulkActions = [
     { ...commonBulkActions.delete, handler: async (ids: string[]) => {
       const { error } = await supabase.from("packages").delete().in("id", ids);
-      if (error) throw error;
+      if (error) throw new Error(isForeignKeyError(error) ? PACKAGE_HAS_JAMAAH_MESSAGE : error.message);
       fetchPackages();
       handleExitSelectionMode();
     }},
@@ -404,6 +433,32 @@ const Packages = () => {
             />
           )}
 
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <Tabs value={tab} onValueChange={handleTabChange}>
+              <TabsList>
+                <TabsTrigger value="upcoming">Akan berangkat ({upcomingCount})</TabsTrigger>
+                <TabsTrigger value="departed">Sudah berangkat ({departedCount})</TabsTrigger>
+                <TabsTrigger value="all">Semua ({packages.length})</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-9 w-[170px]" aria-label="Filter status">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua status</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="final">Final</SelectItem>
+                <SelectItem value="published">Tayang</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {unpublishedUpcoming > 0 && statusFilter === 'all' && tab !== 'departed' && (
+            <p className="mb-3 text-sm text-muted-foreground">
+              {unpublishedUpcoming} paket yang akan berangkat belum Tayang, jadi belum muncul di website.
+            </p>
+          )}
+
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader className="bg-muted/50">
@@ -453,7 +508,7 @@ const Packages = () => {
                 {sortedPackages.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={selectionMode ? 11 : 10} className="text-center py-10 text-muted-foreground">
-                      Belum ada paket umroh
+                      {packages.length === 0 ? "Belum ada paket umroh" : "Tidak ada paket di tampilan ini"}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -463,11 +518,14 @@ const Packages = () => {
                     const filled = getSlotsTaken(pkg);
                     const sisa = Math.max(0, total - filled);
                     const availabilityPercent = Math.min(100, (filled / total) * 100);
+                    const departed = isPackageDeparted(pkg);
+                    const daysLeft = daysUntilDeparture(pkg.departure_date.slice(0, 10));
+                    const full = !departed && sisa === 0;
                     
                     return (
                       <Fragment key={pkg.id}>
                         <TableRow
-                          className={`${isSelected(pkg.id) ? "bg-primary/5" : ""} ${selectionMode ? "cursor-pointer select-none" : ""}`}
+                          className={`${isSelected(pkg.id) ? "bg-primary/5" : ""} ${selectionMode ? "cursor-pointer select-none" : ""} ${departed ? "opacity-60" : ""}`}
                           onClick={(e) => handleRowClick(pkg, index, e)}
                         >
                           {selectionMode && (
@@ -484,18 +542,28 @@ const Packages = () => {
                           )}
                           <TableCell>
                             <div className="flex flex-col gap-1 w-[120px]">
-                              <div className="flex justify-between text-xs items-center">
-                                <span className={`font-semibold ${sisa <= 5 ? "text-destructive" : "text-emerald-600"}`}>
-                                  Sisa {sisa}
-                                </span>
-                                <span className="text-muted-foreground">{filled}/{total}</span>
-                              </div>
-                              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                <div 
-                                  className={`h-full rounded-full transition-all ${sisa <= 5 ? 'bg-destructive' : 'bg-emerald-500'}`}
-                                  style={{ width: `${availabilityPercent}%` }}
-                                />
-                              </div>
+                              {departed ? (
+                                <span className="text-xs text-muted-foreground">Berangkat · {filled}/{total}</span>
+                              ) : (
+                                <>
+                                  <div className="flex justify-between text-xs items-center">
+                                    {full ? (
+                                      <Badge variant="destructive" className="h-4 px-1.5 py-0 text-[10px]">Penuh</Badge>
+                                    ) : (
+                                      <span className={`font-semibold ${sisa <= 5 ? "text-destructive" : "text-emerald-600"}`}>
+                                        Sisa {sisa}
+                                      </span>
+                                    )}
+                                    <span className="text-muted-foreground">{filled}/{total}</span>
+                                  </div>
+                                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-full transition-all ${sisa <= 5 ? 'bg-destructive' : 'bg-emerald-500'}`}
+                                      style={{ width: `${availabilityPercent}%` }}
+                                    />
+                                  </div>
+                                </>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -508,14 +576,26 @@ const Packages = () => {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className="font-semibold">{pkg.package_name}</span>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-semibold">{pkg.package_name}</span>
+                              {!departed && pkg.status === 'published' && !pkg.banner_image && (
+                                <Badge variant="outline" className="h-4 border-amber-300 bg-amber-50 px-1.5 py-0 text-[10px] text-amber-800" title="Paket Tayang tapi belum punya gambar flyer di website">
+                                  Flyer kosong
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <span className="font-medium text-sm text-slate-700">{pkg.flight || "-"}</span>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <span className="font-medium whitespace-nowrap">{format(new Date(pkg.departure_date), "dd MMM yyyy")}</span>
+                              <div className="flex flex-col">
+                                <span className="font-medium whitespace-nowrap">{format(new Date(pkg.departure_date), "dd MMM yyyy")}</span>
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                  {daysLeft > 0 ? `H-${daysLeft}` : daysLeft === 0 ? "Berangkat hari ini" : `${-daysLeft} hari lalu`}
+                                </span>
+                              </div>
                               <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border text-xs font-semibold whitespace-nowrap">
                                 {pkg.duration_days}D
                               </span>
@@ -541,10 +621,16 @@ const Packages = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col items-start gap-1">
-                              <Badge variant="outline" className={packageStatusBadgeClass(pkg.status)}>
-                                {packageStatusLabel(pkg.status)}
-                              </Badge>
-                              {pkg.is_sold_out && (
+                              {departed && pkg.status === 'published' ? (
+                                <Badge variant="outline" className="border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-100" title="Tidak tampil di website">
+                                  Sudah berangkat
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className={packageStatusBadgeClass(pkg.status)}>
+                                  {packageStatusLabel(pkg.status)}
+                                </Badge>
+                              )}
+                              {!departed && pkg.is_sold_out && (
                                 <Badge variant="destructive" className="text-[10px] px-1 py-0 h-4">Sold Out</Badge>
                               )}
                             </div>

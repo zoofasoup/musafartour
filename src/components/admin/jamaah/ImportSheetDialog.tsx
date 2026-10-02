@@ -5,8 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ROOM_SHORT, rupiah, todayIso, type Registration } from "@/lib/jamaah";
-import { parseSheetFile, type ImportRow } from "@/lib/jamaahExcel";
+import { ROOM_SHORT, rupiah, type Registration } from "@/lib/jamaah";
+import { importRows, readyRows } from "@/lib/jamaahImport";
+import { guessSheetName, listSheetNames, parseSheetFile, type ImportRow } from "@/lib/jamaahExcel";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { AgentOption, JamaahPackage } from "@/hooks/useJamaah";
 
 interface Props {
@@ -28,20 +30,43 @@ export function ImportSheetDialog({ open, onOpenChange, pkg, registrations, agen
   const [rows, setRows] = useState<ImportRow[]>([]);
   const [fileName, setFileName] = useState("");
   const [importing, setImporting] = useState(false);
+  const [buffer, setBuffer] = useState<ArrayBuffer | null>(null);
+  const [sheets, setSheets] = useState<string[]>([]);
+  const [sheet, setSheet] = useState("");
 
   useEffect(() => {
     if (open) {
       setRows([]);
       setFileName("");
+      setBuffer(null);
+      setSheets([]);
+      setSheet("");
     }
   }, [open]);
 
-  const ready = rows.filter((r) => !r.errors.length && !r.duplicate);
+  const readSheet = (buf: ArrayBuffer, name: string) => {
+    try {
+      setRows(parseSheetFile(buf, agents, registrations.map((r) => r.full_name), name));
+    } catch (err) {
+      toast.error((err as Error).message);
+      setRows([]);
+    }
+  };
+
+  const ready = readyRows(rows);
 
   const onFile = async (file: File) => {
     try {
       setFileName(file.name);
-      setRows(parseSheetFile(await file.arrayBuffer(), agents, registrations.map((r) => r.full_name)));
+      const buf = await file.arrayBuffer();
+      const names = listSheetNames(buf);
+      // Several tabs: preselect the one named after this package's departure date; the user can change it.
+      const first = (pkg && guessSheetName(names, pkg.departure_date, pkg.flight)) || (names.length > 1 ? "" : names[0]);
+      setBuffer(buf);
+      setSheets(names);
+      setSheet(first ?? "");
+      if (first) readSheet(buf, first);
+      else setRows([]);
     } catch (err) {
       toast.error((err as Error).message);
       setRows([]);
@@ -52,51 +77,12 @@ export function ImportSheetDialog({ open, onOpenChange, pkg, registrations, agen
     if (!pkg || !ready.length) return;
     setImporting(true);
     try {
-      const { data, error } = await supabase
-        .from("jamaah_registrations")
-        .insert(
-          ready.map((r) => ({
-            package_id: pkg.id,
-            full_name: r.full_name,
-            phone: r.phone,
-            room_type: r.room_type!,
-            list_price: r.list_price,
-            discount: 0,
-            price_note: r.price_note,
-            agent_id: r.agent_id,
-            referral_note: r.agent_id ? null : r.agent_raw,
-            equipment_size: r.equipment_size,
-            equipment_taken_at: r.equipment_taken ? new Date().toISOString() : null,
-            domicile: r.domicile,
-            start_city: r.start_city,
-            notes: "Import dari Google Sheet",
-          }))
-        )
-        .select("id, full_name");
-      if (error) throw error;
-
-      // Rows come back in insert order; match by position (two jamaah can share a name).
-      const inserted = data ?? [];
-      const opening = ready
-        .map((r, i) => ({ r, id: inserted[i]?.full_name === r.full_name ? inserted[i].id : null }))
-        .filter(({ r, id }) => r.paid > 0 && id)
-        .map(({ r, id }) => ({
-          registration_id: id!,
-          amount: r.paid,
-          paid_on: todayIso(),
-          bank_account: "SALDO_AWAL",
-          notes: "Realisasi dari Google Sheet (saldo awal)",
-          status: isOwner ? "verified" : "pending",
-        }));
-      if (opening.length) {
-        const { error: payError } = await supabase.from("jamaah_payments").insert(opening);
-        if (payError) throw payError;
-      }
-      toast.success(`${ready.length} jamaah diimport${opening.length ? `, ${opening.length} saldo awal dicatat` : ""}.`);
+      const added = await importRows(pkg.id, rows);
+      toast.success(`${added} jamaah diimport beserta saldo awalnya.`);
       onImported();
       onOpenChange(false);
     } catch (err) {
-      toast.error(`Import gagal: ${(err as Error).message}`);
+      toast.error(`Import gagal, tidak ada data yang tersimpan: ${(err as Error).message}`);
     } finally {
       setImporting(false);
     }
@@ -108,7 +94,7 @@ export function ImportSheetDialog({ open, onOpenChange, pkg, registrations, agen
         <DialogHeader>
           <DialogTitle>Import dari Google Sheet</DialogTitle>
           <DialogDescription>
-            Untuk {pkg?.package_name}. Di Google Sheet: File → Download → Microsoft Excel (.xlsx), lalu unggah di sini.
+            Untuk {pkg?.package_name}. Unggah file .xlsx dari Google Sheet (File → Download → Microsoft Excel). Kalau berisi banyak tab, pilih tab untuk paket ini.
             Kolom yang dibaca: Nama Jamaah, Size, Ambil Perlengkapan, Paket, Rencana, Realisasi, Domisili, Start, Keterangan, Agen.
           </DialogDescription>
         </DialogHeader>
@@ -128,11 +114,31 @@ export function ImportSheetDialog({ open, onOpenChange, pkg, registrations, agen
           />
         </label>
 
+        {sheets.length > 1 && (
+          <div className="space-y-1.5">
+            <p className="text-sm font-medium">Tab di file ini ({sheets.length} tab)</p>
+            <Select
+              value={sheet}
+              onValueChange={(name) => {
+                setSheet(name);
+                if (buffer) readSheet(buffer, name);
+              }}
+            >
+              <SelectTrigger aria-label="Pilih tab"><SelectValue placeholder="Pilih tab untuk paket ini" /></SelectTrigger>
+              <SelectContent>
+                {sheets.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">Pastikan tab yang dipilih memang untuk paket {pkg?.package_name} tanggal {pkg?.departure_date.slice(0, 10)}.</p>
+          </div>
+        )}
+
         {rows.length > 0 && (
           <>
             <p className="text-sm">
               <strong>{ready.length}</strong> siap diimport ·{" "}
-              {rows.filter((r) => r.duplicate).length} sudah ada (dilewati) · {rows.filter((r) => r.errors.length).length} perlu diperbaiki
+              {rows.filter((r) => r.duplicate).length} sudah ada · {rows.filter((r) => r.skipped).length} baris kosong atau total dilewati ·{" "}
+              {rows.filter((r) => r.errors.length).length} perlu diperbaiki
             </p>
             <div className="max-h-[45vh] overflow-auto rounded-md border">
               <Table>
@@ -149,7 +155,7 @@ export function ImportSheetDialog({ open, onOpenChange, pkg, registrations, agen
                 </TableHeader>
                 <TableBody>
                   {rows.map((r) => (
-                    <TableRow key={r.line} className={r.errors.length || r.duplicate ? "bg-muted/50 text-muted-foreground" : ""}>
+                    <TableRow key={r.line} className={r.errors.length || r.duplicate || r.skipped ? "bg-muted/50 text-muted-foreground" : ""}>
                       <TableCell>{r.line}</TableCell>
                       <TableCell className="font-medium">{r.full_name}</TableCell>
                       <TableCell>{r.room_type ? ROOM_SHORT[r.room_type] : "?"}</TableCell>
@@ -159,7 +165,7 @@ export function ImportSheetDialog({ open, onOpenChange, pkg, registrations, agen
                         {r.agent_raw ? (r.agent_id ? r.agent_raw : <span title="Tidak ada di daftar agen, disimpan sebagai catatan referral">{r.agent_raw}*</span>) : "–"}
                       </TableCell>
                       <TableCell className="text-xs">
-                        {r.duplicate ? "Sudah terdaftar" : r.errors.join("; ") || "OK"}
+                        {r.skipped ?? (r.duplicate ? "Sudah terdaftar" : r.errors.join("; ") || (r.overpaid ? "OK, Realisasi lebih besar dari harga (transfer keluarga?)" : "OK"))}
                       </TableCell>
                     </TableRow>
                   ))}

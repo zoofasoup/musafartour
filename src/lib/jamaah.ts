@@ -30,8 +30,14 @@ export type Registration = Tables<"jamaah_registrations">;
 export type Payment = Tables<"jamaah_payments">;
 export type JamaahGroup = Tables<"jamaah_groups">;
 
-export const ROOM_LABELS: Record<string, string> = { quad: "Quad (ber-4)", triple: "Triple (ber-3)", double: "Double (ber-2)" };
-export const ROOM_SHORT: Record<string, string> = { quad: "Quad", triple: "Triple", double: "Double" };
+export const ROOM_LABELS: Record<string, string> = {
+  quad: "Quad (ber-4)",
+  triple: "Triple (ber-3)",
+  double: "Double (ber-2)",
+  non_bed: "Non bed (anak tanpa kasur)",
+  infant: "Infant (bayi)",
+};
+export const ROOM_SHORT: Record<string, string> = { quad: "Quad", triple: "Triple", double: "Double", non_bed: "Non bed", infant: "Infant" };
 
 export const rupiah = (n: number | null | undefined) => `Rp ${new Intl.NumberFormat("id-ID").format(Math.round(n ?? 0))}`;
 export const juta = (n: number | null | undefined) => {

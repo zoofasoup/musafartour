@@ -96,6 +96,10 @@ export interface ImportRow {
   agent_id: string | null;
   errors: string[];
   duplicate: boolean;
+  /** Not a jamaah at all (empty or total row of the old sheet): left out without counting as an error. */
+  skipped: string | null;
+  /** Realisasi is higher than the price: the old sheet put a whole family's transfer on one row. */
+  overpaid: boolean;
 }
 
 const HEADERS: Record<string, RegExp> = {
@@ -123,19 +127,59 @@ const toText = (v: unknown) => {
 };
 const toRoom = (v: unknown) => {
   const s = String(v ?? "").toLowerCase();
+  if (/non\s*-?\s*bed/.test(s)) return "non_bed";
+  if (s.includes("infant") || s.includes("bayi")) return "infant";
   if (s.includes("quad") || s.includes("ber 4") || s.includes("ber-4")) return "quad";
   if (s.includes("triple") || s.includes("tripel") || s.includes("ber 3") || s.includes("ber-3")) return "triple";
   if (s.includes("double") || s.includes("dobel") || s.includes("ber 2") || s.includes("ber-2")) return "double";
   return null;
 };
+
+/** What the old "Paket" cell said besides the room, e.g. "quad *5", "double vip", "triple/hemat". */
+const roomExtras = (v: unknown) => {
+  const s = String(v ?? "").toLowerCase();
+  const extras: string[] = [];
+  if (/\*\s*5|bintang\s*5/.test(s)) extras.push("Bintang 5");
+  if (/\bvip\b/.test(s)) extras.push("VIP");
+  if (/hemat/.test(s)) extras.push("Hemat");
+  return extras;
+};
+
+const row_overpaid = (paid: number, plan: number) => plan > 0 && paid > plan;
+
+const TOTAL_NAME = /^(total|jumlah|sub\s*-?\s*total|grand\s*total)\b/i;
 const isTaken = (v: unknown) => {
   const s = String(v ?? "").trim().toLowerCase();
   return !!s && !["-", "belum", "tidak", "no", "0", "false", "x"].includes(s);
 };
 
-export function parseSheetFile(buffer: ArrayBuffer, agents: AgentOption[], existingNames: string[]): ImportRow[] {
+/** Tab names of an uploaded workbook (a .csv has just one). */
+export function listSheetNames(buffer: ArrayBuffer): string[] {
+  return XLSX.read(new Uint8Array(buffer), { type: "array", bookSheets: true }).SheetNames;
+}
+
+const MONTH_PREFIX = ["jan", "feb", "mar", "apr", "mei", "jun", "jul", "agu", "sep", "okt", "nov", "des"];
+
+/**
+ * Best tab for a package: the old sheet names tabs by departure day and month ("11 OKT", "5 AGUSTUS"),
+ * with a suffix for the airline (SV = Saudia, GA = Garuda) when two trips left on the same date.
+ */
+export function guessSheetName(sheetNames: string[], departureDate: string, flight: string | null): string | undefined {
+  const day = parseInt(departureDate.slice(8, 10), 10);
+  const month = MONTH_PREFIX[parseInt(departureDate.slice(5, 7), 10) - 1];
+  const matches = sheetNames.filter((n) => {
+    const m = n.trim().toLowerCase().match(/^(\d{1,2})\s*([a-z]{2,})/);
+    // "NO" and "AGUSTUS" both count for the month: tabs were typed by hand ("16 NO" for 16 Nov).
+    return !!m && parseInt(m[1], 10) === day && (m[2].startsWith(month) || month.startsWith(m[2]));
+  });
+  if (matches.length <= 1) return matches[0];
+  const code = /garuda/i.test(flight ?? "") ? "ga" : /saudia/i.test(flight ?? "") ? "sv" : "";
+  return matches.find((n) => code && new RegExp(`\\b${code}\\b`, "i").test(n)) ?? matches[0];
+}
+
+export function parseSheetFile(buffer: ArrayBuffer, agents: AgentOption[], existingNames: string[], sheetName?: string): ImportRow[] {
   const wb = XLSX.read(new Uint8Array(buffer), { type: "array" });
-  const ws = wb.Sheets[wb.SheetNames[0]];
+  const ws = wb.Sheets[sheetName && wb.Sheets[sheetName] ? sheetName : wb.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, defval: "" });
 
   // Header = first row (within the first 10) that has a "Nama" column.
@@ -156,6 +200,16 @@ export function parseSheetFile(buffer: ArrayBuffer, agents: AgentOption[], exist
     .filter(({ raw }) => toText(get(raw, "name")))
     .map(({ raw, line }) => {
       const full_name = toText(get(raw, "name"))!;
+      const paketCell = get(raw, "room");
+      const planNum = toNumber(get(raw, "plan"));
+      const paidNum = toNumber(get(raw, "paid"));
+      const skipped = TOTAL_NAME.test(full_name) || TOTAL_NAME.test(String(paketCell ?? "").trim())
+        ? "Baris total"
+        : /^[\d.,\s]+$/.test(String(paketCell ?? "").trim()) && toNumber(paketCell) > 0
+          ? "Baris jumlah"
+          : !String(paketCell ?? "").trim() && !planNum && !paidNum
+            ? "Baris kosong"
+            : null;
       const agentRaw = toText(get(raw, "agent"));
       const agent = agentRaw
         ? agents.find(
@@ -166,22 +220,24 @@ export function parseSheetFile(buffer: ArrayBuffer, agents: AgentOption[], exist
         line,
         full_name,
         phone: toText(get(raw, "phone")),
-        room_type: toRoom(get(raw, "room")),
-        list_price: toNumber(get(raw, "plan")),
-        paid: toNumber(get(raw, "paid")),
+        room_type: toRoom(paketCell),
+        list_price: planNum,
+        paid: paidNum,
         equipment_size: toText(get(raw, "size")),
         equipment_taken: isTaken(get(raw, "taken")),
         domicile: toText(get(raw, "domicile")),
         start_city: toText(get(raw, "start")),
-        price_note: toText(get(raw, "note")),
+        price_note: [toText(get(raw, "note")), ...roomExtras(paketCell)].filter(Boolean).join(" · ") || null,
         agent_raw: agentRaw,
         agent_id: agent?.id ?? null,
         errors: [],
         duplicate: existing.has(full_name.toLowerCase()),
+        skipped,
+        overpaid: row_overpaid(paidNum, planNum),
       };
-      if (!row.room_type) row.errors.push("Kamar (quad/triple/double) tidak dikenali");
+      if (skipped) return row;
+      if (!row.room_type) row.errors.push("Kamar (quad/triple/double/non bed/infant) tidak dikenali");
       if (!row.list_price) row.errors.push("Harga (Rencana) kosong");
-      if (row.paid > row.list_price && row.list_price) row.errors.push("Realisasi lebih besar dari harga");
       return row;
     });
 }

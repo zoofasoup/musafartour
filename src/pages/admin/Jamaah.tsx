@@ -27,6 +27,7 @@ import { RegistrationDialog } from "@/components/admin/jamaah/RegistrationDialog
 import { PaymentDialog } from "@/components/admin/jamaah/PaymentDialog";
 import { RegistrationSheet } from "@/components/admin/jamaah/RegistrationSheet";
 import { ImportSheetDialog } from "@/components/admin/jamaah/ImportSheetDialog";
+import { ImportWorkbookDialog } from "@/components/admin/jamaah/ImportWorkbookDialog";
 import {
   PAY_STATE_CLASS,
   PAY_STATE_LABEL,
@@ -73,6 +74,7 @@ export default function Jamaah() {
   const [payOpen, setPayOpen] = useState(false);
   const [detail, setDetail] = useState<Registration | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [importAllOpen, setImportAllOpen] = useState(false);
   const [switchTo, setSwitchTo] = useState<"sheet" | "website" | null>(null);
 
   // Keep the open detail panel in sync after edits.
@@ -249,6 +251,9 @@ export default function Jamaah() {
               <Button type="button" variant="outline" size="sm" className="gap-1" onClick={() => setImportOpen(true)}>
                 <FileSpreadsheet className="h-4 w-4" /> Import dari Sheet
               </Button>
+              <Button type="button" variant="outline" size="sm" className="gap-1" onClick={() => setImportAllOpen(true)}>
+                <FileSpreadsheet className="h-4 w-4" /> Import semua tab
+              </Button>
               <Button
                 type="button"
                 variant="outline"
@@ -391,6 +396,14 @@ export default function Jamaah() {
         onOpenChange={setImportOpen}
         pkg={pkg}
         registrations={registrations}
+        agents={agents}
+        isOwner={isOwner}
+        onImported={invalidate}
+      />
+      <ImportWorkbookDialog
+        open={importAllOpen}
+        onOpenChange={setImportAllOpen}
+        packages={packages}
         agents={agents}
         isOwner={isOwner}
         onImported={invalidate}
