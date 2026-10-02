@@ -247,26 +247,27 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, onS
 
       {/* 1. Contact */}
       <section className="rounded-2xl border bg-white p-5 shadow-sm sm:p-6" aria-labelledby="sec-kontak">
-        <h2 id="sec-kontak" className="text-lg font-bold">1. Siapa yang bisa kami hubungi?</h2>
+        <h2 id="sec-kontak" className="text-lg font-bold">{agent ? "1. Kontak jamaah" : "1. Siapa yang bisa kami hubungi?"}</h2>
+        {agent && <p className="mt-1 text-sm text-muted-foreground">Isi data jamaah yang kamu daftarkan, bukan datamu sebagai agen. CS akan menghubungi nomor ini.</p>}
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <Label htmlFor="contact-name">Nama kamu</Label>
-            <Input id="contact-name" autoComplete="name" value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} aria-invalid={!!errors.contactName} aria-describedby={errors.contactName ? "contact-name-err" : undefined} className="mt-1.5" />
+            <Label htmlFor="contact-name">{agent ? "Nama jamaah (atau kepala keluarga)" : "Nama kamu"}</Label>
+            <Input id="contact-name" autoComplete={agent ? "off" : "name"} value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} aria-invalid={!!errors.contactName} aria-describedby={errors.contactName ? "contact-name-err" : undefined} className="mt-1.5" />
             <FieldError id="contact-name-err" message={errors.contactName} />
           </div>
           <div>
-            <Label htmlFor="contact-phone">Nomor WhatsApp</Label>
-            <Input id="contact-phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="0812 3456 7890" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} aria-invalid={!!errors.contactPhone} aria-describedby={errors.contactPhone ? "contact-phone-err" : undefined} className="mt-1.5" />
+            <Label htmlFor="contact-phone">{agent ? "Nomor WhatsApp jamaah" : "Nomor WhatsApp"}</Label>
+            <Input id="contact-phone" type="tel" inputMode="tel" autoComplete={agent ? "off" : "tel"} placeholder="0812 3456 7890" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} aria-invalid={!!errors.contactPhone} aria-describedby={errors.contactPhone ? "contact-phone-err" : undefined} className="mt-1.5" />
             <FieldError id="contact-phone-err" message={errors.contactPhone} />
           </div>
           <div>
-            <Label htmlFor="contact-city">Kota tempat tinggal <span className="font-normal text-muted-foreground">(opsional)</span></Label>
-            <Input id="contact-city" autoComplete="address-level2" value={contact.city} onChange={(e) => setContact({ ...contact, city: e.target.value })} className="mt-1.5" />
+            <Label htmlFor="contact-city">{agent ? "Kota tempat tinggal jamaah" : "Kota tempat tinggal"} <span className="font-normal text-muted-foreground">(opsional)</span></Label>
+            <Input id="contact-city" autoComplete={agent ? "off" : "address-level2"} value={contact.city} onChange={(e) => setContact({ ...contact, city: e.target.value })} className="mt-1.5" />
           </div>
         </div>
         <label className="mt-5 flex min-h-11 cursor-pointer items-center gap-3 text-sm">
           <Checkbox checked={attending} onCheckedChange={(c) => toggleAttending(!!c)} />
-          Saya sendiri ikut berangkat
+          {agent ? "Orang ini ikut berangkat" : "Saya sendiri ikut berangkat"}
         </label>
         {agent ? (
           <p className="mt-3 text-sm text-muted-foreground">Pendaftaran ini dicatat atas nama kamu sebagai agen (kode <span className="font-medium text-foreground">{refCode}</span>). Isi data jamaah yang mau kamu daftarkan.</p>
@@ -287,7 +288,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, onS
             return (
               <li key={p.key} className="rounded-xl border bg-card p-4">
                 <div className="flex items-center justify-between">
-                  <p className="font-semibold">Peserta {i + 1}{i === 0 && attending ? " (kamu)" : ""}</p>
+                  <p className="font-semibold">Peserta {i + 1}{i === 0 && attending ? (agent ? " (kontak di atas)" : " (kamu)") : ""}</p>
                   {(i > 0 || (!attending && people.length > 1)) && (
                     <Button type="button" variant="ghost" size="sm" className="h-9 gap-1 text-muted-foreground" onClick={() => removePerson(p.key)}>
                       <Trash2 className="h-4 w-4" aria-hidden /> Hapus
@@ -312,7 +313,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, onS
                     <FieldError id={`${nameId}-g-err`} message={err?.gender} />
                   </div>
                   <div>
-                    <Label htmlFor={`${nameId}-rel`}>Hubungan dengan kamu <span className="font-normal text-muted-foreground">(opsional)</span></Label>
+                    <Label htmlFor={`${nameId}-rel`}>{agent ? "Hubungan dengan kontak" : "Hubungan dengan kamu"} <span className="font-normal text-muted-foreground">(opsional)</span></Label>
                     <Select value={p.relation || "none"} onValueChange={(v) => setPerson(p.key, { relation: v === "none" ? "" : v })}>
                       <SelectTrigger id={`${nameId}-rel`} className="mt-1.5"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -364,7 +365,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, onS
         {people.length > 1 && (
           <label className="mt-5 flex min-h-11 cursor-pointer items-start gap-3 text-sm">
             <Checkbox className="mt-0.5" checked={payTogether} onCheckedChange={(c) => setPayTogether(!!c)} />
-            <span>Kami membayar bersama (satu transfer untuk semua). Pembayaran akan dibagi rata ke tiap peserta.</span>
+            <span>{agent ? "Jamaah membayar bersama" : "Kami membayar bersama"} (satu transfer untuk semua). Pembayaran akan dibagi rata ke tiap peserta.</span>
           </label>
         )}
       </section>
@@ -401,7 +402,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, onS
           <div>
             <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm">
               <Checkbox className="mt-0.5" checked={consentData} onCheckedChange={(c) => setConsentData(!!c)} aria-invalid={!!errors.consentData} />
-              <span>Saya setuju data saya dan peserta lain dipakai Musafar Tour untuk memproses pendaftaran umroh ini.</span>
+              <span>{agent ? "Jamaah sudah menyetujui data mereka dipakai Musafar Tour untuk memproses pendaftaran umroh ini." : "Saya setuju data saya dan peserta lain dipakai Musafar Tour untuk memproses pendaftaran umroh ini."}</span>
             </label>
             <FieldError id="consent-data-err" message={errors.consentData} />
           </div>
@@ -409,7 +410,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, onS
             <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm">
               <Checkbox className="mt-0.5" checked={consentPay} onCheckedChange={(c) => setConsentPay(!!c)} aria-invalid={!!errors.consentPay} />
               <span>
-                Saya sudah membaca dan menyetujui{" "}
+                {agent ? "Jamaah sudah membaca dan menyetujui" : "Saya sudah membaca dan menyetujui"}{" "}
                 <a href="/syarat-umroh" target="_blank" rel="noopener noreferrer" className="font-semibold underline underline-offset-2">Term of Service</a>
                 , termasuk DP Rp 5 jt yang tidak dapat dikembalikan, pelunasan paling lambat H-{LUNAS_DAYS_BEFORE_DEPARTURE}, dan pembayaran hanya ke rekening PT.
               </span>
