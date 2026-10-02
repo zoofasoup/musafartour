@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Download, Loader2, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   PAY_STATE_CLASS,
   PAY_STATE_LABEL,
@@ -24,6 +23,11 @@ import {
   type PayState,
 } from "@/lib/jamaah";
 import { exportAllJamaah } from "@/lib/jamaahExcel";
+import { JamaahCardList, type CardItem, type FamilySummary } from "@/components/admin/jamaah/JamaahCardList";
+import { JamaahViewSwitch } from "@/components/admin/jamaah/JamaahViewSwitch";
+import { LoadError } from "@/components/admin/jamaah/LoadError";
+import { StatCard } from "@/components/admin/jamaah/StatCard";
+import { STICKY_HEAD, stickyNameCell } from "@/components/admin/jamaah/stickyName";
 import { useAgentOptions, useAllJamaah, useJamaahPackages } from "@/hooks/useJamaah";
 
 const PAGE_SIZE = 50;
@@ -36,11 +40,14 @@ type SortKey = "newest" | "oldest" | "name" | "outstanding";
 
 const day = (d: string) => format(new Date(`${d.slice(0, 10)}T00:00:00`), "d MMM yyyy", { locale: localeId });
 
+/** The package page with this jamaah's detail panel already open (Jamaah.tsx reads ?buka=). */
+const openUrl = (reg: { package_id: string; id: string }) => `/admin/jamaah?paket=${reg.package_id}&buka=${reg.id}`;
+
 /** Every jamaah on every package, all time. Click a row to open it in its package. */
 export default function JamaahAll() {
   const navigate = useNavigate();
-  const { data: all = [], isLoading } = useAllJamaah();
-  const { data: packages = [] } = useJamaahPackages();
+  const { data: all = [], isPending: isLoading, error: loadError, refetch, isFetching } = useAllJamaah();
+  const { data: packages = [], error: packagesError, refetch: refetchPackages } = useJamaahPackages();
   const { data: agents = [] } = useAgentOptions();
 
   const [query, setQuery] = useState("");
@@ -50,6 +57,7 @@ export default function JamaahAll() {
   const [agentId, setAgentId] = useState(ALL);
   const [sort, setSort] = useState<SortKey>("newest");
   const [page, setPage] = useState(0);
+  const [hoverGroup, setHoverGroup] = useState<string | null>(null);
 
   const pkgById = useMemo(() => new Map(packages.map((p) => [p.id, p])), [packages]);
   const agentName = (id: string | null, note: string | null) => agents.find((a) => a.id === id)?.name ?? note ?? "";
@@ -110,10 +118,39 @@ export default function JamaahAll() {
   const runs = groupRuns(shown, groupOf);
   const runAt = new Map(runs.map((run) => [run.start, run]));
   const coveredByRun = new Set(runs.flatMap((run) => Array.from({ length: run.length - 1 }, (_, k) => run.start + 1 + k)));
-  const familyOf = (groupId: string) => rows.filter((x) => x.reg.group_id === groupId && x.reg.status === "active");
+  const families = useMemo(() => {
+    const byGroup = new Map<string, typeof rows>();
+    for (const row of rows) {
+      if (row.reg.group_id && row.reg.status === "active") byGroup.set(row.reg.group_id, [...(byGroup.get(row.reg.group_id) ?? []), row]);
+    }
+    return byGroup;
+  }, [rows]);
   const packageLabel = (id: string) => {
     const p = pkgById.get(id);
     return p ? `${day(p.departure_date)} · ${p.package_name}` : "–";
+  };
+  // The phone layout reads the same page of rows as the table.
+  const cardItems: CardItem[] = shown.map(({ reg, balance, state, pkg }) => ({
+    id: reg.id,
+    name: reg.full_name,
+    groupId: mergeFamilies ? reg.group_id : null,
+    cancelled: reg.status === "cancelled",
+    room: ROOM_SHORT[reg.room_type] ?? reg.room_type,
+    agreed: balance.agreed,
+    discount: Number(reg.discount),
+    paid: balance.paidVerified,
+    pending: balance.paidPending,
+    outstanding: balance.outstanding,
+    state,
+    phone: reg.phone,
+    meta: [reg.domicile, agentName(reg.agent_id, reg.referral_note)].filter(Boolean).join(" · "),
+    packageLabel: pkg ? `${day(pkg.departure_date)} · ${pkg.package_name}` : undefined,
+  }));
+  const familySummary = (groupId: string): FamilySummary | undefined => {
+    const members = families.get(groupId);
+    if (!members?.length) return undefined;
+    const fb = groupBalance(members.map((m) => m.balance));
+    return { name: `Keluarga ${members[0].reg.full_name}`, count: members.length, paid: fb.paidVerified, pending: fb.paidPending, outstanding: fb.outstanding, state: groupPayState(members.map((m) => m.balance)) };
   };
   const statusLabel = (reg: { status: string }, state: PayState) => (reg.status === "cancelled" ? "Batal" : PAY_STATE_LABEL[state]);
 
@@ -135,36 +172,41 @@ export default function JamaahAll() {
       }))
     );
 
-  const stat = (label: string, value: string, hint?: string) => (
-    <Card>
-      <CardContent className="p-4">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="mt-1 text-2xl font-bold">{value}</p>
-        {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
-      </CardContent>
-    </Card>
-  );
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Semua Jamaah</h1>
-        <p className="text-muted-foreground">Seluruh jamaah dari semua paket, sepanjang waktu. Klik baris untuk membukanya di paketnya.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Data Jamaah</h1>
+        <p className="text-muted-foreground">Seluruh jamaah dari semua paket, sepanjang waktu. Klik nama untuk membukanya di paketnya.</p>
       </div>
+
+      <JamaahViewSwitch active="semua" />
+
+      {(loadError || packagesError) && (
+        <LoadError
+          what="Daftar jamaah"
+          error={loadError ?? packagesError}
+          retrying={isFetching}
+          onRetry={() => {
+            refetch();
+            if (packagesError) refetchPackages();
+          }}
+        />
+      )}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stat("Jamaah aktif", String(active.length), `${visible.length - active.length} batal di tampilan ini`)}
-        {stat("Total tagihan", juta(totals.agreed))}
-        {stat("Sudah masuk", juta(totals.paid))}
-        {stat("Sisa tagihan", juta(totals.outstanding))}
+        <StatCard label="Jamaah aktif" value={String(active.length)} hint={`${visible.length - active.length} batal di tampilan ini`} />
+        <StatCard label="Total tagihan" value={juta(totals.agreed)} />
+        <StatCard label="Sudah masuk" value={juta(totals.paid)} />
+        <StatCard label="Sisa tagihan" value={juta(totals.outstanding)} />
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-full sm:w-72">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+        <div className="relative col-span-2 w-full sm:w-72">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari nama / no. WA" className="pl-9" aria-label="Cari jamaah" />
         </div>
-        <Select value={packageId} onValueChange={setPackageId}>
+        <div className="col-span-2 sm:col-span-1"><Select value={packageId} onValueChange={setPackageId}>
           <SelectTrigger className="w-full sm:w-[300px]" aria-label="Paket"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>Semua paket</SelectItem>
@@ -172,9 +214,9 @@ export default function JamaahAll() {
               <SelectItem key={p.id} value={p.id}>{day(p.departure_date)} · {p.package_name} · {p.duration_days}H</SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select></div>
         <Select value={when} onValueChange={(v) => setWhen(v as When)}>
-          <SelectTrigger className="w-[170px]" aria-label="Waktu"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[170px]" aria-label="Waktu"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Semua waktu</SelectItem>
             <SelectItem value="upcoming">Akan berangkat</SelectItem>
@@ -182,7 +224,7 @@ export default function JamaahAll() {
           </SelectContent>
         </Select>
         <Select value={status} onValueChange={(v) => setStatus(v as StatusFilter)}>
-          <SelectTrigger className="w-[170px]" aria-label="Status bayar"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[170px]" aria-label="Status bayar"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Semua jamaah aktif</SelectItem>
             <SelectItem value="belum_dp">Belum DP</SelectItem>
@@ -193,7 +235,7 @@ export default function JamaahAll() {
           </SelectContent>
         </Select>
         <Select value={agentId} onValueChange={setAgentId}>
-          <SelectTrigger className="w-[190px]" aria-label="Agen"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[190px]" aria-label="Agen"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>Semua agen</SelectItem>
             <SelectItem value={NO_AGENT}>Tanpa agen</SelectItem>
@@ -201,7 +243,7 @@ export default function JamaahAll() {
           </SelectContent>
         </Select>
         <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
-          <SelectTrigger className="w-[190px]" aria-label="Urutkan"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[190px]" aria-label="Urutkan"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="newest">Berangkat terbaru</SelectItem>
             <SelectItem value="oldest">Berangkat terlama</SelectItem>
@@ -209,17 +251,18 @@ export default function JamaahAll() {
             <SelectItem value="outstanding">Sisa tagihan terbesar</SelectItem>
           </SelectContent>
         </Select>
-        <Button type="button" variant="outline" size="sm" className="ml-auto gap-1" onClick={download} disabled={!visible.length}>
+        <Button type="button" variant="outline" size="sm" className="col-span-2 gap-1 sm:ml-auto sm:col-span-1 [@media(pointer:coarse)]:h-11" onClick={download} disabled={!visible.length}>
           <Download className="h-4 w-4" /> Export Excel
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-md border bg-card">
+      <div className="hidden overflow-x-auto rounded-md border bg-card md:block">
         <Table>
+          <TableCaption className="sr-only">Semua jamaah dari semua paket</TableCaption>
           <TableHeader className="bg-muted/50">
             <TableRow>
               <TableHead className="w-12">No</TableHead>
-              <TableHead className="min-w-[200px]">Nama</TableHead>
+              <TableHead className={`min-w-[200px] ${STICKY_HEAD}`}>Nama</TableHead>
               <TableHead className="min-w-[230px]">Paket</TableHead>
               <TableHead>Kamar</TableHead>
               <TableHead className="text-right">Tagihan</TableHead>
@@ -240,25 +283,38 @@ export default function JamaahAll() {
             ) : shown.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
-                  {all.length ? "Tidak ada jamaah yang cocok dengan pencarian ini." : "Belum ada jamaah. Import dari Google Sheet lewat halaman Data Jamaah."}
+                  {loadError ? "Daftar belum bisa dimuat." : all.length ? "Tidak ada jamaah yang cocok dengan pencarian ini." : "Belum ada jamaah. Import dari Google Sheet lewat halaman Data Jamaah."}
                 </TableCell>
               </TableRow>
             ) : (
               shown.map(({ reg, balance, state, pkg }, i) => {
                 const run = runAt.get(i);
-                const family = run ? familyOf(run.group) : [];
+                const family = run ? families.get(run.group) ?? [] : [];
                 const fb = run ? groupBalance(family.map((m) => m.balance)) : null;
                 const fstate = run ? groupPayState(family.map((m) => m.balance)) : null;
+                const inFamily = !!run || coveredByRun.has(i);
+                const hot = inFamily && hoverGroup === reg.group_id ? "bg-muted/60 hover:bg-muted/60" : "";
+                const person = inFamily ? "[&:hover>td:not([rowspan]):not([data-sticky])]:bg-muted-foreground/15" : "";
                 return (
                 <TableRow
                   key={reg.id}
-                  className={`cursor-pointer ${reg.status === "cancelled" ? "text-muted-foreground" : ""}`}
-                  onClick={() => navigate(`/admin/jamaah?paket=${reg.package_id}&cari=${encodeURIComponent(reg.full_name)}`)}
+                  className={`group/row cursor-pointer [&>td]:py-2 ${reg.status === "cancelled" ? "text-muted-foreground" : ""} ${hot} ${person}`}
+                  onMouseEnter={inFamily ? () => setHoverGroup(reg.group_id) : undefined}
+                  onMouseLeave={inFamily ? () => setHoverGroup(null) : undefined}
+                  onFocusCapture={inFamily ? () => setHoverGroup(reg.group_id) : undefined}
+                  onBlurCapture={inFamily ? () => setHoverGroup(null) : undefined}
+                  onClick={() => navigate(openUrl(reg))}
                 >
                   <TableCell>{page * PAGE_SIZE + i + 1}</TableCell>
-                  <TableCell>
-                    <p className="font-medium">{reg.full_name}</p>
-                    <p className="text-xs text-muted-foreground">{reg.phone || "–"}</p>
+                  <TableCell data-sticky className={stickyNameCell(inFamily, !!hot)}>
+                    <Link
+                      to={openUrl(reg)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="-my-1 rounded-sm py-1 font-medium hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    >
+                      {reg.full_name}
+                    </Link>
+                    {reg.phone && <p className="text-[13px] text-muted-foreground">{reg.phone}</p>}
                   </TableCell>
                   <TableCell>
                     <p className="text-sm">{pkg ? day(pkg.departure_date) : "–"}</p>
@@ -270,8 +326,8 @@ export default function JamaahAll() {
                     <>
                       <TableCell rowSpan={run.length} className="whitespace-nowrap border-l text-right align-middle">
                         {rupiah(fb.paidVerified)}
-                        {fb.paidPending > 0 && <p className="text-xs text-amber-700">+{rupiah(fb.paidPending)} menunggu</p>}
-                        <p className="text-xs text-muted-foreground">{family.length} orang</p>
+                        {fb.paidPending > 0 && <p className="text-[13px] text-status-warn-text">+{rupiah(fb.paidPending)} menunggu</p>}
+                        <p className="text-[13px] text-muted-foreground">{family.length} orang</p>
                       </TableCell>
                       <TableCell rowSpan={run.length} className="whitespace-nowrap border-l text-right align-middle">{rupiah(Math.max(0, fb.outstanding))}</TableCell>
                       <TableCell rowSpan={run.length} className="border-l align-middle">
@@ -282,20 +338,20 @@ export default function JamaahAll() {
                     <>
                       <TableCell className="whitespace-nowrap text-right">
                         {rupiah(balance.paidVerified)}
-                        {balance.paidPending > 0 && <p className="text-xs text-amber-700">+{rupiah(balance.paidPending)} menunggu</p>}
+                        {balance.paidPending > 0 && <p className="text-[13px] text-status-warn-text">+{rupiah(balance.paidPending)} menunggu</p>}
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-right">{rupiah(Math.max(0, balance.outstanding))}</TableCell>
                       <TableCell>
                         {reg.status === "cancelled" ? (
-                          <Badge variant="outline" className="bg-red-100 text-red-900">Batal</Badge>
+                          <Badge variant="outline" className="bg-status-bad-bg text-status-bad-fg border-status-bad-border">Batal</Badge>
                         ) : (
                           <Badge variant="outline" className={PAY_STATE_CLASS[state]}>{PAY_STATE_LABEL[state]}</Badge>
                         )}
                       </TableCell>
                     </>
                   )}
-                  <TableCell className="text-sm">{agentName(reg.agent_id, reg.referral_note) || "–"}</TableCell>
-                  <TableCell className="text-sm">{reg.domicile || "–"}</TableCell>
+                  <TableCell className="max-w-[160px] truncate text-sm" title={agentName(reg.agent_id, reg.referral_note) || undefined}>{agentName(reg.agent_id, reg.referral_note) || "–"}</TableCell>
+                  <TableCell className="whitespace-nowrap text-sm">{reg.domicile || "–"}</TableCell>
                 </TableRow>
                 );
               })
@@ -303,6 +359,17 @@ export default function JamaahAll() {
           </TableBody>
         </Table>
       </div>
+
+      <JamaahCardList
+        items={cardItems}
+        family={familySummary}
+        loading={isLoading}
+        emptyText={loadError ? "Daftar belum bisa dimuat." : all.length ? "Tidak ada jamaah yang cocok dengan pencarian ini." : "Belum ada jamaah. Import dari Google Sheet lewat halaman Data Jamaah."}
+        onOpen={(id) => {
+          const hit = rows.find((x) => x.reg.id === id);
+          if (hit) navigate(openUrl(hit.reg));
+        }}
+      />
 
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>

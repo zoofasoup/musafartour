@@ -4,6 +4,7 @@ import { id as localeId } from "date-fns/locale";
 import { History, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { packageStatusLabel } from "@/lib/packageStatus";
+import { actorNickname } from "@/lib/jamaahHistory";
 
 type ChangeEntry = { old: unknown; new: unknown };
 
@@ -143,7 +144,8 @@ function visibleChanges(changes: LogRow["changes"]) {
     }));
 }
 
-const actorLabel = (row: LogRow) => row.actor_name || row.actor_email || "Sistem (otomatis)";
+/** Nickname only: the display name, else the email name before "@". */
+const actorLabel = (row: LogRow) => (row.actor_name || row.actor_email ? actorNickname(row.actor_name, row.actor_email) : "Sistem (otomatis)");
 
 const ACTION_TEXT: Record<LogRow["action"], string> = {
   insert: "membuat paket",

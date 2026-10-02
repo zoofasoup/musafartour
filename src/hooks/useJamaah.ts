@@ -76,13 +76,14 @@ export function useJamaahForPackage(packageId: string | undefined) {
       const registrations = (regRes.data ?? []) as Registration[];
       let payments: Payment[] = [];
       if (registrations.length) {
-        const { data, error } = await supabase
-          .from("jamaah_payments")
-          .select("*")
-          .in("registration_id", registrations.map((r) => r.id))
-          .order("paid_on");
-        if (error) throw error;
-        payments = (data ?? []) as Payment[];
+        // A long list of ids in one URL breaks past a couple of hundred jamaah, so ask in batches of 100.
+        const ids = registrations.map((r) => r.id);
+        const batches = Array.from({ length: Math.ceil(ids.length / 100) }, (_, i) => ids.slice(i * 100, i * 100 + 100));
+        const results = await Promise.all(
+          batches.map((batch) => supabase.from("jamaah_payments").select("*").in("registration_id", batch).order("paid_on"))
+        );
+        for (const res of results) if (res.error) throw res.error;
+        payments = results.flatMap((res) => (res.data ?? []) as Payment[]).sort((a, b) => a.paid_on.localeCompare(b.paid_on));
       }
       return { registrations, payments, groups: (groupRes.data ?? []) as JamaahGroup[] };
     },

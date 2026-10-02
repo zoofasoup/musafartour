@@ -7,9 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PaymentTable } from "./PaymentTable";
+import { buildHistoryEntry, type AuditRow } from "@/lib/jamaahHistory";
+import type { AgentOption } from "@/hooks/useJamaah";
 import {
   PAY_STATE_CLASS,
   PAY_STATE_LABEL,
+  LUNAS_DAYS_BEFORE_DEPARTURE,
   ROOM_SHORT,
   balanceOf,
   daysUntil,
@@ -17,20 +20,16 @@ import {
   dueDateFor,
   payState,
   rupiah,
+  type JamaahGroup,
   type Payment,
   type Registration,
 } from "@/lib/jamaah";
 
-const FIELD_LABELS: Record<string, string> = {
-  full_name: "Nama", phone: "No. WA", room_type: "Kamar", list_price: "Harga", discount: "Diskon", price_note: "Keterangan",
-  agent_id: "Agen", referral_note: "Referral", domicile: "Domisili", start_city: "Start", equipment_size: "Size",
-  equipment_taken_at: "Ambil perlengkapan", status: "Status", cancel_reason: "Alasan batal", refund_amount: "Refund",
-  group_id: "Rombongan", amount: "Nominal", reject_reason: "Alasan ditolak", passport_number: "Paspor", nik: "NIK",
-};
-
 interface Props {
   registration: Registration | null;
   payments: Payment[];
+  agents: AgentOption[];
+  groups: JamaahGroup[];
   departureDate?: string;
   isOwner: boolean;
   currentUserId?: string;
@@ -40,7 +39,7 @@ interface Props {
   onChanged: () => void;
 }
 
-export function RegistrationSheet({ registration, payments, departureDate, isOwner, currentUserId, onOpenChange, onEdit, onPay, onChanged }: Props) {
+export function RegistrationSheet({ registration, payments, agents, groups, departureDate, isOwner, currentUserId, onOpenChange, onEdit, onPay, onChanged }: Props) {
   const regPayments = registration ? payments.filter((p) => p.registration_id === registration.id) : [];
   const balance = registration ? balanceOf(registration, regPayments) : null;
   const state = balance ? payState(balance) : null;
@@ -52,12 +51,12 @@ export function RegistrationSheet({ registration, payments, departureDate, isOwn
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jamaah_audit_log")
-        .select("id, table_name, action, changes, actor_name, actor_email, created_at")
+        .select("id, table_name, row_id, action, changes, actor_name, actor_email, created_at")
         .eq("registration_id", registration!.id)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(100);
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as unknown as AuditRow[];
     },
   });
 
@@ -66,11 +65,11 @@ export function RegistrationSheet({ registration, payments, departureDate, isOwn
       <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
         {registration && balance && state && (
           <>
-            <SheetHeader className="mb-4">
+            <SheetHeader className="mb-4 text-left">
               <SheetTitle className="flex flex-wrap items-center gap-2">
                 {registration.full_name}
                 {registration.status === "cancelled" ? (
-                  <Badge variant="outline" className="bg-red-100 text-red-900">Batal</Badge>
+                  <Badge variant="outline" className="bg-status-bad-bg text-status-bad-fg border-status-bad-border">Batal</Badge>
                 ) : (
                   <Badge variant="outline" className={PAY_STATE_CLASS[state]}>{PAY_STATE_LABEL[state]}</Badge>
                 )}
@@ -82,9 +81,9 @@ export function RegistrationSheet({ registration, payments, departureDate, isOwn
             </SheetHeader>
 
             <div className="mb-4 flex flex-wrap gap-2">
-              <Button type="button" size="sm" variant="outline" className="gap-1" onClick={onEdit}><Pencil className="h-3.5 w-3.5" /> Ubah data</Button>
+              <Button type="button" size="sm" variant="outline" className="gap-1 [@media(pointer:coarse)]:h-11" onClick={onEdit}><Pencil className="h-3.5 w-3.5" /> Ubah data</Button>
               {registration.status === "active" && (
-                <Button type="button" size="sm" className="gap-1" onClick={onPay}><CreditCard className="h-3.5 w-3.5" /> Catat pembayaran</Button>
+                <Button type="button" size="sm" className="gap-1 [@media(pointer:coarse)]:h-11" onClick={onPay}><CreditCard className="h-3.5 w-3.5" /> Catat pembayaran</Button>
               )}
             </div>
 
@@ -103,13 +102,13 @@ export function RegistrationSheet({ registration, payments, departureDate, isOwn
               ))}
             </dl>
             {due && balance.outstanding > 0 && registration.status === "active" && (
-              <p className={`mb-6 rounded-md px-3 py-2 text-sm ${daysUntil(due) < 0 ? "bg-red-50 text-red-900" : "bg-amber-50 text-amber-900"}`}>
-                Pelunasan paling lambat {format(new Date(`${due}T00:00:00`), "d MMMM yyyy", { locale: localeId })} (H-30)
+              <p className={`mb-6 rounded-md px-3 py-2 text-sm ${daysUntil(due) < 0 ? "bg-status-bad-bg text-status-bad-fg" : "bg-status-warn-bg text-status-warn-fg"}`}>
+                Pelunasan paling lambat {format(new Date(`${due}T00:00:00`), "d MMMM yyyy", { locale: localeId })} (H-{LUNAS_DAYS_BEFORE_DEPARTURE})
                 {daysUntil(due) < 0 ? `, sudah lewat ${-daysUntil(due)} hari.` : `, ${daysUntil(due)} hari lagi.`}
               </p>
             )}
             {registration.status === "cancelled" && (
-              <p className="mb-6 rounded-md bg-red-50 px-3 py-2 text-sm text-red-900">
+              <p className="mb-6 rounded-md bg-status-bad-bg px-3 py-2 text-sm text-status-bad-fg">
                 Batal: {registration.cancel_reason}
                 {registration.refund_amount != null && ` · Refund ${rupiah(Number(registration.refund_amount))}`}
                 {registration.refund_paid_at && ` (dibayar ${registration.refund_paid_at})`}
@@ -120,7 +119,7 @@ export function RegistrationSheet({ registration, payments, departureDate, isOwn
             <ul className="mb-6 grid gap-1 sm:grid-cols-2">
               {documentChecklist(registration).map((d) => (
                 <li key={d.key} className="flex items-center gap-2 text-sm">
-                  {d.done ? <Check className="h-4 w-4 text-emerald-600" /> : <Circle className="h-4 w-4 text-muted-foreground" />}
+                  {d.done ? <Check className="h-4 w-4 text-status-ok-text" /> : <Circle className="h-4 w-4 text-muted-foreground" />}
                   <span className={d.done ? "" : "text-muted-foreground"}>{d.label}</span>
                 </li>
               ))}
@@ -133,21 +132,28 @@ export function RegistrationSheet({ registration, payments, departureDate, isOwn
 
             <h3 className="mb-2 text-sm font-semibold">Riwayat perubahan</h3>
             <ol className="space-y-2">
-              {history.map((h) => {
-                const changes = (h.changes ?? {}) as Record<string, unknown>;
-                const fields = Object.keys(changes).filter((k) => k !== "_snapshot").map((k) => FIELD_LABELS[k] ?? k.replace(/_/g, " "));
-                const what =
-                  h.table_name === "jamaah_payments"
-                    ? h.action === "insert" ? "mencatat pembayaran" : h.action === "delete" ? "menghapus catatan pembayaran" : "mengubah pembayaran"
-                    : h.action === "insert" ? "mendaftarkan jamaah" : h.action === "delete" ? "menghapus pendaftaran" : "mengubah data";
+              {history.map((row) => {
+                const e = buildHistoryEntry(row, { agents, groups, payments });
                 return (
-                  <li key={h.id} className="rounded-md border px-3 py-2 text-sm">
-                    <span className="font-medium">{h.actor_name || h.actor_email || "Sistem"}</span>{" "}
-                    <span className="text-muted-foreground">{what}</span>
-                    {h.action === "update" && fields.length > 0 && <span className="text-muted-foreground">: {fields.join(", ")}</span>}
-                    <span className="block text-xs text-muted-foreground">
-                      {format(new Date(h.created_at), "d MMM yyyy, HH.mm", { locale: localeId })}
-                    </span>
+                  <li key={e.id} className="rounded-md border px-3 py-2 text-sm">
+                    <p>
+                      <span className="font-medium">{e.who}</span> <span className="text-muted-foreground">{e.what}</span>
+                    </p>
+                    <p className="text-[13px] text-muted-foreground">{e.when}</p>
+                    {e.lines.length > 0 && (
+                      <ul className="mt-1.5 space-y-0.5">
+                        {e.lines.map((l) => (
+                          <li key={l.label}>
+                            <span className="text-muted-foreground">{l.label}:</span>{" "}
+                            <span className="sr-only">dari </span>
+                            <span className="text-muted-foreground line-through decoration-muted-foreground/60">{l.from}</span>
+                            <span aria-hidden> → </span>
+                            <span className="sr-only"> menjadi </span>
+                            <span className="font-medium">{l.to}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </li>
                 );
               })}

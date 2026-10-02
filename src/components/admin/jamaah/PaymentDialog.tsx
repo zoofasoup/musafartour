@@ -154,7 +154,7 @@ export function PaymentDialog({ open, onOpenChange, registrations, payments, gro
           {groups.length > 0 && (
             <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Jenis pembayaran">
               {(["single", "group"] as const).map((m) => (
-                <Button key={m} type="button" variant={mode === m ? "default" : "outline"} onClick={() => setMode(m)}>
+                <Button key={m} type="button" variant={mode === m ? "default" : "outline"} className="h-auto min-h-10 whitespace-normal px-2 py-2 leading-tight [@media(pointer:coarse)]:min-h-11" onClick={() => setMode(m)}>
                   {m === "single" ? "Satu jamaah" : "Satu rombongan (dibagi)"}
                 </Button>
               ))}
@@ -200,13 +200,13 @@ export function PaymentDialog({ open, onOpenChange, registrations, payments, gro
           </div>
 
           {firstPayment && total > 0 && total < DP_MIN_PER_PAX && (
-            <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            <p className="rounded-md bg-status-warn-bg px-3 py-2 text-sm text-status-warn-fg">
               DP minimal {rupiah(DP_MIN_PER_PAX)} per jamaah. Nominal ini belum memenuhi DP.
             </p>
           )}
 
           {mode === "group" && groupId && (
-            <dl className="grid grid-cols-3 gap-2 rounded-md bg-muted px-3 py-2 text-sm">
+            <dl className="grid grid-cols-1 gap-2 rounded-md bg-muted px-3 py-2 text-sm sm:grid-cols-3">
               <div>
                 <dt className="text-xs text-muted-foreground">Tagihan rombongan</dt>
                 <dd className="font-semibold">{rupiah(groupTotals.agreed)}</dd>
@@ -235,10 +235,11 @@ export function PaymentDialog({ open, onOpenChange, registrations, payments, gro
               {members.map((m) => (
                 <div key={m.id} className="grid grid-cols-[1fr_160px] items-center gap-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm">{m.full_name}</p>
+                    <p className="truncate text-sm" title={m.full_name}>{m.full_name}</p>
                     <p className="text-xs text-muted-foreground">Sisa {rupiah(Math.max(0, outstandingOf(m.id)))}</p>
                   </div>
                   <MoneyInput
+                    ariaLabel={`Nominal untuk ${m.full_name}`}
                     value={split[m.id] || 0}
                     onChange={(v) => {
                       setManualSplit(true);
@@ -248,7 +249,7 @@ export function PaymentDialog({ open, onOpenChange, registrations, payments, gro
                 </div>
               ))}
               {!members.length && <p className="text-sm text-muted-foreground">Rombongan ini belum punya anggota aktif.</p>}
-              <p className={`text-right text-sm ${splitSum === total ? "text-emerald-700" : "text-amber-700"}`}>
+              <p className={`text-right text-sm ${splitSum === total ? "text-status-ok-text" : "text-status-warn-text"}`}>
                 Terbagi {rupiah(splitSum)} dari {rupiah(total)}
               </p>
             </div>
@@ -291,8 +292,8 @@ export function PaymentDialog({ open, onOpenChange, registrations, payments, gro
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Batal</Button>
-          <Button type="button" onClick={save} disabled={saving}>{saving ? "Menyimpan..." : "Simpan Pembayaran"}</Button>
+          <Button type="button" variant="outline" className="[@media(pointer:coarse)]:h-11" onClick={() => onOpenChange(false)} disabled={saving}>Batal</Button>
+          <Button type="button" onClick={save} disabled={saving} className="[@media(pointer:coarse)]:h-11">{saving ? "Menyimpan..." : "Simpan Pembayaran"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

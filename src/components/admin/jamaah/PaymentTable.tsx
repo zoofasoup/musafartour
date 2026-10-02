@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { TOUCH_H } from "./touch";
 import { BANK_LABELS, PAYMENT_STATUS_CLASS, PAYMENT_STATUS_LABEL, docUrl, rupiah, type Payment } from "@/lib/jamaah";
 
 const fmtDate = (d: string) => new Date(`${d.slice(0, 10)}T00:00:00`).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
@@ -66,9 +67,32 @@ export function PaymentTable({ payments, isOwner, currentUserId, describe, onCha
 
   if (!payments.length) return <p className="py-6 text-center text-sm text-muted-foreground">{empty}</p>;
 
+  const canDelete = (p: Payment) => (isOwner && p.status !== "verified") || (p.status === "pending" && p.recorded_by === currentUserId);
+
+  /** Verify / reject / delete for one payment. Same buttons in the table and on a phone card. */
+  const actions = (p: Payment) => (
+    <>
+      {isOwner && p.status === "pending" && (
+        <Button type="button" size="sm" className={`h-8 gap-1 ${TOUCH_H}`} disabled={busy === p.id} onClick={() => verify(p)}>
+          <Check className="h-3.5 w-3.5" /> Verifikasi
+        </Button>
+      )}
+      {isOwner && p.status !== "rejected" && (
+        <Button type="button" size="sm" variant="outline" className={`h-8 gap-1 ${TOUCH_H}`} disabled={busy === p.id} onClick={() => setRejecting(p)}>
+          <X className="h-3.5 w-3.5" /> Tolak
+        </Button>
+      )}
+      {canDelete(p) && (
+        <Button type="button" size="icon" variant="ghost" className={`h-8 w-8 ${TOUCH_H} [@media(pointer:coarse)]:w-11`} aria-label="Hapus catatan" disabled={busy === p.id} onClick={() => remove(p)}>
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <>
-      <div className="overflow-x-auto rounded-md border">
+      <div className="hidden overflow-x-auto rounded-md border sm:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -83,7 +107,6 @@ export function PaymentTable({ payments, isOwner, currentUserId, describe, onCha
           </TableHeader>
           <TableBody>
             {payments.map((p) => {
-              const canDelete = (isOwner && p.status !== "verified") || (p.status === "pending" && p.recorded_by === currentUserId);
               return (
                 <TableRow key={p.id}>
                   <TableCell className="whitespace-nowrap">
@@ -98,7 +121,7 @@ export function PaymentTable({ payments, isOwner, currentUserId, describe, onCha
                   <TableCell>{BANK_LABELS[p.bank_account] ?? p.bank_account}</TableCell>
                   <TableCell>
                     {p.proof_path ? (
-                      <Button type="button" variant="ghost" size="sm" className="h-8 gap-1 px-2" onClick={() => openProof(p.proof_path!)}>
+                      <Button type="button" variant="ghost" size="sm" className={`h-8 gap-1 px-2 ${TOUCH_H}`} onClick={() => openProof(p.proof_path!)}>
                         <ExternalLink className="h-3.5 w-3.5" /> Lihat
                       </Button>
                     ) : (
@@ -113,23 +136,7 @@ export function PaymentTable({ payments, isOwner, currentUserId, describe, onCha
                     {p.notes && <span className="mt-1 block max-w-[220px] text-xs text-muted-foreground">{p.notes}</span>}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      {isOwner && p.status === "pending" && (
-                        <Button type="button" size="sm" className="h-8 gap-1" disabled={busy === p.id} onClick={() => verify(p)}>
-                          <Check className="h-3.5 w-3.5" /> Verifikasi
-                        </Button>
-                      )}
-                      {isOwner && p.status !== "rejected" && (
-                        <Button type="button" size="sm" variant="outline" className="h-8 gap-1" disabled={busy === p.id} onClick={() => setRejecting(p)}>
-                          <X className="h-3.5 w-3.5" /> Tolak
-                        </Button>
-                      )}
-                      {canDelete && (
-                        <Button type="button" size="icon" variant="ghost" className="h-8 w-8" aria-label="Hapus catatan" disabled={busy === p.id} onClick={() => remove(p)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
+                    <div className="flex justify-end gap-1">{actions(p)}</div>
                   </TableCell>
                 </TableRow>
               );
@@ -137,6 +144,35 @@ export function PaymentTable({ payments, isOwner, currentUserId, describe, onCha
           </TableBody>
         </Table>
       </div>
+
+      <ul className="space-y-2 sm:hidden" aria-label="Daftar pembayaran">
+        {payments.map((p) => (
+          <li key={p.id} className="rounded-lg border bg-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-base font-semibold">{rupiah(Number(p.amount))}</p>
+                <p className="text-[13px] text-muted-foreground">
+                  {[fmtDate(p.paid_on), BANK_LABELS[p.bank_account] ?? p.bank_account, p.payer_name ? `dari ${p.payer_name}` : null].filter(Boolean).join(" · ")}
+                </p>
+                {describe && <div className="mt-1 text-sm">{describe(p)}</div>}
+                {p.transfer_id && <p className="text-[13px] text-muted-foreground">bagian transfer rombongan</p>}
+              </div>
+              <Badge variant="outline" className={PAYMENT_STATUS_CLASS[p.status]}>{PAYMENT_STATUS_LABEL[p.status]}</Badge>
+            </div>
+            {(p.reject_reason && p.status === "rejected") || p.notes ? (
+              <p className="mt-2 text-[13px] text-muted-foreground">{[p.status === "rejected" ? p.reject_reason : null, p.notes].filter(Boolean).join(" · ")}</p>
+            ) : null}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {p.proof_path && (
+                <Button type="button" variant="outline" size="sm" className={`h-8 gap-1 ${TOUCH_H}`} onClick={() => openProof(p.proof_path!)}>
+                  <ExternalLink className="h-3.5 w-3.5" /> Lihat bukti
+                </Button>
+              )}
+              {actions(p)}
+            </div>
+          </li>
+        ))}
+      </ul>
 
       <Dialog open={!!rejecting} onOpenChange={(o) => { if (!o) { setRejecting(null); setReason(""); } }}>
         <DialogContent className="sm:max-w-md">

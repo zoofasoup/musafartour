@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { tierFieldNames } from "@/lib/roomCombos";
 import type { Tables } from "@/integrations/supabase/types";
 
 /**
@@ -39,11 +40,42 @@ export const ROOM_LABELS: Record<string, string> = {
 };
 export const ROOM_SHORT: Record<string, string> = { quad: "Quad", triple: "Triple", double: "Double", non_bed: "Non bed", infant: "Infant" };
 
+/**
+ * Plain-language reason a page of jamaah data did not load, with what to do next. The raw database message
+ * is only logged: it means nothing to the person at the desk and can name tables.
+ */
+export function loadErrorMessage(error: unknown): { title: string; hint: string } {
+  const e = (error ?? {}) as { code?: string; status?: number; message?: string };
+  console.error("Gagal memuat data jamaah:", error);
+  const text = `${e.message ?? ""}`.toLowerCase();
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return { title: "Tidak ada koneksi internet", hint: "Sambungkan internet, lalu klik Coba lagi." };
+  }
+  if (/failed to fetch|networkerror|network request failed|load failed|timeout/.test(text)) {
+    return { title: "Tidak bisa terhubung ke server", hint: "Periksa internet kamu, lalu klik Coba lagi." };
+  }
+  if (e.code === "PGRST301" || e.status === 401 || /jwt|expired/.test(text)) {
+    return { title: "Sesi login sudah habis", hint: "Muat ulang halaman ini lalu login lagi." };
+  }
+  if (e.code === "42501" || e.status === 403 || /permission denied|row-level security/.test(text)) {
+    return { title: "Akun kamu belum boleh membuka data ini", hint: "Minta owner mengatur peranmu di Admin → Team (CS Administrasi atau Super Admin)." };
+  }
+  return { title: "Data belum bisa dimuat", hint: "Coba lagi sebentar lagi. Kalau tetap gagal, kabari tim teknis." };
+}
+
 export const rupiah = (n: number | null | undefined) => `Rp ${new Intl.NumberFormat("id-ID").format(Math.round(n ?? 0))}`;
+/**
+ * Short money for summary cards: "Rp 74,5 jt", "Rp 1,18 miliar". The old "1.182,7 jt" read like an English
+ * thousands number; spelling out miliar avoids that. Small amounts stay in full rupiah.
+ */
 export const juta = (n: number | null | undefined) => {
-  const v = n ?? 0;
-  if (Math.abs(v) < 1_000_000) return rupiah(v);
-  return `${(v / 1_000_000).toLocaleString("id-ID", { maximumFractionDigits: 1 })} jt`;
+  const v = Math.round(n ?? 0);
+  const sign = v < 0 ? "-" : "";
+  const abs = Math.abs(v);
+  const fmt = (x: number, digits: number) => x.toLocaleString("id-ID", { maximumFractionDigits: digits });
+  if (abs >= 1_000_000_000) return `${sign}Rp ${fmt(abs / 1_000_000_000, 2)} miliar`;
+  if (abs >= 1_000_000) return `${sign}Rp ${fmt(abs / 1_000_000, 1)} jt`;
+  return `${sign}${rupiah(abs)}`;
 };
 
 /** YYYY-MM-DD in Jakarta time. */
@@ -197,11 +229,20 @@ export const PAY_STATE_LABEL: Record<PayState, string> = {
   lebih: "Lebih bayar",
 };
 
+/** Badge colors by meaning, from the theme's status tokens (src/index.css), so a theme change remaps them. */
+export const STATUS_BADGE = {
+  ok: "bg-status-ok-bg text-status-ok-fg border-status-ok-border",
+  warn: "bg-status-warn-bg text-status-warn-fg border-status-warn-border",
+  info: "bg-status-info-bg text-status-info-fg border-status-info-border",
+  over: "bg-status-over-bg text-status-over-fg border-status-over-border",
+  bad: "bg-status-bad-bg text-status-bad-fg border-status-bad-border",
+} as const;
+
 export const PAY_STATE_CLASS: Record<PayState, string> = {
-  belum_dp: "bg-amber-100 text-amber-900 border-amber-200",
-  dp: "bg-sky-100 text-sky-900 border-sky-200",
-  lunas: "bg-emerald-100 text-emerald-900 border-emerald-200",
-  lebih: "bg-violet-100 text-violet-900 border-violet-200",
+  belum_dp: STATUS_BADGE.warn,
+  dp: STATUS_BADGE.info,
+  lunas: STATUS_BADGE.ok,
+  lebih: STATUS_BADGE.over,
 };
 
 export const PAYMENT_STATUS_LABEL: Record<string, string> = {
@@ -211,9 +252,9 @@ export const PAYMENT_STATUS_LABEL: Record<string, string> = {
 };
 
 export const PAYMENT_STATUS_CLASS: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-900 border-amber-200",
-  verified: "bg-emerald-100 text-emerald-900 border-emerald-200",
-  rejected: "bg-red-100 text-red-900 border-red-200",
+  pending: STATUS_BADGE.warn,
+  verified: STATUS_BADGE.ok,
+  rejected: STATUS_BADGE.bad,
 };
 
 /** Manifest documents a jamaah needs before departure. */
@@ -273,4 +314,21 @@ export function reminderWhatsAppUrl(opts: {
     `Pembayaran hanya melalui rekening ${PT_ACCOUNT_HOLDER}: ${accounts}.\n` +
     `Mohon kirim bukti transfer ke nomor ini. Jazakumullah khairan.`;
   return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+}
+
+
+/** Package-like rows with the four tier price columns (packages, published packages, jamaah packages). */
+interface PriceSource {
+  available_tiers: string[] | null;
+  package_price?: unknown;
+  hemat_package_price?: unknown;
+  five_star_package_price?: unknown;
+  pelataran_package_price?: unknown;
+}
+
+/** Price of one room type (quad, triple, double) on the package's first tier; 0 when it has none. */
+export function roomPriceOf(pkg: PriceSource, room: string): number {
+  const column = tierFieldNames(pkg.available_tiers?.[0]).priceColumn as keyof PriceSource;
+  const price = pkg[column] as Record<string, number> | null | undefined;
+  return Number(price?.[room] ?? 0) || 0;
 }

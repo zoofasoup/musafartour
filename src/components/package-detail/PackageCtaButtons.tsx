@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User, Users, ChevronUp, ShoppingCart, Share2, Bell } from "lucide-react";
+import { User, Users, ChevronUp, ShoppingCart, Share2, Bell, ClipboardList } from "lucide-react";
 import { cn, isPackageUnavailable, isPackageDeparted, formatPriceJuta } from "@/lib/utils";
 import { useFavorites } from "@/hooks/useFavorites";
 import { PackageUrgencyBar } from "./PackageUrgencyBar";
@@ -65,6 +65,17 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
         </div>
       ) : (
         <>
+          {packageData.slug && (
+            <div className="space-y-1">
+              <Button asChild className="h-12 w-full gap-2 rounded-full text-base font-bold">
+                <Link to={`/daftar/${packageData.slug}`}>
+                  <ClipboardList className="h-4 w-4" aria-hidden /> Daftar Sekarang
+                </Link>
+              </Button>
+              <p className="text-center text-xs text-muted-foreground">Isi form sekitar 2 menit, tim kami yang menghubungi</p>
+            </div>
+          )}
+
           <div className="space-y-1">
             <Button
               id="tour-cta-solo"

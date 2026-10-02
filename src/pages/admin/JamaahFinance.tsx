@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cogsPerRoom } from "@/lib/cogs";
 import {
+  LUNAS_DAYS_BEFORE_DEPARTURE,
   balanceOf,
   daysUntil,
   dueDateFor,
@@ -22,7 +23,10 @@ import {
   type Payment,
   type Registration,
 } from "@/lib/jamaah";
+import { StatCard } from "@/components/admin/jamaah/StatCard";
 import { useJamaahPackages } from "@/hooks/useJamaah";
+
+const DUE_LABEL = `H-${LUNAS_DAYS_BEFORE_DEPARTURE}`;
 import { useAuth } from "@/hooks/useAuth";
 
 type Period = "upcoming" | "departed" | "all";
@@ -130,9 +134,9 @@ export default function JamaahFinance() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-black tracking-tight">Laporan Keuangan</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Laporan Keuangan</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Uang masuk dihitung dari pembayaran terverifikasi. Pelunasan paling lambat H-30 keberangkatan.
+            Uang masuk dihitung dari pembayaran terverifikasi. Pelunasan paling lambat {DUE_LABEL} keberangkatan.
           </p>
         </div>
         <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)}>
@@ -157,13 +161,7 @@ export default function JamaahFinance() {
               ["Refund dibayar", juta(report.totals.refunds)],
               ["Estimasi margin", juta(report.totals.margin), report.totals.missingCogs ? `${report.totals.missingCogs} paket tanpa COGS` : "dari HPP di COGS"],
             ].map(([label, value, hint]) => (
-              <Card key={label}>
-                <CardContent className="p-4">
-                  <p className="text-xs font-medium text-muted-foreground">{label}</p>
-                  <p className="mt-1 text-2xl font-bold">{value}</p>
-                  {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
-                </CardContent>
-              </Card>
+              <StatCard key={label} label={label} value={value} hint={hint} />
             ))}
           </section>
 
@@ -185,7 +183,7 @@ export default function JamaahFinance() {
                     <TableHead className="text-right">Tagihan</TableHead>
                     <TableHead className="text-right">Masuk</TableHead>
                     <TableHead className="text-right">Sisa</TableHead>
-                    <TableHead>Batas H-30</TableHead>
+                    <TableHead>Batas {DUE_LABEL}</TableHead>
                     <TableHead className="text-right">HPP</TableHead>
                     <TableHead className="text-right">Margin</TableHead>
                   </TableRow>
@@ -205,24 +203,24 @@ export default function JamaahFinance() {
                           {r.count}
                           {r.pkg.slots_total ? <span className="text-muted-foreground">/{r.pkg.slots_total}</span> : null}
                         </TableCell>
-                        <TableCell className={`text-right ${r.belumDp ? "text-amber-700" : ""}`}>{r.belumDp}</TableCell>
+                        <TableCell className={`text-right ${r.belumDp ? "text-status-warn-text" : ""}`}>{r.belumDp}</TableCell>
                         <TableCell className="text-right">{r.lunas}</TableCell>
                         <TableCell className="text-right">{juta(r.agreed)}</TableCell>
                         <TableCell className="text-right">
                           {juta(r.paid)}
-                          {r.pending > 0 && <span className="block text-xs text-amber-700">+{juta(r.pending)}</span>}
+                          {r.pending > 0 && <span className="block text-xs text-status-warn-text">+{juta(r.pending)}</span>}
                         </TableCell>
                         <TableCell className="text-right font-medium">{juta(r.outstanding)}</TableCell>
                         <TableCell className="whitespace-nowrap text-sm">
                           {fmtDay(r.due)}
                           {r.pkg.departure_date >= today && r.outstanding > 0 && (
-                            <span className={`block text-xs ${days < 0 ? "text-red-700" : days <= REMIND_WITHIN_DAYS ? "text-amber-700" : "text-muted-foreground"}`}>
+                            <span className={`block text-xs ${days < 0 ? "text-status-bad-text" : days <= REMIND_WITHIN_DAYS ? "text-status-warn-text" : "text-muted-foreground"}`}>
                               {days < 0 ? `lewat ${-days} hari` : `${days} hari lagi`}
                             </span>
                           )}
                         </TableCell>
                         <TableCell className="text-right">{r.hpp == null ? <span className="text-xs text-muted-foreground">COGS kosong</span> : juta(r.hpp)}</TableCell>
-                        <TableCell className={`text-right font-medium ${r.margin != null && r.margin < 0 ? "text-red-700" : ""}`}>
+                        <TableCell className={`text-right font-medium ${r.margin != null && r.margin < 0 ? "text-status-bad-text" : ""}`}>
                           {r.margin == null ? "–" : juta(r.margin)}
                           {r.margin != null && r.revenue > 0 && (
                             <span className="block text-xs font-normal text-muted-foreground">{((r.margin / r.revenue) * 100).toFixed(1)}%</span>
@@ -243,7 +241,7 @@ export default function JamaahFinance() {
             <CardHeader>
               <CardTitle>Perlu diingatkan</CardTitle>
               <CardDescription>
-                Jamaah dengan sisa tagihan yang batas pelunasannya (H-30) {REMIND_WITHIN_DAYS} hari lagi atau sudah lewat.
+                Jamaah dengan sisa tagihan yang batas pelunasannya ({DUE_LABEL}) {REMIND_WITHIN_DAYS} hari lagi atau sudah lewat.
                 Tombol WhatsApp membuka pesan pengingat yang tinggal dikirim.
               </CardDescription>
             </CardHeader>
@@ -266,7 +264,7 @@ export default function JamaahFinance() {
                         <span className="block text-xs text-muted-foreground">{r.phone || "tanpa no. WA"}</span>
                       </TableCell>
                       <TableCell className="text-sm">{pkg.package_name} · {fmtDay(pkg.departure_date)}</TableCell>
-                      <TableCell className={`whitespace-nowrap text-sm ${days < 0 ? "text-red-700" : "text-amber-700"}`}>
+                      <TableCell className={`whitespace-nowrap text-sm ${days < 0 ? "text-status-bad-text" : "text-status-warn-text"}`}>
                         {fmtDay(due)} · {days < 0 ? `lewat ${-days} hari` : days === 0 ? "hari ini" : `${days} hari lagi`}
                       </TableCell>
                       <TableCell className="text-right font-medium">{rupiah(b.outstanding)}</TableCell>

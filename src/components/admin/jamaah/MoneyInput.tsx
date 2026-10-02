@@ -7,18 +7,22 @@ export function MoneyInput({
   id,
   placeholder = "0",
   disabled,
+  ariaLabel,
 }: {
   value: number;
   onChange: (value: number) => void;
   id?: string;
   placeholder?: string;
   disabled?: boolean;
+  /** Needed when no visible <label> points at the field (e.g. one amount per family member). */
+  ariaLabel?: string;
 }) {
   return (
     <div className="relative">
       <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Rp</span>
       <Input
         id={id}
+        aria-label={ariaLabel}
         inputMode="numeric"
         className="pl-9"
         placeholder={placeholder}

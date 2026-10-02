@@ -37,7 +37,7 @@ export function DocUpload({
         <p className="text-sm font-medium">{label}</p>
         <p className="text-xs text-muted-foreground">
           {path ? (
-            <span className="inline-flex items-center gap-1 text-emerald-700">
+            <span className="inline-flex items-center gap-1 text-status-ok-text">
               <Check className="h-3 w-3" /> Sudah diunggah
             </span>
           ) : (

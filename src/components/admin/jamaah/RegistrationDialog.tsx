@@ -133,6 +133,17 @@ export function RegistrationDialog({ open, onOpenChange, pkg, groups, registrati
         meningitis_vaccinated_at: clean(draft.meningitis_vaccinated_at),
         polio_vaccinated_at: clean(draft.polio_vaccinated_at),
         roommate_note: clean(draft.roommate_note),
+        father_name: clean(draft.father_name),
+        marital_status: clean(draft.marital_status),
+        address: clean(draft.address),
+        email: clean(draft.email),
+        occupation: clean(draft.occupation),
+        education: clean(draft.education),
+        blood_type: clean(draft.blood_type),
+        emergency_name: clean(draft.emergency_name),
+        emergency_relation: clean(draft.emergency_relation),
+        emergency_phone: clean(draft.emergency_phone),
+        medical_notes: clean(draft.medical_notes),
         ktp_path: draft.ktp_path ?? null,
         passport_path: draft.passport_path ?? null,
         photo_path: draft.photo_path ?? null,
@@ -153,6 +164,19 @@ export function RegistrationDialog({ open, onOpenChange, pkg, groups, registrati
     }
   };
 
+  /** A choice limited by the database (blood type, marital status, education). Empty keeps it unset. */
+  const pick = (key: keyof Draft, label: string, options: [string, string][]) => (
+    <div className="space-y-1.5">
+      <Label>{label}</Label>
+      <Select value={(draft[key] as string) ?? ""} onValueChange={(v) => set(key, v as never)}>
+        <SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
+        <SelectContent>
+          {options.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   const text = (key: keyof Draft, label: string, props: Record<string, unknown> = {}) => (
     <div className="space-y-1.5">
       <Label htmlFor={`reg-${String(key)}`}>{label}</Label>
@@ -172,16 +196,16 @@ export function RegistrationDialog({ open, onOpenChange, pkg, groups, registrati
           <DialogTitle>{isEdit ? `Data ${registration!.full_name}` : "Tambah Jamaah"}</DialogTitle>
           <DialogDescription>
             {pkg?.package_name} ·{" "}
-            {pkg && new Date(`${pkg.departure_date}T00:00:00`).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+            {pkg && new Date(`${pkg.departure_date.slice(0, 10)}T00:00:00`).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
           </DialogDescription>
         </DialogHeader>
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="utama">Pendaftaran</TabsTrigger>
-            <TabsTrigger value="manifest">Manifest</TabsTrigger>
-            <TabsTrigger value="dokumen">Dokumen</TabsTrigger>
-            <TabsTrigger value="batal" disabled={!isEdit}>Pembatalan</TabsTrigger>
+          <TabsList className="grid h-auto w-full grid-cols-2 sm:grid-cols-4">
+            <TabsTrigger value="utama" className="[@media(pointer:coarse)]:h-11">Pendaftaran</TabsTrigger>
+            <TabsTrigger value="manifest" className="[@media(pointer:coarse)]:h-11">Manifest</TabsTrigger>
+            <TabsTrigger value="dokumen" className="[@media(pointer:coarse)]:h-11">Dokumen</TabsTrigger>
+            <TabsTrigger value="batal" disabled={!isEdit} className="[@media(pointer:coarse)]:h-11">Pembatalan</TabsTrigger>
           </TabsList>
 
           <TabsContent value="utama" className="space-y-4 pt-2">
@@ -336,6 +360,22 @@ export function RegistrationDialog({ open, onOpenChange, pkg, groups, registrati
               {text("polio_vaccinated_at", "Tanggal vaksin polio", { type: "date" })}
             </div>
             {text("roommate_note", "Teman sekamar", { placeholder: "Sekamar dengan ..." })}
+            <p className="pt-2 text-sm font-semibold">Dari formulir pendaftaran</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {text("father_name", "Nama ayah kandung")}
+              {text("email", "Email", { type: "email" })}
+              {text("occupation", "Pekerjaan")}
+              {pick("blood_type", "Golongan darah", [["A", "A"], ["B", "B"], ["AB", "AB"], ["O", "O"]])}
+              {pick("marital_status", "Status kawin", [["married", "Menikah"], ["single", "Tidak menikah"]])}
+              {pick("education", "Pendidikan", [["sd", "SD"], ["smp", "SMP"], ["sma", "SMA / SMK"], ["s1", "S1 / D4 atau lebih"], ["other", "Lainnya"]])}
+            </div>
+            {text("address", "Alamat rumah")}
+            <div className="grid gap-4 sm:grid-cols-3">
+              {text("emergency_name", "Kontak darurat")}
+              {text("emergency_relation", "Hubungan")}
+              {text("emergency_phone", "No HP darurat", { inputMode: "tel" })}
+            </div>
+            {text("medical_notes", "Riwayat penyakit kronis")}
           </TabsContent>
 
           <TabsContent value="dokumen" className="space-y-3 pt-2">
@@ -375,8 +415,8 @@ export function RegistrationDialog({ open, onOpenChange, pkg, groups, registrati
         </Tabs>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Batal</Button>
-          <Button type="button" onClick={save} disabled={saving || !pkg}>{saving ? "Menyimpan..." : "Simpan"}</Button>
+          <Button type="button" variant="outline" className="[@media(pointer:coarse)]:h-11" onClick={() => onOpenChange(false)} disabled={saving}>Batal</Button>
+          <Button type="button" onClick={save} disabled={saving || !pkg} className="[@media(pointer:coarse)]:h-11">{saving ? "Menyimpan..." : "Simpan"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

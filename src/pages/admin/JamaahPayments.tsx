@@ -66,7 +66,7 @@ export default function JamaahPayments() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-black tracking-tight">Verifikasi Pembayaran</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Verifikasi Pembayaran</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {isOwner
             ? "Cocokkan dengan mutasi rekening PT, lalu verifikasi. Hanya pembayaran terverifikasi yang dihitung masuk."

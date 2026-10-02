@@ -180,8 +180,8 @@ export function ImportSheetDialog({ open, onOpenChange, pkg, registrations, agen
         )}
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={importing}>Batal</Button>
-          <Button type="button" onClick={run} disabled={importing || !ready.length} className="gap-1">
+          <Button type="button" variant="outline" className="[@media(pointer:coarse)]:h-11" onClick={() => onOpenChange(false)} disabled={importing}>Batal</Button>
+          <Button type="button" onClick={run} disabled={importing || !ready.length} className="gap-1 [@media(pointer:coarse)]:h-11">
             <Upload className="h-4 w-4" />
             {importing ? "Mengimport..." : `Import ${ready.length} jamaah`}
           </Button>

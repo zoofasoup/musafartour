@@ -34,7 +34,7 @@ interface TabState {
 }
 
 const packageLabel = (p: JamaahPackage) =>
-  `${format(new Date(p.departure_date), "d MMM yyyy")} · ${p.package_name} · ${p.duration_days}H${p.flight ? ` · ${p.flight}` : ""}`;
+  `${format(new Date(`${p.departure_date.slice(0, 10)}T00:00:00`), "d MMM yyyy")} · ${p.package_name} · ${p.duration_days}H${p.flight ? ` · ${p.flight}` : ""}`;
 
 /**
  * Move the whole old Google Sheet at once: every tab is matched to the package that departs on the
@@ -213,7 +213,7 @@ export function ImportWorkbookDialog({ open, onOpenChange, packages, agents, isO
                                   {packages.map((p) => <SelectItem key={p.id} value={p.id}>{packageLabel(p)}</SelectItem>)}
                                 </SelectContent>
                               </Select>
-                              {t.ambiguous && t.pkgId === SKIP && <p className="mt-1 text-xs text-amber-700">Ada lebih dari satu paket di tanggal ini, pilih yang benar.</p>}
+                              {t.ambiguous && t.pkgId === SKIP && <p className="mt-1 text-xs text-status-warn-text">Ada lebih dari satu paket di tanggal ini, pilih yang benar.</p>}
                             </>
                           )}
                         </TableCell>
@@ -222,7 +222,7 @@ export function ImportWorkbookDialog({ open, onOpenChange, packages, agents, isO
                         <TableCell className="text-right">{rows.filter((r) => r.skipped).length || "–"}</TableCell>
                         <TableCell className="text-right">
                           {bad ? (
-                            <button type="button" className="text-amber-700 underline" onClick={() => setDetail(detail === t.sheet ? null : t.sheet)}>
+                            <button type="button" className="text-status-warn-text underline" onClick={() => setDetail(detail === t.sheet ? null : t.sheet)}>
                               {bad}
                             </button>
                           ) : (
@@ -259,8 +259,8 @@ export function ImportWorkbookDialog({ open, onOpenChange, packages, agents, isO
 
         <DialogFooter className="gap-2 sm:gap-0">
           {progress && <span className="mr-auto self-center text-sm text-muted-foreground">{progress}</span>}
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={importing}>Batal</Button>
-          <Button type="button" onClick={run} disabled={importing || !totalReady} className="gap-1">
+          <Button type="button" variant="outline" className="[@media(pointer:coarse)]:h-11" onClick={() => onOpenChange(false)} disabled={importing}>Batal</Button>
+          <Button type="button" onClick={run} disabled={importing || !totalReady} className="gap-1 [@media(pointer:coarse)]:h-11">
             <Upload className="h-4 w-4" />
             {importing ? "Mengimport..." : `Import ${totalReady} jamaah`}
           </Button>

@@ -52,6 +52,34 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        "status-ok": {
+          bg: "hsl(var(--status-ok-bg))",
+          fg: "hsl(var(--status-ok-fg))",
+          border: "hsl(var(--status-ok-border))",
+          text: "hsl(var(--status-ok-text))",
+        },
+        "status-warn": {
+          bg: "hsl(var(--status-warn-bg))",
+          fg: "hsl(var(--status-warn-fg))",
+          border: "hsl(var(--status-warn-border))",
+          text: "hsl(var(--status-warn-text))",
+        },
+        "status-info": {
+          bg: "hsl(var(--status-info-bg))",
+          fg: "hsl(var(--status-info-fg))",
+          border: "hsl(var(--status-info-border))",
+        },
+        "status-over": {
+          bg: "hsl(var(--status-over-bg))",
+          fg: "hsl(var(--status-over-fg))",
+          border: "hsl(var(--status-over-border))",
+        },
+        "status-bad": {
+          bg: "hsl(var(--status-bad-bg))",
+          fg: "hsl(var(--status-bad-fg))",
+          border: "hsl(var(--status-bad-border))",
+          text: "hsl(var(--status-bad-text))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

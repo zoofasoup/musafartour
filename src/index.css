@@ -55,6 +55,13 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Status colors for money and document states (jamaah pages). bg/fg/border for badges, text for inline numbers. */
+    --status-ok-bg: 149 80% 90%;      --status-ok-fg: 164 86% 16%;      --status-ok-border: 152 81% 80%;   --status-ok-text: 161 94% 30%;
+    --status-warn-bg: 48 96% 89%;     --status-warn-fg: 22 78% 26%;     --status-warn-border: 48 97% 77%;  --status-warn-text: 26 90% 37%;
+    --status-info-bg: 204 94% 94%;    --status-info-fg: 201 90% 23%;    --status-info-border: 201 94% 86%;
+    --status-over-bg: 255 92% 95%;    --status-over-fg: 263 67% 35%;    --status-over-border: 251 91% 92%;
+    --status-bad-bg: 0 93% 94%;       --status-bad-fg: 0 63% 31%;       --status-bad-border: 0 96% 89%;    --status-bad-text: 0 74% 42%;
   }
 
   .dark {
@@ -93,6 +100,12 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --status-ok-bg: 160 40% 18%;      --status-ok-fg: 152 70% 82%;      --status-ok-border: 160 30% 28%;   --status-ok-text: 152 60% 62%;
+    --status-warn-bg: 40 45% 18%;     --status-warn-fg: 45 90% 80%;     --status-warn-border: 40 35% 28%;  --status-warn-text: 40 90% 62%;
+    --status-info-bg: 205 45% 18%;    --status-info-fg: 200 90% 82%;    --status-info-border: 205 35% 28%;
+    --status-over-bg: 260 35% 20%;    --status-over-fg: 255 90% 85%;    --status-over-border: 260 30% 30%;
+    --status-bad-bg: 0 40% 19%;       --status-bad-fg: 0 90% 86%;       --status-bad-border: 0 30% 30%;    --status-bad-text: 0 85% 68%;
   }
 }
 

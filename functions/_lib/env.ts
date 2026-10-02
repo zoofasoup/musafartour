@@ -8,6 +8,8 @@ export interface Env {
   BROWSER: BrowserWorker;
   /** Meta Conversions API token (Events Manager > Settings > Conversions API). Secret. */
   META_CAPI_ACCESS_TOKEN?: string;
+  /** Cloudflare Turnstile secret key for the public registration form. Secret. */
+  TURNSTILE_SECRET_KEY?: string;
 }
 
 // Fallback to the same public URL/anon key already shipped in the client JS

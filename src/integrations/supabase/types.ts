@@ -1517,6 +1517,117 @@ export type Database = {
         }
         Relationships: []
       }
+      jamaah_intake_people: {
+        Row: {
+          category: string
+          created_at: string
+          full_name: string
+          gender: string
+          id: string
+          intake_id: string
+          position: number
+          registration_id: string | null
+          relation: string | null
+          room_type: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          full_name: string
+          gender: string
+          id?: string
+          intake_id: string
+          position: number
+          registration_id?: string | null
+          relation?: string | null
+          room_type: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          full_name?: string
+          gender?: string
+          id?: string
+          intake_id?: string
+          position?: number
+          registration_id?: string | null
+          relation?: string | null
+          room_type?: string
+        }
+        Relationships: []
+      }
+      jamaah_intakes: {
+        Row: {
+          agent_id: string | null
+          code: string
+          consent_at: string
+          consent_version: string
+          contact_attending: boolean
+          contact_city: string | null
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          heard_from: string | null
+          id: string
+          manifest_token: string
+          notes: string | null
+          package_id: string
+          pay_together: boolean
+          ref_code: string | null
+          reject_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string
+          status: string
+        }
+        Insert: {
+          agent_id?: string | null
+          code: string
+          consent_at: string
+          consent_version: string
+          contact_attending?: boolean
+          contact_city?: string | null
+          contact_name: string
+          contact_phone: string
+          created_at?: string
+          heard_from?: string | null
+          id?: string
+          manifest_token?: string
+          notes?: string | null
+          package_id: string
+          pay_together?: boolean
+          ref_code?: string | null
+          reject_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: string
+        }
+        Update: {
+          agent_id?: string | null
+          code?: string
+          consent_at?: string
+          consent_version?: string
+          contact_attending?: boolean
+          contact_city?: string | null
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string
+          heard_from?: string | null
+          id?: string
+          manifest_token?: string
+          notes?: string | null
+          package_id?: string
+          pay_together?: boolean
+          ref_code?: string | null
+          reject_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: string
+        }
+        Relationships: []
+      }
       jamaah_payments: {
         Row: {
           amount: number
@@ -1589,6 +1700,7 @@ export type Database = {
           gender: string | null
           group_id: string | null
           id: string
+          intake_id: string | null
           ktp_path: string | null
           list_price: number
           mahram_name: string | null
@@ -1614,6 +1726,17 @@ export type Database = {
           start_city: string | null
           status: string
           updated_at: string
+          father_name: string | null
+          marital_status: string | null
+          address: string | null
+          email: string | null
+          occupation: string | null
+          education: string | null
+          blood_type: string | null
+          emergency_name: string | null
+          emergency_relation: string | null
+          emergency_phone: string | null
+          medical_notes: string | null
         }
         Insert: {
           agent_id?: string | null
@@ -1632,6 +1755,7 @@ export type Database = {
           gender?: string | null
           group_id?: string | null
           id?: string
+          intake_id?: string | null
           ktp_path?: string | null
           list_price: number
           mahram_name?: string | null
@@ -1657,6 +1781,17 @@ export type Database = {
           start_city?: string | null
           status?: string
           updated_at?: string
+          father_name?: string | null
+          marital_status?: string | null
+          address?: string | null
+          email?: string | null
+          occupation?: string | null
+          education?: string | null
+          blood_type?: string | null
+          emergency_name?: string | null
+          emergency_relation?: string | null
+          emergency_phone?: string | null
+          medical_notes?: string | null
         }
         Update: {
           agent_id?: string | null
@@ -1675,6 +1810,7 @@ export type Database = {
           gender?: string | null
           group_id?: string | null
           id?: string
+          intake_id?: string | null
           ktp_path?: string | null
           list_price?: number
           mahram_name?: string | null
@@ -1700,6 +1836,17 @@ export type Database = {
           start_city?: string | null
           status?: string
           updated_at?: string
+          father_name?: string | null
+          marital_status?: string | null
+          address?: string | null
+          email?: string | null
+          occupation?: string | null
+          education?: string | null
+          blood_type?: string | null
+          emergency_name?: string | null
+          emergency_relation?: string | null
+          emergency_phone?: string | null
+          medical_notes?: string | null
         }
         Relationships: []
       }
@@ -2752,6 +2899,14 @@ export type Database = {
       }
       create_calculator_lead: { Args: { _lead: Json }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      accept_jamaah_intake: {
+        Args: { _force?: boolean; _intake_id: string; _people: Json }
+        Returns: Json
+      }
+      reject_jamaah_intake: {
+        Args: { _intake_id: string; _reason: string }
+        Returns: undefined
+      }
       import_jamaah_rows: {
         Args: { _package_id: string; _rows: Json }
         Returns: number

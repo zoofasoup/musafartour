@@ -81,7 +81,6 @@ const AdminLayout = () => {
       label: "JAMAAH & KEUANGAN",
       items: [
         { icon: CalendarCheck, label: "Data Jamaah", path: "/admin/jamaah", roles: ["admin", "superadmin", "cs_admin"] },
-        { icon: Users, label: "Semua Jamaah", path: "/admin/jamaah/semua", roles: ["admin", "superadmin", "cs_admin"] },
         { icon: Wallet, label: "Verifikasi Pembayaran", path: "/admin/jamaah/pembayaran", roles: ["admin", "superadmin", "cs_admin"] },
         { icon: BarChart3, label: "Laporan Keuangan", path: "/admin/jamaah/keuangan", roles: ["admin", "superadmin"] },
       ]
@@ -172,7 +171,8 @@ const AdminLayout = () => {
     return <Navigate to="/admin" replace />;
   }
 
-  const isActive = (path: string) => location.pathname === path;
+  // "Semua jamaah" is a view inside Data Jamaah, not a menu item of its own.
+  const isActive = (path: string) => location.pathname === path || (path === "/admin/jamaah" && (location.pathname === "/admin/jamaah/semua" || location.pathname === "/admin/jamaah/masuk"));
 
   const handleSignOut = async () => {
     await signOut();
@@ -304,7 +304,7 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
         </SidebarFooter>
       </Sidebar>
 
-      <div className="flex-1 h-svh">
+      <div className="flex-1 h-svh min-w-0">
         <main className="h-full w-full overflow-auto bg-white flex flex-col relative">
           
           {/* Top Header matching the design */}
@@ -314,7 +314,7 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
               <span className="text-slate-300">/</span>
               <span className="text-slate-800 font-semibold flex items-center gap-2">
                 <LayoutDashboard className="w-4 h-4" />
-                {menuSections.flatMap(s => s.items).find(i => i.path === location.pathname)?.label || 'Dashboard'}
+                {menuSections.flatMap(s => s.items).find(i => i.path === (['/admin/jamaah/semua', '/admin/jamaah/masuk'].includes(location.pathname) ? '/admin/jamaah' : location.pathname))?.label || 'Dashboard'}
               </span>
             </div>
             
