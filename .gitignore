@@ -32,3 +32,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local environment (keys)
+.env
+.env.*
+!.env.example
