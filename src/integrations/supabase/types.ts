@@ -2903,6 +2903,10 @@ export type Database = {
         Args: { _force?: boolean; _intake_id: string; _people: Json }
         Returns: Json
       }
+      delete_jamaah_registration: {
+        Args: { _registration_id: string }
+        Returns: Json
+      }
       list_my_agent_intakes: {
         Args: Record<PropertyKey, never>
         Returns: {

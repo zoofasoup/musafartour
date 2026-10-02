@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PaymentTable } from "./PaymentTable";
+import { DeleteRegistrationDialog } from "./DeleteRegistrationDialog";
 import { buildHistoryEntry, type AuditRow } from "@/lib/jamaahHistory";
 import type { AgentOption } from "@/hooks/useJamaah";
 import {
@@ -159,6 +160,16 @@ export function RegistrationSheet({ registration, payments, agents, groups, depa
               })}
               {!history.length && <li className="text-sm text-muted-foreground">Belum ada riwayat.</li>}
             </ol>
+            {isOwner && (
+              <DeleteRegistrationDialog
+                registration={registration}
+                hasPayments={regPayments.length > 0}
+                onDeleted={() => {
+                  onOpenChange(false);
+                  onChanged();
+                }}
+              />
+            )}
           </>
         )}
       </SheetContent>
