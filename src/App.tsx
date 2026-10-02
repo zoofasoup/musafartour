@@ -84,6 +84,7 @@ const AgentProfile = lazy(() => import("./pages/agent/AgentProfile"));
 const AgentLeaderboard = lazy(() => import("./pages/agent/AgentLeaderboard"));
 const AgentSalesGuide = lazy(() => import("./pages/agent/AgentSalesGuide"));
 const AgentRegisterJamaah = lazy(() => import("./pages/agent/AgentRegisterJamaah"));
+const AgentMyJamaah = lazy(() => import("./pages/agent/AgentMyJamaah"));
 const SalesCalculator = lazy(() => import("./pages/admin/SalesCalculator"));
 const PackageBrochure = lazy(() => import("./pages/admin/PackageBrochure"));
 const AgentProtectedRoute = lazy(() => import("./components/agent/AgentProtectedRoute"));
@@ -394,6 +395,16 @@ const App = () => (
                       <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
                         <AgentProtectedRoute>
                           <AgentSchedule />
+                        </AgentProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/agent/jamaah"
+                    element={
+                      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+                        <AgentProtectedRoute>
+                          <AgentMyJamaah />
                         </AgentProtectedRoute>
                       </Suspense>
                     }

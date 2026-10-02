@@ -3,7 +3,7 @@ import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { PanelLeft } from "lucide-react";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { AGENT_LEVEL_COLORS, agentLevelLabel, type AgentLevel } from "@/lib/agentLevels";
-import musafarLogo from "@/assets/musafar-logo.svg";
+import musafarLogo from "@/assets/musafar-logo-dark.svg";
 
 export const AgentHeader = () => {
   const { open, toggleSidebar, isMobile } = useSidebar();
@@ -14,8 +14,8 @@ export const AgentHeader = () => {
       <div className="flex items-center gap-4">
         {isMobile ? (
           <div className="flex items-center gap-3">
-            <SidebarTrigger className="text-slate-500 hover:bg-slate-100 rounded-lg" />
-            <Link to="/agent/dashboard" className="flex items-center">
+            <SidebarTrigger className="h-11 w-11 text-slate-500 hover:bg-slate-100 rounded-lg" />
+            <Link to="/agent/dashboard" className="flex min-h-11 items-center">
               <img src={musafarLogo} alt="Musafar Tour" className="h-6 w-auto" />
             </Link>
           </div>
@@ -35,7 +35,7 @@ export const AgentHeader = () => {
       {agent && (
         <Link
           to="/agent/profile"
-          className="flex items-center gap-2 rounded-full pl-1 pr-3 py-1 hover:bg-slate-100 transition-colors"
+          className="flex min-h-11 items-center gap-2 rounded-full pl-1 pr-3 py-1 hover:bg-slate-100 transition-colors"
         >
           <span className={`flex h-7 w-7 items-center justify-center rounded-full text-white text-xs font-bold shrink-0 ${AGENT_LEVEL_COLORS[agent.level as AgentLevel] || AGENT_LEVEL_COLORS.bronze}`}>
             {agent.name?.charAt(0).toUpperCase() || "A"}

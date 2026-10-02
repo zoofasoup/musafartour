@@ -4,9 +4,9 @@ import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { Button } from "@/components/ui/button";
 import {
   LogOut, LayoutDashboard, Package, Calendar, Wallet,
-  Palette, Trophy, BookOpen
+  Palette, Trophy, BookOpen, UserPlus, Users
 } from "lucide-react";
-import musafarLogo from "@/assets/musafar-logo.svg";
+import musafarLogo from "@/assets/musafar-logo-dark.svg";
 import {
   Sidebar,
   SidebarContent,
@@ -20,12 +20,23 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { AgentHeader } from "./AgentHeader";
+import { agentLevelLabel } from "@/lib/agentLevels";
 
 const navItems = [
   { 
     title: "Dashboard", 
     url: "/agent/dashboard", 
     icon: LayoutDashboard,
+  },
+  { 
+    title: "Daftarkan Jamaah", 
+    url: "/agent/daftar-jamaah", 
+    icon: UserPlus,
+  },
+  { 
+    title: "Jamaah Saya", 
+    url: "/agent/jamaah", 
+    icon: Users,
   },
   { 
     title: "Paket", 
@@ -87,7 +98,8 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex w-full">
-      <SidebarProvider defaultOpen={false}>
+      {/* Open on wide screens so the menu is there when an agent lands; phones keep the slide-in menu. */}
+      <SidebarProvider defaultOpen={typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches}>
         <Sidebar className="border-r border-slate-100 bg-white">
           <SidebarHeader className="p-4 border-b border-slate-100 h-[72px] flex items-center justify-center">
             <Link to="/agent/dashboard" className="flex items-center gap-2 transition-transform hover:scale-105">
@@ -133,18 +145,18 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
                 {agent.name}
               </p>
               <p className="text-xs text-slate-500">
-                Level: {agent.experience_level === 'beginner' ? 'Pemula' : agent.experience_level === 'intermediate' ? 'Berpengalaman' : 'Profesional'}
+                Level {agentLevelLabel(agent.level)}
               </p>
             </Link>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={handleSignOut}
-                  tooltip="Sign Out"
+                  tooltip="Keluar"
                   className="text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-300 ease-in-out"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span className="font-medium">Sign Out</span>
+                  <span className="font-medium">Keluar</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

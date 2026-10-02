@@ -1,46 +1,32 @@
 import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { toast } from "sonner";
-import { Link2, Loader2, UserPlus } from "lucide-react";
+import { Link2, UserPlus, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { usePublishedPackages } from "@/hooks/usePackages";
 import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
 import { RegistrationForm, type SubmitPayload } from "@/components/daftar/RegistrationForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { STATUS_BADGE } from "@/lib/jamaah";
 
 const day = (d: string) => format(new Date(`${d.slice(0, 10)}T00:00:00`), "d MMM yyyy", { locale: localeId });
-
-const STATUS: Record<string, { label: string; className: string }> = {
-  new: { label: "Menunggu CS", className: STATUS_BADGE.warn },
-  accepted: { label: "Diterima", className: STATUS_BADGE.ok },
-  rejected: { label: "Ditolak", className: STATUS_BADGE.bad },
-};
 
 /** Where an agent registers their own jamaah: same form as the public one, signed in as the agent instead of Turnstile. */
 export default function AgentRegisterJamaah() {
   const { agent } = useAgentAuth();
   const qc = useQueryClient();
   const { data: packages = [], isPending: loadingPackages } = usePublishedPackages();
-  const [packageId, setPackageId] = useState("");
+  const [params] = useSearchParams();
+  // /agent/daftar-jamaah?paket=<id> opens with that package chosen (the package pages link here).
+  const [packageId, setPackageId] = useState(params.get("paket") ?? "");
   const [formKey, setFormKey] = useState(0);
   const pkg = useMemo(() => packages.find((p) => p.id === packageId), [packages, packageId]);
-
-  const { data: mine = [], isPending: loadingMine, error: mineError, refetch } = useQuery({
-    queryKey: ["agent-intakes"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("list_my_agent_intakes");
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
 
   if (agent && agent.status !== "active") {
     return (
@@ -64,6 +50,7 @@ export default function AgentRegisterJamaah() {
     const data = (await res.json().catch(() => null)) as { ok?: boolean; code?: string; error?: string } | null;
     if (!res.ok || !data?.ok || !data.code) throw new Error(data?.error || "Pendaftaran belum bisa dikirim. Coba lagi sebentar lagi.");
     qc.invalidateQueries({ queryKey: ["agent-intakes"] });
+    qc.invalidateQueries({ queryKey: ["agent-jamaah"] });
     return { code: data.code };
   };
 
@@ -118,36 +105,12 @@ export default function AgentRegisterJamaah() {
         </section>
       )}
 
-      <section aria-labelledby="saya" className="space-y-3">
-        <h2 id="saya" className="text-lg font-bold">Pendaftaran saya</h2>
-        {loadingMine ? (
-          <div className="flex justify-center rounded-lg border py-8" role="status" aria-label="Memuat"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
-        ) : mineError ? (
-          <Alert variant="destructive">
-            <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-              Daftar pendaftaran belum bisa dimuat.
-              <Button type="button" variant="outline" size="sm" onClick={() => refetch()}>Coba lagi</Button>
-            </AlertDescription>
-          </Alert>
-        ) : mine.length === 0 ? (
-          <p className="rounded-lg border py-8 text-center text-sm text-muted-foreground">Belum ada pendaftaran. Yang kamu kirim akan muncul di sini beserta statusnya.</p>
-        ) : (
-          <ul className="space-y-3">
-            {mine.map((i) => {
-              const st = STATUS[i.status] ?? { label: i.status, className: STATUS_BADGE.info };
-              return (
-                <li key={i.code} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border bg-card p-4">
-                  <div className="min-w-0">
-                    <p className="font-semibold">{i.contact_name} <span className="font-normal text-muted-foreground">· {i.code}</span></p>
-                    <p className="text-[13px] text-muted-foreground">{i.package_name} · berangkat {day(i.departure_date)}</p>
-                    <p className="text-[13px] text-muted-foreground">{i.people_count} orang · dikirim {format(new Date(i.created_at), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
-                  </div>
-                  <Badge variant="outline" className={st.className}>{st.label}</Badge>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+      <section aria-labelledby="saya" className="flex flex-col items-start gap-3 rounded-lg border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 id="saya" className="font-semibold">Pantau pendaftaranmu</h2>
+          <p className="text-sm text-muted-foreground">Status pendaftaran, pembayaran, dan komisi tiap jamaah ada di Jamaah Saya.</p>
+        </div>
+        <Button asChild variant="outline" className="h-11 gap-2"><Link to="/agent/jamaah"><Users className="h-4 w-4" aria-hidden /> Jamaah Saya</Link></Button>
       </section>
     </div>
   );

@@ -2903,6 +2903,27 @@ export type Database = {
         Args: { _force?: boolean; _intake_id: string; _people: Json }
         Returns: Json
       }
+      list_my_agent_jamaah: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          registration_id: string
+          full_name: string
+          phone: string | null
+          package_name: string
+          departure_date: string
+          room_type: string
+          status: string
+          agreed_price: number
+          paid_verified: number
+          paid_pending: number
+          outstanding: number
+          due_date: string
+          pay_state: string
+          commission_amount: number
+          commission_status: string
+          created_at: string
+        }[]
+      }
       delete_jamaah_registration: {
         Args: { _registration_id: string }
         Returns: Json

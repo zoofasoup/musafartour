@@ -1,346 +1,186 @@
-import { useAgentAuth } from "@/hooks/useAgentAuth";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AgentStatCard } from "@/components/agent/AgentStatCard";
-import {
-  ShoppingBag,
-  DollarSign,
-  Wallet,
-  Copy,
-  Award,
-  Share2,
-  ExternalLink,
-  Trophy,
-  Target,
-  Sparkles,
-  Download,
-  Package,
-  PartyPopper,
-  BadgeCheck,
-} from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Award, Clock, Copy, MessageCircle, Share2, Sparkles, Target, Trophy, UserPlus, Users, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { formatCurrency } from "@/lib/utils";
+import { useAgentAuth } from "@/hooks/useAgentAuth";
+import { AGENT_STATE_CLASS, AGENT_STATE_LABEL, byUrgency, deadlineText, needsPayment, useAgentIntakes, useAgentJamaah } from "@/hooks/useAgentJamaah";
+import { AgentStatCard } from "@/components/agent/AgentStatCard";
+import { LoadError } from "@/components/admin/jamaah/LoadError";
+import { TOUCH_H } from "@/components/admin/jamaah/touch";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AGENT_LEVEL_COLORS, AGENT_LEVEL_LABELS, AGENT_LEVEL_PROGRESSION, type AgentLevel } from "@/lib/agentLevels";
-import { startOfMonth, endOfMonth } from "date-fns";
+import { juta, reminderWhatsAppUrl, rupiah } from "@/lib/jamaah";
+import { formatCurrency } from "@/lib/utils";
 
+const FOLLOW_UP_LIMIT = 5;
+
+/** What an agent needs on landing: who still owes money, what is waiting on CS, and what commission is coming. */
 const AgentDashboard = () => {
-  const { agent, signOut } = useAgentAuth();
-  const navigate = useNavigate();
+  const { agent } = useAgentAuth();
+  const jamaah = useAgentJamaah(!!agent?.id);
+  const intakes = useAgentIntakes(!!agent?.id);
 
-  // Fetch leaderboard data
-  const { data: leaderboardData, isLoading: leaderboardLoading } = useQuery({
-    queryKey: ['agent-leaderboard', agent?.id],
-    queryFn: async () => {
-      if (!agent?.id) return null;
-
-      const { data: agents, error } = await supabase
-        .from('agents')
-        .select('id, name, total_sales')
-        .eq('status', 'active')
-        .order('total_sales', { ascending: false });
-
-      if (error) throw error;
-
-      const rank = agents?.findIndex(a => a.id === agent.id) ?? -1;
-      return {
-        rank: rank >= 0 ? rank + 1 : null,
-        totalAgents: agents?.length || 0,
-      };
-    },
+  const { data: leaderboard, isLoading: leaderboardLoading } = useQuery({
+    queryKey: ["agent-leaderboard", agent?.id],
     enabled: !!agent?.id,
-  });
-
-  // Real this-month / pending commission, replacing the old `* 0.3` / `* 0.1`
-  // guesses - same underlying table and status values AgentCommission.tsx uses.
-  const { data: commissionData, isLoading: commissionLoading } = useQuery({
-    queryKey: ['agent-dashboard-commission', agent?.id],
     queryFn: async () => {
-      if (!agent?.id) return { thisMonth: 0, pending: 0 };
-      const { data, error } = await supabase
-        .from('agent_sales')
-        .select('commission_amount, status, booking_date')
-        .eq('agent_id', agent.id);
-
+      const { data, error } = await supabase.from("agents").select("id, total_sales").eq("status", "active").order("total_sales", { ascending: false });
       if (error) throw error;
-
-      const monthStart = startOfMonth(new Date());
-      const monthEnd = endOfMonth(new Date());
-
-      const thisMonth = (data || [])
-        .filter((s) => (s.status === 'confirmed' || s.status === 'paid') && new Date(s.booking_date) >= monthStart && new Date(s.booking_date) <= monthEnd)
-        .reduce((sum, s) => sum + Number(s.commission_amount), 0);
-
-      const pending = (data || [])
-        .filter((s) => s.status === 'pending')
-        .reduce((sum, s) => sum + Number(s.commission_amount), 0);
-
-      return { thisMonth, pending };
+      const rank = data?.findIndex((a) => a.id === agent!.id) ?? -1;
+      return { rank: rank >= 0 ? rank + 1 : null, totalAgents: data?.length ?? 0 };
     },
-    enabled: !!agent?.id,
   });
-
-  const copyReferralCode = () => {
-    if (agent?.referral_code) {
-      navigator.clipboard.writeText(agent.referral_code);
-      toast.success("Kode referral berhasil disalin!");
-    }
-  };
-
-  const copyReferralLink = () => {
-    if (agent?.referral_code) {
-      const link = `${window.location.origin}/agent/register?ref=${agent.referral_code}`;
-      navigator.clipboard.writeText(link);
-      toast.success("Link referral berhasil disalin!");
-    }
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/agent/login');
-  };
 
   if (!agent) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-40 w-full rounded-3xl" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <Skeleton key={i} className="h-32 w-full rounded-3xl" />
-          ))}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-32 w-full rounded-3xl" />)}
         </div>
       </div>
     );
   }
 
-  const currentLevel = agent.level as AgentLevel;
-  const levelInfo = AGENT_LEVEL_PROGRESSION[currentLevel];
-  const salesForNextLevel = levelInfo.salesNeeded - agent.total_sales;
+  const list = jamaah.data ?? [];
+  const active = list.filter((j) => j.pay_state !== "batal");
+  const owing = list.filter(needsPayment);
+  const followUp = [...owing].sort(byUrgency).slice(0, FOLLOW_UP_LIMIT);
+  const held = list.filter((j) => j.commission_status === "waiting").reduce((s, j) => s + j.commission_amount, 0);
+  const owed = owing.reduce((s, j) => s + Math.max(0, j.outstanding), 0);
+  const waitingCs = (intakes.data ?? []).filter((i) => i.status === "new").length;
 
-  const getActivityItems = () => {
-    if (agent.total_sales === 0) {
-      return [
-        { icon: PartyPopper, text: "Welcome! Mulai jual paket pertama kamu", type: "welcome" as const },
-        { icon: Package, text: "Download marketing kit untuk promosi", type: "action" as const, link: "/agent/marketing-kit" },
-      ];
-    }
-    return [
-      { icon: BadgeCheck, text: `Total ${agent.total_sales} paket terjual`, type: "sale" as const },
-      { icon: DollarSign, text: `Total komisi: ${formatCurrency(Number(agent.total_commission))}`, type: "commission" as const },
-    ];
+  const level = agent.level as AgentLevel;
+  const levelInfo = AGENT_LEVEL_PROGRESSION[level];
+  const salesLeft = Math.max(0, levelInfo.salesNeeded - agent.total_sales);
+
+  const copy = (text: string, done: string) => {
+    navigator.clipboard.writeText(text).then(() => toast.success(done), () => toast.error("Belum bisa menyalin. Coba lagi."));
   };
+  const firstName = agent.name.split(" ")[0];
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto w-full">
-      {/* Welcome Section */}
-      <Card className="bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-0">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <CardTitle className="text-2xl flex items-center gap-2">
-                Selamat Datang, {agent.name}!
-              </CardTitle>
-              <CardDescription className="text-emerald-100 mt-1">
-                Member ID: <span className="font-mono font-bold">{agent.referral_code}</span>
-              </CardDescription>
+    <div className="mx-auto w-full max-w-6xl space-y-6">
+      <Card className="border-0 bg-gradient-to-r from-emerald-700 to-emerald-600 text-white">
+        <CardContent className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-bold">Halo, {firstName}</h1>
+              <Badge className={`${AGENT_LEVEL_COLORS[level]} gap-1 text-white`}><Award className="h-3.5 w-3.5" aria-hidden />{AGENT_LEVEL_LABELS[level]}</Badge>
             </div>
-            <Badge className={`${AGENT_LEVEL_COLORS[currentLevel]} text-white text-sm px-4 py-1.5 self-start`}>
-              <Award className="h-4 w-4 mr-1" />
-              {AGENT_LEVEL_LABELS[currentLevel]} Agent
-            </Badge>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-emerald-50">
+              <span>Kode referral kamu:</span>
+              <span className="inline-flex items-center gap-1">
+                <code className="rounded bg-white/15 px-1.5 py-0.5 font-mono font-bold">{agent.referral_code}</code>
+                <button type="button" aria-label="Salin kode referral" className={`inline-flex h-8 w-8 items-center justify-center rounded hover:bg-white/15 ${TOUCH_H} [@media(pointer:coarse)]:w-11`} onClick={() => copy(agent.referral_code, "Kode referral disalin.")}>
+                  <Copy className="h-4 w-4" aria-hidden />
+                </button>
+              </span>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3 items-center">
-            <div className="flex items-center gap-2 bg-white/15 backdrop-blur rounded-lg px-3 py-2">
-              <span className="text-sm">Kode Referral:</span>
-              <code className="font-mono font-bold">{agent.referral_code}</code>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 hover:bg-white/20 text-white"
-                onClick={copyReferralCode}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={copyReferralLink}
-              className="gap-2 bg-white text-emerald-700 hover:bg-emerald-50"
-            >
-              <Share2 className="h-4 w-4" />
-              Bagikan Link
+          <div className="flex flex-wrap gap-2">
+            <Button asChild className={`h-11 gap-2 bg-white font-semibold text-emerald-800 hover:bg-emerald-50`}>
+              <Link to="/agent/daftar-jamaah"><UserPlus className="h-4 w-4" aria-hidden /> Daftarkan jamaah</Link>
+            </Button>
+            <Button type="button" variant="outline" className="h-11 gap-2 border-white/40 bg-transparent text-white hover:bg-white/15 hover:text-white" onClick={() => copy(`${window.location.origin}/r/${agent.referral_code}`, "Link disalin. Kirim ke calon jamaah, pendaftarannya tercatat atas namamu.")}>
+              <Share2 className="h-4 w-4" aria-hidden /> Salin link untuk calon jamaah
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Stats Grid - four real numbers, nothing fabricated */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <AgentStatCard
-          icon={ShoppingBag}
-          label="Total Sales"
-          value={agent.total_sales}
-          helper={<span className="text-muted-foreground">Sepanjang waktu</span>}
-        />
-        <AgentStatCard
-          icon={DollarSign}
-          label="Komisi Bulan Ini"
-          value={commissionLoading ? "…" : formatCurrency(commissionData?.thisMonth ?? 0)}
-          helper={<span className="text-amber-600">Pending: {formatCurrency(commissionData?.pending ?? 0)}</span>}
-        />
-        <AgentStatCard
-          icon={Wallet}
-          label="Total Komisi"
-          value={formatCurrency(Number(agent.total_commission))}
-          helper={<span className="text-muted-foreground">Sepanjang waktu</span>}
-        />
-        <AgentStatCard
-          icon={Sparkles}
-          label="Saldo Tersedia"
-          value={formatCurrency(Number(agent.available_balance))}
-          helper={
-            <Link to="/agent/commission" className="text-emerald-600 hover:underline">
-              Tarik komisi →
-            </Link>
-          }
-        />
+      {jamaah.error && <LoadError what="Data jamaah" error={jamaah.error} onRetry={() => jamaah.refetch()} retrying={jamaah.isFetching} />}
+
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <AgentStatCard icon={Users} label="Jamaah aktif" value={jamaah.isPending ? "…" : active.length} helper={<span className="text-muted-foreground">{list.filter((j) => j.pay_state === "lunas").length} sudah lunas</span>} />
+        <AgentStatCard icon={Clock} label="Belum lunas" value={jamaah.isPending ? "…" : owing.length} helper={<span className="text-muted-foreground">Sisa {juta(owed)}</span>} />
+        <AgentStatCard icon={Sparkles} label="Komisi menunggu" value={jamaah.isPending ? "…" : juta(held)} helper={<span className="text-muted-foreground">Masuk saat jamaah lunas</span>} />
+        <AgentStatCard icon={Wallet} label="Saldo komisi" value={formatCurrency(Number(agent.available_balance))} helper={<Link to="/agent/commission" className="inline-block py-2 font-medium text-emerald-700 underline-offset-2 hover:underline">Lihat dan tarik komisi</Link>} />
       </div>
 
-      {/* Leaderboard Widget */}
-      <Card className="border-emerald-200 dark:border-emerald-800/30 bg-gradient-to-br from-emerald-50/50 to-background dark:from-emerald-950/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Trophy className="h-5 w-5 text-amber-500" />
-            Leaderboard Position
-          </CardTitle>
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-3 space-y-0 pb-3">
+          <CardTitle className="text-lg">Perlu ditindaklanjuti</CardTitle>
+          {owing.length > FOLLOW_UP_LIMIT && <Button asChild variant="ghost" size="sm"><Link to="/agent/jamaah">Lihat semua ({owing.length})</Link></Button>}
         </CardHeader>
-        <CardContent className="space-y-4">
-          {leaderboardLoading ? (
-            <Skeleton className="h-12 w-full" />
+        <CardContent>
+          {jamaah.isPending ? (
+            <Skeleton className="h-20 w-full" />
+          ) : list.length === 0 ? (
+            <div className="flex flex-col items-start gap-3 rounded-lg bg-muted/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-muted-foreground">Belum ada jamaah atas namamu. Daftarkan jamaah pertamamu, atau kirim link supaya jamaah mengisi sendiri.</p>
+              <Button asChild className="h-11 shrink-0"><Link to="/agent/daftar-jamaah">Daftarkan jamaah</Link></Button>
+            </div>
+          ) : followUp.length === 0 ? (
+            <p className="rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground">Tidak ada yang perlu ditagih. Semua jamaahmu sudah lunas.</p>
           ) : (
-            <>
-              <div className="flex items-center gap-3 p-3 bg-background rounded-lg border">
-                <Trophy className="h-6 w-6 text-amber-500 shrink-0" />
-                <div>
-                  {leaderboardData?.rank ? (
-                    <p className="font-semibold">
-                      Posisi Anda: <span className="text-emerald-600 text-xl">#{leaderboardData.rank}</span>
-                      <span className="text-muted-foreground font-normal text-sm ml-2">
-                        dari {leaderboardData.totalAgents} agent
-                      </span>
-                    </p>
-                  ) : (
-                    <p className="text-muted-foreground">Belum ada ranking</p>
-                  )}
-                </div>
-              </div>
-
-              {levelInfo.next && (
-                <div className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800/30">
-                  <Target className="h-6 w-6 text-amber-600 shrink-0" />
-                  <div>
-                    <p className="font-medium">
-                      Next Target: <span className="text-amber-600">{salesForNextLevel > 0 ? salesForNextLevel : 0} sales lagi</span>
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {AGENT_LEVEL_LABELS[currentLevel]} → {levelInfo.next}
-                    </p>
+            <ul className="divide-y">
+              {followUp.map((j) => (
+                <li key={j.registration_id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold">{j.full_name}</p>
+                    <p className="text-[13px] text-muted-foreground">{rupiah(Math.max(0, j.outstanding))} lagi · {deadlineText(j.due_date)}</p>
                   </div>
-                </div>
-              )}
-            </>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={`shrink-0 whitespace-nowrap ${AGENT_STATE_CLASS[j.pay_state]}`}>{AGENT_STATE_LABEL[j.pay_state]}</Badge>
+                    {j.phone && (
+                      <Button asChild variant="outline" size="icon" className={`h-9 w-9 ${TOUCH_H} [@media(pointer:coarse)]:w-11`}>
+                        <a aria-label={`Ingatkan ${j.full_name} lewat WhatsApp`} target="_blank" rel="noopener noreferrer" href={reminderWhatsAppUrl({ phone: j.phone, name: j.full_name, packageName: j.package_name, departureDate: j.departure_date, outstanding: j.outstanding, dueDate: j.due_date })}>
+                          <MessageCircle className="h-4 w-4" aria-hidden />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          {waitingCs > 0 && (
+            <p className="mt-3 text-sm text-muted-foreground">
+              {waitingCs} pendaftaran masih menunggu dicek CS. <Link to="/agent/jamaah" className="inline-block py-3 font-medium text-emerald-700 underline-offset-2 hover:underline">Lihat statusnya</Link>
+            </p>
+          )}
+          <Button asChild variant="outline" className={`mt-4 ${TOUCH_H}`}><Link to="/agent/jamaah">Semua jamaah saya</Link></Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg"><Trophy className="h-5 w-5 text-status-warn-fg" aria-hidden />Level dan peringkat</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-lg border p-3">
+            {leaderboardLoading ? <Skeleton className="h-10 w-full" /> : leaderboard?.rank ? (
+              <p className="font-semibold">Peringkat <span className="text-xl text-emerald-700">#{leaderboard.rank}</span> <span className="text-sm font-normal text-muted-foreground">dari {leaderboard.totalAgents} agen</span></p>
+            ) : (
+              <p className="text-muted-foreground">Belum ada peringkat</p>
+            )}
+            <p className="mt-1 text-[13px] text-muted-foreground">Dihitung dari jumlah jamaah yang sudah lunas.</p>
+          </div>
+          {levelInfo.next && (
+            <div className="flex items-center gap-3 rounded-lg border border-status-warn-border bg-status-warn-bg p-3 text-status-warn-text">
+              <Target className="h-6 w-6 shrink-0" aria-hidden />
+              <div>
+                <p className="font-medium">{salesLeft} jamaah lunas lagi</p>
+                <p className="text-sm">{AGENT_LEVEL_LABELS[level]} → {levelInfo.next}</p>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Recent Activity Feed */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Aktivitas Terbaru</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {getActivityItems().map((item, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
-              >
-                <item.icon className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm">{item.text}</p>
-                </div>
-                {item.type === 'action' && 'link' in item && item.link && (
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to={item.link}>
-                      <ExternalLink className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Button
-          variant="default"
-          className="h-auto py-4 flex flex-col gap-2 bg-emerald-600 hover:bg-emerald-700"
-          asChild
-        >
-          <Link to="/agent/packages">
-            <Package className="h-6 w-6" />
-            <span>Lihat Paket</span>
-          </Link>
-        </Button>
-
-        <Button
-          variant="outline"
-          className="h-auto py-4 flex flex-col gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400"
-          asChild
-        >
-          <Link to="/agent/marketing-kit">
-            <Download className="h-6 w-6" />
-            <span>Marketing Kit</span>
-          </Link>
-        </Button>
-
-        <Button
-          variant="outline"
-          className="h-auto py-4 flex flex-col gap-2"
-          asChild
-        >
-          <Link to="/agent/commission">
-            <Wallet className="h-6 w-6" />
-            <span>Penarikan Komisi</span>
-          </Link>
-        </Button>
-      </div>
-
-      {/* Bank Account Warning */}
       {!agent.bank_name && (
-        <Card className="border-amber-300 bg-amber-50 dark:bg-amber-900/20">
+        <Card className="border-status-warn-border bg-status-warn-bg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg text-amber-800 dark:text-amber-200">
-              <Wallet className="h-5 w-5" />
-              Lengkapi Data Rekening
-            </CardTitle>
-            <CardDescription className="text-amber-700 dark:text-amber-300">
-              Lengkapi data rekening bank untuk menerima pembayaran komisi.
-            </CardDescription>
+            <CardTitle className="flex items-center gap-2 text-lg text-status-warn-text"><Wallet className="h-5 w-5" aria-hidden />Lengkapi data rekening</CardTitle>
+            <p className="text-sm text-status-warn-text">Komisi hanya bisa dicairkan setelah rekening bank kamu terisi.</p>
           </CardHeader>
           <CardContent>
-            <Button asChild className="bg-amber-600 hover:bg-amber-700">
-              <Link to="/agent/profile">Lengkapi Data</Link>
-            </Button>
+            <Button asChild className="h-11"><Link to="/agent/profile">Lengkapi data</Link></Button>
           </CardContent>
         </Card>
       )}
