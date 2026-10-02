@@ -121,6 +121,67 @@ export function splitEvenly(total: number, members: { id: string; outstanding: n
 
 export type PayState = "belum_dp" | "dp" | "lunas" | "lebih";
 
+// ---------------------------------------------------------------------------
+// Families: members of one group pay together, so money, remaining bill and status are shown once
+// per family (like the merged cells of the old sheet).
+// ---------------------------------------------------------------------------
+
+/**
+ * Put the members of each group next to each other. A group sits where its first member appears and the
+ * order inside it is kept. `groupOf` returns null for anyone who should not be merged (no group, cancelled).
+ */
+export function clusterByGroup<T>(items: T[], groupOf: (item: T) => string | null): T[] {
+  const out: T[] = [];
+  const placed = new Set<string>();
+  for (const item of items) {
+    const g = groupOf(item);
+    if (!g) {
+      out.push(item);
+      continue;
+    }
+    if (placed.has(g)) continue;
+    placed.add(g);
+    out.push(...items.filter((x) => groupOf(x) === g));
+  }
+  return out;
+}
+
+/** Stretches of 2 or more neighbouring rows of one group: where merged cells go. */
+export function groupRuns<T>(items: T[], groupOf: (item: T) => string | null): { start: number; length: number; group: string }[] {
+  const runs: { start: number; length: number; group: string }[] = [];
+  let i = 0;
+  while (i < items.length) {
+    const g = groupOf(items[i]);
+    let j = i + 1;
+    while (g && j < items.length && groupOf(items[j]) === g) j++;
+    if (g && j - i >= 2) runs.push({ start: i, length: j - i, group: g });
+    i = j;
+  }
+  return runs;
+}
+
+/** Everyone's money added up. */
+export function groupBalance(members: Balance[]): Balance {
+  return members.reduce(
+    (t, b) => ({
+      agreed: t.agreed + b.agreed,
+      paidVerified: t.paidVerified + b.paidVerified,
+      paidPending: t.paidPending + b.paidPending,
+      outstanding: t.outstanding + b.outstanding,
+    }),
+    { agreed: 0, paidVerified: 0, paidPending: 0, outstanding: 0 }
+  );
+}
+
+/** Status of a whole family: Lunas when the family owes nothing, Sudah DP when the DP of every member is in. */
+export function groupPayState(members: Balance[]): PayState {
+  const b = groupBalance(members);
+  if (b.outstanding < 0) return "lebih";
+  if (b.outstanding === 0 && b.agreed > 0) return "lunas";
+  if (b.paidVerified >= Math.min(DP_MIN_PER_PAX * members.length, b.agreed)) return "dp";
+  return "belum_dp";
+}
+
 /** Where a jamaah stands, from verified money only. */
 export function payState(b: Balance): PayState {
   if (b.outstanding < 0) return "lebih";

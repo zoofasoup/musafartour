@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { JamaahGroup, Payment, Registration } from "@/lib/jamaah";
+import type { Balance, JamaahGroup, Payment, Registration } from "@/lib/jamaah";
 import { tierFieldNames } from "@/lib/roomCombos";
 
 export const JAMAAH_PACKAGE_COLUMNS =
@@ -110,4 +110,59 @@ export function useInvalidateJamaah() {
     qc.invalidateQueries({ queryKey: ["jamaah-payments"] });
     qc.invalidateQueries({ queryKey: ["jamaah-finance"] });
   };
+}
+
+export interface AllJamaahRow {
+  reg: Pick<
+    Registration,
+    "id" | "package_id" | "group_id" | "created_at" | "full_name" | "phone" | "room_type" | "status" | "agent_id" | "referral_note" | "domicile" | "start_city" | "equipment_taken_at" | "list_price" | "discount"
+  >;
+  balance: Balance;
+}
+
+const ALL_REG_COLUMNS =
+  "id, package_id, group_id, created_at, full_name, phone, room_type, status, agent_id, referral_note, domicile, start_city, equipment_taken_at, list_price, discount";
+
+/** Reads every row of a table or view, 1000 at a time (the API's page limit). */
+async function readAll<T>(table: "jamaah_registrations" | "jamaah_registration_balances", columns: string): Promise<T[]> {
+  const out: T[] = [];
+  for (let from = 0; ; from += 1000) {
+    // The table name is a union of a table and a view, which the generated client types cannot express.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).from(table).select(columns).order(table === "jamaah_registrations" ? "id" : "registration_id").range(from, from + 999);
+    if (error) throw error;
+    out.push(...((data ?? []) as unknown as T[]));
+    if ((data?.length ?? 0) < 1000) break;
+  }
+  return out;
+}
+
+/** Every jamaah on every package, all time, with verified and pending money from the balances view. */
+export function useAllJamaah() {
+  return useQuery({
+    queryKey: ["jamaah", "all"],
+    queryFn: async (): Promise<AllJamaahRow[]> => {
+      const [regs, bals] = await Promise.all([
+        readAll<AllJamaahRow["reg"]>("jamaah_registrations", ALL_REG_COLUMNS),
+        readAll<{ registration_id: string; agreed_price: number; paid_verified: number; paid_pending: number; outstanding: number }>(
+          "jamaah_registration_balances",
+          "registration_id, agreed_price, paid_verified, paid_pending, outstanding"
+        ),
+      ]);
+      const byReg = new Map(bals.map((b) => [b.registration_id, b]));
+      return regs.map((reg) => {
+        const b = byReg.get(reg.id);
+        const agreed = Number(b?.agreed_price ?? Number(reg.list_price) - Number(reg.discount));
+        return {
+          reg,
+          balance: {
+            agreed,
+            paidVerified: Number(b?.paid_verified ?? 0),
+            paidPending: Number(b?.paid_pending ?? 0),
+            outstanding: Number(b?.outstanding ?? agreed),
+          },
+        };
+      });
+    },
+  });
 }

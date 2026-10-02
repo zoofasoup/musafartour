@@ -81,6 +81,7 @@ const AdminLayout = () => {
       label: "JAMAAH & KEUANGAN",
       items: [
         { icon: CalendarCheck, label: "Data Jamaah", path: "/admin/jamaah", roles: ["admin", "superadmin", "cs_admin"] },
+        { icon: Users, label: "Semua Jamaah", path: "/admin/jamaah/semua", roles: ["admin", "superadmin", "cs_admin"] },
         { icon: Wallet, label: "Verifikasi Pembayaran", path: "/admin/jamaah/pembayaran", roles: ["admin", "superadmin", "cs_admin"] },
         { icon: BarChart3, label: "Laporan Keuangan", path: "/admin/jamaah/keuangan", roles: ["admin", "superadmin"] },
       ]

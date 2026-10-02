@@ -123,7 +123,7 @@ function Kpi({ label, value, hint }: { label: string; value: string; hint?: stri
     <Card>
       <CardContent className="p-4">
         <p className="text-xs font-medium text-muted-foreground">{label}</p>
-        <p className="mt-1 text-2xl font-bold tracking-tight tabular-nums">{value}</p>
+        <p className="mt-1 text-2xl font-bold tracking-tight">{value}</p>
         {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
       </CardContent>
     </Card>
@@ -149,7 +149,7 @@ function SimpleTable<T>({ rows, columns, empty = "Belum ada data." }: {
         {rows.map((row, i) => (
           <TableRow key={i}>
             {columns.map((c) => (
-              <TableCell key={c.header} className={c.align === "right" ? "text-right tabular-nums" : undefined}>{c.cell(row)}</TableCell>
+              <TableCell key={c.header} className={c.align === "right" ? "text-right" : undefined}>{c.cell(row)}</TableCell>
             ))}
           </TableRow>
         ))}
@@ -278,7 +278,7 @@ export default function Analytics() {
                     <div key={f.step}>
                       <div className="mb-1 flex justify-between text-sm">
                         <span className="font-medium">{FUNNEL_LABELS[f.step]}</span>
-                        <span className="tabular-nums text-muted-foreground">
+                        <span className="text-muted-foreground">
                           {num(f.people)} orang{i > 0 && <> · {pct(f.people, prev)} dari tahap sebelumnya</>}
                         </span>
                       </div>

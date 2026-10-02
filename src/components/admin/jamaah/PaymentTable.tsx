@@ -91,7 +91,7 @@ export function PaymentTable({ payments, isOwner, currentUserId, describe, onCha
                     {p.payer_name && <span className="block text-xs text-muted-foreground">dari {p.payer_name}</span>}
                   </TableCell>
                   {describe && <TableCell>{describe(p)}</TableCell>}
-                  <TableCell className="whitespace-nowrap text-right font-medium tabular-nums">
+                  <TableCell className="whitespace-nowrap text-right font-medium">
                     {rupiah(Number(p.amount))}
                     {p.transfer_id && <span className="block text-xs font-normal text-muted-foreground">bagian transfer rombongan</span>}
                   </TableCell>

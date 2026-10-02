@@ -22,6 +22,9 @@ export async function importRows(packageId: string, rows: ImportRow[]): Promise<
     equipment_taken: r.equipment_taken,
     domicile: r.domicile,
     start_city: r.start_city,
+    gender: r.gender,
+    group_key: r.group_key,
+    group_name: r.group_name,
   }));
   if (!payload.length) return 0;
   const { data, error } = await supabase.rpc("import_jamaah_rows", { _package_id: packageId, _rows: payload });

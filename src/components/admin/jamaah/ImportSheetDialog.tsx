@@ -159,8 +159,8 @@ export function ImportSheetDialog({ open, onOpenChange, pkg, registrations, agen
                       <TableCell>{r.line}</TableCell>
                       <TableCell className="font-medium">{r.full_name}</TableCell>
                       <TableCell>{r.room_type ? ROOM_SHORT[r.room_type] : "?"}</TableCell>
-                      <TableCell className="text-right tabular-nums">{rupiah(r.list_price)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{rupiah(r.paid)}</TableCell>
+                      <TableCell className="text-right">{rupiah(r.list_price)}</TableCell>
+                      <TableCell className="text-right">{rupiah(r.paid)}</TableCell>
                       <TableCell>
                         {r.agent_raw ? (r.agent_id ? r.agent_raw : <span title="Tidak ada di daftar agen, disimpan sebagai catatan referral">{r.agent_raw}*</span>) : "–"}
                       </TableCell>

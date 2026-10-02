@@ -20,7 +20,7 @@ export function MoneyInput({
       <Input
         id={id}
         inputMode="numeric"
-        className="pl-9 tabular-nums"
+        className="pl-9"
         placeholder={placeholder}
         disabled={disabled}
         value={value ? new Intl.NumberFormat("id-ID").format(value) : ""}

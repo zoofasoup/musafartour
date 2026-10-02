@@ -33,9 +33,13 @@ import {
   PAY_STATE_LABEL,
   ROOM_SHORT,
   balanceOf,
+  clusterByGroup,
   daysUntil,
   documentChecklist,
   dueDateFor,
+  groupBalance,
+  groupPayState,
+  groupRuns,
   juta,
   payState,
   rupiah,
@@ -66,7 +70,7 @@ export default function Jamaah() {
   const payments = useMemo(() => data?.payments ?? [], [data]);
   const groups = useMemo(() => data?.groups ?? [], [data]);
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(params.get("cari") ?? "");
   const [filter, setFilter] = useState<Filter>("all");
   const [editing, setEditing] = useState<Registration | null>(null);
   const [regOpen, setRegOpen] = useState(false);
@@ -98,6 +102,14 @@ export default function Jamaah() {
     if (r.status === "cancelled") return false;
     return filter === "all" || state === filter;
   });
+
+  // Families pay together: keep members side by side and show money, remaining bill and status once per family.
+  const groupOf = ({ r }: (typeof rows)[number]) => (r.status === "active" ? r.group_id : null);
+  const ordered = clusterByGroup(visible, groupOf);
+  const runs = groupRuns(ordered, groupOf);
+  const runAt = new Map(runs.map((run) => [run.start, run]));
+  const coveredByRun = new Set(runs.flatMap((run) => Array.from({ length: run.length - 1 }, (_, k) => run.start + 1 + k)));
+  const familyOf = (groupId: string) => rows.filter((x) => x.r.group_id === groupId && x.r.status === "active");
 
   const active = rows.filter(({ r }) => r.status === "active");
   const totals = active.reduce(
@@ -196,7 +208,7 @@ export default function Jamaah() {
               <Card key={label}>
                 <CardContent className="p-4">
                   <p className="text-xs font-medium text-muted-foreground">{label}</p>
-                  <p className="mt-1 text-2xl font-bold tabular-nums">{value}</p>
+                  <p className="mt-1 text-2xl font-bold">{value}</p>
                   {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
                 </CardContent>
               </Card>
@@ -314,7 +326,11 @@ export default function Jamaah() {
                     </TableCell>
                   </TableRow>
                 )}
-                {visible.map(({ r, b, state, docs }, i) => {
+                {ordered.map(({ r, b, state, docs }, i) => {
+                  const run = runAt.get(i);
+                  const family = run ? familyOf(run.group) : [];
+                  const fb = run ? groupBalance(family.map((m) => m.b)) : null;
+                  const fstate = run ? groupPayState(family.map((m) => m.b)) : null;
                   const docsDone = docs.filter((d) => d.done).length;
                   return (
                     <TableRow key={r.id} className="cursor-pointer" onClick={() => setDetail(r)}>
@@ -326,22 +342,40 @@ export default function Jamaah() {
                         </span>
                       </TableCell>
                       <TableCell>{ROOM_SHORT[r.room_type]}</TableCell>
-                      <TableCell className="whitespace-nowrap text-right tabular-nums">
+                      <TableCell className="whitespace-nowrap text-right">
                         {rupiah(b.agreed)}
                         {Number(r.discount) > 0 && <span className="block text-xs text-muted-foreground">diskon {rupiah(Number(r.discount))}</span>}
                       </TableCell>
-                      <TableCell className="whitespace-nowrap text-right tabular-nums">
-                        {rupiah(b.paidVerified)}
-                        {b.paidPending > 0 && <span className="block text-xs text-amber-700">+{rupiah(b.paidPending)} menunggu</span>}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-right font-medium tabular-nums">{rupiah(Math.max(0, b.outstanding))}</TableCell>
-                      <TableCell>
-                        {r.status === "cancelled" ? (
-                          <Badge variant="outline" className="bg-red-100 text-red-900">Batal</Badge>
-                        ) : (
-                          <Badge variant="outline" className={PAY_STATE_CLASS[state]}>{PAY_STATE_LABEL[state]}</Badge>
-                        )}
-                      </TableCell>
+                      {coveredByRun.has(i) ? null : run && fb && fstate ? (
+                        <>
+                          <TableCell rowSpan={run.length} className="whitespace-nowrap border-l text-right align-middle">
+                            {rupiah(fb.paidVerified)}
+                            {fb.paidPending > 0 && <span className="block text-xs text-amber-700">+{rupiah(fb.paidPending)} menunggu</span>}
+                            <span className="block text-xs text-muted-foreground">{groupName(r.group_id)} · {family.length} orang</span>
+                          </TableCell>
+                          <TableCell rowSpan={run.length} className="whitespace-nowrap border-l text-right align-middle font-medium">
+                            {rupiah(Math.max(0, fb.outstanding))}
+                          </TableCell>
+                          <TableCell rowSpan={run.length} className="border-l align-middle">
+                            <Badge variant="outline" className={PAY_STATE_CLASS[fstate]}>{PAY_STATE_LABEL[fstate]}</Badge>
+                          </TableCell>
+                        </>
+                      ) : (
+                        <>
+                          <TableCell className="whitespace-nowrap text-right">
+                            {rupiah(b.paidVerified)}
+                            {b.paidPending > 0 && <span className="block text-xs text-amber-700">+{rupiah(b.paidPending)} menunggu</span>}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-right font-medium">{rupiah(Math.max(0, b.outstanding))}</TableCell>
+                          <TableCell>
+                            {r.status === "cancelled" ? (
+                              <Badge variant="outline" className="bg-red-100 text-red-900">Batal</Badge>
+                            ) : (
+                              <Badge variant="outline" className={PAY_STATE_CLASS[state]}>{PAY_STATE_LABEL[state]}</Badge>
+                            )}
+                          </TableCell>
+                        </>
+                      )}
                       <TableCell>{r.equipment_size || "–"}</TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <label className="flex items-center gap-2 text-sm">

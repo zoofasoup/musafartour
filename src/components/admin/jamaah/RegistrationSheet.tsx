@@ -98,7 +98,7 @@ export function RegistrationSheet({ registration, payments, departureDate, isOwn
               ].map(([k, v]) => (
                 <div key={k} className="rounded-md border p-3">
                   <dt className="text-xs text-muted-foreground">{k}</dt>
-                  <dd className="mt-0.5 whitespace-nowrap font-semibold tabular-nums">{v}</dd>
+                  <dd className="mt-0.5 whitespace-nowrap font-semibold">{v}</dd>
                 </div>
               ))}
             </dl>

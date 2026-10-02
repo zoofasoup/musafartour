@@ -160,7 +160,7 @@ export default function JamaahFinance() {
               <Card key={label}>
                 <CardContent className="p-4">
                   <p className="text-xs font-medium text-muted-foreground">{label}</p>
-                  <p className="mt-1 text-2xl font-bold tabular-nums">{value}</p>
+                  <p className="mt-1 text-2xl font-bold">{value}</p>
                   {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
                 </CardContent>
               </Card>
@@ -201,18 +201,18 @@ export default function JamaahFinance() {
                           </Link>
                           <span className="block text-xs text-muted-foreground">{fmtDay(r.pkg.departure_date)} · {r.pkg.duration_days} hari</span>
                         </TableCell>
-                        <TableCell className="text-right tabular-nums">
+                        <TableCell className="text-right">
                           {r.count}
                           {r.pkg.slots_total ? <span className="text-muted-foreground">/{r.pkg.slots_total}</span> : null}
                         </TableCell>
-                        <TableCell className={`text-right tabular-nums ${r.belumDp ? "text-amber-700" : ""}`}>{r.belumDp}</TableCell>
-                        <TableCell className="text-right tabular-nums">{r.lunas}</TableCell>
-                        <TableCell className="text-right tabular-nums">{juta(r.agreed)}</TableCell>
-                        <TableCell className="text-right tabular-nums">
+                        <TableCell className={`text-right ${r.belumDp ? "text-amber-700" : ""}`}>{r.belumDp}</TableCell>
+                        <TableCell className="text-right">{r.lunas}</TableCell>
+                        <TableCell className="text-right">{juta(r.agreed)}</TableCell>
+                        <TableCell className="text-right">
                           {juta(r.paid)}
                           {r.pending > 0 && <span className="block text-xs text-amber-700">+{juta(r.pending)}</span>}
                         </TableCell>
-                        <TableCell className="text-right font-medium tabular-nums">{juta(r.outstanding)}</TableCell>
+                        <TableCell className="text-right font-medium">{juta(r.outstanding)}</TableCell>
                         <TableCell className="whitespace-nowrap text-sm">
                           {fmtDay(r.due)}
                           {r.pkg.departure_date >= today && r.outstanding > 0 && (
@@ -221,8 +221,8 @@ export default function JamaahFinance() {
                             </span>
                           )}
                         </TableCell>
-                        <TableCell className="text-right tabular-nums">{r.hpp == null ? <span className="text-xs text-muted-foreground">COGS kosong</span> : juta(r.hpp)}</TableCell>
-                        <TableCell className={`text-right font-medium tabular-nums ${r.margin != null && r.margin < 0 ? "text-red-700" : ""}`}>
+                        <TableCell className="text-right">{r.hpp == null ? <span className="text-xs text-muted-foreground">COGS kosong</span> : juta(r.hpp)}</TableCell>
+                        <TableCell className={`text-right font-medium ${r.margin != null && r.margin < 0 ? "text-red-700" : ""}`}>
                           {r.margin == null ? "–" : juta(r.margin)}
                           {r.margin != null && r.revenue > 0 && (
                             <span className="block text-xs font-normal text-muted-foreground">{((r.margin / r.revenue) * 100).toFixed(1)}%</span>
@@ -269,7 +269,7 @@ export default function JamaahFinance() {
                       <TableCell className={`whitespace-nowrap text-sm ${days < 0 ? "text-red-700" : "text-amber-700"}`}>
                         {fmtDay(due)} · {days < 0 ? `lewat ${-days} hari` : days === 0 ? "hari ini" : `${days} hari lagi`}
                       </TableCell>
-                      <TableCell className="text-right font-medium tabular-nums">{rupiah(b.outstanding)}</TableCell>
+                      <TableCell className="text-right font-medium">{rupiah(b.outstanding)}</TableCell>
                       <TableCell className="text-right">
                         {r.phone ? (
                           <Button asChild size="sm" variant="outline" className="h-8 gap-1">

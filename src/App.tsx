@@ -96,6 +96,7 @@ const WhatsAppInbox = lazy(() => import("./pages/admin/WhatsAppInbox"));
 // Offline booking: jamaah registrations, payment verification, finance
 const Jamaah = lazy(() => import("./pages/admin/Jamaah"));
 const JamaahPayments = lazy(() => import("./pages/admin/JamaahPayments"));
+const JamaahAll = lazy(() => import("./pages/admin/JamaahAll"));
 const JamaahFinance = lazy(() => import("./pages/admin/JamaahFinance"));
 
 const queryClient = new QueryClient({
@@ -469,6 +470,7 @@ const App = () => (
                     <Route path="url-shortener" element={<URLShortener />} />
                     <Route path="agents" element={<AgentManagement />} />
                     <Route path="jamaah" element={<Jamaah />} />
+                    <Route path="jamaah/semua" element={<JamaahAll />} />
                     <Route path="jamaah/pembayaran" element={<JamaahPayments />} />
                     <Route path="jamaah/keuangan" element={<JamaahFinance />} />
                     <Route path="gamification" element={<Gamification />} />

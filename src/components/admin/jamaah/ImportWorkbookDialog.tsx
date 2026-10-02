@@ -63,7 +63,7 @@ export function ImportWorkbookDialog({ open, onOpenChange, packages, agents, isO
   const loadExisting = async () => {
     const byPackage: Record<string, string[]> = {};
     for (let from = 0; ; from += 1000) {
-      const { data, error } = await supabase.from("jamaah_registrations").select("package_id, full_name").range(from, from + 999);
+      const { data, error } = await supabase.from("jamaah_registrations").select("package_id, full_name").order("id").range(from, from + 999);
       if (error) throw error;
       for (const r of data ?? []) (byPackage[r.package_id] ??= []).push(r.full_name);
       if ((data?.length ?? 0) < 1000) break;
@@ -217,19 +217,19 @@ export function ImportWorkbookDialog({ open, onOpenChange, packages, agents, isO
                             </>
                           )}
                         </TableCell>
-                        <TableCell className="text-right tabular-nums">{ready.length || "–"}</TableCell>
-                        <TableCell className="text-right tabular-nums">{rows.filter((r) => r.duplicate && !r.skipped).length || "–"}</TableCell>
-                        <TableCell className="text-right tabular-nums">{rows.filter((r) => r.skipped).length || "–"}</TableCell>
+                        <TableCell className="text-right">{ready.length || "–"}</TableCell>
+                        <TableCell className="text-right">{rows.filter((r) => r.duplicate && !r.skipped).length || "–"}</TableCell>
+                        <TableCell className="text-right">{rows.filter((r) => r.skipped).length || "–"}</TableCell>
                         <TableCell className="text-right">
                           {bad ? (
-                            <button type="button" className="tabular-nums text-amber-700 underline" onClick={() => setDetail(detail === t.sheet ? null : t.sheet)}>
+                            <button type="button" className="text-amber-700 underline" onClick={() => setDetail(detail === t.sheet ? null : t.sheet)}>
                               {bad}
                             </button>
                           ) : (
                             "–"
                           )}
                         </TableCell>
-                        <TableCell className="text-right tabular-nums">{ready.length ? rupiah(ready.reduce((s, r) => s + r.paid, 0)) : "–"}</TableCell>
+                        <TableCell className="text-right">{ready.length ? rupiah(ready.reduce((s, r) => s + r.paid, 0)) : "–"}</TableCell>
                       </TableRow>
                     );
                   })}

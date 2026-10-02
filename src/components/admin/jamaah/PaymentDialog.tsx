@@ -209,15 +209,15 @@ export function PaymentDialog({ open, onOpenChange, registrations, payments, gro
             <dl className="grid grid-cols-3 gap-2 rounded-md bg-muted px-3 py-2 text-sm">
               <div>
                 <dt className="text-xs text-muted-foreground">Tagihan rombongan</dt>
-                <dd className="font-semibold tabular-nums">{rupiah(groupTotals.agreed)}</dd>
+                <dd className="font-semibold">{rupiah(groupTotals.agreed)}</dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Sudah masuk</dt>
-                <dd className="font-semibold tabular-nums">{rupiah(groupTotals.paid)}</dd>
+                <dd className="font-semibold">{rupiah(groupTotals.paid)}</dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Sisa</dt>
-                <dd className="font-semibold tabular-nums">{rupiah(groupTotals.outstanding)}</dd>
+                <dd className="font-semibold">{rupiah(groupTotals.outstanding)}</dd>
               </div>
             </dl>
           )}

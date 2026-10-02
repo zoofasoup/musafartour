@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { PAY_STATE_LABEL, ROOM_SHORT, balanceOf, payState, type JamaahGroup, type Payment, type Registration } from "@/lib/jamaah";
+import { PAY_STATE_LABEL, ROOM_SHORT, balanceOf, payState, splitEvenly, type JamaahGroup, type Payment, type Registration } from "@/lib/jamaah";
 import type { AgentOption } from "@/hooks/useJamaah";
 
 /**
@@ -98,8 +98,13 @@ export interface ImportRow {
   duplicate: boolean;
   /** Not a jamaah at all (empty or total row of the old sheet): left out without counting as an error. */
   skipped: string | null;
-  /** Realisasi is higher than the price: the old sheet put a whole family's transfer on one row. */
+  /** Realisasi is higher than the price although it is not a merged family payment. */
   overpaid: boolean;
+  /** "L" or "P", taken from a "(L)" / "(P)" mark after the name. */
+  gender: string | null;
+  /** Rows sharing one merged Realisasi cell are one family: same key, one transfer split evenly. */
+  group_key: string | null;
+  group_name: string | null;
 }
 
 const HEADERS: Record<string, RegExp> = {
@@ -177,6 +182,13 @@ export function guessSheetName(sheetNames: string[], departureDate: string, flig
   return matches.find((n) => code && new RegExp(`\\b${code}\\b`, "i").test(n)) ?? matches[0];
 }
 
+/** "1. HENDAR (P)" -> name "HENDAR", gender "P": the old sheet numbered some families and marked gender. */
+const cleanName = (raw: string) => {
+  const gender = raw.match(/\(\s*([LP])\s*\)\s*$/i)?.[1]?.toUpperCase() ?? null;
+  const name = raw.replace(/^\s*\d+\s*[.)-]\s*/, "").replace(/\s*\(\s*[LP]\s*\)\s*$/i, "").trim();
+  return { name: name || raw, gender };
+};
+
 export function parseSheetFile(buffer: ArrayBuffer, agents: AgentOption[], existingNames: string[], sheetName?: string): ImportRow[] {
   const wb = XLSX.read(new Uint8Array(buffer), { type: "array" });
   const ws = wb.Sheets[sheetName && wb.Sheets[sheetName] ? sheetName : wb.SheetNames[0]];
@@ -192,25 +204,38 @@ export function parseSheetFile(buffer: ArrayBuffer, agents: AgentOption[], exist
   if (col.room >= 0 && (col.room === col.plan || col.room === col.paid)) col.room = -1;
 
   const existing = new Set(existingNames.map((n) => n.trim().toLowerCase()));
-  const get = (r: unknown[], key: string) => (col[key] >= 0 ? r[col[key]] : "");
+  const tabName = sheetName && wb.Sheets[sheetName] ? sheetName : wb.SheetNames[0];
 
-  return rows
+  // Merged cells hold their value only in the top-left cell. Text columns repeat it on every row of the
+  // merge (a family sharing one agent); the money column is handled below as one family payment.
+  const merges = (ws["!merges"] ?? []) as { s: { r: number; c: number }; e: { r: number; c: number } }[];
+  const mergeAt = (r: number, c: number) => merges.find((m) => r >= m.s.r && r <= m.e.r && c >= m.s.c && c <= m.e.c);
+  const get = (r: unknown[], key: string, rowIdx = -1) => {
+    if (col[key] < 0) return "";
+    const v = r[col[key]];
+    if (key === "paid" || rowIdx < 0 || (v !== "" && v != null)) return v;
+    const m = mergeAt(rowIdx, col[key]);
+    return m ? (rows[m.s.r] as unknown[])[m.s.c] : v;
+  };
+
+  const built = rows
     .slice(headerIdx + 1)
     .map((raw, i) => ({ raw: raw as unknown[], line: headerIdx + i + 2 }))
     .filter(({ raw }) => toText(get(raw, "name")))
     .map(({ raw, line }) => {
-      const full_name = toText(get(raw, "name"))!;
+      const rowIdx = line - 1;
+      const { name: full_name, gender } = cleanName(toText(get(raw, "name"))!);
       const paketCell = get(raw, "room");
       const planNum = toNumber(get(raw, "plan"));
       const paidNum = toNumber(get(raw, "paid"));
-      const skipped = TOTAL_NAME.test(full_name) || TOTAL_NAME.test(String(paketCell ?? "").trim())
+      const skipped = TOTAL_NAME.test(String(get(raw, "name"))) || TOTAL_NAME.test(String(paketCell ?? "").trim())
         ? "Baris total"
         : /^[\d.,\s]+$/.test(String(paketCell ?? "").trim()) && toNumber(paketCell) > 0
           ? "Baris jumlah"
           : !String(paketCell ?? "").trim() && !planNum && !paidNum
             ? "Baris kosong"
             : null;
-      const agentRaw = toText(get(raw, "agent"));
+      const agentRaw = toText(get(raw, "agent", rowIdx));
       const agent = agentRaw
         ? agents.find(
             (a) => a.name.toLowerCase() === agentRaw.toLowerCase() || a.referral_code.toLowerCase() === agentRaw.toLowerCase()
@@ -223,21 +248,97 @@ export function parseSheetFile(buffer: ArrayBuffer, agents: AgentOption[], exist
         room_type: toRoom(paketCell),
         list_price: planNum,
         paid: paidNum,
-        equipment_size: toText(get(raw, "size")),
-        equipment_taken: isTaken(get(raw, "taken")),
-        domicile: toText(get(raw, "domicile")),
-        start_city: toText(get(raw, "start")),
-        price_note: [toText(get(raw, "note")), ...roomExtras(paketCell)].filter(Boolean).join(" · ") || null,
+        equipment_size: toText(get(raw, "size", rowIdx)),
+        equipment_taken: isTaken(get(raw, "taken", rowIdx)),
+        domicile: toText(get(raw, "domicile", rowIdx)),
+        start_city: toText(get(raw, "start", rowIdx)),
+        price_note: [toText(get(raw, "note", rowIdx)), ...roomExtras(paketCell)].filter(Boolean).join(" · ") || null,
         agent_raw: agentRaw,
         agent_id: agent?.id ?? null,
         errors: [],
         duplicate: existing.has(full_name.toLowerCase()),
         skipped,
         overpaid: row_overpaid(paidNum, planNum),
+        gender,
+        group_key: null,
+        group_name: null,
       };
       if (skipped) return row;
       if (!row.room_type) row.errors.push("Kamar (quad/triple/double/non bed/infant) tidak dikenali");
       if (!row.list_price) row.errors.push("Harga (Rencana) kosong");
       return row;
     });
+
+  // A merged Realisasi cell over several rows = one family or rombongan that paid once.
+  for (const m of merges) {
+    if (col.paid < 0 || m.s.c !== col.paid || m.e.c !== col.paid || m.e.r <= m.s.r || m.s.r <= headerIdx) continue;
+    const members = built.filter((r) => r.line - 1 >= m.s.r && r.line - 1 <= m.e.r && !r.skipped);
+    if (members.length < 2) continue;
+    const total = toNumber((rows[m.s.r] as unknown[])[col.paid]);
+
+    if (members.some((r) => r.duplicate)) {
+      members.forEach((r) => ((r.duplicate = true), (r.paid = 0)));
+      continue;
+    }
+    const incomplete = members.filter((r) => r.errors.length);
+    if (incomplete.length) {
+      // One payment covers everyone, so nobody in it is imported until every row is complete.
+      const lines = incomplete.slice(0, 5).map((r) => r.line).join(", ") + (incomplete.length > 5 ? ", ..." : "");
+      members.forEach((r) => {
+        r.paid = 0;
+        r.errors.push(`Satu pembayaran untuk ${members.length} orang, ${incomplete.length} barisnya belum lengkap (baris ${lines}): lengkapi dulu`);
+      });
+      continue;
+    }
+    const share = splitEvenly(total, members.map((r) => ({ id: String(r.line), outstanding: r.list_price })));
+    const first = cleanName(members[0].full_name).name;
+    const name = `${members.length > 6 ? "Rombongan" : "Keluarga"} ${first}`.slice(0, 120);
+    for (const r of members) {
+      r.paid = share[String(r.line)] ?? 0;
+      r.overpaid = r.paid > r.list_price;
+      r.group_key = `${tabName}#${m.s.r + 1}`;
+      r.group_name = name;
+    }
+  }
+  return built;
+}
+
+/** Spreadsheet of the jamaah currently shown in "Semua Jamaah" (after filters). */
+export function exportAllJamaah(
+  rows: {
+    name: string;
+    phone: string | null;
+    packageLabel: string;
+    room: string;
+    agreed: number;
+    paid: number;
+    pending: number;
+    outstanding: number;
+    status: string;
+    agent: string;
+    domicile: string;
+    start: string;
+  }[]
+) {
+  const sheet = XLSX.utils.json_to_sheet(
+    rows.map((r, i) => ({
+      No: i + 1,
+      "Nama Jamaah": r.name,
+      "No. WA": r.phone ?? "",
+      Paket: r.packageLabel,
+      Kamar: r.room,
+      Tagihan: r.agreed,
+      "Sudah masuk": r.paid,
+      "Menunggu verifikasi": r.pending,
+      Sisa: Math.max(0, r.outstanding),
+      Status: r.status,
+      Agen: r.agent,
+      Domisili: r.domicile,
+      Start: r.start,
+    }))
+  );
+  sheet["!cols"] = [6, 28, 16, 38, 10, 14, 14, 18, 14, 14, 20, 18, 14].map((wch) => ({ wch }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, sheet, "Semua Jamaah");
+  XLSX.writeFile(wb, `semua-jamaah-${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
