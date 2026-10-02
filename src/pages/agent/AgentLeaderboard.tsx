@@ -229,16 +229,16 @@ export default function AgentLeaderboard() {
       {/* Leaderboard Section */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-yellow-500" />
                 Leaderboard
               </CardTitle>
-              <CardDescription>Top agents dengan penjualan terbanyak</CardDescription>
+              <CardDescription>Agen dengan jamaah lunas terbanyak</CardDescription>
             </div>
             <Tabs value={leaderboardPeriod} onValueChange={(v) => setLeaderboardPeriod(v as typeof leaderboardPeriod)}>
-              <TabsList className="h-8">
+              <TabsList className="h-auto [@media(pointer:coarse)]:h-11">
                 <TabsTrigger value="week" className="text-xs px-2">Minggu Ini</TabsTrigger>
                 <TabsTrigger value="month" className="text-xs px-2">Bulan Ini</TabsTrigger>
                 <TabsTrigger value="all" className="text-xs px-2">All Time</TabsTrigger>

@@ -72,19 +72,19 @@ const SALES_SCRIPTS = {
   followup: [
     { id: 1, title: "Follow Up - Belum Respon", content: "Assalamu'alaikum Bapak/Ibu 🙏\n\nMaaf mengganggu, saya [Nama] dari Musafar Tour.\n\nSaya ingin follow up mengenai info paket umroh yang sudah saya kirimkan kemarin.\n\nApakah ada pertanyaan atau ada yang bisa saya bantu jelaskan? 😊" },
     { id: 2, title: "Follow Up - After Katalog", content: "Assalamu'alaikum Bapak/Ibu 🙏\n\nSemoga katalog umrohnya sudah sempat dibaca ya.\n\nBagaimana, ada paket yang menarik perhatian? Kalau ada pertanyaan soal hotel, penerbangan, atau harga, silakan tanyakan ya 😊" },
-    { id: 3, title: "Follow Up - Closing", content: "Assalamu'alaikum Bapak/Ibu 🙏\n\nKabar baik! Untuk paket [Nama Paket] keberangkatan [Tanggal], slot-nya tinggal [X] lagi.\n\nJika Bapak/Ibu sudah siap, bisa langsung booking dengan DP Rp 5 juta ya.\n\nMau saya bantu prosesnya sekarang? 😊" },
+    { id: 3, title: "Follow Up - Closing", content: "Assalamu'alaikum Bapak/Ibu 🙏\n\nKabar baik! Untuk paket [Nama Paket] keberangkatan [Tanggal], slot-nya tinggal [X] lagi.\n\nJika Bapak/Ibu sudah siap, bisa langsung daftar dengan DP Rp 5 juta per orang ya (pelunasan paling lambat 30 hari sebelum berangkat).\n\nMau saya bantu prosesnya sekarang? 😊" },
   ],
   objection: [
-    { id: 1, title: "Objection - Harga Mahal", content: "Saya paham Bapak/Ibu 🙏\n\nMemang harga kami sedikit lebih tinggi, tapi sudah termasuk:\n✅ Hotel bintang 5 dekat Masjidil Haram (150m)\n✅ Pesawat langsung tanpa transit\n✅ Makan 3x sehari menu Indonesia\n✅ Visa, handling, tips\n\nKalau dihitung-hitung, sebenarnya lebih hemat karena tidak perlu keluar biaya lagi. Mau saya jelaskan lebih detail?" },
-    { id: 2, title: "Objection - Belum Ada Uang", content: "Baik Bapak/Ibu, saya mengerti 🙏\n\nKami punya program cicilan 0% hingga 12 bulan lho!\n\nJadi bisa mulai booking sekarang, berangkat nanti setelah lunas.\n\nMau saya jelaskan skema cicilannya?" },
+    { id: 1, title: "Objection - Harga Mahal", content: "Saya paham Bapak/Ibu 🙏\n\nMemang harga kami sedikit lebih tinggi, tapi sudah termasuk:\n✅ Hotel [Nama Hotel Makkah], [Jarak] dari Masjidil Haram\n✅ Penerbangan [Maskapai]\n✅ Visa dan handling\n✅ [Fasilitas lain sesuai paket]\n\n(Isi sesuai paket yang ditawarkan.) Semua yang tercantum sudah termasuk di harga paket. Mau saya jelaskan lebih detail?" },
+    { id: 2, title: "Objection - Belum Ada Uang", content: "Baik Bapak/Ibu, saya mengerti 🙏\n\nPembayarannya bisa dicicil kapan saja dan berapa saja lho.\n\nCukup DP Rp 5 juta per orang untuk mengamankan seat, lalu sisanya dicicil sampai lunas paling lambat 30 hari sebelum keberangkatan.\n\nMau saya bantu hitung rencana pembayarannya?" },
     { id: 3, title: "Objection - Pikir-pikir Dulu", content: "Silakan Bapak/Ibu, memang keputusan umroh perlu dipikirkan matang 🙏\n\nSebagai informasi, harga paket ini berlaku sampai [Tanggal] dan slot juga terbatas.\n\nKalau ada pertanyaan lain, jangan ragu hubungi saya ya. Saya doakan dimudahkan rezekinya untuk berangkat umroh 😊" },
   ],
 };
 
 const IG_CAPTIONS = [
-  "🕌 Rindu dengan panggilan-Nya? Yuk wujudkan mimpi umrohmu bersama Musafar Tour! ✨\n\nDapatkan:\n✅ Hotel bintang 5 dekat Masjidil Haram\n✅ Pesawat langsung\n✅ Bimbingan ustadz berpengalaman\n\nInfo & booking:\n📱 [NOMOR WA]\n\n#umroh2026 #paketumroh #musafartour",
-  "Ya Allah, satukanlah kami dengan Baitullah-Mu 🤲🏻\n\nMusafar Tour siap menemani perjalanan sucimu!\n\n📅 Keberangkatan: [BULAN TAHUN]\n💰 Mulai Rp [HARGA] juta\n\nBooking sekarang!\n📱 [NOMOR WA]\n\n#umroh #baitullah #makkah #madinah",
-  "🌙 Umroh di bulan Ramadhan = pahala berlipat ganda!\n\nAyo booking sekarang untuk keberangkatan Ramadhan 2027 🕋\n\n✨ Fasilitas terbaik\n✨ Harga terjangkau\n✨ Pelayanan prima\n\nInfo lengkap:\n📱 [NOMOR WA]\n\n#umrohramadhan #ramadhan2027 #musafartour",
+  "🕌 Rindu dengan panggilan-Nya? Yuk wujudkan mimpi umrohmu bersama Musafar Tour! ✨\n\nDapatkan:\n✅ Hotel [NAMA HOTEL], [JARAK] dari Masjidil Haram\n✅ Penerbangan [MASKAPAI]\n✅ Pendampingan ibadah\n\nInfo & pendaftaran:\n📱 [NOMOR WA]\n\n#umroh2026 #paketumroh #musafartour",
+  "Ya Allah, satukanlah kami dengan Baitullah-Mu 🤲🏻\n\nMusafar Tour siap menemani perjalanan sucimu!\n\n📅 Keberangkatan: [BULAN TAHUN]\n💰 Mulai Rp [HARGA] juta\n\nDaftar sekarang!\n📱 [NOMOR WA]\n\n#umroh #baitullah #makkah #madinah",
+  "🌙 Umroh di bulan Ramadhan = pahala berlipat ganda!\n\nAyo daftar sekarang untuk keberangkatan Ramadhan 2027 🕋\n\n✨ Fasilitas terbaik\n✨ Harga terjangkau\n✨ Pelayanan prima\n\nInfo lengkap:\n📱 [NOMOR WA]\n\n#umrohramadhan #ramadhan2027 #musafartour",
 ];
 
 const generateShortCode = () => {

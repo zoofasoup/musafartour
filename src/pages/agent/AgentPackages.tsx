@@ -9,6 +9,7 @@ import {
   Calendar,
   MapPin,
   Share2,
+  UserPlus,
   FileText,
   Eye,
   Search,
@@ -117,7 +118,7 @@ const AgentPackages = () => {
 
   const getSlotStatus = (pkg: Package) => {
     const total = pkg.slots_total || 40;
-    // Offline (sheet) + online bookings both consume seats.
+    // Seats taken: sheet number or registered jamaah, depending on the package (see getSlotsTaken).
     const filled = getSlotsTaken(pkg);
     const remaining = total - filled;
 
@@ -389,6 +390,10 @@ const AgentPackages = () => {
                       >
                         <Eye className="h-4 w-4 mr-2" />
                         Lihat Detail
+                      </Button>
+                      <Button variant="outline" className="w-full" onClick={() => navigate(`/agent/daftar-jamaah?paket=${pkg.id}`)}>
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Daftarkan Jamaah
                       </Button>
                       <Button
                         variant="outline"

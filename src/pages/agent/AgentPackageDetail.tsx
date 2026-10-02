@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
@@ -17,6 +17,7 @@ import {
   Clock,
   Hotel,
   Route,
+  UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +40,7 @@ interface PackagePrice {
 
 interface Package {
   id: string;
+  slug?: string | null;
   package_name: string;
   departure_date: string;
   duration_days: number;
@@ -98,7 +100,7 @@ const AgentPackageDetail = () => {
 
   const getSlotStatus = (pkg: Package) => {
     const total = pkg.slots_total || 40;
-    // Offline (sheet) + online bookings both consume seats.
+    // Seats taken: sheet number or registered jamaah, depending on the package (see getSlotsTaken).
     const filled = getSlotsTaken(pkg);
     const remaining = total - filled;
 
@@ -140,7 +142,8 @@ const AgentPackageDetail = () => {
 
 💰 *Harga mulai dari:* ${formatPrice(lowestPrice)}/pax
 
-📞 Hubungi saya untuk info lebih lanjut dan booking!
+📞 Hubungi saya untuk info lebih lanjut dan pendaftaran!
+${pkg.slug && agent?.referral_code ? `📝 Daftar langsung: ${window.location.origin}/daftar/${pkg.slug}?ref=${agent.referral_code}` : ""}
 
 ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
   };
@@ -244,6 +247,12 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
         <Card>
           <CardContent className="p-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Button asChild className="bg-primary">
+                <Link to={`/agent/daftar-jamaah?paket=${pkg.id}`}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Daftarkan Jamaah
+                </Link>
+              </Button>
               <Button
                 className="bg-emerald-600 hover:bg-emerald-700"
                 onClick={shareToWhatsApp}

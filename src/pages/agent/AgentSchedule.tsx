@@ -57,7 +57,7 @@ const getPackageCategory = (pkg: Package): string => {
 };
 
 const getPackageStatus = (pkg: Package): 'open' | 'almost-full' | 'full' => {
-  // Offline (sheet) + online bookings both consume seats.
+  // Seats taken: sheet number or registered jamaah, depending on the package (see getSlotsTaken).
   const remaining = (pkg.slots_total || 40) - getSlotsTaken(pkg);
   if (remaining <= 0) return 'full';
   if (remaining <= 5) return 'almost-full';

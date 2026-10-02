@@ -163,7 +163,8 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
           </SidebarFooter>
         </Sidebar>
 
-        <div className="flex-1 h-svh p-2 sm:p-4">
+        {/* min-w-0: a flex child never shrinks below its content, so one wide table or calendar widened the whole page on phones. */}
+        <div className="min-w-0 flex-1 h-svh p-2 sm:p-4">
           <main className="h-full w-full overflow-auto bg-[#F8FAFC] flex flex-col rounded-3xl border border-slate-100/60 relative shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
             <AgentHeader />
             <div className="p-4 sm:p-6 md:p-8 flex-1">

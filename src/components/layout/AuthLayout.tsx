@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import musafarLogo from "@/assets/musafar-logo.svg";
+import musafarLogoDark from "@/assets/musafar-logo-dark.svg";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -52,7 +53,7 @@ export const AuthLayout = ({
           {/* Mobile Logo */}
           <div className="md:hidden text-center mb-10 animate-fade-in">
             <Link to="/">
-              <img src={musafarLogo} alt="Musafar Tour" className="h-10 mx-auto" />
+              <img src={musafarLogoDark} alt="Musafar Tour" className="h-10 mx-auto" />
             </Link>
           </div>
 
