@@ -117,13 +117,13 @@ export const JamaahCarousel = () => {
                 `}
               >
                 {/* Polaroid Frame */}
-                <div className={`w-full h-full bg-white p-2 md:p-3 pb-8 md:pb-12 shadow-xl border border-slate-200 transition-all duration-700 ease-out
+                <div className={`w-full h-full bg-white p-2 md:p-3 pb-8 md:pb-12 shadow-xl border border-border transition-all duration-700 ease-out
                   ${isActive 
                     ? 'grayscale-0 saturate-110 contrast-110 shadow-2xl' 
                     : 'grayscale md:hover:grayscale-0 md:hover:saturate-110 md:hover:contrast-110 md:hover:shadow-2xl'
                   }`}
                 >
-                  <div className="w-full h-full overflow-hidden bg-slate-100 relative">
+                  <div className="w-full h-full overflow-hidden bg-muted relative">
                     <LazyImage
                       src={photo.image_url}
                       alt="Jamaah umroh Musafar Tour"
@@ -131,7 +131,7 @@ export const JamaahCarousel = () => {
                       loading="lazy"
                     />
                     {/* Subtle vintage overlay that disappears on hover/active */}
-                    <div className={`absolute inset-0 bg-amber-900/10 mix-blend-overlay transition-opacity duration-700 pointer-events-none
+                    <div className={`absolute inset-0 bg-status-warn-fg/10 mix-blend-overlay transition-opacity duration-700 pointer-events-none
                       ${isActive ? 'opacity-0' : 'md:group-hover:opacity-0'}
                     `} />
                   </div>

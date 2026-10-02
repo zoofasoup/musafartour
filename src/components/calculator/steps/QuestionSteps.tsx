@@ -104,7 +104,7 @@ export function Q_Timeframe({ value, customOn, onChange, onNext, onBack }: any) 
             <button key={m} onClick={() => onChange(m, false)} className="h-16 rounded-2xl font-bold transition-all active:scale-[0.98]"
               style={{ background: active ? BRAND.ink : "white", color: active ? "white" : BRAND.ink, border: `2px solid ${active ? BRAND.ink : "#e5e5e5"}`, letterSpacing: "-0.02em" }}>
               <div className="text-2xl font-black leading-none">{m}</div>
-              <div className="text-[10px] uppercase tracking-widest mt-1 opacity-80">bulan</div>
+              <div className="text-xs uppercase tracking-widest mt-1 opacity-80">bulan</div>
             </button>
           );
         })}
@@ -141,7 +141,7 @@ export function Q_PickPackage({ tiers, selected, onSelect, onNext, onBack, loadi
                 <div className="text-base font-black uppercase tracking-wide" style={{ letterSpacing: "-0.02em" }}>{t.label}</div>
                 <div className="text-xs opacity-80 mt-0.5">{formatIDR(t.pricePerPerson)}/jamaah</div>
               </div>
-              <div className="text-[10px] uppercase tracking-widest opacity-70">{active ? "Dipilih" : "Pilih"}</div>
+              <div className="text-xs uppercase tracking-widest opacity-70">{active ? "Dipilih" : "Pilih"}</div>
             </button>
           );
         })}

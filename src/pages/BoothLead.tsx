@@ -170,8 +170,8 @@ const BoothLead = () => {
       {/* Offline/Online Banner */}
       <div className={`fixed top-0 left-0 right-0 z-50 py-2 px-4 text-center text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 ${
         isOnline
-          ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-          : "bg-amber-500/20 text-amber-700 dark:text-amber-400"
+          ? "bg-status-ok-fg/10 text-status-ok-fg dark:text-emerald-400"
+          : "bg-amber/20 text-status-warn-fg dark:text-amber-400"
       }`}>
         {isOnline ? (
           <>
@@ -259,7 +259,7 @@ const BoothLead = () => {
                 )}
               </div>
 
-              <Button
+              <Button variant="brand"
                 type="submit"
                 disabled={sending}
                 className="w-full h-12 text-base font-semibold gap-2"

@@ -165,7 +165,7 @@ export default function UmrohCalculatorResult() {
                         <div className="text-sm font-black" style={{ letterSpacing: "-0.02em" }}>
                           {r.monthsRequired >= 999 ? "—" : r.feasibleLabel}
                         </div>
-                        <div className="text-[10px] opacity-75 uppercase tracking-widest">
+                        <div className="text-xs opacity-75 uppercase tracking-widest">
                           {r.monthsRequired >= 999 ? "Perlu tambahan" : `${r.monthsRequired} bulan`}
                         </div>
                       </div>
@@ -202,7 +202,7 @@ export default function UmrohCalculatorResult() {
               </div>
             </div>
 
-            <div className="text-center text-[11px] pt-2 leading-snug" style={{ color: BRAND.muted }}>
+            <div className="text-center text-xs pt-2 leading-snug" style={{ color: BRAND.muted }}>
               * {PRICING_FOOTNOTE}
             </div>
           </div>
@@ -222,7 +222,7 @@ function Mini({ label, value, accent }: { label: string; value: string; accent?:
         boxShadow: "0 8px 24px -12px rgba(0,0,0,0.08)",
       }}
     >
-      <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{label}</div>
+      <div className="text-xs font-bold uppercase tracking-widest opacity-80">{label}</div>
       <div className="text-base font-black mt-1" style={{ letterSpacing: "-0.025em" }}>
         {value}
       </div>

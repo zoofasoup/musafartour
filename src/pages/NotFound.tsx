@@ -17,7 +17,7 @@ const NotFound = () => (
         Halaman yang Anda cari mungkin sudah dipindahkan atau tidak tersedia lagi.
       </p>
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
-        <Button asChild size="lg">
+        <Button variant="brand" asChild size="lg">
           <Link to="/paket-umroh">Lihat Paket Umroh</Link>
         </Button>
         <Button asChild size="lg" variant="outline">

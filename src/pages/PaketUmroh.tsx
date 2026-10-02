@@ -192,13 +192,13 @@ const PaketUmroh = () => {
           <Button
             id="tour-filter-mobile"
             variant="outline"
-            className="rounded-full h-11 gap-2 bg-white shadow-lg border-border/50 px-6"
+            className="h-11 gap-2 bg-white shadow-lg border-border/50 px-6"
             onClick={() => setMobileFilterOpen(true)}
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filter
             {activeFilterCount > 0 && (
-              <Badge className="h-5 min-w-5 justify-center rounded-full px-1 text-[10px]">{activeFilterCount}</Badge>
+              <Badge className="h-5 min-w-5 justify-center rounded-full px-1 text-xs">{activeFilterCount}</Badge>
             )}
           </Button>
         </div>,
@@ -228,7 +228,7 @@ const PaketUmroh = () => {
                 <X className="h-3.5 w-3.5" /> Reset
               </Button>
             )}
-            <Button className="flex-1" onClick={() => setMobileFilterOpen(false)}>
+            <Button variant="brand" className="flex-1" onClick={() => setMobileFilterOpen(false)}>
               Terapkan Filter
             </Button>
           </div>
@@ -255,7 +255,7 @@ const PaketUmroh = () => {
             <p className="text-muted-foreground mb-4">
               Maaf, paket dengan kriteria tersebut belum tersedia.
             </p>
-            <Button
+            <Button variant="brand"
               className="gap-2"
               onClick={() => {
                 redirectToWhatsApp("Halo Musafar Tour, saya mencari paket umroh yang belum tersedia di website. Bisa dibantu?", "paket_umroh_request");

@@ -33,7 +33,7 @@ export const CTASection = ({ websiteSettings }: CTASectionProps) => {
           Tim Musamin kami siap membantu Anda menemukan perjalanan sempurna
           sesuai kebutuhan dan budget Anda.
         </p>
-        <Button
+        <Button variant="brand"
           size="lg"
           className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-base md:text-lg px-8 h-14 md:h-16 rounded-xl transition-all hover:scale-105"
           onClick={handleWhatsAppClick}

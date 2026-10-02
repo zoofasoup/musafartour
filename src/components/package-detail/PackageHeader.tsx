@@ -61,7 +61,7 @@ function InfoItem({
     <div className="flex items-center gap-2">
       {icon}
       <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wide leading-none mb-1">{label}</p>
+        <p className="text-xs text-muted-foreground uppercase tracking-wide leading-none mb-1">{label}</p>
         <div className="text-sm font-bold leading-none">{children}</div>
       </div>
     </div>
@@ -95,25 +95,25 @@ function RouteLeg({
 }) {
   return (
     <div className="flex-1 min-w-0">
-      <p className={cn("text-[11px] font-bold uppercase tracking-wide mb-2", accent.text)}>{label}</p>
+      <p className={cn("text-xs font-bold uppercase tracking-wide mb-2", accent.text)}>{label}</p>
       <div className="flex items-center gap-1">
         <div className="shrink-0">
           <p className="text-lg font-black leading-none">{from}</p>
-          <p className="text-[11px] text-muted-foreground mt-1">{AIRPORT_CITY[from] || ""}</p>
+          <p className="text-xs text-muted-foreground mt-1">{AIRPORT_CITY[from] || ""}</p>
         </div>
         <Connector accent={accent} />
         {via && (
           <>
             <div className="shrink-0 text-center opacity-80">
               <p className="text-sm font-bold leading-none">{via}</p>
-              <p className="text-[10px] text-muted-foreground mt-1">{AIRPORT_CITY[via] || ""}</p>
+              <p className="text-xs text-muted-foreground mt-1">{AIRPORT_CITY[via] || ""}</p>
             </div>
             <Connector accent={accent} />
           </>
         )}
         <div className="shrink-0 text-right">
           <p className="text-lg font-black leading-none">{to}</p>
-          <p className="text-[11px] text-muted-foreground mt-1">{AIRPORT_CITY[to] || ""}</p>
+          <p className="text-xs text-muted-foreground mt-1">{AIRPORT_CITY[to] || ""}</p>
         </div>
       </div>
     </div>

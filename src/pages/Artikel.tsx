@@ -195,7 +195,7 @@ const Artikel = () => {
                   disabled={loadingMore}
                   variant="outline"
                   size="lg"
-                  className="px-8 rounded-full border-foreground/20 hover:bg-foreground/5 text-foreground"
+                  className="px-8 border-foreground/20 hover:bg-foreground/5 text-foreground"
                 >
                   {loadingMore ? "Memuat..." : "Muat Lebih Banyak Artikel"}
                 </Button>
@@ -214,7 +214,7 @@ const Artikel = () => {
             <p className="text-muted-foreground mb-6">
               Kami kirimkan artikel, tips persiapan, dan info jadwal umroh terbaru langsung ke WhatsApp Anda.
             </p>
-            <Button
+            <Button variant="brand"
               size="lg"
               className="gap-2"
               onClick={() =>

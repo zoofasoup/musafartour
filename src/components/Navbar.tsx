@@ -120,7 +120,7 @@ const Navbar = () => {
               <button id="tour-navbar-cart" className="relative p-2 rounded-full hover:bg-accent transition-colors" aria-label="Keranjang belanja">
                 <ShoppingCart className={`h-5 w-5 ${favorites.length > 0 ? 'fill-primary text-primary' : ''}`} />
                 {favorites.length > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center">
                     {favorites.length}
                   </span>
                 )}
@@ -128,8 +128,8 @@ const Navbar = () => {
             </FavoritesDrawer>
 
             <Link to="/kontak">
-              <Button 
-                className="relative overflow-hidden group bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 animate-pulse-subtle"
+              <Button variant="brand" 
+                className="relative overflow-hidden group bg-brand hover:bg-brand-press text-brand-foreground font-semibold px-5 animate-pulse-subtle"
               >
                 <span className="relative z-10 flex items-center gap-2">
                   <MessageCircle className="h-4 w-4" />
@@ -146,7 +146,7 @@ const Navbar = () => {
               <button id="tour-navbar-cart-mobile" className="relative p-2.5 rounded-full hover:bg-accent transition-colors" aria-label="Keranjang belanja">
                 <ShoppingCart className={`h-5 w-5 ${favorites.length > 0 ? 'fill-primary text-primary' : ''}`} />
                 {favorites.length > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center">
                     {favorites.length}
                   </span>
                 )}
@@ -180,7 +180,7 @@ const Navbar = () => {
             ))}
             <div className="pt-4 border-t mt-4">
               <Link to="/kontak" onClick={() => setIsOpen(false)}>
-                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
+                <Button variant="brand" className="w-full bg-brand hover:bg-brand-press text-brand-foreground font-semibold">
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Konsultasi Gratis
                 </Button>

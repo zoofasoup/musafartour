@@ -36,7 +36,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-neutral-950 text-white pt-16 md:pt-24 pb-8">
+    <footer className="bg-primary text-white pt-16 md:pt-24 pb-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
@@ -74,13 +74,13 @@ const Footer = () => {
 
             {/* Socials */}
             <div className="flex gap-4 mt-auto">
-              <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-neutral-950 flex items-center justify-center hover:bg-white/80 transition-colors" aria-label="Instagram">
+              <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-foreground flex items-center justify-center hover:bg-white/80 transition-colors" aria-label="Instagram">
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href={facebookUrl} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-neutral-950 flex items-center justify-center hover:bg-white/80 transition-colors" aria-label="Facebook">
+              <a href={facebookUrl} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-foreground flex items-center justify-center hover:bg-white/80 transition-colors" aria-label="Facebook">
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-neutral-950 flex items-center justify-center hover:bg-white/80 transition-colors" aria-label="YouTube">
+              <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-foreground flex items-center justify-center hover:bg-white/80 transition-colors" aria-label="YouTube">
                 <Youtube className="w-5 h-5" />
               </a>
             </div>

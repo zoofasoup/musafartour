@@ -94,7 +94,7 @@ const Index = () => {
       {/* Cinematic page intro curtain */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-[9999] bg-slate-950 animate-site-intro-out"
+        className="pointer-events-none fixed inset-0 z-[9999] bg-primary animate-site-intro-out"
       />
 
       <HeroSection heroData={heroData} websiteSettings={websiteSettings} isLoading={heroLoading} />

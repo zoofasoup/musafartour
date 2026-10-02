@@ -43,15 +43,15 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({ campaign, searchQu
   };
 
   const renderCard = (item: ParsedItem, icon: React.ReactNode, hideThumbnail = false, customAspect = 'aspect-[4/5]', objectFit = 'object-cover') => (
-    <div key={item.id} className="group bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden flex flex-col h-full transition-all duration-300 hover:shadow-[0_20px_40px_rgb(201,42,54,0.08)] hover:-translate-y-2">
+    <div key={item.id} className="group bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-border overflow-hidden flex flex-col h-full transition-all duration-300 hover:shadow-[0_20px_40px_rgb(201,42,54,0.08)] hover:-translate-y-2">
       {!hideThumbnail && item.thumbnail ? (
-        <div className={`${customAspect} bg-gray-50 relative overflow-hidden border-b border-gray-100`}>
+        <div className={`${customAspect} bg-muted relative overflow-hidden border-b border-border`}>
           <LazyImage src={item.thumbnail} alt={item.name} className={`w-full h-full ${objectFit} transition-transform duration-700 group-hover:scale-105`} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </div>
       ) : (
-        <div className={`aspect-video bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center text-brand-red border-b border-gray-100 relative overflow-hidden`}>
-          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-red-100 rounded-full opacity-50 blur-2xl"></div>
+        <div className={`aspect-video bg-gradient-to-br from-status-bad-bg to-status-warn-bg flex items-center justify-center text-brand-red border-b border-border relative overflow-hidden`}>
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-status-bad-bg rounded-full opacity-50 blur-2xl"></div>
           <div className="relative z-10 transform group-hover:scale-110 transition-transform duration-300">
             {icon}
           </div>
@@ -61,11 +61,11 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({ campaign, searchQu
         <h4 className="font-extrabold text-brand-dark text-lg mb-3 line-clamp-2 leading-tight" title={item.name}>
           {item.name}
         </h4>
-        <div className="mt-auto flex gap-3 pt-4 border-t border-gray-50">
+        <div className="mt-auto flex gap-3 pt-4 border-t border-border">
           {item.type === 'copy' && item.content ? (
             <button
               onClick={() => handleCopy(item.content || '', item.id)}
-              className="flex-1 flex items-center justify-center gap-2 bg-brand-dark text-white py-3 px-4 rounded-lg font-bold text-sm hover:bg-gray-800 transition-all active:scale-95 shadow-md shadow-gray-200"
+              className="flex-1 flex items-center justify-center gap-2 bg-brand-dark text-white py-3 px-4 rounded-lg font-bold text-sm hover:bg-primary transition-all active:scale-95 shadow-md shadow-border"
             >
               {copiedId === item.id ? <CheckCircle2 size={18} className="text-green-400" /> : <Copy size={18} />}
               {copiedId === item.id ? 'Copied!' : 'Copy'}
@@ -89,11 +89,11 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({ campaign, searchQu
     <div className="space-y-16">
       {grouped.total === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-center px-4">
-          <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4 text-gray-400">
+          <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4 text-gray-400">
             <Search size={32} />
           </div>
           <h3 className="text-xl font-bold text-brand-dark mb-2">Materi tidak ditemukan</h3>
-          <p className="text-gray-500 max-w-md">
+          <p className="text-muted-foreground max-w-md">
             Tidak ada file atau materi yang cocok dengan pencarian "{searchQuery}" di paket ini.
           </p>
         </div>
@@ -104,48 +104,48 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({ campaign, searchQu
         <section>
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-3xl font-black text-brand-dark flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center text-brand-red">
+              <div className="w-12 h-12 rounded-lg bg-status-bad-bg flex items-center justify-center text-brand-red">
                 <Map size={24} />
               </div>
               Detail Itinerary
             </h3>
           </div>
           
-          <div className="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-8">
+          <div className="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-border p-8">
             <div className="space-y-8 relative before:absolute before:inset-0 before:ml-6 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-brand-red before:via-brand-red/50 before:to-transparent">
               {campaign.itineraryDays.map((day, idx) => (
                 <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
                   
                   {/* Timeline Dot */}
-                  <div className="flex items-center justify-center w-12 h-12 rounded-full border-4 border-white bg-brand-red text-white shadow shadow-red-200 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-full border-4 border-white bg-brand-red text-white shadow shadow-status-bad-border shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
                     <span className="font-bold text-sm">{day.dayNumber || '•'}</span>
                   </div>
                   
                   {/* Content Card */}
-                  <div className="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-6 rounded-lg bg-gray-50 border border-gray-100 shadow-sm transition-all hover:shadow-md hover:bg-white">
+                  <div className="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-6 rounded-lg bg-muted border border-border shadow-sm transition-all hover:shadow-md hover:bg-white">
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                       {day.city && (
                         <h4 className="font-black text-xl text-brand-dark">{day.city}</h4>
                       )}
                       <div className="flex items-center gap-3">
                         {day.date && (
-                          <span className="flex items-center gap-1.5 text-xs font-bold text-brand-red bg-red-50 px-3 py-1 rounded-full">
+                          <span className="flex items-center gap-1.5 text-xs font-bold text-brand-red bg-status-bad-bg px-3 py-1 rounded-full">
                             <CalendarDays size={14} /> {day.date}
                           </span>
                         )}
                         {day.time && (
-                          <span className="flex items-center gap-1.5 text-xs font-bold text-gray-600 bg-gray-200/70 px-3 py-1 rounded-full">
+                          <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground bg-border/70 px-3 py-1 rounded-full">
                             <Clock size={14} /> {day.time}
                           </span>
                         )}
                       </div>
                     </div>
-                    <p className="text-gray-700 leading-relaxed font-medium mb-4">
+                    <p className="text-foreground/80 leading-relaxed font-medium mb-4">
                       {day.activity}
                     </p>
                     {day.pic && (
-                      <div className="inline-flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        <span className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-brand-dark">
+                      <div className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                        <span className="w-6 h-6 rounded-full bg-border flex items-center justify-center text-brand-dark">
                           PIC
                         </span>
                         {day.pic}
@@ -166,7 +166,7 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({ campaign, searchQu
           {grouped.flyer.length > 0 && (
             <section className="flex flex-col h-full">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center text-brand-red shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-status-bad-bg flex items-center justify-center text-brand-red shrink-0">
                   <ImageIcon size={24} />
                 </div>
                 <div>
@@ -186,7 +186,7 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({ campaign, searchQu
           {grouped.katalog.length > 0 && (
             <section className="flex flex-col h-full">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center text-brand-red shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-status-bad-bg flex items-center justify-center text-brand-red shrink-0">
                   <FileSpreadsheet size={24} />
                 </div>
                 <div>
@@ -208,30 +208,30 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({ campaign, searchQu
       {grouped.copy.length > 0 && (
         <section>
           <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center text-brand-red">
+            <div className="w-12 h-12 rounded-lg bg-status-bad-bg flex items-center justify-center text-brand-red">
               <FileText size={24} />
             </div>
             <div>
               <h3 className="text-3xl font-black text-brand-dark">Sales Copy</h3>
-              <p className="text-gray-500 font-medium">Pre-written captions and text for your promotions.</p>
+              <p className="text-muted-foreground font-medium">Pre-written captions and text for your promotions.</p>
             </div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {grouped.copy.map(item => (
-               <div key={item.id} className="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-8 flex flex-col transition-all duration-300 hover:shadow-[0_20px_40px_rgb(201,42,54,0.08)] hover:-translate-y-1">
+               <div key={item.id} className="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-border p-8 flex flex-col transition-all duration-300 hover:shadow-[0_20px_40px_rgb(201,42,54,0.08)] hover:-translate-y-1">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand-dark">
                       <FileText size={18} />
                     </div>
                     <h4 className="font-extrabold text-brand-dark text-xl">{item.name}</h4>
                   </div>
-                  <div className="bg-gray-50 border border-gray-100 p-6 rounded-lg text-base text-gray-700 whitespace-pre-wrap mb-6 flex-1 font-medium max-h-72 overflow-y-auto custom-scrollbar leading-relaxed">
+                  <div className="bg-muted border border-border p-6 rounded-lg text-base text-foreground/80 whitespace-pre-wrap mb-6 flex-1 font-medium max-h-72 overflow-y-auto custom-scrollbar leading-relaxed">
                     {item.content || "Download to view content"}
                   </div>
                   {item.content ? (
                     <button
                       onClick={() => handleCopy(item.content || '', item.id)}
-                      className="w-full flex items-center justify-center gap-2 bg-brand-dark text-white py-4 px-6 rounded-lg font-bold text-base hover:bg-gray-800 transition-all active:scale-95 shadow-md shadow-gray-200"
+                      className="w-full flex items-center justify-center gap-2 bg-brand-dark text-white py-4 px-6 rounded-lg font-bold text-base hover:bg-primary transition-all active:scale-95 shadow-md shadow-border"
                     >
                       {copiedId === item.id ? <CheckCircle2 size={20} className="text-green-400" /> : <Copy size={20} />}
                       {copiedId === item.id ? 'Copied to Clipboard!' : 'Copy Entire Text'}
@@ -255,7 +255,7 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({ campaign, searchQu
       {grouped.foto.length > 0 && (
         <section>
           <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center text-brand-red">
+            <div className="w-12 h-12 rounded-lg bg-status-bad-bg flex items-center justify-center text-brand-red">
               <ImageIcon size={24} />
             </div>
             <div>
@@ -271,7 +271,7 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({ campaign, searchQu
       {grouped.pricelist.length > 0 && (
         <section>
           <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center text-brand-red">
+            <div className="w-12 h-12 rounded-lg bg-status-bad-bg flex items-center justify-center text-brand-red">
               <FileSpreadsheet size={24} />
             </div>
             <div>
@@ -287,7 +287,7 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({ campaign, searchQu
       {grouped.other.length > 0 && (
         <section>
           <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500">
+            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
               <FileText size={24} />
             </div>
             <div>

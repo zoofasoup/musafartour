@@ -96,16 +96,16 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
         {/* Color Code Legend */}
         <div className="flex flex-wrap items-center justify-center gap-3 md:gap-5 mt-3 text-xs md:text-sm text-[#1c1c1c]/70 font-medium">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-green-600 shadow-sm" /> Hemat
+            <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-status-ok-fg shadow-sm" /> Hemat
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-blue-600 shadow-sm" /> Nyaman
+            <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-status-info-fg shadow-sm" /> Nyaman
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-amber-500 shadow-sm" /> Pelataran Hemat
+            <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-amber shadow-sm" /> Pelataran Hemat
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-pink-600 shadow-sm" /> Five-star
+            <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-status-over-fg shadow-sm" /> Five-star
           </div>
         </div>
       </div>
@@ -168,8 +168,8 @@ export const PackageRadialCarousel = ({ packages, loading }: PackageRadialCarous
 
       {/* CTA in the middle */}
       <div className="relative z-20 text-center max-w-md mx-auto px-6 md:px-8 mt-auto py-4 rounded-3xl pointer-events-auto">
-        <Button 
-          className="bg-[#1c1c1c] text-[#FAFAFA] hover:bg-[#1c1c1c]/80 rounded-full px-8 py-5 md:py-6 text-sm md:text-base shadow-xl transition-all hover:scale-105 group"
+        <Button variant="brand" 
+          className="bg-[#1c1c1c] text-[#FAFAFA] hover:bg-[#1c1c1c]/80 px-8 py-5 md:py-6 text-sm md:text-base shadow-xl transition-all hover:scale-105 group"
           onClick={() => window.location.href = '/paket-umroh'}
         >
           Lihat Paket <ChevronRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />

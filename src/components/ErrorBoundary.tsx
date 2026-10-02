@@ -70,14 +70,14 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="text-muted-foreground mb-6">
               Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi atau refresh halaman.
               <br /><br />
-              <span className="text-xs font-mono text-red-500 break-all block max-w-full text-left bg-red-50 p-2 rounded">
+              <span className="text-xs font-mono text-destructive break-all block max-w-full text-left bg-status-bad-bg p-2 rounded">
                 {this.state.error?.message}
                 <br />
                 {this.state.error?.stack?.split('\n').slice(0, 3).join('\n')}
               </span>
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={this.handleRetry} variant="default">
+              <Button onClick={this.handleRetry} variant="brand">
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Coba Lagi
               </Button>

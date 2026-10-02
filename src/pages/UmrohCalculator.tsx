@@ -270,7 +270,7 @@ export default function UmrohCalculator() {
               onClick={() => {
                 if (window.confirm("Mulai hitung untuk orang baru? Data yang belum dikirim akan hilang.")) resetAll();
               }}
-              className="h-9 px-3 rounded-full text-[11px] font-bold uppercase tracking-widest active:scale-95 transition-transform"
+              className="h-9 px-3 rounded-full text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform"
               style={{ background: "white", color: BRAND.ink, border: `1.5px solid #e5e5e5` }}
               title="Hitung untuk orang lain"
             >
@@ -374,7 +374,7 @@ export default function UmrohCalculator() {
         </div>
       </main>
 
-      <footer className="text-center py-4 text-[11px] tracking-wider uppercase" style={{ color: BRAND.muted }}>
+      <footer className="text-center py-4 text-xs tracking-wider uppercase" style={{ color: BRAND.muted }}>
         Musafar · musafartour.com
       </footer>
     </div>

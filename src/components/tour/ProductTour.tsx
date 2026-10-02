@@ -106,7 +106,7 @@ export function ProductTour({ steps, active, onFinish }: ProductTourProps) {
       <div className="fixed inset-0 z-[9997]" onClick={(e) => e.stopPropagation()} />
 
       <div
-        className="fixed z-[9998] pointer-events-none rounded-[20px] ring-2 ring-emerald-400 transition-all duration-500 ease-in-out"
+        className="fixed z-[9998] pointer-events-none rounded-[20px] ring-2 ring-status-ok-border transition-all duration-500 ease-in-out"
         style={{
           top: rect.top - PADDING,
           left: rect.left - PADDING,
@@ -117,7 +117,7 @@ export function ProductTour({ steps, active, onFinish }: ProductTourProps) {
       />
 
       <div
-        className="fixed z-[9999] rounded-3xl border border-slate-100/60 bg-white shadow-2xl p-4 transition-all duration-500 ease-in-out"
+        className="fixed z-[9999] rounded-3xl border border-border/60 bg-white shadow-2xl p-4 transition-all duration-500 ease-in-out"
         style={{
           width: TOOLTIP_WIDTH,
           top: tooltipTop,
@@ -129,7 +129,7 @@ export function ProductTour({ steps, active, onFinish }: ProductTourProps) {
           <motion.div
             animate={{ y: [0, -6, 0] }}
             transition={{ repeat: Infinity, duration: 1.2 }}
-            className="absolute -top-7 left-1/2 -translate-x-1/2 text-emerald-500"
+            className="absolute -top-7 left-1/2 -translate-x-1/2 text-status-ok-fg"
           >
             <ChevronUp className="h-6 w-6" />
           </motion.div>
@@ -137,7 +137,7 @@ export function ProductTour({ steps, active, onFinish }: ProductTourProps) {
           <motion.div
             animate={{ y: [0, 6, 0] }}
             transition={{ repeat: Infinity, duration: 1.2 }}
-            className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-emerald-500"
+            className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-status-ok-fg"
           >
             <ChevronDown className="h-6 w-6" />
           </motion.div>
@@ -161,7 +161,7 @@ export function ProductTour({ steps, active, onFinish }: ProductTourProps) {
             {steps.map((_, i) => (
               <div
                 key={i}
-                className={`h-1.5 rounded-full transition-all ${i === stepIndex ? "w-4 bg-emerald-600" : "w-1.5 bg-slate-200"}`}
+                className={`h-1.5 rounded-full transition-all ${i === stepIndex ? "w-4 bg-status-ok-fg" : "w-1.5 bg-border"}`}
               />
             ))}
           </div>
@@ -171,7 +171,7 @@ export function ProductTour({ steps, active, onFinish }: ProductTourProps) {
                 Lewati
               </Button>
             )}
-            <Button size="sm" onClick={handleNext} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full">
+            <Button variant="brand" size="sm" onClick={handleNext} className="bg-brand hover:bg-brand-press text-brand-foreground rounded-md">
               {isLast ? "Selesai" : "Lanjut"}
             </Button>
           </div>

@@ -41,7 +41,7 @@ export function PackageStickyMobileBar(props: PackagePricingBodyProps) {
             )}
             <div className="border-t bg-card/95 backdrop-blur-sm shadow-[0_-4px_12px_rgba(0,0,0,0.06)] px-4 py-3">
               {isPackageDeparted(packageData) ? (
-                <Button asChild className="w-full">
+                <Button variant="brand" asChild className="w-full">
                   <Link to="/paket-umroh">Sudah berangkat · Lihat Paket Lainnya</Link>
                 </Button>
               ) : unavailable ? (
@@ -52,10 +52,10 @@ export function PackageStickyMobileBar(props: PackagePricingBodyProps) {
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] text-muted-foreground uppercase">Total ({paxCount} orang)</p>
+                      <p className="text-xs text-muted-foreground uppercase">Total ({paxCount} orang)</p>
                       <p className="text-base font-bold text-primary truncate">{formatCurrency(grandTotal)}</p>
                     </div>
-                    <Button onClick={() => setOpen(true)} className="gap-1.5 shrink-0">
+                    <Button variant="brand" onClick={() => setOpen(true)} className="gap-1.5 shrink-0">
                       Lihat Rincian Harga <ChevronUp className="h-4 w-4" />
                     </Button>
                   </div>

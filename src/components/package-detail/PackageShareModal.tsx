@@ -154,7 +154,7 @@ const PackageShareModal = ({
               <Input value={shareUrl} readOnly className="text-sm" />
               <Button size="icon" variant="outline" onClick={copyLink}>
                 {copied ? (
-                  <Check className="h-4 w-4 text-emerald-500" />
+                  <Check className="h-4 w-4 text-status-ok-fg" />
                 ) : (
                   <Copy className="h-4 w-4" />
                 )}
@@ -171,7 +171,7 @@ const PackageShareModal = ({
           <div className="space-y-2">
             <Label>Share ke Platform</Label>
             <div className="grid grid-cols-2 gap-2">
-              <Button
+              <Button variant="brand"
                 className="bg-[#25D366] hover:bg-[#128C7E] text-white"
                 onClick={shareToWhatsApp}
               >
@@ -185,7 +185,7 @@ const PackageShareModal = ({
                 WhatsApp
               </Button>
 
-              <Button
+              <Button variant="brand"
                 className="bg-[#1877F2] hover:bg-[#166FE5] text-white"
                 onClick={shareToFacebook}
               >
@@ -193,7 +193,7 @@ const PackageShareModal = ({
                 Facebook
               </Button>
 
-              <Button
+              <Button variant="brand"
                 className="bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] hover:opacity-90 text-white"
                 onClick={shareToInstagram}
               >

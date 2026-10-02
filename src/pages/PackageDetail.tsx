@@ -219,7 +219,7 @@ const PackageDetailPage = () => {
           <Package className="h-24 w-24 mx-auto mb-6 text-muted-foreground" />
           <h1 className="text-3xl font-bold mb-4 text-foreground">Paket tidak ditemukan</h1>
           <p className="text-muted-foreground mb-8">Paket yang Anda cari tidak tersedia atau sudah tidak aktif.</p>
-          <Button onClick={() => navigate("/paket-umroh")}>
+          <Button variant="brand" onClick={() => navigate("/paket-umroh")}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Kembali ke Paket Umroh
           </Button>
         </div>

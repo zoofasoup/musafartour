@@ -76,7 +76,7 @@ function CardHero({ perDay, perWeek, perMonth, mode }: { perDay: number; perWeek
       </motion.div>
       <div className="flex justify-center gap-6 pt-4">
         <Stat label="Per minggu" value={formatIDR(perWeek)} />
-        <div className="w-px bg-neutral-200" />
+        <div className="w-px bg-border" />
         <Stat label="Per bulan" value={formatIDR(perMonth)} />
       </div>
       <Footnote />
@@ -128,7 +128,7 @@ function CardLadder({ results, recommended }: { results: TierResult[]; recommend
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold uppercase tracking-wide">{r.label}</span>
-                  {isRec && <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full" style={{ background: BRAND.gold, color: BRAND.ink }}>Cocok</span>}
+                  {isRec && <span className="text-xs font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full" style={{ background: BRAND.gold, color: BRAND.ink }}>Cocok</span>}
                 </div>
                 <div className="text-xs opacity-80 mt-0.5 truncate">
                   {r.monthsRequired >= 999 ? "Perlu tambahan tabungan" : `${r.monthsRequired} bulan menabung`}
@@ -138,7 +138,7 @@ function CardLadder({ results, recommended }: { results: TierResult[]; recommend
                 <div className="text-base md:text-lg font-black" style={{ letterSpacing: "-0.03em" }}>
                   {r.monthsRequired >= 999 ? "—" : r.feasibleLabel}
                 </div>
-                <div className="text-[10px] uppercase tracking-widest opacity-75">{formatIDR(r.pricePerPerson)}/jamaah</div>
+                <div className="text-xs uppercase tracking-widest opacity-75">{formatIDR(r.pricePerPerson)}/jamaah</div>
               </div>
             </div>
           );
@@ -181,13 +181,13 @@ function CardTimeline({ recommended }: { recommended: TierResult }) {
       <div className="text-2xl md:text-3xl font-black" style={{ letterSpacing: "-0.04em" }}>
         Dari hari ini sampai berangkat
       </div>
-      <div className="relative h-2 rounded-full bg-neutral-200 my-4">
+      <div className="relative h-2 rounded-full bg-border my-4">
         <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: "100%", background: `linear-gradient(90deg, ${BRAND.gold}, ${BRAND.red})` }} />
       </div>
       <div className="grid grid-cols-2 gap-3">
         {milestones.map((m) => (
           <div key={m.pct} className="rounded-2xl p-3" style={{ background: BRAND.bg }}>
-            <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: BRAND.red }}>{m.pct}%</div>
+            <div className="text-xs font-black uppercase tracking-widest" style={{ color: BRAND.red }}>{m.pct}%</div>
             <div className="text-sm font-bold mt-1" style={{ letterSpacing: "-0.02em" }}>{m.label}</div>
             <div className="text-xs mt-0.5" style={{ color: BRAND.muted }}>{m.note}</div>
           </div>
@@ -221,11 +221,11 @@ function CardVsMusafar({ perMonth }: { perMonth: number }) {
       </div>
       <div className="grid grid-cols-2 gap-3 pt-2">
         <div className="rounded-2xl p-4" style={{ background: BRAND.bg }}>
-          <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: BRAND.muted }}>Sendiri</div>
+          <div className="text-xs font-black uppercase tracking-widest" style={{ color: BRAND.muted }}>Sendiri</div>
           <div className="text-base font-bold mt-2">Nabung manual, harga ikut pasar saat lunas.</div>
         </div>
         <div className="rounded-2xl p-4" style={{ background: BRAND.red, color: "white" }}>
-          <div className="text-[10px] font-black uppercase tracking-widest opacity-80">Program Musafar</div>
+          <div className="text-xs font-black uppercase tracking-widest opacity-80">Program Musafar</div>
           <div className="text-base font-bold mt-2">Setoran terjadwal, harga lebih terjaga, dibimbing tim CS.</div>
         </div>
       </div>
@@ -283,7 +283,7 @@ function CardHabitSim({ input, recommended }: { input: CalcInput; recommended: T
             >
               <div className="text-xl">{h.emoji}</div>
               <div className="text-xs font-bold mt-1" style={{ letterSpacing: "-0.01em" }}>{h.label}</div>
-              <div className="text-[10px] opacity-70 mt-0.5">+{formatIDR(h.perMonth)}/bln</div>
+              <div className="text-xs opacity-70 mt-0.5">+{formatIDR(h.perMonth)}/bln</div>
             </button>
           );
         })}
@@ -291,7 +291,7 @@ function CardHabitSim({ input, recommended }: { input: CalcInput; recommended: T
       <div className="rounded-2xl p-4" style={{ background: bonus > 0 ? BRAND.gold + "33" : BRAND.bg }}>
         {bonus > 0 ? (
           <>
-            <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: BRAND.red }}>
+            <div className="text-xs font-black uppercase tracking-widest" style={{ color: BRAND.red }}>
               Berangkat {saved} bulan lebih cepat ✨
             </div>
             <div className="text-2xl font-black mt-1" style={{ letterSpacing: "-0.03em", color: BRAND.ink }}>
@@ -345,7 +345,7 @@ function CardCountdown({ recommended }: { recommended: TierResult }) {
         ].map((u) => (
           <div key={u.l} className="rounded-xl px-3 py-2" style={{ background: BRAND.ink, color: "white", minWidth: 64 }}>
             <div className="text-2xl font-black tabular-nums" style={{ letterSpacing: "-0.03em" }}>{pad(u.v)}</div>
-            <div className="text-[9px] uppercase tracking-widest opacity-70 mt-0.5">{u.l}</div>
+            <div className="text-xs uppercase tracking-widest opacity-70 mt-0.5">{u.l}</div>
           </div>
         ))}
       </div>
@@ -369,12 +369,12 @@ function CardLead({ recommended, leadName, leadWa, errors, onNameChange, onWaCha
       <div className="space-y-3 pt-2">
         <div>
           <input value={leadName} onChange={(e) => onNameChange(e.target.value)} placeholder="Nama lengkap"
-            className="w-full h-14 rounded-2xl px-4 text-base font-semibold bg-neutral-50 outline-none border-2 border-transparent focus:border-neutral-900 transition" />
+            className="w-full h-14 rounded-2xl px-4 text-base font-semibold bg-muted outline-none border-2 border-transparent focus:border-foreground transition" />
           {errors.name && <div className="text-xs mt-1 px-1" style={{ color: BRAND.red }}>{errors.name}</div>}
         </div>
         <div>
           <input value={leadWa} onChange={(e) => onWaChange(e.target.value)} placeholder="Nomor WhatsApp (08…)" inputMode="tel"
-            className="w-full h-14 rounded-2xl px-4 text-base font-semibold bg-neutral-50 outline-none border-2 border-transparent focus:border-neutral-900 transition" />
+            className="w-full h-14 rounded-2xl px-4 text-base font-semibold bg-muted outline-none border-2 border-transparent focus:border-foreground transition" />
           {errors.whatsapp && <div className="text-xs mt-1 px-1" style={{ color: BRAND.red }}>{errors.whatsapp}</div>}
         </div>
         <button onClick={onSubmit} className="w-full h-14 rounded-2xl font-bold text-base active:scale-[0.98] transition-transform"
@@ -390,7 +390,7 @@ function CardLead({ recommended, leadName, leadWa, errors, onNameChange, onWaCha
         >
           ↻ Hitung untuk orang lain
         </button>
-        <div className="text-[11px] text-center pt-1" style={{ color: BRAND.muted }}>
+        <div className="text-xs text-center pt-1" style={{ color: BRAND.muted }}>
           Data kamu aman. Kami tidak spam.
         </div>
       </div>
@@ -415,7 +415,7 @@ function CardShare({ recommended, perDay, leadName, companion, onCompanionChange
         value={companion}
         onChange={(e) => onCompanionChange(e.target.value.slice(0, 60))}
         placeholder="cth. Ayah, Ibu, atau diri sendiri"
-        className="w-full h-12 rounded-2xl px-4 text-sm font-semibold bg-neutral-50 outline-none border-2 border-transparent focus:border-neutral-900 transition"
+        className="w-full h-12 rounded-2xl px-4 text-sm font-semibold bg-muted outline-none border-2 border-transparent focus:border-foreground transition"
       />
 
       <div className="flex justify-center pt-2">

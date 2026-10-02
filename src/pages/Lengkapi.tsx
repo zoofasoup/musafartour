@@ -227,7 +227,7 @@ function PersonCard({ p, token, departure, onSaved }: { p: ManifestPerson; token
         </Alert>
       )}
       <div className="mt-5 flex flex-wrap items-center gap-3">
-        <Button type="button" className="h-12 rounded-full px-8 font-bold" onClick={save} disabled={saving || !dirty || hasProblem}>
+        <Button variant="brand" type="button" className="h-12 px-8 font-bold" onClick={save} disabled={saving || !dirty || hasProblem}>
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}Simpan data {p.full_name.split(" ")[0]}
         </Button>
         {savedAt && !dirty && <span role="status" className="inline-flex items-center gap-1 text-sm text-status-ok-text"><Check className="h-4 w-4" aria-hidden /> Tersimpan</span>}
@@ -276,8 +276,8 @@ export default function Lengkapi() {
             <h1 className="text-2xl font-bold">{error.status === 404 ? "Link tidak berlaku" : "Data belum bisa dibuka"}</h1>
             <p className="mt-2 text-muted-foreground">{error.message}</p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              {error.status !== 404 && <Button className="rounded-full" onClick={() => window.location.reload()}>Coba lagi</Button>}
-              <Button asChild variant="outline" className="rounded-full">
+              {error.status !== 404 && <Button variant="brand"  onClick={() => window.location.reload()}>Coba lagi</Button>}
+              <Button asChild variant="outline" >
                 <a href={formatWhatsAppUrl(whatsapp, "Assalamu'alaikum, saya butuh bantuan mengisi data jamaah.")} target="_blank" rel="noopener noreferrer"><MessageCircle className="mr-2 h-4 w-4" aria-hidden />Hubungi CS</a>
               </Button>
             </div>

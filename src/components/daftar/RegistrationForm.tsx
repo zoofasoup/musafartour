@@ -200,7 +200,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, onS
         <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground">
           CS akan mengecek seat dan menghubungi jamaah lewat WhatsApp. Pantau statusnya di daftar "Pendaftaran saya". Komisi dihitung setelah jamaah lunas.
         </p>
-        <Button type="button" className="mt-6 h-12 rounded-full px-6 text-base font-bold" onClick={agent.onAnother}>Daftarkan jamaah lain</Button>
+        <Button variant="brand" type="button" className="mt-6 h-12 px-6 text-base font-bold" onClick={agent.onAnother}>Daftarkan jamaah lain</Button>
       </div>
     );
   }
@@ -223,7 +223,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, onS
           <li><span className="font-semibold">2.</span> Kamu transfer DP {juta(DP_MIN_PER_PAX)} per orang ke rekening PT Musa Amanah Wisata.</li>
           <li><span className="font-semibold">3.</span> Setelah DP, kamu mendapat link untuk melengkapi data paspor dan dokumen.</li>
         </ol>
-        <Button asChild className="mt-6 h-12 gap-2 rounded-full px-6 text-base font-bold">
+        <Button variant="brand" asChild className="mt-6 h-12 gap-2 px-6 text-base font-bold">
           <a href={whatsappUrl(message)} target="_blank" rel="noopener noreferrer">
             <MessageCircle className="h-5 w-5" aria-hidden /> Chat CS sekarang
           </a>
@@ -438,7 +438,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, onS
             <AlertDescription>{serverError}</AlertDescription>
           </Alert>
         )}
-        <Button type="submit" disabled={sending || siteKeyMissing} className="h-12 w-full rounded-full text-base font-bold">
+        <Button variant="brand" type="submit" disabled={sending || siteKeyMissing} className="h-12 w-full text-base font-bold">
           {sending ? "Mengirim..." : "Kirim pendaftaran"}
         </Button>
         <p className="text-center text-[13px] text-muted-foreground">Mengirim form belum berarti seat terkunci. Seat dikonfirmasi CS setelah pendaftaranmu dicek.</p>

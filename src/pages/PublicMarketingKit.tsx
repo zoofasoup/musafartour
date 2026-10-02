@@ -96,14 +96,14 @@ const PublicMarketingKit = () => {
       
       {loading ? (
         <div className="flex items-center justify-center py-10">
-          <Loader2 className="w-6 h-6 animate-spin text-red-500" />
+          <Loader2 className="w-6 h-6 animate-spin text-destructive" />
         </div>
       ) : error ? (
-        <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm border border-red-100">
+        <div className="p-4 bg-status-bad-bg text-destructive rounded-lg text-sm border border-status-bad-border">
           {error}
         </div>
       ) : data.length === 0 ? (
-        <div className="p-4 text-gray-500 text-sm text-center">
+        <div className="p-4 text-muted-foreground text-sm text-center">
           Belum ada materi promosi yang tersedia.
         </div>
       ) : (
@@ -117,15 +117,15 @@ const PublicMarketingKit = () => {
               }}
               className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 text-sm flex items-start gap-3 ${
                 activeCampaignId === campaign.id
-                  ? 'bg-red-50 text-red-700 shadow-sm border border-red-100/50'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-transparent'
+                  ? 'bg-status-bad-bg text-status-bad-fg shadow-sm border border-status-bad-border/50'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent'
               }`}
             >
-              <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${activeCampaignId === campaign.id ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' : 'bg-gray-300'}`}></span>
+              <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${activeCampaignId === campaign.id ? 'bg-destructive shadow-[0_0_8px_rgba(239,68,68,0.4)]' : 'bg-input'}`}></span>
               <div className="flex flex-col">
                 <span className="font-semibold">{campaign.name}</span>
                 {campaign.date && (
-                  <span className={`text-xs mt-0.5 ${activeCampaignId === campaign.id ? 'text-red-600/80 font-medium' : 'text-gray-400'}`}>
+                  <span className={`text-xs mt-0.5 ${activeCampaignId === campaign.id ? 'text-destructive/80 font-medium' : 'text-gray-400'}`}>
                     {campaign.date}
                   </span>
                 )}
@@ -140,13 +140,13 @@ const PublicMarketingKit = () => {
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans">
       {/* HEADER */}
-      <header className="bg-gradient-to-r from-red-600 via-red-500 to-yellow-500 text-white shadow-lg sticky top-0 z-50">
+      <header className="bg-gradient-to-r from-destructive via-destructive to-status-warn-fg text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-5 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold tracking-tight mb-1 font-sans">Musafar Tour Marketing Hub</h1>
-                <p className="text-red-50 text-sm font-medium">Pusat Materi Promosi & Brosur</p>
+                <p className="text-primary-foreground text-sm font-medium">Pusat Materi Promosi & Brosur</p>
               </div>
               <div className="md:hidden ml-4">
                 <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -155,7 +155,7 @@ const PublicMarketingKit = () => {
                       <Menu size={24} />
                     </button>
                   </SheetTrigger>
-                  <SheetContent side="right" className="w-[300px] sm:w-[350px] p-4 bg-gray-50 border-l-0">
+                  <SheetContent side="right" className="w-[300px] sm:w-[350px] p-4 bg-muted border-l-0">
                     <SheetHeader className="mb-4 text-left">
                       <SheetTitle>Pilih Paket</SheetTitle>
                     </SheetHeader>
@@ -174,7 +174,7 @@ const PublicMarketingKit = () => {
                 placeholder="Cari file, paket, atau materi..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:bg-white focus:text-gray-900 focus:placeholder:text-gray-400 transition-all rounded-full h-10 shadow-inner"
+                className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:bg-white focus:text-foreground focus:placeholder:text-gray-400 transition-all rounded-full h-10 shadow-inner"
               />
             </div>
           </div>
@@ -186,7 +186,7 @@ const PublicMarketingKit = () => {
         
         {/* SIDEBAR NAVIGATION - DESKTOP ONLY */}
         <aside className="hidden md:block w-72 flex-shrink-0">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 sticky top-32 overflow-y-auto max-h-[calc(100vh-140px)] custom-scrollbar">
+          <div className="bg-white rounded-lg shadow-sm border border-border p-4 sticky top-32 overflow-y-auto max-h-[calc(100vh-140px)] custom-scrollbar">
             {sidebarContent}
           </div>
         </aside>
@@ -194,53 +194,53 @@ const PublicMarketingKit = () => {
         {/* CONTENT AREA */}
         <div className="flex-1 min-w-0">
           {loading ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
+            <div className="bg-white rounded-xl shadow-sm border border-border p-6 md:p-8">
               <div className="space-y-12 animate-pulse">
                 {/* Header Skeleton */}
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 bg-gray-200 rounded-lg shrink-0"></div>
-                  <div className="h-8 bg-gray-200 rounded-md w-1/3"></div>
+                  <div className="w-12 h-12 bg-border rounded-lg shrink-0"></div>
+                  <div className="h-8 bg-border rounded-md w-1/3"></div>
                 </div>
                 
                 {/* Side-by-side Skeleton */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                   <div className="space-y-6">
-                    <div className="h-[400px] bg-gray-200 rounded-xl w-full"></div>
+                    <div className="h-[400px] bg-border rounded-xl w-full"></div>
                   </div>
                   <div className="space-y-6 flex flex-col justify-center">
-                    <div className="h-[180px] bg-gray-200 rounded-xl w-full"></div>
-                    <div className="h-[180px] bg-gray-200 rounded-xl w-full"></div>
+                    <div className="h-[180px] bg-border rounded-xl w-full"></div>
+                    <div className="h-[180px] bg-border rounded-xl w-full"></div>
                   </div>
                 </div>
                 
                 {/* Gallery Skeleton */}
                 <div className="pt-8">
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="w-12 h-12 bg-gray-200 rounded-lg shrink-0"></div>
-                    <div className="h-8 bg-gray-200 rounded-md w-1/4"></div>
+                    <div className="w-12 h-12 bg-border rounded-lg shrink-0"></div>
+                    <div className="h-8 bg-border rounded-md w-1/4"></div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div className="h-48 bg-gray-200 rounded-xl w-full"></div>
-                    <div className="h-48 bg-gray-200 rounded-xl w-full hidden sm:block"></div>
-                    <div className="h-48 bg-gray-200 rounded-xl w-full hidden lg:block"></div>
+                    <div className="h-48 bg-border rounded-xl w-full"></div>
+                    <div className="h-48 bg-border rounded-xl w-full hidden sm:block"></div>
+                    <div className="h-48 bg-border rounded-xl w-full hidden lg:block"></div>
                   </div>
                 </div>
               </div>
             </div>
           ) : error ? (
-            <div className="bg-red-50 text-red-600 p-8 rounded-xl border border-red-100 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-4">
+            <div className="bg-status-bad-bg text-destructive p-8 rounded-xl border border-status-bad-border flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 bg-status-bad-bg text-destructive rounded-full flex items-center justify-center mb-4">
                 <span className="text-2xl">⚠️</span>
               </div>
               <h2 className="text-xl font-bold mb-2">Terjadi Kesalahan</h2>
               <p>{error}</p>
             </div>
           ) : activeCampaign ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8 overflow-hidden min-h-[500px]">
+            <div className="bg-white rounded-xl shadow-sm border border-border p-6 md:p-8 overflow-hidden min-h-[500px]">
               <MaterialsList campaign={activeCampaign} searchQuery={searchQuery} />
             </div>
           ) : (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 flex flex-col items-center justify-center text-center text-gray-500">
+            <div className="bg-white rounded-xl shadow-sm border border-border p-12 flex flex-col items-center justify-center text-center text-muted-foreground">
               <p>Pilih paket di sebelah kiri untuk melihat materi promosi.</p>
             </div>
           )}

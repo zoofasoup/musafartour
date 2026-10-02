@@ -163,7 +163,7 @@ ${formData.message}`;
             </div>
 
             <div className="pt-6">
-              <Button
+              <Button variant="brand"
                 size="lg"
                 className="w-full bg-accent hover:bg-accent/90"
                 onClick={handleWhatsAppClick}
@@ -229,7 +229,7 @@ ${formData.message}`;
                 />
               </div>
               
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+              <Button variant="brand" type="submit" className="w-full bg-brand hover:bg-brand-press">
                 Kirim Pesan
               </Button>
             </form>

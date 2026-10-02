@@ -250,7 +250,7 @@ export const PackageFilterSection = ({
             <p className="text-muted-foreground mb-4">
               Maaf, paket dengan kriteria tersebut belum tersedia. Silakan hubungi kami melalui WhatsApp.
             </p>
-            <Button
+            <Button variant="brand"
               size="sm"
               className="gap-2"
               onClick={() => redirectToWhatsApp("Halo Musafar Tour, saya mencari paket umroh yang belum tersedia di website. Bisa dibantu?", "home_package_request")}

@@ -44,7 +44,7 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
   };
 
   return (
-    <div className="rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-4 space-y-3">
+    <div className="rounded-3xl border border-border/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-4 space-y-3">
       {!unavailable && (
         <PackageUrgencyBar packageData={packageData} className="justify-center" />
       )}
@@ -52,13 +52,13 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
       {departed ? (
         <div className="space-y-2 text-center">
           <p className="text-sm text-muted-foreground">Rombongan paket ini sudah berangkat.</p>
-          <Button asChild className="w-full h-12 rounded-full text-base font-bold">
+          <Button variant="brand" asChild className="w-full h-12 text-base font-bold">
             <Link to="/paket-umroh">Lihat Paket Lainnya</Link>
           </Button>
         </div>
       ) : unavailable ? (
         <div className="space-y-1">
-          <Button onClick={handleNotifyMe} className="w-full h-12 rounded-full text-base font-bold gap-2" variant="outline">
+          <Button onClick={handleNotifyMe} className="w-full h-12 text-base font-bold gap-2" variant="outline">
             <Bell className="h-4 w-4" /> Gabung Waitlist
           </Button>
           <p className="text-center text-xs text-muted-foreground">Kami kabari via WhatsApp jika ada seat kosong</p>
@@ -67,7 +67,7 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
         <>
           {packageData.slug && (
             <div className="space-y-1">
-              <Button asChild className="h-12 w-full gap-2 rounded-full text-base font-bold">
+              <Button variant="brand" asChild className="h-12 w-full gap-2 text-base font-bold">
                 <Link to={`/daftar/${packageData.slug}`}>
                   <ClipboardList className="h-4 w-4" aria-hidden /> Daftar Sekarang
                 </Link>
@@ -77,10 +77,10 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
           )}
 
           <div className="space-y-1">
-            <Button
+            <Button variant="outline"
               id="tour-cta-solo"
               onClick={onSoloWhatsApp}
-              className="w-full h-12 rounded-full text-base font-bold gap-2 border-2 border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400 text-slate-900 shadow-sm"
+              className="w-full h-12 text-base font-bold gap-2"
             >
               <User className="h-4 w-4" /> Berangkat Sendiri
             </Button>
@@ -88,10 +88,10 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
           </div>
 
           <div className="space-y-1">
-            <Button
+            <Button variant="outline"
               id="tour-cta-calculator"
               onClick={onToggleCalculator}
-              className="w-full h-12 rounded-full text-base font-bold gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+              className="w-full h-12 text-base font-bold gap-2"
             >
               {calculatorExpanded ? <ChevronUp className="h-4 w-4" /> : <Users className="h-4 w-4" />}
               {calculatorExpanded ? "Tutup Kalkulator" : "Hitung Ramai-ramai"}
@@ -107,7 +107,7 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
           onClick={handleWishlist}
           className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ShoppingCart className={cn("h-4 w-4", isFav && "fill-emerald-600 text-emerald-600")} />
+          <ShoppingCart className={cn("h-4 w-4", isFav && "fill-status-ok-fg text-status-ok-fg")} />
           Keranjang
         </button>
         <div className="h-5 w-px bg-border" />

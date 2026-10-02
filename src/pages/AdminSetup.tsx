@@ -118,7 +118,7 @@ const AdminSetup = () => {
           <CardHeader className="text-center">
             <img src={musafarLogo} alt="Musafar Tour" className="h-12 mx-auto mb-4" />
             <div className="flex items-center justify-center gap-2 mb-2">
-              <CheckCircle className="h-6 w-6 text-green-600" />
+              <CheckCircle className="h-6 w-6 text-status-ok-fg" />
               <CardTitle>Admin Sudah Terdaftar</CardTitle>
             </div>
             <CardDescription>

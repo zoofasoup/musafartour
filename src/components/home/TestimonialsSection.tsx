@@ -153,7 +153,7 @@ export const TestimonialsSection = ({
       </div>
 
       <div className="text-center mt-10">
-        <Button
+        <Button variant="brand"
           size="lg"
           onClick={() => window.open(googleReviewUrl, "_blank")}
           className="gap-2 bg-white text-foreground hover:bg-white/90 shadow-md border border-border/30 font-semibold"

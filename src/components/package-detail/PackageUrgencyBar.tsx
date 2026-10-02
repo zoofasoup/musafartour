@@ -34,7 +34,7 @@ export function PackageUrgencyBar({ packageData, className }: PackageUrgencyBarP
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <ShoppingCart className={cn("h-3.5 w-3.5 shrink-0", isAlmostFull ? "text-amber-500" : "text-primary")} />
+      <ShoppingCart className={cn("h-3.5 w-3.5 shrink-0", isAlmostFull ? "text-status-warn-fg" : "text-primary")} />
       <span className="text-xs font-bold shrink-0">
         {isAlmostFull ? `Tersisa ${remaining} seat!` : `${remaining} seat tersisa`}
       </span>

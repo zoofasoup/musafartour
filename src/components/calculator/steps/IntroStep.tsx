@@ -5,7 +5,7 @@ import { PrimaryBtn, GhostBtn } from "./CommonSteps";
 export function IntroStep({ onStart }: { onStart: () => void }) {
   return (
     <motion.div {...fade} className="text-center space-y-8 py-8">
-      <div className="inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest" style={{ background: BRAND.gold + "22", color: BRAND.red }}>
+      <div className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest" style={{ background: BRAND.gold + "22", color: BRAND.red }}>
         Umroh Financial Planner · 60 detik
       </div>
       <h1 className="text-5xl md:text-7xl font-black leading-[0.95]" style={{ letterSpacing: "-0.045em", color: BRAND.ink }}>
@@ -54,7 +54,7 @@ export function ModePicker({
                 border: `2px solid ${active ? BRAND.ink : "#e5e5e5"}`,
               }}
             >
-              <div className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-1">Mode {opt.key}</div>
+              <div className="text-xs font-black uppercase tracking-widest opacity-70 mb-1">Mode {opt.key}</div>
               <div className="text-xl font-black" style={{ letterSpacing: "-0.03em" }}>{opt.title}</div>
               <div className="text-sm mt-1 opacity-80">{opt.desc}</div>
             </button>

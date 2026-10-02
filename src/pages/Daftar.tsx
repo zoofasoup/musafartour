@@ -51,13 +51,13 @@ export default function Daftar() {
           <div className="rounded-2xl border bg-white p-8 text-center">
             <h1 className="text-2xl font-bold">Paket tidak ditemukan</h1>
             <p className="mt-2 text-muted-foreground">Link pendaftaran ini sudah tidak berlaku atau paketnya sudah tidak tersedia.</p>
-            <Button asChild className="mt-6 rounded-full"><Link to="/paket-umroh">Lihat paket yang tersedia</Link></Button>
+            <Button variant="brand" asChild className="mt-6"><Link to="/paket-umroh">Lihat paket yang tersedia</Link></Button>
           </div>
         ) : isPackageDeparted(pkg) ? (
           <div className="rounded-2xl border bg-white p-8 text-center">
             <h1 className="text-2xl font-bold">Paket ini sudah berangkat</h1>
             <p className="mt-2 text-muted-foreground">Silakan pilih jadwal keberangkatan berikutnya.</p>
-            <Button asChild className="mt-6 rounded-full"><Link to="/paket-umroh">Lihat jadwal</Link></Button>
+            <Button variant="brand" asChild className="mt-6"><Link to="/paket-umroh">Lihat jadwal</Link></Button>
           </div>
         ) : (
           <>

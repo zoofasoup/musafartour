@@ -25,7 +25,7 @@ export function GhostBtn({ children, onClick }: { children: React.ReactNode; onC
 
 export function Footnote() {
   return (
-    <div className="text-[10px] leading-snug pt-3" style={{ color: BRAND.muted }}>
+    <div className="text-xs leading-snug pt-3" style={{ color: BRAND.muted }}>
       * {PRICING_FOOTNOTE}
     </div>
   );

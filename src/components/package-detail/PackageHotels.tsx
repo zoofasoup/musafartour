@@ -13,7 +13,7 @@ import type { PackageHotels as PackageHotelsType } from "@/lib/packageSchema";
 const StarRating = ({ rating }: { rating: number }) => (
   <div className="flex gap-0.5">
     {[...Array(rating)].map((_, i) => (
-      <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
+      <Star key={i} className="h-3 w-3 fill-amber text-amber" />
     ))}
   </div>
 );
@@ -79,7 +79,7 @@ function HotelPhotoCarousel({ photos, onOpen }: { photos: { label: string; url: 
               loading="lazy"
               className="h-full w-full object-cover"
             />
-            <span className="absolute bottom-1.5 left-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white">
+            <span className="absolute bottom-1.5 left-1.5 rounded-full bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
               {photo.label}
             </span>
           </button>
@@ -147,7 +147,7 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
                     Makkah
                   </span>
                   {packageData.nights_makkah && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                    <Badge variant="outline" className="text-xs px-1.5 py-0">
                       {packageData.nights_makkah} Malam
                     </Badge>
                   )}
@@ -175,7 +175,7 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
                   onOpen={(index) => setLightbox({ images: makkahPhotos.map((p) => p.url), index })}
                 />
               ) : (
-                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
                   <ImageIcon className="h-3 w-3" /> Foto belum tersedia
                 </div>
               )}
@@ -201,7 +201,7 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
                     Madinah
                   </span>
                   {packageData.nights_madinah && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                    <Badge variant="outline" className="text-xs px-1.5 py-0">
                       {packageData.nights_madinah} Malam
                     </Badge>
                   )}
@@ -229,7 +229,7 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
                   onOpen={(index) => setLightbox({ images: madinahPhotos.map((p) => p.url), index })}
                 />
               ) : (
-                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
                   <ImageIcon className="h-3 w-3" /> Foto belum tersedia
                 </div>
               )}
@@ -253,7 +253,7 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
                 <span className="text-xs font-bold uppercase text-muted-foreground">
                   Transit / Ekstra
                 </span>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                <Badge variant="outline" className="text-xs px-1.5 py-0">
                   {packageData.nights_extra} Malam
                 </Badge>
               </div>

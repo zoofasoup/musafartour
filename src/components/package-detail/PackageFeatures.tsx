@@ -17,7 +17,7 @@ export function PackageFeatures({
       <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-2">
         {/* Included & Excluded */}
         {(includedItems.length > 0 || excludedItems.length > 0) && (
-          <AccordionItem value="item-2" className="rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] px-5">
+          <AccordionItem value="item-2" className="rounded-3xl border border-border/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] px-5">
             <AccordionTrigger className="hover:no-underline py-4">
               <span className="text-sm font-bold text-muted-foreground uppercase flex items-center gap-2">
                 <Package className="h-4 w-4 text-primary" /> Termasuk & Tidak Termasuk
@@ -27,13 +27,13 @@ export function PackageFeatures({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {includedItems.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-bold text-emerald-600 uppercase mb-3 flex items-center gap-2">
+                    <h4 className="text-xs font-bold text-status-ok-fg uppercase mb-3 flex items-center gap-2">
                       <CheckCircle2 className="h-3.5 w-3.5" /> Termasuk
                     </h4>
                     <ul className="space-y-2">
                       {includedItems.map((item, idx) => (
                         <li key={idx} className="flex items-start gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                          <CheckCircle2 className="h-4 w-4 text-status-ok-fg shrink-0 mt-0.5" />
                           {item}
                         </li>
                       ))}
@@ -62,7 +62,7 @@ export function PackageFeatures({
 
         {/* Equipment */}
         {equipmentItems.length > 0 && (
-          <AccordionItem value="item-3" className="rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] px-5">
+          <AccordionItem value="item-3" className="rounded-3xl border border-border/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] px-5">
             <AccordionTrigger className="hover:no-underline py-4">
               <span className="text-sm font-bold text-muted-foreground uppercase flex items-center gap-2">
                 <Package className="h-4 w-4 text-primary" /> Perlengkapan

@@ -88,7 +88,7 @@ export function PackagePricingBody({
         <div className="grid grid-cols-3 gap-1.5">
           {(["quad", "triple", "double"] as const).map((rt) => (
             <div key={rt} className="p-2 rounded-lg text-center border bg-muted/30">
-              <span className="block text-[10px] text-muted-foreground capitalize">{rt}</span>
+              <span className="block text-xs text-muted-foreground capitalize">{rt}</span>
               <span className="block text-xs font-bold mt-0.5">
                 {price[rt] > 0 ? formatCurrency(price[rt]) : "—"}
               </span>
@@ -103,33 +103,33 @@ export function PackagePricingBody({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Users className="h-3.5 w-3.5 text-blue-500" />
+            <Users className="h-3.5 w-3.5 text-status-info-fg" />
             <span className="text-xs font-semibold">Dewasa</span>
           </div>
           <CounterInput value={adults} onChange={(v) => { setAdults(v); setSelectedComboIdx(0); }} min={1} max={Math.max(1, seatCap - children)} />
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <PersonStanding className="h-3.5 w-3.5 text-emerald-500" />
+            <PersonStanding className="h-3.5 w-3.5 text-status-ok-fg" />
             <div>
               <span className="text-xs font-semibold">Anak</span>
-              <span className="text-[10px] text-muted-foreground ml-1">25jt · Sharing bed</span>
+              <span className="text-xs text-muted-foreground ml-1">25jt · Sharing bed</span>
             </div>
           </div>
           <CounterInput value={children} onChange={setChildren} max={Math.max(0, seatCap - adults)} />
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Baby className="h-3.5 w-3.5 text-pink-500" />
+            <Baby className="h-3.5 w-3.5 text-status-over-fg" />
             <div>
               <span className="text-xs font-semibold">Infant</span>
-              <span className="text-[10px] text-muted-foreground ml-1">15jt · Tanpa bed & perlengkapan</span>
+              <span className="text-xs text-muted-foreground ml-1">15jt · Tanpa bed & perlengkapan</span>
             </div>
           </div>
           <CounterInput value={infants} onChange={setInfants} />
         </div>
         {maxPax !== undefined && maxPax <= 5 && (
-          <p className="text-[11px] text-destructive font-medium">Tersisa {maxPax} seat untuk paket ini.</p>
+          <p className="text-xs text-destructive font-medium">Tersisa {maxPax} seat untuk paket ini.</p>
         )}
       </div>
 
@@ -138,7 +138,7 @@ export function PackagePricingBody({
       {/* Room combos */}
       {combos.length > 0 && (
         <div className="space-y-2">
-          <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Opsi Kamar</p>
+          <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase">Opsi Kamar</p>
           {combos.map((combo, i) => {
             const gt = combo.totalRoomCost + childTotal + infantTotal;
             const isSelected = safeComboIdx === i;
@@ -156,7 +156,7 @@ export function PackagePricingBody({
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-semibold">{combo.label}</span>
                   {i === 0 && (
-                    <Badge variant="secondary" className="text-[9px] px-1 py-0 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20">
+                    <Badge variant="secondary" className="text-xs px-1 py-0 bg-status-ok-fg/10 text-status-ok-fg dark:text-emerald-400 border-status-ok-border/20">
                       <Crown className="h-2 w-2 mr-0.5" /> Hemat
                     </Badge>
                   )}
@@ -198,7 +198,7 @@ export function PackagePricingBody({
               <span className="text-base font-bold text-primary">{formatCurrency(grandTotal)}</span>
             </div>
             {totalSavings > 0 && (
-              <Badge variant="secondary" className="w-full justify-center py-1 text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20">
+              <Badge variant="secondary" className="w-full justify-center py-1 text-xs bg-status-ok-fg/10 text-status-ok-fg dark:text-emerald-400 border-status-ok-border/20">
                 <Sparkles className="h-2.5 w-2.5 mr-1" /> Hemat {formatCurrency(totalSavings)}
               </Badge>
             )}
@@ -214,7 +214,7 @@ export function PackagePricingBody({
               onChange={(e) => setCustomerName(e.target.value)}
               className="text-base h-10"
             />
-            <Button onClick={handleWhatsApp} className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold">
+            <Button variant="brand" onClick={handleWhatsApp} className="w-full gap-2 bg-brand hover:bg-brand-press text-brand-foreground text-sm font-bold">
               <MessageCircle className="h-4 w-4" /> Kirim via WhatsApp
             </Button>
           </div>
@@ -251,7 +251,7 @@ export function PackagePricing({ expanded, ...props }: PackagePricingProps) {
   return (
     <aside
       id="kalkulator-harga"
-      className="hidden lg:block w-[360px] shrink-0 rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)]"
+      className="hidden lg:block w-[360px] shrink-0 rounded-3xl border border-border/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)]"
     >
       <PackagePricingBody {...props} />
     </aside>

@@ -20,7 +20,7 @@ export const AuthLayout = ({
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
       {/* Left Panel - Visual/Brand */}
-      <div className="hidden md:flex md:w-1/2 lg:w-[55%] relative overflow-hidden bg-zinc-900">
+      <div className="hidden md:flex md:w-1/2 lg:w-[55%] relative overflow-hidden bg-primary">
         {/* Background Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] hover:scale-105"
@@ -67,10 +67,10 @@ export const AuthLayout = ({
           </div>
 
           <div className="mb-10 animate-fade-in-up">
-            <h2 className="text-3xl font-bold text-zinc-900 tracking-tight mb-2">
+            <h2 className="text-3xl font-bold text-foreground tracking-tight mb-2">
               {title}
             </h2>
-            <p className="text-zinc-500">
+            <p className="text-muted-foreground">
               {subtitle}
             </p>
           </div>

@@ -272,10 +272,10 @@ const Auth = () => {
           <div className="text-xs text-muted-foreground space-y-1 my-4">
             <p>Password harus memenuhi kriteria:</p>
             <ul className="list-disc list-inside space-y-0.5">
-              <li className={password.length >= 8 ? "text-green-600" : ""}>Minimal 8 karakter</li>
-              <li className={/[A-Z]/.test(password) ? "text-green-600" : ""}>Mengandung huruf besar</li>
-              <li className={/[a-z]/.test(password) ? "text-green-600" : ""}>Mengandung huruf kecil</li>
-              <li className={/[0-9]/.test(password) ? "text-green-600" : ""}>Mengandung angka</li>
+              <li className={password.length >= 8 ? "text-status-ok-fg" : ""}>Minimal 8 karakter</li>
+              <li className={/[A-Z]/.test(password) ? "text-status-ok-fg" : ""}>Mengandung huruf besar</li>
+              <li className={/[a-z]/.test(password) ? "text-status-ok-fg" : ""}>Mengandung huruf kecil</li>
+              <li className={/[0-9]/.test(password) ? "text-status-ok-fg" : ""}>Mengandung angka</li>
             </ul>
           </div>
           

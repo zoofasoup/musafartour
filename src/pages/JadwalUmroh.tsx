@@ -205,7 +205,7 @@ const JadwalUmroh = () => {
                         <Bell className="h-4 w-4" /> Gabung Waitlist
                       </Button>
                     ) : (
-                      <Button
+                      <Button variant="brand"
                         onClick={() =>
                           redirectToWhatsApp(
                             `Halo Musafar Tour, saya ingin mendaftar untuk ${pkg.package_name} dengan keberangkatan ${depDate}.`,

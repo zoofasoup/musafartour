@@ -84,9 +84,9 @@ const TentangKami = () => {
               Membawa orang tua yang sudah sepuh atau si kecil ke Tanah Suci bukan hal sederhana. Musafar Tour dirancang khusus supaya seluruh keluarga bisa beribadah dengan tenang, bersama.
             </motion.p>
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
+              <Button variant="brand"
                 size="lg"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base px-8 rounded-full"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base px-8"
                 onClick={handleWhatsApp}
               >
                 Konsultasi Umroh Sekeluarga
@@ -94,7 +94,7 @@ const TentangKami = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-foreground/20 text-foreground hover:bg-foreground/5 font-semibold text-base px-8 rounded-full"
+                className="border-foreground/20 text-foreground hover:bg-foreground/5 font-semibold text-base px-8"
                 onClick={() => window.location.href = "/paket-umroh"}
               >
                 Lihat Jadwal Keberangkatan
@@ -152,7 +152,7 @@ const TentangKami = () => {
               <motion.div
                 key={i}
                 variants={fadeUp}
-                className="group relative rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                className="group relative rounded-3xl border border-border/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="bg-primary/10 w-14 h-14 rounded-xl flex items-center justify-center mb-5">
                   <item.icon className="h-7 w-7 text-primary" />
@@ -321,7 +321,7 @@ const TentangKami = () => {
             className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto"
           >
             {/* Persyaratan */}
-            <motion.div variants={fadeUp} className="rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-7">
+            <motion.div variants={fadeUp} className="rounded-3xl border border-border/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-7">
               <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
                 <CheckCircle2 className="h-6 w-6 text-primary" />
               </div>
@@ -343,7 +343,7 @@ const TentangKami = () => {
             </motion.div>
 
             {/* Pembayaran */}
-            <motion.div variants={fadeUp} className="rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-7">
+            <motion.div variants={fadeUp} className="rounded-3xl border border-border/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-7">
               <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
                 <CreditCard className="h-6 w-6 text-primary" />
               </div>
@@ -363,7 +363,7 @@ const TentangKami = () => {
             </motion.div>
 
             {/* Kontak */}
-            <motion.div variants={fadeUp} className="rounded-3xl border border-slate-100/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-7">
+            <motion.div variants={fadeUp} className="rounded-3xl border border-border/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-7">
               <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
                 <MapPin className="h-6 w-6 text-primary" />
               </div>
@@ -388,7 +388,7 @@ const TentangKami = () => {
           <p className="text-sm text-muted-foreground tracking-tight text-center sm:text-left">
             Masih ada pertanyaan tentang jadwal atau fasilitas?
           </p>
-          <Button
+          <Button variant="brand"
             className="bg-[#25D366] hover:bg-[#22c55e] text-white font-semibold px-6 shrink-0"
             onClick={handleWhatsApp}
           >
