@@ -188,7 +188,7 @@ function RejectDialog({ intake, onClose, onDone }: { intake: Intake | null; onCl
         <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Contoh: data dobel, salah paket, seat penuh" rows={3} aria-label="Alasan penolakan" />
         <DialogFooter className="gap-2 sm:gap-0">
           <Button type="button" variant="outline" className={TOUCH_H} onClick={onClose} disabled={saving}>Batal</Button>
-          <Button type="button" variant="destructive" className={TOUCH_H} onClick={reject} disabled={saving || !reason.trim()}>
+          <Button type="button" variant="destructiveSolid" className={TOUCH_H} onClick={reject} disabled={saving || !reason.trim()}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Tolak
           </Button>
         </DialogFooter>

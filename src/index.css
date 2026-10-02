@@ -10,7 +10,7 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --cache-bust-20260719: 1;
-    --background: 40 33% 96%;
+    --background: 180 2% 95%;
     --foreground: 0 0% 15%;
 
     --card: 0 0% 100%;
@@ -19,26 +19,42 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 15%;
 
-    --primary: 0 0% 12%;
+    --primary: 0 0% 15%;
     --primary-foreground: 0 0% 98%;
 
     --secondary: 180 0% 60%;
     --secondary-foreground: 0 0% 15%;
 
-    --muted: 180 4% 95%;
+    --muted: 180 2% 93%;
     --muted-foreground: 0 0% 35%;
 
-    --accent: 210 40% 96.1%;
+    --accent: 180 2% 93%;
     --accent-foreground: 0 0% 15%;
 
-    --destructive: 347 99% 40%;
+    /* Errors and destructive actions use a darker red than the brand crimson so they never read as the primary action. */
+    --destructive: 350 80% 33%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 180 4% 95%;
-    --input: 180 4% 95%;
-    --ring: 347 99% 40%;
+    --border: 180 2% 89%;
+    --input: 0 0% 80%;
+    --ring: 0 0% 15%;
 
-    --radius: 0.5rem;
+    /* Brand (DESIGN.md): crimson is the public primary action and a small accent in the work areas; amber is a soft highlight. */
+    --brand: 346 100% 40%;
+    --brand-press: 346 100% 33%;
+    --brand-foreground: 0 0% 100%;
+    --brand-soft: 346 70% 94%;
+    --amber: 41 100% 50%;
+    --amber-soft: 43 100% 90%;
+
+    /* Filled fields: grey with no border, a hairline on focus. */
+    --field: 180 2% 93%;
+    --field-hover: 180 2% 90%;
+
+    /* Shadows carry the UI's neutral (brand grey), never black. Two levels only. */
+    --shadow-rgb: 124 126 126;
+
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 

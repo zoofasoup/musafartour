@@ -12,6 +12,14 @@ const badgeVariants = cva(
         secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        // Status: pastel with an icon and text, never colour alone (DESIGN.md). Height 24, radius 6.
+        ok: "rounded-sm border-transparent bg-status-ok-bg text-status-ok-fg",
+        info: "rounded-sm border-transparent bg-status-info-bg text-status-info-fg",
+        warn: "rounded-sm border-transparent bg-status-warn-bg text-status-warn-fg",
+        over: "rounded-sm border-transparent bg-status-over-bg text-status-over-fg",
+        bad: "rounded-sm border-transparent bg-status-bad-bg text-status-bad-fg",
+        mute: "rounded-sm border-transparent bg-muted text-muted-foreground",
+        brand: "rounded-[4px] border-transparent bg-brand text-brand-foreground",
       },
     },
     defaultVariants: {

@@ -52,6 +52,20 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        brand: {
+          DEFAULT: "hsl(var(--brand))",
+          press: "hsl(var(--brand-press))",
+          foreground: "hsl(var(--brand-foreground))",
+          soft: "hsl(var(--brand-soft))",
+        },
+        amber: {
+          DEFAULT: "hsl(var(--amber))",
+          soft: "hsl(var(--amber-soft))",
+        },
+        field: {
+          DEFAULT: "hsl(var(--field))",
+          hover: "hsl(var(--field-hover))",
+        },
         "status-ok": {
           bg: "hsl(var(--status-ok-bg))",
           fg: "hsl(var(--status-ok-fg))",
@@ -91,10 +105,20 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
       },
+      // DESIGN.md: lg 12 (cards, dialogs), md 8 (buttons, inputs), sm 6 (status). xl, 2xl and 3xl keep Tailwind's 12, 16 and 24.
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "calc(var(--radius) - 4px)",
+        sm: "calc(var(--radius) - 6px)",
+      },
+      // Two shadow levels, tinted with the neutral. sm/DEFAULT/md are level 1; lg and above are level 2.
+      boxShadow: {
+        sm: "0 4px 14px -2px rgb(var(--shadow-rgb) / 0.16), 0 1px 2px rgb(var(--shadow-rgb) / 0.12)",
+        DEFAULT: "0 4px 14px -2px rgb(var(--shadow-rgb) / 0.16), 0 1px 2px rgb(var(--shadow-rgb) / 0.12)",
+        md: "0 4px 14px -2px rgb(var(--shadow-rgb) / 0.16), 0 1px 2px rgb(var(--shadow-rgb) / 0.12)",
+        lg: "0 16px 40px rgb(var(--shadow-rgb) / 0.22), 0 2px 8px rgb(var(--shadow-rgb) / 0.10)",
+        xl: "0 16px 40px rgb(var(--shadow-rgb) / 0.22), 0 2px 8px rgb(var(--shadow-rgb) / 0.10)",
+        "2xl": "0 16px 40px rgb(var(--shadow-rgb) / 0.22), 0 2px 8px rgb(var(--shadow-rgb) / 0.10)",
       },
       keyframes: {
         "accordion-down": {

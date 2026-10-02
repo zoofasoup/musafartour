@@ -94,7 +94,7 @@ export function DeleteRegistrationDialog({
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button type="button" variant="outline" className={TOUCH_H} onClick={() => close(false)} disabled={busy}>Batal</Button>
-            <Button type="button" variant="destructive" className={TOUCH_H} onClick={remove} disabled={!matches || busy}>
+            <Button type="button" variant="destructiveSolid" className={TOUCH_H} onClick={remove} disabled={!matches || busy}>
               {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}Hapus permanen
             </Button>
           </DialogFooter>
