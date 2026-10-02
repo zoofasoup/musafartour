@@ -7,6 +7,9 @@ import { validateIntake } from "../_lib/intake";
  *
  * The browser has no access to the registration tables. This function checks the Turnstile answer, validates
  * everything, and hands it to create_jamaah_intake() with the service role (the only caller allowed to).
+ *
+ * Agents registering their own jamaah from the agent portal send their login (Authorization: Bearer). That replaces
+ * Turnstile, and the agent is taken from the login, never from the request, so an agent can only register as themself.
  */
 
 const ALLOWED_HOST = /(^|\.)musafartour\.com$|(^|\.)musafartour\.pages\.dev$|^localhost$|^127\.0\.0\.1$/;
@@ -36,6 +39,22 @@ async function turnstileOk(token: unknown, secret: string, ip: string | null): P
   }
 }
 
+/** The active agent behind a login token, or null. Anything else (bad token, not an agent, suspended) is refused by the caller. */
+async function agentFromLogin(authorization: string, url: string, anonKey: string, serviceHeaders: Record<string, string>): Promise<{ referral_code: string } | null> {
+  const token = authorization.replace(/^Bearer\s+/i, "").trim();
+  if (!token || token.length > 4096) return null;
+  try {
+    const who = await fetch(`${url}/auth/v1/user`, { headers: { apikey: anonKey, authorization: `Bearer ${token}` } });
+    if (!who.ok) return null;
+    const userId = ((await who.json()) as { id?: string }).id;
+    if (!userId || !/^[0-9a-f-]{36}$/i.test(userId)) return null;
+    const res = await fetch(`${url}/rest/v1/agents?select=referral_code&user_id=eq.${userId}&status=eq.active&limit=1`, { headers: serviceHeaders });
+    return res.ok ? (((await res.json()) as { referral_code: string }[])[0] ?? null) : null;
+  } catch {
+    return null;
+  }
+}
+
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const secret = env.TURNSTILE_SECRET_KEY;
   const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
@@ -55,12 +74,17 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   if (!checked.ok) return json({ ok: false, error: checked.error }, 400);
   const intake = checked.value;
 
-  if (!(await turnstileOk(body.turnstile_token, secret, request.headers.get("cf-connecting-ip")))) {
+  const { url, anonKey } = getSupabaseConfig(env);
+  const headers = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" };
+
+  const authorization = request.headers.get("authorization");
+  let agent: { referral_code: string } | null = null;
+  if (authorization) {
+    agent = await agentFromLogin(authorization, url, anonKey, headers);
+    if (!agent) return json({ ok: false, error: "Sesi agen tidak berlaku. Silakan masuk lagi ke portal agen." }, 401);
+  } else if (!(await turnstileOk(body.turnstile_token, secret, request.headers.get("cf-connecting-ip")))) {
     return json({ ok: false, error: "Verifikasi keamanan gagal. Muat ulang halaman lalu coba lagi." }, 400);
   }
-
-  const { url } = getSupabaseConfig(env);
-  const headers = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" };
 
   // The package is looked up by its permanent link, so a shared link keeps working when the package is edited.
   const pkgRes = await fetch(`${url}/rest/v1/packages?select=id&slug=eq.${encodeURIComponent(intake.slug)}&status=eq.published&limit=1`, { headers });
@@ -71,7 +95,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const rpc = await fetch(`${url}/rest/v1/rpc/create_jamaah_intake`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ _payload: { ...rest, package_id: pkg.id } }),
+    body: JSON.stringify({ _payload: { ...rest, package_id: pkg.id, ...(agent ? { ref_code: agent.referral_code, source: "agent" } : {}) } }),
   });
 
   if (!rpc.ok) {

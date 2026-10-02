@@ -5,6 +5,7 @@ import {
   Calendar, 
   Wallet, 
   Palette,
+  UserPlus,
   Trophy,
   User,
   LogOut,
@@ -32,6 +33,12 @@ const navItems = [
     url: "/agent/packages", 
     icon: Package,
     description: "Browse packages"
+  },
+  { 
+    title: "Daftarkan Jamaah", 
+    url: "/agent/daftar-jamaah", 
+    icon: UserPlus,
+    description: "Register your jamaah"
   },
   { 
     title: "Jadwal", 

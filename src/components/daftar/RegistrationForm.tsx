@@ -47,6 +47,8 @@ interface Props {
   /** Sends the form. Throws an Error whose message is shown as is (it is already plain language). */
   submit: (payload: SubmitPayload) => Promise<{ code: string }>;
   whatsappUrl: (message: string) => string;
+  /** Set when an agent registers their own jamaah from the agent portal: no Turnstile, and the success view points back to the portal. */
+  agent?: { name: string; onAnother: () => void };
   onSubmitted?: (info: { code: string; people: number; value: number }) => void;
 }
 
@@ -78,7 +80,7 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
-export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, onSubmitted }: Props) {
+export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, onSubmitted }: Props) {
   const defaultRoom: Room = "quad";
   const [contact, setContact] = useState({ name: "", phone: "", city: "" });
   const [attending, setAttending] = useState(true);
@@ -97,8 +99,8 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, onSubmitte
   const [done, setDone] = useState<{ code: string } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const needTurnstile = true;
-  const siteKeyMissing = !turnstileSiteKey();
+  const needTurnstile = !agent;
+  const siteKeyMissing = needTurnstile && !turnstileSiteKey();
 
   // The first person is the contact until the contact says someone else is travelling.
   useEffect(() => {
@@ -185,6 +187,24 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, onSubmitte
     }
   };
 
+  if (done && agent) {
+    return (
+      <div className="rounded-2xl border bg-white p-6 text-center shadow-sm sm:p-8" role="status">
+        <CheckCircle2 className="mx-auto h-12 w-12 text-status-ok-text" aria-hidden />
+        <h2 className="mt-4 text-2xl font-bold">Pendaftaran terkirim</h2>
+        <p className="mt-2 text-muted-foreground">{people.length} orang atas nama {contact.name.trim()} sudah masuk antrean CS.</p>
+        <div className="mx-auto mt-6 max-w-xs rounded-xl bg-muted px-4 py-3">
+          <p className="text-sm text-muted-foreground">Kode pendaftaran</p>
+          <p className="text-2xl font-bold tracking-wider">{done.code}</p>
+        </div>
+        <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground">
+          CS akan mengecek seat dan menghubungi jamaah lewat WhatsApp. Pantau statusnya di daftar "Pendaftaran saya". Komisi dihitung setelah jamaah lunas.
+        </p>
+        <Button type="button" className="mt-6 h-12 rounded-full px-6 text-base font-bold" onClick={agent.onAnother}>Daftarkan jamaah lain</Button>
+      </div>
+    );
+  }
+
   if (done) {
     const first = people[0]?.name || contact.name;
     const message = `Halo Musafar Tour, saya sudah mengisi form pendaftaran umroh.\nKode: ${done.code}\nNama: ${contact.name}\nPaket: ${pkg.package_name}, berangkat ${fmtDate(pkg.departure_date)}\nJumlah peserta: ${people.length} orang`;
@@ -248,7 +268,11 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, onSubmitte
           <Checkbox checked={attending} onCheckedChange={(c) => toggleAttending(!!c)} />
           Saya sendiri ikut berangkat
         </label>
-        {refCode && <p className="mt-3 text-sm text-muted-foreground">Kamu mendaftar lewat agen resmi Musafar (kode <span className="font-medium text-foreground">{refCode}</span>).</p>}
+        {agent ? (
+          <p className="mt-3 text-sm text-muted-foreground">Pendaftaran ini dicatat atas nama kamu sebagai agen (kode <span className="font-medium text-foreground">{refCode}</span>). Isi data jamaah yang mau kamu daftarkan.</p>
+        ) : (
+          refCode && <p className="mt-3 text-sm text-muted-foreground">Kamu mendaftar lewat agen resmi Musafar (kode <span className="font-medium text-foreground">{refCode}</span>).</p>
+        )}
       </section>
 
       {/* 2. People */}
@@ -401,8 +425,12 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, onSubmitte
       </section>
 
       <div className="space-y-3">
-        <Turnstile onToken={setToken} resetKey={resetKey} />
-        <FieldError id="turnstile-err" message={errors.turnstile} />
+        {needTurnstile && (
+          <>
+            <Turnstile onToken={setToken} resetKey={resetKey} />
+            <FieldError id="turnstile-err" message={errors.turnstile} />
+          </>
+        )}
         {serverError && (
           <Alert variant="destructive" role="alert">
             <AlertCircle className="h-4 w-4" />
