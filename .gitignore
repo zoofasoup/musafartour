@@ -37,3 +37,6 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# One-off patch scripts from past work, kept for reference
+scripts-archive/

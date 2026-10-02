@@ -37,6 +37,13 @@ const NAME = /^[\p{L}\p{M}][\p{L}\p{M}\s.'’\-,]{1,99}$/u;
 /** The passport name must have at least two words (PT's registration requirement 7). */
 const twoWords = (name: string) => name.split(" ").filter((w) => /[\p{L}\p{M}]{1,}/u.test(w)).length >= 2;
 
+/** "semarang" or "SEMARANG" -> "Semarang". Mixed case is left alone, the person probably meant it ("DKI Jakarta"). */
+export function tidyCity(v: string | null): string | null {
+  if (!v) return v;
+  if (v !== v.toLowerCase() && v !== v.toUpperCase()) return v;
+  return v.toLowerCase().replace(/(^|[\s\-.'’])(\p{L})/gu, (_m, sep: string, ch: string) => sep + ch.toUpperCase());
+}
+
 /** 0812..., +62812..., 62812..., 812... -> 62812... (null when it cannot be a mobile number). */
 export function normalizePhone(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
@@ -91,7 +98,7 @@ export function validateIntake(body: unknown): Checked {
       slug,
       contact_name: contactName,
       contact_phone: phone,
-      contact_city: text(b.contact_city, 80),
+      contact_city: tidyCity(text(b.contact_city, 80)),
       contact_attending: b.contact_attending !== false,
       pay_together: b.pay_together === true && people.length > 1,
       ref_code: ref && /^[A-Za-z0-9_-]{2,40}$/.test(ref) ? ref : null,

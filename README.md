@@ -39,6 +39,37 @@ Pastikan Anda sudah menginstal Node.js (versi terbaru) sebelum menjalankan langk
    ```
    Aplikasi akan otomatis terbuka atau bisa diakses melalui `http://localhost:8080/`.
 
+## 🕋 Pendaftaran & Data Jamaah (offline booking)
+
+Booking online (Midtrans) sudah dimatikan. Jamaah didaftarkan lewat form, pembayaran dicatat manual oleh CS dan diverifikasi owner. Semua pembayaran hanya ke rekening PT; aturan: DP minimal Rp 5 jt per orang, cicilan bebas, lunas paling lambat H-30.
+
+**Alur**
+1. **Tahap 1, `/daftar/<slug>`** (publik, Turnstile): jamaah atau agen mengisi kontak dan siapa saja yang berangkat (dewasa / anak non bed / bayi, kamar Quad-Triple-Double). Link agen: `/daftar/<slug>?ref=<kode agen>`. Agen juga mendaftarkan dari portal: `/agent/daftar-jamaah` (login agen menggantikan Turnstile).
+2. **Admin, Data Jamaah → Pendaftaran masuk** (`/admin/jamaah/masuk`): CS memeriksa lalu **Terima** (membuat keluarga + jamaah + harga) atau **Tolak**. Seat dihitung sejak diterima.
+3. **Tahap 2, `/lengkapi/<token>`** (publik, link pribadi dari CS): jamaah melengkapi data sesuai formulir kertas PT (NIK, paspor, kontak darurat, dst.) dan mengunggah KTP/KK, paspor, pasfoto ke bucket privat `jamaah-docs`.
+4. Persyaratan dan Term of Service ada di `/syarat-umroh` (teks dari formulir PT, jangan diubah tanpa persetujuan perusahaan).
+
+**Seat:** `packages.seat_source` menentukan sumbernya. `sheet` memakai angka manual `slots_filled`; `website` menghitung otomatis dari jamaah aktif (`slots_registered`). Lihat `getSlotsTaken` di `src/lib/utils.ts`.
+
+**Peran:** `cs_admin` (CS) mencatat dan menerima; hanya owner (admin/superadmin) yang memverifikasi pembayaran dan menghapus jamaah (Data Jamaah → panel detail → Hapus permanen; ditolak bila ada catatan pembayaran).
+
+**Keamanan:** tabel pendaftaran tidak bisa diakses publik. Form publik dan Tahap 2 lewat Cloudflare Pages Functions (`functions/api/daftar.ts`, `functions/api/lengkapi.ts`) dengan service role; token Tahap 2 adalah satu-satunya kredensial dan hanya bisa dibaca fungsi database yang khusus service role.
+
+**Rahasia & konfigurasi**
+- `.env` (tidak masuk git): `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`, `VITE_TURNSTILE_SITE_KEY`. Isinya dibaca saat server dev dinyalakan, restart setelah mengubahnya.
+- Rahasia di Cloudflare Pages (jangan di `.env`): `SUPABASE_SERVICE_ROLE_KEY`, `TURNSTILE_SECRET_KEY`.
+  ```bash
+  npx wrangler pages secret put TURNSTILE_SECRET_KEY --project-name musafartour
+  ```
+
+**Database (migrasi) dan deploy**: selalu terapkan migrasi **sebelum** deploy, dan pratinjau dulu.
+```bash
+npx supabase db push --dry-run     # lihat apa yang akan diterapkan
+npx supabase db push --yes         # terapkan
+npm run build
+npx wrangler pages deploy dist --project-name musafartour --branch main --commit-dirty=true
+```
+
 ## 🤖 Auto-Article Engine
 
 Pipeline otomatis yang menulis dan menerbitkan artikel `/artikel` tanpa editor manusia, berjalan harian lewat GitHub Actions.
