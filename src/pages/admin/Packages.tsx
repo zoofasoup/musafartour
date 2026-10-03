@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, RefreshCw, Route, History, BadgeCheck } from "lucide-react";
+import { Plus, Edit, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, Images, RefreshCw, Route, History, BadgeCheck } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { PACKAGE_HAS_JAMAAH_MESSAGE, canEditPackages, daysUntilDeparture, departureCountdownLabel, packageStatusBadgeClass, packageStatusLabel } from "@/lib/packageStatus";
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
 import { BulkPackageUpload } from "@/components/admin/BulkPackageUpload";
+import { BulkFlyerUpload } from "@/components/admin/BulkFlyerUpload";
 import { formatNumber, getSlotsTaken, isPackageDeparted } from "@/lib/utils";
 import { ExpandedPackageDetails } from "@/components/admin/ExpandedPackageDetails";
 
@@ -115,6 +116,7 @@ const Packages = () => {
   const [sortDirection, setSortDirection] = useState<SortDirection>(defaultDirection('upcoming'));
   const [selectionMode, setSelectionMode] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [flyerOpen, setFlyerOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const lastSelectedIndex = useRef<number | null>(null);
 
@@ -387,6 +389,10 @@ const Packages = () => {
           <Button variant="outline" size="sm" onClick={() => setImportOpen(true)} className="flex items-center gap-2">
             <FileSpreadsheet className="h-4 w-4" />
             Upload Excel
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setFlyerOpen(true)} className="flex items-center gap-2">
+            <Images className="h-4 w-4" />
+            Upload Flyer
           </Button>
           <Button
             variant="outline"
@@ -697,6 +703,13 @@ const Packages = () => {
       <BulkPackageUpload
         open={importOpen}
         onOpenChange={setImportOpen}
+        onSuccess={fetchPackages}
+      />
+
+      <BulkFlyerUpload
+        open={flyerOpen}
+        onOpenChange={setFlyerOpen}
+        packages={packages}
         onSuccess={fetchPackages}
       />
 
