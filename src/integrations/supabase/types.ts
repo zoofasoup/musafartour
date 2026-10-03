@@ -42,28 +42,34 @@ export type Database = {
       admin_notifications: {
         Row: {
           action_url: string | null
+          archived_at: string | null
           created_at: string
           id: string
           is_read: boolean
           message: string
+          meta: Json | null
           title: string
           type: string
         }
         Insert: {
           action_url?: string | null
+          archived_at?: string | null
           created_at?: string
           id?: string
           is_read?: boolean
           message: string
+          meta?: Json | null
           title: string
           type: string
         }
         Update: {
           action_url?: string | null
+          archived_at?: string | null
           created_at?: string
           id?: string
           is_read?: boolean
           message?: string
+          meta?: Json | null
           title?: string
           type?: string
         }

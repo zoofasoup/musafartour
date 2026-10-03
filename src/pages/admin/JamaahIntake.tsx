@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
@@ -201,6 +202,9 @@ function RejectDialog({ intake, onClose, onDone }: { intake: Intake | null; onCl
 export default function JamaahIntake() {
   const qc = useQueryClient();
   const invalidateJamaah = useInvalidateJamaah();
+  // A notification opens one registration: /admin/jamaah/masuk?intake=<id>.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const targetId = searchParams.get("intake");
   const [status, setStatus] = useState<IntakeStatus>("new");
   const { data: intakes = [], isPending, error, refetch, isFetching } = useIntakes(status);
   const { data: packages = [] } = useJamaahPackages();
@@ -209,6 +213,18 @@ export default function JamaahIntake() {
   const { data: known = [] } = useKnownJamaah(packageIds);
   const [accepting, setAccepting] = useState<Intake | null>(null);
   const [rejecting, setRejecting] = useState<Intake | null>(null);
+
+  // Find the registration: it is in "Menunggu" unless someone already accepted or rejected it, so look through the
+  // other tabs, then bring it into view.
+  useEffect(() => {
+    if (!targetId || isPending || error) return;
+    if (intakes.some((i) => i.id === targetId)) {
+      document.getElementById(`intake-${targetId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    const next: Record<IntakeStatus, IntakeStatus | null> = { new: "accepted", accepted: "rejected", rejected: null };
+    if (next[status]) setStatus(next[status]!);
+  }, [targetId, intakes, isPending, error, status]);
 
   const pkgOf = (id: string) => packages.find((p) => p.id === id);
   const agentName = (id: string | null) => agents.find((a) => a.id === id)?.name;
@@ -225,7 +241,13 @@ export default function JamaahIntake() {
       </div>
       <JamaahViewSwitch active="masuk" />
 
-      <Tabs value={status} onValueChange={(v) => setStatus(v as IntakeStatus)}>
+      <Tabs
+        value={status}
+        onValueChange={(v) => {
+          setStatus(v as IntakeStatus);
+          if (targetId) setSearchParams({}, { replace: true }); // picking a tab ends "show me that one"
+        }}
+      >
         <TabsList aria-label="Status pendaftaran">
           <TabsTrigger value="new">Menunggu</TabsTrigger>
           <TabsTrigger value="accepted">Diterima</TabsTrigger>
@@ -254,7 +276,12 @@ export default function JamaahIntake() {
           const flags = flagsFor(intake, pkg, known);
           const by = agentName(intake.agent_id);
           return (
-            <li key={intake.id} className="rounded-lg border bg-card p-4">
+            <li
+              key={intake.id}
+              id={`intake-${intake.id}`}
+              className={`rounded-lg border bg-card p-4 ${intake.id === targetId ? "ring-2 ring-sky-400" : ""}`}
+              onClick={() => intake.id === targetId && setSearchParams({}, { replace: true })}
+            >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-base font-semibold">
