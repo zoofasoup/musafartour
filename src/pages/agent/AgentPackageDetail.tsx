@@ -119,7 +119,7 @@ const AgentPackageDetail = () => {
       <Star
         key={i}
         className={`h-4 w-4 ${
-          i < count ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"
+          i < count ? "fill-amber text-amber" : "text-muted-foreground"
         }`}
       />
     ));
@@ -153,7 +153,7 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
     await navigator.clipboard.writeText(script);
     setCopiedScript(true);
     toast({
-      title: "Sales script disalin!",
+      title: "Teks promosi disalin!",
       description: "Paste ke WhatsApp atau platform lainnya",
     });
     setTimeout(() => setCopiedScript(false), 2000);
@@ -221,11 +221,11 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
       </Button>
 
       {/* Header */}
-      <div className="rounded-3xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-6 md:p-8">
+      <div className="rounded-3xl bg-gradient-to-r from-primary to-primary text-white p-6 md:p-8">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">{pkg.package_name}</h1>
-            <div className="flex items-center gap-4 mt-2 text-emerald-100">
+            <div className="flex items-center gap-4 mt-2 text-primary-foreground">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 <span>
@@ -254,11 +254,11 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
                 </Link>
               </Button>
               <Button
-                className="bg-emerald-600 hover:bg-emerald-700"
+                className="bg-primary hover:bg-primary/85"
                 onClick={shareToWhatsApp}
               >
                 <Share2 className="h-4 w-4 mr-2" />
-                Share WA
+                Kirim via WhatsApp
               </Button>
               {pkg.catalog_link && (
                 <Button variant="outline" asChild>
@@ -277,20 +277,20 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
                 ) : (
                   <>
                     <Copy className="h-4 w-4 mr-2" />
-                    Copy Script
+                    Salin teks promosi
                   </>
                 )}
               </Button>
               <Button variant="outline" onClick={() => setShareModalOpen(true)}>
                 <Palette className="h-4 w-4 mr-2" />
-                Share Lainnya
+                Bagikan lainnya
               </Button>
             </div>
           </CardContent>
         </Card>
 
         {/* Price & Commission Card */}
-        <Card className="bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-200">
+        <Card className="bg-gradient-to-r from-muted to-muted dark:from-emerald-900/20 dark:to-emerald-800/20 border-border">
           <CardContent className="p-6">
             <div className="grid md:grid-cols-3 gap-6">
               <div>
@@ -300,12 +300,12 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Komisi Anda</p>
-                <p className="text-3xl font-bold text-emerald-600">{formatPrice(commission)}</p>
+                <p className="text-3xl font-bold text-foreground">{formatPrice(commission)}</p>
                 <p className="text-sm text-muted-foreground">per pax</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Potensi 10 Pax</p>
-                <p className="text-3xl font-bold text-emerald-600">{formatPrice(commission * 10)}</p>
+                <p className="text-3xl font-bold text-foreground">{formatPrice(commission * 10)}</p>
                 <p className="text-sm text-muted-foreground">total komisi</p>
               </div>
             </div>
@@ -367,7 +367,7 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
             <div className="grid md:grid-cols-2 gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2 text-emerald-600">
+                  <CardTitle className="text-lg flex items-center gap-2 text-foreground">
                     <Check className="h-5 w-5" />
                     Termasuk
                   </CardTitle>
@@ -377,7 +377,7 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
                     <ul className="space-y-2">
                       {includedItems.map((item, i) => (
                         <li key={i} className="flex items-start gap-2">
-                          <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                          <Check className="h-4 w-4 text-foreground shrink-0 mt-0.5" />
                           <span className="text-sm">{item}</span>
                         </li>
                       ))}
@@ -390,7 +390,7 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2 text-red-600">
+                  <CardTitle className="text-lg flex items-center gap-2 text-destructive">
                     <X className="h-5 w-5" />
                     Tidak Termasuk
                   </CardTitle>
@@ -400,7 +400,7 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
                     <ul className="space-y-2">
                       {excludedItems.map((item, i) => (
                         <li key={i} className="flex items-start gap-2">
-                          <X className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                          <X className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
                           <span className="text-sm">{item}</span>
                         </li>
                       ))}
@@ -425,12 +425,12 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
                 {pkg.itinerary_link ? (
                   <div className="space-y-4">
                     <p className="text-muted-foreground">
-                      Download itinerary lengkap untuk melihat jadwal perjalanan hari per hari.
+                      Unduh itinerary lengkap untuk melihat jadwal perjalanan hari per hari.
                     </p>
                     <Button asChild>
                       <a href={pkg.itinerary_link} target="_blank" rel="noopener noreferrer">
                         <FileText className="h-4 w-4 mr-2" />
-                        Download Itinerary PDF
+                        Unduh Itinerary PDF
                       </a>
                     </Button>
                   </div>
@@ -526,7 +526,7 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
           <TabsContent value="materials">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Download Materi Promosi</CardTitle>
+                <CardTitle className="text-lg">Unduh Materi Promosi</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-3">
@@ -541,7 +541,7 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
                       </div>
                       <Button size="sm" asChild>
                         <a href={pkg.catalog_link} target="_blank" rel="noopener noreferrer">
-                          Download
+                          Unduh
                         </a>
                       </Button>
                     </div>
@@ -558,7 +558,7 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
                       </div>
                       <Button size="sm" asChild>
                         <a href={pkg.itinerary_link} target="_blank" rel="noopener noreferrer">
-                          Download
+                          Unduh
                         </a>
                       </Button>
                     </div>

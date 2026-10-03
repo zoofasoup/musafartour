@@ -104,8 +104,8 @@ const AgentRegister = () => {
       <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
         <Card className="w-full max-w-md border-border/50 shadow-xl">
           <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+            <div className="mx-auto w-16 h-16 bg-muted dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="h-8 w-8 text-foreground dark:text-green-400" />
             </div>
             <CardTitle className="text-2xl">Pendaftaran Berhasil!</CardTitle>
             <CardDescription className="text-base mt-2">

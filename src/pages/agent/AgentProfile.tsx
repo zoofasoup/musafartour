@@ -298,15 +298,15 @@ const AgentProfile = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200"><CheckCircle2 className="h-3 w-3 mr-1" />Konfirmasi</Badge>;
+        return <Badge variant="outline" className="bg-status-ok-bg text-status-ok-fg border-status-ok-border"><CheckCircle2 className="h-3 w-3 mr-1" />Konfirmasi</Badge>;
       case 'pending':
-        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
+        return <Badge variant="outline" className="bg-status-warn-bg text-status-warn-fg border-status-warn-border"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
       case 'paid':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200"><DollarSign className="h-3 w-3 mr-1" />Dibayar</Badge>;
+        return <Badge variant="outline" className="bg-status-info-bg text-status-info-fg border-status-info-border"><DollarSign className="h-3 w-3 mr-1" />Dibayar</Badge>;
       case 'processed':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200"><Check className="h-3 w-3 mr-1" />Diproses</Badge>;
+        return <Badge variant="outline" className="bg-status-info-bg text-status-info-fg border-status-info-border"><Check className="h-3 w-3 mr-1" />Diproses</Badge>;
       case 'rejected':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200"><AlertTriangle className="h-3 w-3 mr-1" />Ditolak</Badge>;
+        return <Badge variant="outline" className="bg-status-bad-bg text-status-bad-fg border-status-bad-border"><AlertTriangle className="h-3 w-3 mr-1" />Ditolak</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -399,10 +399,10 @@ const AgentProfile = () => {
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <p className="text-2xl font-bold text-foreground">{agent.total_sales}</p>
-                <p className="text-sm text-muted-foreground">Total Sales</p>
+                <p className="text-sm text-muted-foreground">Jamaah lunas</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-emerald-600">{formatCurrency(agent.total_commission)}</p>
+                <p className="text-2xl font-bold text-foreground">{formatCurrency(agent.total_commission)}</p>
                 <p className="text-sm text-muted-foreground">Total Komisi</p>
               </div>
               <div>
@@ -828,7 +828,7 @@ const AgentProfile = () => {
                         </div>
                         <div className="text-right ml-4">
                           {getStatusBadge(sale.status)}
-                          <p className="text-sm font-medium text-emerald-600 mt-1">
+                          <p className="text-sm font-medium text-foreground mt-1">
                             +{formatCurrency(sale.commission_amount)}
                           </p>
                         </div>

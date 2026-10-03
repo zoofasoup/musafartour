@@ -287,17 +287,17 @@ const AgentCommission = () => {
     switch (status) {
       case 'paid':
       case 'completed':
-        return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Dibayar</Badge>;
+        return <Badge variant="outline" className="bg-status-ok-bg text-status-ok-fg border-status-ok-border">Dibayar</Badge>;
       case 'confirmed':
-        return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Terkonfirmasi</Badge>;
+        return <Badge variant="outline" className="bg-status-ok-bg text-status-ok-fg border-status-ok-border">Terkonfirmasi</Badge>;
       case 'pending':
-        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Pending</Badge>;
+        return <Badge variant="outline" className="bg-status-warn-bg text-status-warn-fg border-status-warn-border">Pending</Badge>;
       case 'processing':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Diproses</Badge>;
+        return <Badge variant="outline" className="bg-status-info-bg text-status-info-fg border-status-info-border">Diproses</Badge>;
       case 'rejected':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Ditolak</Badge>;
+        return <Badge variant="outline" className="bg-status-bad-bg text-status-bad-fg border-status-bad-border">Ditolak</Badge>;
       case 'cancelled':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Dibatalkan</Badge>;
+        return <Badge variant="outline" className="bg-status-bad-bg text-status-bad-fg border-status-bad-border">Dibatalkan</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -341,7 +341,7 @@ const AgentCommission = () => {
             label="Bisa Ditarik"
             value={formatCurrency(availableBalance)}
             helper={<span className="text-muted-foreground">Saldo tersedia</span>}
-            className="border-emerald-200 bg-emerald-50/50"
+            className="border-border bg-muted/50"
           />
           <AgentStatCard
             icon={CheckCircle}
@@ -391,7 +391,7 @@ const AgentCommission = () => {
                 </div>
                 <Button 
                   onClick={() => setShowWithdrawModal(true)}
-                  className="bg-emerald-600 hover:bg-emerald-700"
+                  className="bg-primary hover:bg-primary/85"
                 >
                   <Wallet className="mr-2 h-4 w-4" />
                   Tarik Saldo
@@ -478,7 +478,7 @@ const AgentCommission = () => {
                             <TableCell>{sale.customer_name}</TableCell>
                             <TableCell className="max-w-[150px] truncate">{sale.package_name}</TableCell>
                             <TableCell className="text-right">{formatCurrency(sale.sale_amount)}</TableCell>
-                            <TableCell className="text-right font-medium text-emerald-600">
+                            <TableCell className="text-right font-medium text-foreground">
                               {formatCurrency(sale.commission_amount)}
                             </TableCell>
                             <TableCell>{getStatusBadge(sale.status)}</TableCell>
@@ -549,7 +549,7 @@ const AgentCommission = () => {
                             <TableCell>{sale.customer_name}</TableCell>
                             <TableCell className="max-w-[150px] truncate">{sale.package_name}</TableCell>
                             <TableCell className="text-right">{formatCurrency(sale.sale_amount)}</TableCell>
-                            <TableCell className="text-right font-medium text-emerald-600">
+                            <TableCell className="text-right font-medium text-foreground">
                               {formatCurrency(sale.commission_amount)}
                             </TableCell>
                             <TableCell>{getStatusBadge(sale.status)}</TableCell>
@@ -628,7 +628,7 @@ const AgentCommission = () => {
           <div className="space-y-4">
             <div>
               <Label>Saldo Tersedia</Label>
-              <p className="text-2xl font-bold text-emerald-600">{formatCurrency(availableBalance)}</p>
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(availableBalance)}</p>
             </div>
 
             <div>
@@ -658,7 +658,7 @@ const AgentCommission = () => {
             <Button 
               onClick={handleWithdraw}
               disabled={withdrawMutation.isPending}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-primary hover:bg-primary/85"
             >
               {withdrawMutation.isPending ? (
                 <>

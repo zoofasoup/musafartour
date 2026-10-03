@@ -179,7 +179,7 @@ const AgentPackages = () => {
       <Star
         key={i}
         className={`h-4 w-4 ${
-          i < count ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"
+          i < count ? "fill-amber text-amber" : "text-muted-foreground"
         }`}
       />
     ));
@@ -288,10 +288,10 @@ const AgentPackages = () => {
                           variant="outline"
                           className={
                             slotStatus.color === "success"
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              ? "bg-muted text-foreground border-border"
                               : slotStatus.color === "warning"
-                              ? "bg-amber-50 text-amber-700 border-amber-200"
-                              : "bg-red-50 text-red-700 border-red-200"
+                              ? "bg-status-warn-bg text-status-warn-fg border-status-warn-border"
+                              : "bg-status-bad-bg text-status-bad-fg border-status-bad-border"
                           }
                         >
                           {slotStatus.label}
@@ -320,7 +320,7 @@ const AgentPackages = () => {
                         {formatPrice(lowestPrice)}
                         <span className="text-sm font-normal text-muted-foreground">/pax</span>
                       </div>
-                      <div className="text-emerald-600 font-semibold flex items-center gap-1.5">
+                      <div className="text-foreground font-semibold flex items-center gap-1.5">
                         <Wallet className="h-4 w-4" />
                         Komisi: {formatPrice(commission)}
                       </div>
@@ -334,7 +334,7 @@ const AgentPackages = () => {
                           <div>
                             <span className="font-medium">Makkah:</span> {pkg.makkah_hotel_name}
                             {pkg.makkah_hotel_star && (
-                              <span className="text-yellow-600"> ({pkg.makkah_hotel_star}⭐)</span>
+                              <span className="text-status-warn-fg"> ({pkg.makkah_hotel_star}⭐)</span>
                             )}
                             {pkg.makkah_distance && (
                               <span className="text-muted-foreground"> - {pkg.makkah_distance}</span>
@@ -348,7 +348,7 @@ const AgentPackages = () => {
                           <div>
                             <span className="font-medium">Madinah:</span> {pkg.madinah_hotel_name}
                             {pkg.madinah_hotel_star && (
-                              <span className="text-yellow-600"> ({pkg.madinah_hotel_star}⭐)</span>
+                              <span className="text-status-warn-fg"> ({pkg.madinah_hotel_star}⭐)</span>
                             )}
                           </div>
                         </div>
@@ -397,11 +397,11 @@ const AgentPackages = () => {
                       </Button>
                       <Button
                         variant="outline"
-                        className="w-full border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+                        className="w-full border-foreground text-foreground hover:bg-muted"
                         onClick={() => handleShare(pkg)}
                       >
                         <Share2 className="h-4 w-4 mr-2" />
-                        Share Paket
+                        Bagikan Paket
                       </Button>
                       {pkg.catalog_link && (
                         <Button

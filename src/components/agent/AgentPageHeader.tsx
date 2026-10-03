@@ -19,7 +19,7 @@ export function AgentPageHeader({ title, description, icon: Icon, action }: Agen
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
       <div className="flex items-center gap-3 min-w-0">
         {Icon && (
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
             <Icon className="h-5 w-5" />
           </span>
         )}

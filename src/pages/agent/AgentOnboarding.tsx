@@ -368,7 +368,7 @@ const AgentOnboarding = () => {
             </CardContent>
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 border-t pt-6">
               <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <CheckCircle2 className="h-4 w-4 text-foreground" />
                 Data Anda aman & terenkripsi
               </p>
               <Button type="submit" disabled={loading || uploading} className="w-full sm:w-auto min-w-[200px]">

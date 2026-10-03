@@ -54,7 +54,7 @@ const navItems = [
     icon: Wallet,
   },
   { 
-    title: "Leaderboard", 
+    title: "Peringkat", 
     url: "/agent/leaderboard", 
     icon: Trophy,
   },
@@ -97,11 +97,11 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex w-full">
+    <div className="min-h-screen bg-muted flex w-full">
       {/* Open on wide screens so the menu is there when an agent lands; phones keep the slide-in menu. */}
       <SidebarProvider defaultOpen={typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches}>
-        <Sidebar className="border-r border-slate-100 bg-white">
-          <SidebarHeader className="p-4 border-b border-slate-100 h-[72px] flex items-center justify-center">
+        <Sidebar className="border-r border-border bg-muted">
+          <SidebarHeader className="p-4 border-b border-border h-[72px] flex items-center justify-center">
             <Link to="/agent/dashboard" className="flex items-center gap-2 transition-transform hover:scale-105">
               <img src={musafarLogo} alt="Musafar Tour" className="h-8 w-auto" />
               <span className="font-bold text-xl text-primary hidden sm:inline-block">Agent</span>
@@ -121,14 +121,14 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
                           asChild
                           className={`transition-all duration-300 ease-in-out rounded-lg ${
                             active
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                              ? "bg-card text-foreground shadow-sm"
+                              : "text-muted-foreground hover:bg-field-hover hover:text-foreground"
                           }`}
                           tooltip={item.title}
                         >
                           <Link to={item.url}>
-                            <Icon className={`h-4 w-4 ${active ? "text-emerald-600" : ""}`} />
-                            <span className={active ? "font-semibold text-slate-900" : "font-medium"}>{item.title}</span>
+                            <Icon className={`h-4 w-4 ${active ? "text-foreground" : ""}`} />
+                            <span className={active ? "font-semibold text-foreground" : "font-medium"}>{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -140,11 +140,11 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
           </SidebarContent>
 
           <SidebarFooter className="p-4">
-            <Link to="/agent/profile" className="px-2 mb-4 flex flex-col hover:bg-slate-100 p-2 rounded-lg transition-all duration-300 ease-in-out cursor-pointer group">
-              <p className="text-sm font-semibold text-slate-700 truncate w-full group-hover:text-slate-900">
+            <Link to="/agent/profile" className="px-2 mb-4 flex flex-col hover:bg-field-hover p-2 rounded-lg transition-all duration-300 ease-in-out cursor-pointer group">
+              <p className="text-sm font-semibold text-foreground/80 truncate w-full group-hover:text-foreground">
                 {agent.name}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Level {agentLevelLabel(agent.level)}
               </p>
             </Link>
@@ -153,7 +153,7 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
                 <SidebarMenuButton
                   onClick={handleSignOut}
                   tooltip="Keluar"
-                  className="text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-300 ease-in-out"
+                  className="text-muted-foreground hover:text-destructive hover:bg-status-bad-bg rounded-lg transition-all duration-300 ease-in-out"
                 >
                   <LogOut className="h-4 w-4" />
                   <span className="font-medium">Keluar</span>
@@ -165,7 +165,7 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
 
         {/* min-w-0: a flex child never shrinks below its content, so one wide table or calendar widened the whole page on phones. */}
         <div className="min-w-0 flex-1 h-svh p-2 sm:p-4">
-          <main className="h-full w-full overflow-auto bg-[#F8FAFC] flex flex-col rounded-3xl border border-slate-100/60 relative shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
+          <main className="h-full w-full overflow-auto bg-[#F8FAFC] flex flex-col rounded-3xl border border-border/60 relative shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
             <AgentHeader />
             <div className="p-4 sm:p-6 md:p-8 flex-1">
               <Suspense

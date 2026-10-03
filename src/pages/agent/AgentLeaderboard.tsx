@@ -186,7 +186,7 @@ export default function AgentLeaderboard() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto w-full pb-20 md:pb-6">
       <AgentPageHeader
-        title="Leaderboard & Gamification"
+        title="Peringkat Agen"
         description="Raih prestasi, kumpulkan badge, dan tukar rewards!"
         icon={Trophy}
       />
@@ -199,9 +199,9 @@ export default function AgentLeaderboard() {
               <div className="flex items-center gap-4">
                 <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/20">
                   {myRank >= 0 && myRank < 3 ? (
-                    myRank === 0 ? <Trophy className="h-6 w-6 text-yellow-500" /> :
+                    myRank === 0 ? <Trophy className="h-6 w-6 text-status-warn-fg" /> :
                     myRank === 1 ? <Medal className="h-6 w-6 text-slate-400" /> :
-                    <Medal className="h-6 w-6 text-amber-600" />
+                    <Medal className="h-6 w-6 text-status-warn-fg" />
                   ) : (
                     <span className="text-lg font-bold text-primary">#{myRank >= 0 ? myRank + 1 : '--'}</span>
                   )}
@@ -232,7 +232,7 @@ export default function AgentLeaderboard() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-yellow-500" />
+                <Trophy className="h-5 w-5 text-status-warn-fg" />
                 Leaderboard
               </CardTitle>
               <CardDescription>Agen dengan jamaah lunas terbanyak</CardDescription>
@@ -264,16 +264,16 @@ export default function AgentLeaderboard() {
                 >
                   <div className="flex items-center justify-center w-10 h-10 rounded-full shrink-0">
                     {index === 0 ? (
-                      <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                        <Trophy className="h-5 w-5 text-yellow-500" />
+                      <div className="w-10 h-10 rounded-full bg-amber/20 flex items-center justify-center">
+                        <Trophy className="h-5 w-5 text-status-warn-fg" />
                       </div>
                     ) : index === 1 ? (
-                      <div className="w-10 h-10 rounded-full bg-slate-400/20 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-muted-foreground/20 flex items-center justify-center">
                         <Medal className="h-5 w-5 text-slate-400" />
                       </div>
                     ) : index === 2 ? (
-                      <div className="w-10 h-10 rounded-full bg-amber-600/20 flex items-center justify-center">
-                        <Medal className="h-5 w-5 text-amber-600" />
+                      <div className="w-10 h-10 rounded-full bg-status-warn-fg/20 flex items-center justify-center">
+                        <Medal className="h-5 w-5 text-status-warn-fg" />
                       </div>
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
@@ -347,7 +347,7 @@ export default function AgentLeaderboard() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-orange-500" />
+            <Target className="h-5 w-5 text-status-warn-fg" />
             Challenges Bulan Ini
           </CardTitle>
           <CardDescription>Selesaikan tantangan dan dapatkan reward ekstra!</CardDescription>
@@ -363,13 +363,13 @@ export default function AgentLeaderboard() {
               const isCompleted = progress?.completed_at != null;
 
               return (
-                <Card key={challenge.id} className={isCompleted ? 'border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-950/20' : ''}>
+                <Card key={challenge.id} className={isCompleted ? 'border-status-ok-border bg-status-ok-bg/50' : ''}>
                   <CardContent className="pt-4">
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h4 className="font-semibold flex items-center gap-2">
                           {challenge.title}
-                          {isCompleted && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+                          {isCompleted && <CheckCircle2 className="h-4 w-4 text-status-ok-fg" />}
                         </h4>
                         <p className="text-sm text-muted-foreground">{challenge.description}</p>
                       </div>
@@ -409,7 +409,7 @@ export default function AgentLeaderboard() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Award className="h-5 w-5 text-purple-500" />
+            <Award className="h-5 w-5 text-status-over-fg" />
             Badges & Achievements
           </CardTitle>
           <CardDescription>
@@ -502,7 +502,7 @@ export default function AgentLeaderboard() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-yellow-500" />
+            <Star className="h-5 w-5 text-status-warn-fg" />
             Agent Levels
           </CardTitle>
           <CardDescription>Tingkatkan level untuk unlock benefit lebih besar</CardDescription>
@@ -584,7 +584,7 @@ export default function AgentLeaderboard() {
                 <ul className="space-y-1">
                   {level.benefits?.map((benefit, i) => (
                     <li key={i} className="text-xs text-muted-foreground flex items-start gap-1">
-                      <CheckCircle2 className="h-3 w-3 text-emerald-500 mt-0.5 shrink-0" />
+                      <CheckCircle2 className="h-3 w-3 text-foreground mt-0.5 shrink-0" />
                       {benefit}
                     </li>
                   ))}
@@ -601,7 +601,7 @@ export default function AgentLeaderboard() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Gift className="h-5 w-5 text-pink-500" />
+                <Gift className="h-5 w-5 text-status-over-fg" />
                 Rewards Store
               </CardTitle>
               <CardDescription>Tukarkan poin kamu dengan hadiah menarik</CardDescription>

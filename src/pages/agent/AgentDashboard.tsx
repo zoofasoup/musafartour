@@ -65,14 +65,14 @@ const AgentDashboard = () => {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
-      <Card className="border-0 bg-gradient-to-r from-emerald-700 to-emerald-600 text-white">
+      <Card className="border-0 bg-gradient-to-r from-primary to-primary text-white">
         <CardContent className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-bold">Halo, {firstName}</h1>
               <Badge className={`${AGENT_LEVEL_COLORS[level]} gap-1 text-white`}><Award className="h-3.5 w-3.5" aria-hidden />{AGENT_LEVEL_LABELS[level]}</Badge>
             </div>
-            <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-emerald-50">
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-primary-foreground">
               <span>Kode referral kamu:</span>
               <span className="inline-flex items-center gap-1">
                 <code className="rounded bg-white/15 px-1.5 py-0.5 font-mono font-bold">{agent.referral_code}</code>
@@ -83,7 +83,7 @@ const AgentDashboard = () => {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button asChild className={`h-11 gap-2 bg-white font-semibold text-emerald-800 hover:bg-emerald-50`}>
+            <Button asChild className={`h-11 gap-2 bg-white font-semibold text-foreground hover:bg-muted`}>
               <Link to="/agent/daftar-jamaah"><UserPlus className="h-4 w-4" aria-hidden /> Daftarkan jamaah</Link>
             </Button>
             <Button type="button" variant="outline" className="h-11 gap-2 border-white/40 bg-transparent text-white hover:bg-white/15 hover:text-white" onClick={() => copy(`${window.location.origin}/r/${agent.referral_code}`, "Link disalin. Kirim ke calon jamaah, pendaftarannya tercatat atas namamu.")}>
@@ -99,7 +99,7 @@ const AgentDashboard = () => {
         <AgentStatCard icon={Users} label="Jamaah aktif" value={jamaah.isPending ? "…" : active.length} helper={<span className="text-muted-foreground">{list.filter((j) => j.pay_state === "lunas").length} sudah lunas</span>} />
         <AgentStatCard icon={Clock} label="Belum lunas" value={jamaah.isPending ? "…" : owing.length} helper={<span className="text-muted-foreground">Sisa {juta(owed)}</span>} />
         <AgentStatCard icon={Sparkles} label="Komisi menunggu" value={jamaah.isPending ? "…" : juta(held)} helper={<span className="text-muted-foreground">Masuk saat jamaah lunas</span>} />
-        <AgentStatCard icon={Wallet} label="Saldo komisi" value={formatCurrency(Number(agent.available_balance))} helper={<Link to="/agent/commission" className="inline-block py-2 font-medium text-emerald-700 underline-offset-2 hover:underline">Lihat dan tarik komisi</Link>} />
+        <AgentStatCard icon={Wallet} label="Saldo komisi" value={formatCurrency(Number(agent.available_balance))} helper={<Link to="/agent/commission" className="inline-block py-2 font-medium text-foreground underline-offset-2 hover:underline">Lihat dan tarik komisi</Link>} />
       </div>
 
       <Card>
@@ -141,7 +141,7 @@ const AgentDashboard = () => {
           )}
           {waitingCs > 0 && (
             <p className="mt-3 text-sm text-muted-foreground">
-              {waitingCs} pendaftaran masih menunggu dicek CS. <Link to="/agent/jamaah" className="inline-block py-3 font-medium text-emerald-700 underline-offset-2 hover:underline">Lihat statusnya</Link>
+              {waitingCs} pendaftaran masih menunggu dicek CS. <Link to="/agent/jamaah" className="inline-block py-3 font-medium text-foreground underline-offset-2 hover:underline">Lihat statusnya</Link>
             </p>
           )}
           <Button asChild variant="outline" className={`mt-4 ${TOUCH_H}`}><Link to="/agent/jamaah">Semua jamaah saya</Link></Button>
@@ -155,7 +155,7 @@ const AgentDashboard = () => {
         <CardContent className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-lg border p-3">
             {leaderboardLoading ? <Skeleton className="h-10 w-full" /> : leaderboard?.rank ? (
-              <p className="font-semibold">Peringkat <span className="text-xl text-emerald-700">#{leaderboard.rank}</span> <span className="text-sm font-normal text-muted-foreground">dari {leaderboard.totalAgents} agen</span></p>
+              <p className="font-semibold">Peringkat <span className="text-xl text-foreground">#{leaderboard.rank}</span> <span className="text-sm font-normal text-muted-foreground">dari {leaderboard.totalAgents} agen</span></p>
             ) : (
               <p className="text-muted-foreground">Belum ada peringkat</p>
             )}

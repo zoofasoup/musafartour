@@ -231,7 +231,7 @@ const AgentMarketingKit = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('Download dimulai...');
+    toast.success('Unduhan dimulai...');
   };
 
   const handleCreateLink = () => {
@@ -268,7 +268,7 @@ const AgentMarketingKit = () => {
     <div className="max-w-6xl mx-auto space-y-6">
       <AgentPageHeader
         title="Marketing Kit"
-        description="Download materi promosi dan tools untuk meningkatkan penjualan"
+        description="Unduh materi promosi dan alat bantu untuk menarik calon jamaah"
         icon={Palette}
       />
 
@@ -339,8 +339,8 @@ const AgentMarketingKit = () => {
                 <Card>
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-4">
-                      <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center shrink-0">
-                        <MessageSquare className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                      <div className="h-12 w-12 bg-status-info-bg dark:bg-blue-900/30 rounded-lg flex items-center justify-center shrink-0">
+                        <MessageSquare className="h-6 w-6 text-status-info-fg dark:text-blue-400" />
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold">Sales Script WhatsApp</h3>
@@ -383,7 +383,7 @@ const AgentMarketingKit = () => {
                           {copiedId === `caption-${index}` ? (
                             <><Check className="h-4 w-4 mr-1" /> Disalin</>
                           ) : (
-                            <><Copy className="h-4 w-4 mr-1" /> Copy</>
+                            <><Copy className="h-4 w-4 mr-1" /> Salin</>
                           )}
                         </Button>
                       </div>
@@ -657,7 +657,7 @@ const AgentMarketingKit = () => {
                       {copiedId === `script-${script.id}` ? (
                         <><Check className="h-4 w-4 mr-1" /> Disalin</>
                       ) : (
-                        <><Copy className="h-4 w-4 mr-1" /> Copy</>
+                        <><Copy className="h-4 w-4 mr-1" /> Salin</>
                       )}
                     </Button>
                   </div>

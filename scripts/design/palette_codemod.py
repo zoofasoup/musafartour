@@ -54,6 +54,13 @@ def semantic(kind, prop, shade, op, area):
     light = s <= 100
     if prop in ("text", "fill", "stroke") and kind != "warn" and 300 <= s <= 400:
         return None, op        # light tints on dark surfaces (footer, hero): keep
+    if area == "agent" and kind == "ok":
+        # the old portal accent was decoration (icons, active menu, hero), not "success": it becomes neutral or primary
+        if prop in ("bg", "from", "to", "via"):
+            return ("muted" if s <= 100 else "border" if s <= 200 else "primary"), op
+        if prop in ("text", "fill", "stroke", "decoration", "caret", "accent", "placeholder"):
+            return ("primary-foreground" if s <= 200 else "foreground"), op
+        return ("border" if s <= 300 else "foreground"), op
     if kind == "warn" and prop in ("text", "fill") and s <= 400:
         return "amber", op                         # stars and soft highlights
     if kind == "warn" and prop == "bg" and 300 <= s <= 500:

@@ -30,9 +30,9 @@ const fmt = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
 /** Anything not yet defined anywhere in the site's own content - flagged instead of guessed, so an agent never repeats a made-up number to a jamaah. */
 function TbdCallout({ children }: { children: React.ReactNode }) {
   return (
-    <Alert className="border-amber-200 bg-amber-50 text-amber-900 [&>svg]:text-amber-600">
+    <Alert className="border-status-warn-border bg-status-warn-bg text-status-warn-fg [&>svg]:text-status-warn-fg">
       <AlertTriangle className="h-4 w-4" />
-      <AlertDescription className="text-amber-900">{children}</AlertDescription>
+      <AlertDescription className="text-status-warn-fg">{children}</AlertDescription>
     </Alert>
   );
 }
@@ -214,7 +214,7 @@ const AgentSalesGuide = () => {
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <div>
-              <p className="font-bold text-emerald-600 text-xs uppercase mb-2 flex items-center gap-1.5">
+              <p className="font-bold text-foreground text-xs uppercase mb-2 flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5" /> Termasuk
               </p>
               <p className="text-muted-foreground">Tiket PP, Visa, Hotel Fullboard, Makan 3x sehari, Handling, Manasik, City Tour, Transportasi, Tour Leader, Muthowwif, Perlengkapan, Transmitter, Al Baik, Air Zam-zam 5L.</p>
@@ -279,7 +279,7 @@ const AgentSalesGuide = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
             {PERLENGKAPAN.map((item) => (
               <div key={item} className="flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-foreground shrink-0" />
                 {item}
               </div>
             ))}

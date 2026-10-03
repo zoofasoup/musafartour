@@ -240,19 +240,19 @@ const AgentSchedule = () => {
     switch (status) {
       case 'open':
         return (
-          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+          <Badge variant="outline" className="bg-status-ok-bg text-status-ok-fg border-status-ok-border">
             Open ({remaining} seats)
           </Badge>
         );
       case 'almost-full':
         return (
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+          <Badge variant="outline" className="bg-status-warn-bg text-status-warn-fg border-status-warn-border">
             Almost Full ({remaining} seats)
           </Badge>
         );
       case 'full':
         return (
-          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+          <Badge variant="outline" className="bg-status-bad-bg text-status-bad-fg border-status-bad-border">
             Full Booked
           </Badge>
         );
@@ -280,7 +280,7 @@ const AgentSchedule = () => {
               <span className="text-sm text-muted-foreground">
                 Harga: {formatCurrency(price)}
               </span>
-              <span className="text-sm text-emerald-600 font-medium">
+              <span className="text-sm text-foreground font-medium">
                 Komisi: {formatCurrency(commission)}
               </span>
             </div>
@@ -330,7 +330,7 @@ const AgentSchedule = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Komisi</p>
-                  <p className="font-bold text-lg text-emerald-600">
+                  <p className="font-bold text-lg text-foreground">
                     {formatCurrency(commission)}
                   </p>
                 </div>
@@ -712,15 +712,15 @@ const AgentSchedule = () => {
                             key={i}
                             className={cn(
                               "w-1.5 h-1.5 rounded-full",
-                              status === 'open' && "bg-emerald-500",
-                              status === 'almost-full' && "bg-amber-500",
-                              status === 'full' && "bg-red-500"
+                              status === 'open' && "bg-status-ok-fg",
+                              status === 'almost-full' && "bg-amber",
+                              status === 'full' && "bg-destructive"
                             )}
                           />
                         );
                       })}
                       {dayPackages.length > 3 && (
-                        <span className="text-[10px] text-muted-foreground">+{dayPackages.length - 3}</span>
+                        <span className="text-xs text-muted-foreground">+{dayPackages.length - 3}</span>
                       )}
                     </div>
                   )}
@@ -732,15 +732,15 @@ const AgentSchedule = () => {
           {/* Legend */}
           <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+              <div className="w-2 h-2 rounded-full bg-primary" />
               <span className="text-xs text-muted-foreground">Open</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-amber-500" />
+              <div className="w-2 h-2 rounded-full bg-amber" />
               <span className="text-xs text-muted-foreground">Almost Full</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-red-500" />
+              <div className="w-2 h-2 rounded-full bg-destructive" />
               <span className="text-xs text-muted-foreground">Full</span>
             </div>
           </div>
