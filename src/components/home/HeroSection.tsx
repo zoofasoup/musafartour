@@ -20,8 +20,8 @@ export const HeroSection = (_props: HeroSectionProps) => {
   };
 
   return (
-    <section className="w-full p-3 md:p-4">
-      <div className="relative mx-auto flex w-full max-w-[1600px] flex-col overflow-hidden rounded-2xl bg-primary md:h-[calc(100svh-2rem)] md:max-h-[880px] md:min-h-[640px] md:justify-end">
+    <section className="w-full">
+      <div className="relative flex w-full flex-col overflow-hidden bg-primary md:h-svh md:min-h-[640px] md:justify-end">
         {/* Team photo. Phone: whole photo on top, fading into the dark block. Desktop: fills the frame, message sits on the desk */}
         <div className="relative aspect-[4/3] w-full md:absolute md:inset-0 md:aspect-auto">
           <img
@@ -31,7 +31,7 @@ export const HeroSection = (_props: HeroSectionProps) => {
             alt="Tim Musafar Tour menyambut jamaah di kantor"
             width={1920}
             height={1440}
-            className="absolute inset-0 h-full w-full object-cover md:object-[50%_75%]"
+            className="absolute inset-0 h-full w-full object-cover md:object-[50%_60%]"
             loading="eager"
             decoding="async"
             {...{ fetchpriority: "high" }}
