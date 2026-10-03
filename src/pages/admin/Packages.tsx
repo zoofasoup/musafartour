@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, RefreshCw, Route, History, BadgeCheck } from "lucide-react";
+import { Plus, Edit, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, Images, RefreshCw, Route, History, BadgeCheck } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
-import { PACKAGE_HAS_JAMAAH_MESSAGE, canEditPackages, daysUntilDeparture, packageStatusBadgeClass, packageStatusLabel } from "@/lib/packageStatus";
+import { PACKAGE_HAS_JAMAAH_MESSAGE, canEditPackages, daysUntilDeparture, departureCountdownLabel, packageStatusBadgeClass, packageStatusLabel } from "@/lib/packageStatus";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PackageChangeLog } from "@/components/admin/PackageChangeLog";
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
 import { BulkPackageUpload } from "@/components/admin/BulkPackageUpload";
+import { BulkFlyerUpload } from "@/components/admin/BulkFlyerUpload";
 import { formatNumber, getSlotsTaken, isPackageDeparted } from "@/lib/utils";
 import { ExpandedPackageDetails } from "@/components/admin/ExpandedPackageDetails";
 
@@ -115,6 +116,7 @@ const Packages = () => {
   const [sortDirection, setSortDirection] = useState<SortDirection>(defaultDirection('upcoming'));
   const [selectionMode, setSelectionMode] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [flyerOpen, setFlyerOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const lastSelectedIndex = useRef<number | null>(null);
 
@@ -388,6 +390,10 @@ const Packages = () => {
             <FileSpreadsheet className="h-4 w-4" />
             Upload Excel
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setFlyerOpen(true)} className="flex items-center gap-2">
+            <Images className="h-4 w-4" />
+            Upload Flyer
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -593,7 +599,7 @@ const Packages = () => {
                               <div className="flex flex-col">
                                 <span className="font-medium whitespace-nowrap">{format(new Date(pkg.departure_date), "dd MMM yyyy")}</span>
                                 <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                  {daysLeft > 0 ? `H-${daysLeft}` : daysLeft === 0 ? "Berangkat hari ini" : `${-daysLeft} hari lalu`}
+                                  {departureCountdownLabel(daysLeft)}
                                 </span>
                               </div>
                               <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border text-xs font-semibold whitespace-nowrap">
@@ -697,6 +703,13 @@ const Packages = () => {
       <BulkPackageUpload
         open={importOpen}
         onOpenChange={setImportOpen}
+        onSuccess={fetchPackages}
+      />
+
+      <BulkFlyerUpload
+        open={flyerOpen}
+        onOpenChange={setFlyerOpen}
+        packages={packages}
         onSuccess={fetchPackages}
       />
 
