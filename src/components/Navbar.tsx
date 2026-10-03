@@ -57,7 +57,8 @@ const Navbar = () => {
 
   const isActive = (path: string) => location.pathname === path;
   const isHome = location.pathname === "/";
-  const isTransparent = isHome && !isScrolled && !isOpen;
+  // The home hero is a light page with a dark block, so the bar is always solid.
+  const isTransparent = false;
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
