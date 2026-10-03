@@ -20,12 +20,30 @@ export const HeroSection = (_props: HeroSectionProps) => {
   };
 
   return (
-    <section className="w-full px-4 pb-8 pt-24 md:px-6 md:pt-28">
-      <div className="mx-auto grid max-w-[1200px] gap-4 lg:grid-cols-[1fr_1.05fr]">
-        {/* Dark block with the message */}
-        <div className="flex flex-col justify-center rounded-2xl bg-primary p-6 text-white sm:p-10 lg:p-12">
+    <section className="w-full p-3 md:p-4">
+      <div className="relative mx-auto flex w-full max-w-[1600px] flex-col overflow-hidden rounded-2xl bg-primary md:h-[calc(100svh-2rem)] md:max-h-[880px] md:min-h-[640px] md:justify-end">
+        {/* Team photo. Phone: whole photo on top, fading into the dark block. Desktop: fills the frame, message sits on the desk */}
+        <div className="relative aspect-[4/3] w-full md:absolute md:inset-0 md:aspect-auto">
+          <img
+            src="/hero-1920.webp"
+            srcSet="/hero-1024.webp 1024w, /hero-1920.webp 1920w"
+            sizes="100vw"
+            alt="Tim Musafar Tour menyambut jamaah di kantor"
+            width={1920}
+            height={1440}
+            className="absolute inset-0 h-full w-full object-cover md:object-[50%_75%]"
+            loading="eager"
+            decoding="async"
+            {...{ fetchpriority: "high" }}
+          />
+          {/* Top shade keeps the white navigation readable */}
+          <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/45 to-transparent md:h-40" />
+          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-primary to-transparent md:h-[62%] md:from-black/90 md:via-black/60" />
+        </div>
+
+        <div className="relative z-10 mx-auto -mt-10 flex w-full max-w-4xl flex-col items-center px-5 pb-8 text-center text-white md:mt-0 md:pb-12">
           <div
-            className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium animate-fade-in opacity-0"
+            className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-medium backdrop-blur-md animate-fade-in opacity-0"
             style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}
           >
             <ShieldCheck className="h-4 w-4 text-green-400" />
@@ -33,21 +51,21 @@ export const HeroSection = (_props: HeroSectionProps) => {
           </div>
 
           <h1
-            className="mb-4 text-[2.25rem] font-extrabold leading-[1.05] tracking-[-0.035em] text-balance animate-fade-in opacity-0 sm:text-5xl lg:text-[3.5rem]"
+            className="mb-3 text-[2rem] font-extrabold leading-[1.05] tracking-[-0.035em] text-balance animate-fade-in opacity-0 sm:text-5xl lg:text-6xl"
             style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}
           >
             Umroh &amp; Haji Nyaman, Bukan Sekadar Safar Biasa.
           </h1>
 
           <p
-            className="mb-8 max-w-md text-base text-white/80 animate-fade-in opacity-0 md:text-lg"
+            className="mb-6 max-w-xl text-base text-white/85 animate-fade-in opacity-0 md:text-lg"
             style={{ animationDelay: "0.6s", animationFillMode: "forwards" }}
           >
             Teman perjalanan keluarga membangun memori di Tanah Suci.
           </p>
 
           <div
-            className="mb-8 flex flex-col gap-3 animate-fade-in opacity-0 sm:flex-row"
+            className="flex w-full flex-col items-center justify-center gap-3 animate-fade-in opacity-0 sm:w-auto sm:flex-row"
             style={{ animationDelay: "0.8s", animationFillMode: "forwards" }}
           >
             <Button variant="brand" className="h-12 w-full px-8 text-base sm:w-auto" onClick={() => navigate("/paket-umroh")}>
@@ -55,7 +73,7 @@ export const HeroSection = (_props: HeroSectionProps) => {
             </Button>
             <Button
               variant="outline"
-              className="h-12 w-full border-white/30 bg-transparent px-6 text-base text-white hover:bg-white/10 hover:text-white sm:w-auto"
+              className="h-12 w-full border-white/25 bg-white/15 px-6 text-base text-white backdrop-blur-md hover:bg-white/25 hover:text-white sm:w-auto"
               onClick={handleWhatsAppClick}
             >
               <MessageCircle className="mr-2 h-5 w-5" />
@@ -64,41 +82,25 @@ export const HeroSection = (_props: HeroSectionProps) => {
           </div>
 
           <div
-            className="flex items-center gap-4 animate-fade-in opacity-0"
+            className="mt-6 hidden items-center gap-4 animate-fade-in opacity-0 sm:flex"
             style={{ animationDelay: "1s", animationFillMode: "forwards" }}
           >
             <div className="flex -space-x-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-10 w-10 overflow-hidden rounded-full border-2 border-primary bg-muted">
-                  <img src={`/gallery/jamaah-${i}-avatar.webp`} alt="" width={40} height={40} className="h-full w-full object-cover" />
+                <div key={i} className="h-9 w-9 overflow-hidden rounded-full border-2 border-black/60 bg-muted">
+                  <img src={`/gallery/jamaah-${i}-avatar.webp`} alt="" width={36} height={36} className="h-full w-full object-cover" />
                 </div>
               ))}
             </div>
-            <div className="flex flex-col">
-              <div className="flex gap-1 text-amber">
+            <div className="flex items-center gap-2">
+              <div className="flex gap-0.5 text-amber">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <Star key={i} className="h-3 w-3 fill-current" />
                 ))}
               </div>
-              <span className="text-xs font-medium text-white/80">3000+ Jamaah Puas</span>
+              <span className="text-sm font-medium text-white/85">3000+ Jamaah Puas</span>
             </div>
           </div>
-        </div>
-
-        {/* Team photo, logo and both people stay visible */}
-        <div className="overflow-hidden rounded-2xl bg-muted">
-          <img
-            src="/hero-1920.webp"
-            srcSet="/hero-1024.webp 1024w, /hero-1920.webp 1920w"
-            sizes="(min-width: 1280px) 620px, (min-width: 1024px) 50vw, 100vw"
-            alt="Tim Musafar Tour menyambut jamaah di kantor"
-            width={1920}
-            height={1440}
-            className="h-full w-full object-cover"
-            loading="eager"
-            decoding="async"
-            {...{ fetchpriority: "high" }}
-          />
         </div>
       </div>
     </section>
