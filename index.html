@@ -47,7 +47,7 @@
         var l = document.createElement('link');
         l.rel = 'preload'; l.as = 'image'; l.type = 'image/webp'; l.fetchPriority = 'high';
         l.href = '/hero-1920.webp';
-        l.setAttribute('imagesrcset', '/hero-1024.webp 1024w, /hero-1920.webp 1920w');
+        l.setAttribute('imagesrcset', '/hero-800.webp 800w, /hero-1280.webp 1280w, /hero-1920.webp 1920w, /hero-2560.webp 2560w');
         l.setAttribute('imagesizes', '100vw');
         document.head.appendChild(l);
       }

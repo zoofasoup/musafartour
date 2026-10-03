@@ -26,7 +26,7 @@ export const HeroSection = (_props: HeroSectionProps) => {
         <div className="relative aspect-[4/3] w-full md:absolute md:inset-0 md:aspect-auto">
           <img
             src="/hero-1920.webp"
-            srcSet="/hero-1024.webp 1024w, /hero-1920.webp 1920w"
+            srcSet="/hero-800.webp 800w, /hero-1280.webp 1280w, /hero-1920.webp 1920w, /hero-2560.webp 2560w"
             sizes="100vw"
             alt="Tim Musafar Tour menyambut jamaah di kantor"
             width={1920}
