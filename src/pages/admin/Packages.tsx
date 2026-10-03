@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Edit, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, RefreshCw, Route, History, BadgeCheck } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
-import { PACKAGE_HAS_JAMAAH_MESSAGE, canEditPackages, daysUntilDeparture, packageStatusBadgeClass, packageStatusLabel } from "@/lib/packageStatus";
+import { PACKAGE_HAS_JAMAAH_MESSAGE, canEditPackages, daysUntilDeparture, departureCountdownLabel, packageStatusBadgeClass, packageStatusLabel } from "@/lib/packageStatus";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PackageChangeLog } from "@/components/admin/PackageChangeLog";
@@ -593,7 +593,7 @@ const Packages = () => {
                               <div className="flex flex-col">
                                 <span className="font-medium whitespace-nowrap">{format(new Date(pkg.departure_date), "dd MMM yyyy")}</span>
                                 <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                  {daysLeft > 0 ? `H-${daysLeft}` : daysLeft === 0 ? "Berangkat hari ini" : `${-daysLeft} hari lalu`}
+                                  {departureCountdownLabel(daysLeft)}
                                 </span>
                               </div>
                               <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border text-xs font-semibold whitespace-nowrap">
