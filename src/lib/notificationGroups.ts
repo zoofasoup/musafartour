@@ -20,8 +20,17 @@ export interface NotificationGroup<T extends NotificationLike = NotificationLike
   items: T[]; // newest first
   unread: number;
   latest: string; // created_at of the newest item
-  actionUrl: string | null; // shared target, or null when members point to different places
+  actionUrl: string | null; // shared target; the common path when members open different records; else null
 }
+
+const basePath = (url: string) => url.split("?")[0];
+
+/** Same URL for everyone: keep it. Different records on the same page: link to the page. Otherwise nothing. */
+const sharedUrl = (current: string | null, next: string | null) => {
+  if (current === next) return current;
+  if (current && next && basePath(current) === basePath(next)) return basePath(current);
+  return null;
+};
 
 export type DayBucket = "today" | "yesterday" | "earlier";
 
@@ -56,7 +65,7 @@ export const groupNotifications = <T extends NotificationLike>(list: T[]): Notif
     } else {
       g.items.push(n);
       if (!n.is_read) g.unread++;
-      if (g.actionUrl !== n.action_url) g.actionUrl = null;
+      g.actionUrl = sharedUrl(g.actionUrl, n.action_url);
     }
   }
   // Map keeps insertion order = order of each group's newest item.

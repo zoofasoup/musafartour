@@ -1,7 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
+import { readMeta, type NotificationMetaData } from "@/lib/notificationActor";
 
 export interface AdminNotification {
   id: string;
@@ -11,13 +13,25 @@ export interface AdminNotification {
   is_read: boolean;
   action_url: string | null;
   created_at: string;
+  /** Who/what/where, from the notification_meta migration. Null on older rows. */
+  meta: NotificationMetaData | null;
+  archived_at: string | null;
 }
+
+/** The archive column only exists once the notification_meta migration has run. */
+const archiveError = (error: { message?: string } | null) =>
+  /archived_at/.test(error?.message ?? "")
+    ? "Fitur arsip belum aktif. Jalankan migration notifikasi di Supabase dulu."
+    : "Gagal memperbarui notifikasi";
 
 export const useAdminNotifications = () => {
   const queryClient = useQueryClient();
+  const { muted, toggleMuted } = useNotificationPrefs();
+  const mutedRef = useRef(muted);
+  mutedRef.current = muted;
 
   // Fetch notifications
-  const { data: notifications = [], isLoading } = useQuery({
+  const { data: all = [], isLoading } = useQuery({
     queryKey: ['admin-notifications'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -25,16 +39,24 @@ export const useAdminNotifications = () => {
         .select('*')
         .order('created_at', { ascending: false })
         .limit(200);
-        
+
       if (error) {
         console.error("Error fetching notifications:", error.message, error);
         return [];
       }
-      return data as AdminNotification[];
+      return (data ?? []).map(row => ({
+        ...row,
+        meta: readMeta(row.meta),
+        archived_at: row.archived_at ?? null,
+      })) as AdminNotification[];
     },
     // Refetch every minute as fallback
-    refetchInterval: 60000, 
+    refetchInterval: 60000,
   });
+
+  // Muted types are hidden everywhere in the bell, and don't count toward the badge.
+  const notifications = useMemo(() => all.filter(n => !n.archived_at && !muted.has(n.type)), [all, muted]);
+  const archived = useMemo(() => all.filter(n => n.archived_at && !muted.has(n.type)), [all, muted]);
 
   // Setup realtime subscription
   useEffect(() => {
@@ -44,7 +66,7 @@ export const useAdminNotifications = () => {
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     const flush = () => {
-      const batch = pending;
+      const batch = pending.filter(n => !mutedRef.current.has(n.type));
       pending = [];
       timer = undefined;
       if (batch.length === 0) return;
@@ -88,72 +110,57 @@ export const useAdminNotifications = () => {
     };
   }, [queryClient]);
 
-  // Mark single as read
-  const markAsRead = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('admin_notifications')
-        .update({ is_read: true })
-        .eq('id', id);
-        
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
-    },
-    onError: (error) => {
-      console.error("Error marking as read:", error);
-    }
-  });
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
 
-  // Mark a set of notifications (a whole group) as read
-  const markManyAsRead = useMutation({
+  // Mark one or many as read (a single row, a whole group, or everything unread)
+  const markRead = useMutation({
     mutationFn: async (ids: string[]) => {
       if (ids.length === 0) return;
-      const { error } = await supabase
-        .from('admin_notifications')
-        .update({ is_read: true })
-        .in('id', ids);
-
+      const { error } = await supabase.from('admin_notifications').update({ is_read: true }).in('id', ids);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
-    },
+    onSuccess: refresh,
     onError: (error) => {
-      console.error("Error marking group as read:", error);
-    }
-  });
-
-  // Mark all as read
-  const markAllAsRead = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from('admin_notifications')
-        .update({ is_read: true })
-        .eq('is_read', false);
-        
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
-      toast.success("Semua notifikasi telah dibaca");
-    },
-    onError: (error) => {
-      console.error("Error marking all as read:", error);
+      console.error("Error marking as read:", error);
       toast.error("Gagal menandai notifikasi");
     }
   });
 
+  // Archive moves rows out of the main list without deleting them
+  const setArchived = useMutation({
+    mutationFn: async ({ ids, archive }: { ids: string[]; archive: boolean }) => {
+      if (ids.length === 0) return;
+      const { error } = await supabase
+        .from('admin_notifications')
+        // Archiving also counts as handled: no unread badge left behind in the archive.
+        .update(archive ? { archived_at: new Date().toISOString(), is_read: true } : { archived_at: null })
+        .in('id', ids);
+      if (error) throw error;
+    },
+    onSuccess: refresh,
+    onError: (error) => {
+      console.error("Error archiving:", error);
+      toast.error(archiveError(error as { message?: string }));
+    }
+  });
+
   const unreadCount = notifications.filter(n => !n.is_read).length;
+  const unreadIds = () => notifications.filter(n => !n.is_read).map(n => n.id);
 
   return {
     notifications,
+    archived,
     unreadCount,
     isLoading,
-    markAsRead: (id: string) => markAsRead.mutate(id),
-    markManyAsRead: (ids: string[]) => markManyAsRead.mutate(ids),
-    markAllAsRead: () => markAllAsRead.mutate(),
-    isMarkingRead: markAsRead.isPending || markManyAsRead.isPending || markAllAsRead.isPending
+    muted,
+    toggleMuted,
+    markAsRead: (id: string) => markRead.mutate([id]),
+    markManyAsRead: (ids: string[]) => markRead.mutate(ids),
+    markAllAsRead: () => {
+      markRead.mutate(unreadIds(), { onSuccess: () => toast.success("Semua notifikasi telah dibaca") });
+    },
+    archive: (ids: string[]) => setArchived.mutate({ ids, archive: true }),
+    unarchive: (ids: string[]) => setArchived.mutate({ ids, archive: false }),
+    isMarkingRead: markRead.isPending || setArchived.isPending,
   };
 };
