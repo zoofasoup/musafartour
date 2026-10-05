@@ -472,7 +472,7 @@ const PackageForm = () => {
       selling_points: "",
       max_discount: 0,
       slots_total: 40,
-      agent_commission_amount: 500000,
+      agent_commission_amount: 1500000,
       hemat_price_quad: 0, hemat_price_triple: 0, hemat_price_double: 0,
       hemat_transport: "Bus Eksklusif",
       price_quad: 0, price_triple: 0, price_double: 0,
