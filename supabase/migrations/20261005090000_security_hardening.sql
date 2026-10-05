@@ -217,3 +217,42 @@ BEGIN
     EXECUTE format('GRANT SELECT (%I) ON public.packages TO anon', c);
   END LOOP;
 END $$;
+
+-- ---------------------------------------------------------------------------------------------
+-- 8. Public lead form: no flooding, no giant payloads
+--    The calculator inserts straight into umroh_calculator_leads (policy-checked); the create_calculator_lead
+--    RPC is not used by the app, so it is closed rather than left as a second, unlimited way in.
+-- ---------------------------------------------------------------------------------------------
+REVOKE EXECUTE ON FUNCTION public.create_calculator_lead FROM PUBLIC, anon, authenticated;
+
+-- SECURITY DEFINER so it can count rows anon cannot read; `role` is the role the request runs as.
+CREATE OR REPLACE FUNCTION public.limit_calculator_leads()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF COALESCE(current_setting('role', true), '') NOT IN ('anon', 'authenticated') THEN
+    RETURN NEW;
+  END IF;
+  IF NEW.result_data IS NOT NULL AND pg_column_size(NEW.result_data) > 20000 THEN
+    RAISE EXCEPTION 'Data terlalu besar.' USING ERRCODE = '22023';
+  END IF;
+  IF (SELECT count(*) FROM public.umroh_calculator_leads
+      WHERE whatsapp = NEW.whatsapp AND created_at > now() - interval '1 hour') >= 5 THEN
+    RAISE EXCEPTION 'Terlalu banyak percobaan dari nomor ini. Coba lagi satu jam lagi.' USING ERRCODE = 'P0001';
+  END IF;
+  IF (SELECT count(*) FROM public.umroh_calculator_leads
+      WHERE created_at > now() - interval '1 hour') >= 300 THEN
+    RAISE EXCEPTION 'Sedang ramai. Coba lagi beberapa menit lagi.' USING ERRCODE = 'P0001';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS aa_limit_calculator_leads ON public.umroh_calculator_leads;
+CREATE TRIGGER aa_limit_calculator_leads
+  BEFORE INSERT ON public.umroh_calculator_leads
+  FOR EACH ROW EXECUTE FUNCTION public.limit_calculator_leads();
+REVOKE EXECUTE ON FUNCTION public.limit_calculator_leads FROM PUBLIC, anon, authenticated;
