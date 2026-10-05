@@ -197,3 +197,23 @@ CREATE POLICY "Visitors can record site events" ON public.site_events
     AND (referrer_host IS NULL OR length(referrer_host) <= 200)
     AND (device IS NULL OR length(device) <= 50)
   );
+
+-- ---------------------------------------------------------------------------------------------
+-- 7. packages: the public key reads every column except the internal ones
+--    (cost structure, commission, discount ceiling, change notes). The site already selects an explicit
+--    column list (PUBLIC_PACKAGE_COLUMNS), so nothing it shows changes. A column added later is NOT
+--    readable by anon until granted here, which is the safe default.
+--    Signed-in users (agents, staff) keep full access; separating staff-only data is a follow-up.
+-- ---------------------------------------------------------------------------------------------
+REVOKE SELECT ON public.packages FROM anon;
+DO $$
+DECLARE c text;
+BEGIN
+  FOR c IN
+    SELECT column_name FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'packages'
+      AND column_name NOT IN ('cogs_data', 'cogs_status', 'max_discount', 'change_reason', 'agent_commission_amount')
+  LOOP
+    EXECUTE format('GRANT SELECT (%I) ON public.packages TO anon', c);
+  END LOOP;
+END $$;
