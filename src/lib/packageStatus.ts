@@ -53,5 +53,14 @@ export const daysUntilDeparture = (departureDate: string, today: string = todayJ
   return Math.round((day(departureDate) - day(today)) / 86_400_000);
 };
 
+/**
+ * "H-24" under a month out; from 30 days on it switches to whole months ("H-2 Bulan"),
+ * so a far-off departure doesn't read as "H-86". Past/today cases are spelled out.
+ */
+export const departureCountdownLabel = (daysLeft: number) => {
+  if (daysLeft > 0) return daysLeft >= 30 ? `H-${Math.floor(daysLeft / 30)} Bulan` : `H-${daysLeft}`;
+  return daysLeft === 0 ? "Berangkat hari ini" : `${-daysLeft} hari lalu`;
+};
+
 /** Postgres foreign-key violation: the package still has jamaah registered on it. */
 export const PACKAGE_HAS_JAMAAH_MESSAGE = "Paket ini sudah punya data jamaah, jadi tidak bisa dihapus.";
