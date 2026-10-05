@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { LoadError } from "@/components/admin/jamaah/LoadError";
+import { AgentDetailDialog } from "@/components/admin/agents/AgentDetailDialog";
+import { WithdrawalsPanel } from "@/components/admin/agents/WithdrawalsPanel";
+import {
+  LEVEL_LABEL,
+  MISSING_LABEL,
+  agentWaNumber,
+  approvedMessage,
+  missingFields,
+  waLink,
+  type Agent,
+  type Withdrawal,
+} from "@/components/admin/agents/agentData";
 import { toast } from "sonner";
 import {
   Users,
@@ -21,12 +39,7 @@ import {
   UserCheck,
   UserX,
   Eye,
-  Mail,
-  Phone,
-  Calendar,
-  Award,
   Loader2,
-  Key,
   Trash2,
   MoreHorizontal,
   Receipt,
@@ -35,48 +48,26 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { formatCurrency } from "@/lib/utils";
 
-interface Agent {
-  id: string;
-  user_id: string;
-  email: string;
-  phone: string;
-  wa_number: string | null;
-  name: string;
-  level: 'bronze' | 'silver' | 'gold' | 'platinum';
-  total_sales: number;
-  total_commission: number;
-  available_balance: number;
-  referral_code: string;
-  referred_by_id: string | null;
-  bank_name: string | null;
-  bank_account: string | null;
-  account_name: string | null;
-  status: 'pending' | 'active' | 'suspended';
-  created_at: string;
-  approved_at: string | null;
-}
+const STATUS_BADGE = {
+  pending: { kind: "warn", label: "Menunggu" },
+  active: { kind: "ok", label: "Aktif" },
+  suspended: { kind: "bad", label: "Ditangguhkan" },
+} as const;
 
-const statusConfig = {
-  pending: { label: "Pending", color: "bg-yellow-500", icon: Clock },
-  active: { label: "Aktif", color: "bg-green-500", icon: CheckCircle },
-  suspended: { label: "Suspended", color: "bg-red-500", icon: XCircle },
-};
-
-const levelConfig = {
-  bronze: { label: "Bronze", color: "bg-amber-600" },
-  silver: { label: "Silver", color: "bg-gray-400" },
-  gold: { label: "Gold", color: "bg-yellow-500" },
-  platinum: { label: "Platinum", color: "bg-purple-500" },
-};
+type SortMode = "pending_first" | "newest";
 
 const AgentManagement = () => {
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") === "penarikan" ? "penarikan" : "agen";
+  const setTab = (value: string) => setSearchParams(value === "penarikan" ? { tab: "penarikan" } : {}, { replace: true });
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [sortMode, setSortMode] = useState<SortMode>("pending_first");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [approveTarget, setApproveTarget] = useState<Agent | null>(null);
 
   const [logSaleAgent, setLogSaleAgent] = useState<Agent | null>(null);
   const [saleCustomerName, setSaleCustomerName] = useState("");
@@ -111,33 +102,8 @@ const AgentManagement = () => {
     },
   });
 
-  const handleChangePassword = async () => {
-    if (!newPassword || newPassword.length < 6) {
-      toast.error("Password minimal 6 karakter");
-      return;
-    }
-    if (!selectedAgent) return;
-    
-    setIsChangingPassword(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('admin-update-password', {
-        body: { userId: selectedAgent.user_id, newPassword }
-      });
-      
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      toast.success("Password agent berhasil diubah!");
-      setNewPassword("");
-    } catch (error: any) {
-      toast.error("Gagal mengubah password: Pastikan Edge Function telah ter-deploy (" + error.message + ")");
-    } finally {
-      setIsChangingPassword(false);
-    }
-  };
-
   // Fetch agents
-  const { data: agents = [], isLoading } = useQuery({
+  const { data: agents = [], isLoading, error: agentsError, refetch: refetchAgents, isRefetching: agentsRefetching } = useQuery({
     queryKey: ['admin-agents'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -150,14 +116,35 @@ const AgentManagement = () => {
     },
   });
 
-  // Update agent status mutation
+  // Fetch withdrawals (agent names are joined in memory from the agents list)
+  const {
+    data: withdrawals = [],
+    isLoading: withdrawalsLoading,
+    error: withdrawalsError,
+    refetch: refetchWithdrawals,
+  } = useQuery({
+    queryKey: ['admin-agent-withdrawals'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('agent_withdrawals')
+        .select('*')
+        .order('requested_at', { ascending: false });
+      if (error) throw error;
+      return data as Withdrawal[];
+    },
+  });
+  const pendingWithdrawals = withdrawals.filter((w) => w.status === 'pending').length;
+
+  const selectedAgent = agents.find((a) => a.id === selectedId) ?? null;
+
+  // Update agent status mutation. Approving a pending agent offers a WhatsApp message (no email provider yet).
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const updateData: any = { status };
+    mutationFn: async ({ id, status }: { id: string; status: string; notify?: Agent }) => {
+      const updateData: { status: string; approved_at?: string } = { status };
       if (status === 'active') {
         updateData.approved_at = new Date().toISOString();
       }
-      
+
       const { error } = await supabase
         .from('agents')
         .update(updateData)
@@ -165,12 +152,31 @@ const AgentManagement = () => {
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ['admin-agents'] });
-      toast.success("Status agent berhasil diupdate");
+      const agent = vars.notify;
+      if (!agent) {
+        toast.success("Status agen berhasil diperbarui");
+        return;
+      }
+      const wa = agentWaNumber(agent);
+      if (!wa) {
+        toast.success(`${agent.name} disetujui`, {
+          description: "Nomor WhatsApp asli belum ada, jadi kabari lewat cara lain.",
+          duration: 10000,
+        });
+        return;
+      }
+      toast.success(`${agent.name} disetujui`, {
+        duration: 15000,
+        action: {
+          label: "Kabari via WhatsApp",
+          onClick: () => window.open(waLink(wa, approvedMessage(agent)), "_blank", "noopener,noreferrer"),
+        },
+      });
     },
     onError: (error) => {
-      toast.error("Gagal mengupdate status: " + error.message);
+      toast.error("Gagal memperbarui status: " + error.message);
     },
   });
 
@@ -186,10 +192,10 @@ const AgentManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-agents'] });
-      toast.success("Level agent berhasil diupdate");
+      toast.success("Level agen berhasil diperbarui");
     },
     onError: (error) => {
-      toast.error("Gagal mengupdate level: " + error.message);
+      toast.error("Gagal memperbarui level: " + error.message);
     },
   });
 
@@ -205,10 +211,10 @@ const AgentManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-agents'] });
-      toast.success("Agent berhasil dihapus");
+      toast.success("Agen berhasil dihapus");
     },
     onError: (error) => {
-      toast.error("Gagal menghapus agent: " + error.message);
+      toast.error("Gagal menghapus agen: " + error.message);
     },
   });
 
@@ -238,33 +244,44 @@ const AgentManagement = () => {
       toast.success("Penjualan berhasil dicatat");
       resetSaleForm();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error("Gagal mencatat penjualan: " + error.message);
     },
   });
 
-  // Filter agents
-  const filteredAgents = agents.filter(agent => {
-    const matchesSearch = 
-      agent.name.toLowerCase().includes(search.toLowerCase()) ||
-      agent.email.toLowerCase().includes(search.toLowerCase()) ||
-      agent.phone.includes(search) ||
-      agent.referral_code.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" 
-      ? agent.status !== "pending" 
-      : agent.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  // Filter + sort agents
+  const filteredAgents = useMemo(() => {
+    const q = search.toLowerCase();
+    const list = agents.filter(agent => {
+      const matchesSearch =
+        agent.name.toLowerCase().includes(q) ||
+        agent.email.toLowerCase().includes(q) ||
+        agent.phone.includes(search) ||
+        agent.referral_code.toLowerCase().includes(q);
+      const matchesStatus = statusFilter === "all" || agent.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+    if (sortMode === "pending_first") {
+      // Array.sort is stable, so inside each group the newest-first order from the query is kept.
+      return [...list].sort((a, b) => Number(b.status === 'pending') - Number(a.status === 'pending'));
+    }
+    return list;
+  }, [agents, search, statusFilter, sortMode]);
 
   // Stats
   const pendingCount = agents.filter(a => a.status === 'pending').length;
   const activeCount = agents.filter(a => a.status === 'active').length;
   const suspendedCount = agents.filter(a => a.status === 'suspended').length;
 
+  const approve = (agent: Agent) => {
+    setApproveTarget(null);
+    updateStatusMutation.mutate({ id: agent.id, status: 'active', notify: agent });
+  };
+
+  // Identity fields missing: ask before approving blindly.
   const handleApprove = (agent: Agent) => {
-    updateStatusMutation.mutate({ id: agent.id, status: 'active' });
+    if (missingFields(agent).length > 0) setApproveTarget(agent);
+    else approve(agent);
   };
 
   const handleSuspend = (agent: Agent) => {
@@ -281,7 +298,12 @@ const AgentManagement = () => {
     }
   };
 
-  // formatCurrency imported from utils
+  const openDetail = (agent: Agent) => {
+    setSelectedId(agent.id);
+    setDetailOpen(true);
+  };
+
+  const approveMissing = approveTarget ? missingFields(approveTarget).map((k) => MISSING_LABEL[k]) : [];
 
   return (
     <div className="space-y-6">
@@ -291,45 +313,59 @@ const AgentManagement = () => {
           Kelola Agent
         </h1>
         <p className="text-muted-foreground mt-1">
-          Kelola pendaftaran dan status agent Musafar Tour
+          Kelola pendaftaran, status, dan penarikan komisi agent Musafar Tour
         </p>
       </div>
 
+      <Tabs value={tab} onValueChange={setTab} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="agen">Agen</TabsTrigger>
+          <TabsTrigger value="penarikan" className="gap-2">
+            Penarikan
+            {pendingWithdrawals > 0 && (
+              <Badge variant="brand" className="h-5 min-w-5 justify-center px-1.5 text-xs" aria-label={`${pendingWithdrawals} menunggu`}>
+                {pendingWithdrawals}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="agen" className="mt-0 space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter('pending')}>
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-yellow-500" />
-              Menunggu Approval
+              <Clock className="h-4 w-4" />
+              Menunggu Persetujuan
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-yellow-600">{pendingCount}</p>
+            <p className="text-3xl font-bold">{pendingCount}</p>
           </CardContent>
         </Card>
 
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter('active')}>
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              Agent Aktif
+              <CheckCircle className="h-4 w-4" />
+              Agen Aktif
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-green-600">{activeCount}</p>
+            <p className="text-3xl font-bold">{activeCount}</p>
           </CardContent>
         </Card>
 
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter('suspended')}>
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2">
-              <XCircle className="h-4 w-4 text-red-500" />
-              Suspended
+              <XCircle className="h-4 w-4" />
+              Ditangguhkan
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-red-600">{suspendedCount}</p>
+            <p className="text-3xl font-bold">{suspendedCount}</p>
           </CardContent>
         </Card>
       </div>
@@ -337,7 +373,7 @@ const AgentManagement = () => {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Daftar Agent</CardTitle>
+          <CardTitle>Daftar Agen</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-4">
@@ -354,34 +390,41 @@ const AgentManagement = () => {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]" aria-label="Filter status">
                 <SelectValue placeholder="Filter status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="pending">Menunggu</SelectItem>
                 <SelectItem value="active">Aktif</SelectItem>
-                <SelectItem value="suspended">Suspended</SelectItem>
+                <SelectItem value="suspended">Ditangguhkan</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
+              <SelectTrigger className="w-full sm:w-[180px]" aria-label="Urutkan">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending_first">Menunggu dulu</SelectItem>
+                <SelectItem value="newest">Terbaru</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {isLoading ? (
+          {agentsError ? (
+            <LoadError what="Daftar agen" error={agentsError} onRetry={() => refetchAgents()} retrying={agentsRefetching} />
+          ) : isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : filteredAgents.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {search || statusFilter !== "all" 
-                ? "Tidak ada agent yang sesuai filter" 
-                : "Belum ada agent terdaftar"}
-            </div>
+            <EmptyState icon={Users} title={search || statusFilter !== "all" ? "Tidak ada agen yang sesuai filter" : "Belum ada agen terdaftar"} />
           ) : (
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-muted">
                   <TableRow>
-                    <TableHead>Agent</TableHead>
+                    <TableHead>Agen</TableHead>
                     <TableHead>Kode Referral</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Level</TableHead>
@@ -392,30 +435,27 @@ const AgentManagement = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredAgents.map((agent) => {
-                    const StatusIcon = statusConfig[agent.status].icon;
+                    const badge = STATUS_BADGE[agent.status];
+                    const incomplete = missingFields(agent).length > 0;
                     return (
                       <TableRow key={agent.id}>
                         <TableCell>
-                          <div>
-                            <p className="font-medium">{agent.name}</p>
+                          <div className="space-y-1">
+                            <p className="font-semibold">{agent.name}</p>
                             <p className="text-sm text-muted-foreground">{agent.email}</p>
+                            {incomplete && <StatusBadge kind="warn">Data belum lengkap</StatusBadge>}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <code className="text-sm bg-muted px-2 py-1 rounded">
+                          <code className="text-sm bg-muted px-2 py-1 rounded-sm">
                             {agent.referral_code}
                           </code>
                         </TableCell>
                         <TableCell>
-                          <Badge className={`${statusConfig[agent.status].color} text-white gap-1`}>
-                            <StatusIcon className="h-3 w-3" />
-                            {statusConfig[agent.status].label}
-                          </Badge>
+                          <StatusBadge kind={badge.kind}>{badge.label}</StatusBadge>
                         </TableCell>
                         <TableCell>
-                          <Badge className={`${levelConfig[agent.level].color} text-white`}>
-                            {levelConfig[agent.level].label}
-                          </Badge>
+                          <Badge variant="outline">{LEVEL_LABEL[agent.level]}</Badge>
                         </TableCell>
                         <TableCell>{agent.total_sales} paket</TableCell>
                         <TableCell>
@@ -426,63 +466,52 @@ const AgentManagement = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => {
-                                setSelectedAgent(agent);
-                                setDetailOpen(true);
-                              }}
+                              aria-label={`Lihat detail ${agent.name}`}
+                              onClick={() => openDetail(agent)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            
+
                             {agent.status === 'pending' && (
                               <Button
                                 size="sm"
                                 onClick={() => handleApprove(agent)}
                                 disabled={updateStatusMutation.isPending}
-                                className="gap-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                                className="gap-1"
                               >
                                 <UserCheck className="h-4 w-4" />
-                                Approve
+                                Setujui
                               </Button>
                             )}
 
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Aksi lain untuk ${agent.name}`}>
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 {agent.status === 'active' && (
-                                  <DropdownMenuItem
-                                    onClick={() => setLogSaleAgent(agent)}
-                                    className="text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer"
-                                  >
+                                  <DropdownMenuItem onClick={() => setLogSaleAgent(agent)} className="cursor-pointer">
                                     <Receipt className="mr-2 h-4 w-4" />
-                                    <span>Log Penjualan</span>
+                                    <span>Catat Penjualan</span>
                                   </DropdownMenuItem>
                                 )}
                                 {agent.status === 'active' && (
-                                  <DropdownMenuItem
-                                    onClick={() => handleSuspend(agent)}
-                                    className="text-amber-600 focus:bg-amber-50 focus:text-amber-700 cursor-pointer"
-                                  >
+                                  <DropdownMenuItem onClick={() => handleSuspend(agent)} className="cursor-pointer">
                                     <UserX className="mr-2 h-4 w-4" />
-                                    <span>Suspend</span>
+                                    <span>Tangguhkan</span>
                                   </DropdownMenuItem>
                                 )}
                                 {agent.status === 'suspended' && (
-                                  <DropdownMenuItem 
-                                    onClick={() => handleReactivate(agent)}
-                                    className="text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer"
-                                  >
+                                  <DropdownMenuItem onClick={() => handleReactivate(agent)} className="cursor-pointer">
                                     <UserCheck className="mr-2 h-4 w-4" />
                                     <span>Aktifkan</span>
                                   </DropdownMenuItem>
                                 )}
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => handleDelete(agent)}
-                                  className="text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer"
+                                  className="cursor-pointer text-destructive focus:bg-status-bad-bg focus:text-destructive"
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" />
                                   <span>Hapus Permanen</span>
@@ -500,210 +529,45 @@ const AgentManagement = () => {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
 
-      {/* Agent Detail Dialog */}
-      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden border-0 shadow-2xl rounded-2xl">
-          {/* Header Gradient */}
-          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 sm:p-8 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-10">
-              <Award className="w-32 h-32" />
-            </div>
-            
-            {selectedAgent && (
-              <div className="relative z-10 flex flex-col gap-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold text-white mb-1">{selectedAgent.name}</h2>
-                    <p className="text-slate-300 flex items-center gap-2 text-sm">
-                      <Mail className="h-4 w-4" /> {selectedAgent.email}
-                    </p>
-                  </div>
-                  <Badge className={`${statusConfig[selectedAgent.status].color} border-0 text-white shadow-sm px-3 py-1`}>
-                    {statusConfig[selectedAgent.status].label}
-                  </Badge>
-                </div>
-                
-                <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-slate-700/50">
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-400 text-sm">Level:</span>
-                    <Badge variant="outline" className={`${levelConfig[selectedAgent.level].color.replace('bg-', 'text-')} border-current`}>
-                      {levelConfig[selectedAgent.level].label}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-400 text-sm">Referral:</span>
-                    <code className="bg-slate-800 px-2 py-1 rounded text-emerald-400 font-mono text-sm border border-slate-700">
-                      {selectedAgent.referral_code}
-                    </code>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-400 text-sm">Terdaftar:</span>
-                    <span className="text-slate-200 text-sm">{format(new Date(selectedAgent.created_at), "dd MMM yyyy", { locale: id })}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {selectedAgent && (
-            <div className="p-6 sm:p-8 bg-slate-50 space-y-8 max-h-[60vh] overflow-y-auto">
-              
-              {/* Financial Stats Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm flex flex-col gap-1">
-                  <span className="text-sm font-medium text-slate-500">Total Penjualan</span>
-                  <span className="text-2xl font-bold text-slate-900">{selectedAgent.total_sales} <span className="text-sm font-normal text-slate-500">paket</span></span>
-                </div>
-                <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm flex flex-col gap-1">
-                  <span className="text-sm font-medium text-slate-500">Total Komisi</span>
-                  <span className="text-2xl font-bold text-slate-900">{formatCurrency(Number(selectedAgent.total_commission))}</span>
-                </div>
-                <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 shadow-sm flex flex-col gap-1">
-                  <span className="text-sm font-medium text-emerald-700">Saldo Tersedia</span>
-                  <span className="text-2xl font-bold text-emerald-600">{formatCurrency(Number(selectedAgent.available_balance))}</span>
-                </div>
-              </div>
+        <TabsContent value="penarikan" className="mt-0">
+          <WithdrawalsPanel
+            withdrawals={withdrawals}
+            agents={agents}
+            loading={withdrawalsLoading}
+            error={withdrawalsError}
+            onRetry={() => refetchWithdrawals()}
+          />
+        </TabsContent>
+      </Tabs>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Contact & Settings */}
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">Kontak & Level</h3>
-                    <div className="bg-white rounded-xl border border-slate-200/60 shadow-sm overflow-hidden divide-y divide-slate-100">
-                      <div className="p-3 sm:p-4 flex items-center justify-between">
-                        <span className="text-sm text-slate-500 flex items-center gap-2"><Phone className="h-4 w-4" /> Telepon</span>
-                        <span className="font-medium text-sm text-slate-900">{selectedAgent.phone}</span>
-                      </div>
-                      <div className="p-3 sm:p-4 flex items-center justify-between">
-                        <span className="text-sm text-slate-500 flex items-center gap-2"><Mail className="h-4 w-4" /> WhatsApp</span>
-                        <span className="font-medium text-sm text-slate-900">{selectedAgent.wa_number || selectedAgent.phone}</span>
-                      </div>
-                      <div className="p-3 sm:p-4 flex items-center justify-between">
-                        <span className="text-sm text-slate-500 flex items-center gap-2"><Award className="h-4 w-4" /> Ubah Level</span>
-                        <Select 
-                          value={selectedAgent.level} 
-                          onValueChange={(value) => {
-                            updateLevelMutation.mutate({ id: selectedAgent.id, level: value });
-                            setSelectedAgent({ ...selectedAgent, level: value as any });
-                          }}
-                        >
-                          <SelectTrigger className="w-[120px] h-8 text-xs bg-slate-50">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="bronze">Bronze</SelectItem>
-                            <SelectItem value="silver">Silver</SelectItem>
-                            <SelectItem value="gold">Gold</SelectItem>
-                            <SelectItem value="platinum">Platinum</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Bank Info */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">Informasi Bank</h3>
-                    {selectedAgent.bank_name ? (
-                      <div className="bg-white rounded-xl border border-slate-200/60 shadow-sm p-4 space-y-3">
-                        <div>
-                          <p className="text-xs text-slate-500">Bank</p>
-                          <p className="font-medium text-sm text-slate-900">{selectedAgent.bank_name}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500">No. Rekening</p>
-                          <p className="font-medium text-sm text-slate-900 font-mono">{selectedAgent.bank_account}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500">Atas Nama</p>
-                          <p className="font-medium text-sm text-slate-900">{selectedAgent.account_name}</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-slate-100/50 border border-slate-200 border-dashed rounded-xl p-6 text-center">
-                        <p className="text-sm text-slate-500">Agent belum melengkapi data bank</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+      <AgentDetailDialog
+        agent={selectedAgent}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        onLevelChange={(agent, level) => updateLevelMutation.mutate({ id: agent.id, level })}
+        onApprove={(agent) => {
+          setDetailOpen(false);
+          handleApprove(agent);
+        }}
+        approving={updateStatusMutation.isPending}
+      />
 
-                {/* Security Settings */}
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">Keamanan & Akses</h3>
-                    
-                    <div className="bg-white rounded-xl border border-slate-200/60 shadow-sm p-4 space-y-5">
-                      {/* Password Reset Force */}
-                      <div>
-                        <label className="text-sm font-medium text-slate-900 mb-2 block">Setel Ulang Password (Admin)</label>
-                        <div className="flex gap-2 mb-2">
-                          <div className="relative flex-1">
-                            <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                            <Input 
-                              type="password" 
-                              name="new-agent-password"
-                              placeholder="Ketik password baru..." 
-                              value={newPassword}
-                              onChange={(e) => setNewPassword(e.target.value)}
-                              className="pl-9 bg-slate-50"
-                              autoComplete="new-password"
-                            />
-                          </div>
-                          <Button 
-                            onClick={handleChangePassword}
-                            disabled={isChangingPassword || !newPassword}
-                            className="bg-slate-900 hover:bg-slate-800 text-white"
-                          >
-                            {isChangingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : "Simpan"}
-                          </Button>
-                        </div>
-                        <p className="text-[11px] text-slate-500 leading-relaxed">
-                          Fungsi ini akan mengganti password agent secara paksa. Membutuhkan Edge Function <code>admin-update-password</code> yang aktif.
-                        </p>
-                      </div>
-
-                      <div className="h-px bg-slate-100 w-full" />
-
-                      {/* Password Reset Email */}
-                      <div>
-                        <label className="text-sm font-medium text-slate-900 mb-2 block">Kirim Link Reset</label>
-                        <p className="text-xs text-slate-500 mb-3">
-                          Kirimkan email berisi tautan ke agent untuk mengatur ulang password mereka sendiri secara mandiri.
-                        </p>
-                        <Button 
-                          variant="outline" 
-                          className="w-full justify-center gap-2 hover:bg-slate-50 hover:text-slate-900"
-                          onClick={async () => {
-                            try {
-                              const { error } = await supabase.auth.resetPasswordForEmail(selectedAgent.email, {
-                                redirectTo: `${window.location.origin}/agent/login?reset=true`,
-                              });
-                              if (error) throw error;
-                              toast.success("Link reset password telah dikirim ke email agent");
-                            } catch (error: any) {
-                              toast.error("Gagal mengirim email reset: " + error.message);
-                            }
-                          }}
-                        >
-                          <Mail className="h-4 w-4" />
-                          Kirim Email Reset Password
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="bg-slate-100 p-4 sm:px-8 border-t border-slate-200 flex justify-end">
-            <Button variant="outline" className="bg-white hover:bg-slate-50" onClick={() => setDetailOpen(false)}>
-              Tutup Panel
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={!!approveTarget}
+        onOpenChange={(o) => !o && setApproveTarget(null)}
+        title="Setujui agen ini?"
+        description={
+          <>
+            Data identitas belum lengkap. Setujui tetap?
+            {approveMissing.length > 0 && <> Yang masih kosong: <span className="font-semibold text-foreground">{approveMissing.join(", ")}</span>.</>}
+          </>
+        }
+        confirmLabel="Setujui tetap"
+        onConfirm={() => approveTarget && approve(approveTarget)}
+        busy={updateStatusMutation.isPending}
+      />
 
       {/* Log a Sale Dialog - the only write path into agent_sales */}
       <Dialog open={!!logSaleAgent} onOpenChange={(open) => !open && resetSaleForm()}>

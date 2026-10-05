@@ -2905,6 +2905,10 @@ export type Database = {
       }
       create_calculator_lead: { Args: { _lead: Json }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      register_agent_profile: {
+        Args: never
+        Returns: Database["public"]["Tables"]["agents"]["Row"]
+      }
       accept_jamaah_intake: {
         Args: { _force?: boolean; _intake_id: string; _people: Json }
         Returns: Json
@@ -3032,6 +3036,10 @@ export type Database = {
         Returns: string
       }
       mark_refund_sent: { Args: { _booking_id: string }; Returns: undefined }
+      process_agent_withdrawal: {
+        Args: { _action: string; _id: string; _notes?: string }
+        Returns: Json
+      }
       record_booking_payment_failed: {
         Args: { _new_status: string; _order_id: string }
         Returns: undefined

@@ -30,7 +30,7 @@ export const PUBLIC_PACKAGE_COLUMNS = [
 ].join(', ');
 
 // Agents also need their flat commission; still no COGS/margin data.
-export const AGENT_PACKAGE_COLUMNS = `${PUBLIC_PACKAGE_COLUMNS}, agent_commission_amount, commission_rate, status`;
+export const AGENT_PACKAGE_COLUMNS = `${PUBLIC_PACKAGE_COLUMNS}, agent_commission_amount, status`;
 
 export interface PublishedPackage {
   id: string;

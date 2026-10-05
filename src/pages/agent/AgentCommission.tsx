@@ -202,7 +202,7 @@ const AgentCommission = () => {
     .reduce((sum, s) => sum + Number(s.commission_amount), 0);
   
   const totalWithdrawn = withdrawals
-    .filter(w => w.status === 'completed')
+    .filter(w => w.status === 'completed' || w.status === 'paid')
     .reduce((sum, w) => sum + Number(w.amount), 0);
   
   const availableBalance = agent?.available_balance || 0;

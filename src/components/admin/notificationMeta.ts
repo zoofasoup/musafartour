@@ -1,4 +1,4 @@
-import { Bell, Handshake, UserPlus, type LucideIcon } from "lucide-react";
+import { Banknote, Bell, Handshake, UserPlus, type LucideIcon } from "lucide-react";
 
 export type NotificationTone = "info" | "over" | "mute";
 
@@ -26,6 +26,12 @@ export const NOTIFICATION_TYPES: Record<string, TypeMeta> = {
     tone: "over",
     label: "Agen",
     groupTitle: n => `${n} agen baru mendaftar`,
+  },
+  agent_withdrawal: {
+    icon: Banknote,
+    tone: "info",
+    label: "Penarikan agen",
+    groupTitle: n => `${n} permintaan penarikan`,
   },
 };
 

@@ -83,6 +83,9 @@ export const sentenceFor = (type: string, meta: NotificationMetaData | null): Se
   if (type === "agent_registration") {
     return [{ text: actor, bold: true }, { text: " mendaftar sebagai agen, menunggu persetujuan" }];
   }
+  if (type === "agent_withdrawal") {
+    return [{ text: actor, bold: true }, { text: " meminta penarikan komisi" }];
+  }
   return null;
 };
 
@@ -94,5 +97,6 @@ export const previewFor = (type: string, meta: NotificationMetaData | null): str
     return [line.join(" · ")];
   }
   if (type === "agent_registration") return ["Menunggu persetujuan"];
+  if (type === "agent_withdrawal") return ["Menunggu diproses di Kelola Agent > Penarikan"];
   return null;
 };
