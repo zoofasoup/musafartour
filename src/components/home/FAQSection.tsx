@@ -1,3 +1,4 @@
+import { jsonForScript } from "@/lib/jsonLd";
 import {
   Accordion,
   AccordionContent,
@@ -28,7 +29,7 @@ export const FAQSection = ({ faqItems }: FAQSectionProps) => {
     <section id="faq" className="py-16 md:py-24 bg-background scroll-mt-20">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+        dangerouslySetInnerHTML={{ __html: jsonForScript(schemaData) }}
       />
       <div className="container mx-auto px-6 md:px-8">
         <div className="text-center mb-16">

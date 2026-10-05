@@ -43,6 +43,16 @@ function renderPixels(p: MarketingPixels | undefined): string {
   return out.join("\n");
 }
 
+/** JSON for an inline <script type="application/ld+json">; see src/lib/jsonLd.ts for why "<" must be escaped. */
+export function jsonForScript(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(new RegExp("\u2028", "g"), "\\u2028")
+    .replace(new RegExp("\u2029", "g"), "\\u2029");
+}
+
 export function escapeHtml(input: string): string {
   return input
     .replace(/&/g, "&amp;")
@@ -118,7 +128,7 @@ ${renderPixels(pixels)}
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap" />
-${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>` : ""}
+${jsonLd ? `<script type="application/ld+json">${jsonForScript(jsonLd)}</script>` : ""}
 <style>
   *,*::before,*::after{box-sizing:border-box}
   body{margin:0;background:${BRAND.bg};color:${BRAND.fg};font-family:'Onest',ui-sans-serif,system-ui,-apple-system,sans-serif;line-height:1.65}

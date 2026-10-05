@@ -1,4 +1,5 @@
 import musafarLogo from "@/assets/musafar-logo.svg";
+import { jsonForScript } from "@/lib/jsonLd";
 import { Instagram, Facebook, Youtube, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useHomepageData } from "@/hooks/useHomepageData";
@@ -39,7 +40,7 @@ const Footer = () => {
     <footer className="bg-primary text-white pt-16 md:pt-24 pb-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+        dangerouslySetInnerHTML={{ __html: jsonForScript(schemaData) }}
       />
       <div className="container mx-auto px-6 md:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 min-h-[400px]">

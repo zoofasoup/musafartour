@@ -1,5 +1,6 @@
 import puppeteer from "@cloudflare/puppeteer";
 import type { Env } from "./_lib/env";
+import { requireStaff } from "./_lib/auth";
 
 // 16 matches SAFE_ZONE_MAX_ROWS in src/lib/flyer/flyerData.ts - kept as a
 // local literal rather than importing across the functions/src boundary.
@@ -7,6 +8,10 @@ const MAX_IDS = 16;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
+  // Every call starts a headless browser, so only signed-in staff may trigger one.
+  const denied = await requireStaff(context.request, context.env);
+  if (denied) return denied;
+
   const url = new URL(context.request.url);
   const ids = url.searchParams.get("ids");
   const format = url.searchParams.get("format") === "jpeg" ? "jpeg" : "png";

@@ -11,7 +11,8 @@ function getCookie(name: string): string | null {
 
 function setCookie(name: string, value: string, days: number) {
   const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax${secure}`;
 }
 
 /** First-touch referral attribution: only sets the cookie if one doesn't

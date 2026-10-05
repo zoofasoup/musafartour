@@ -58,7 +58,10 @@ export default function FlyerGenerator() {
     setExporting(format);
     try {
       const ids = selectedPackages.map((p) => p.id).join(",");
-      const res = await fetch(`/flyer-image?ids=${encodeURIComponent(ids)}&format=${format}`);
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`/flyer-image?ids=${encodeURIComponent(ids)}&format=${format}`, {
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
+      });
       if (!res.ok) throw new Error(await res.text());
       const blob = await res.blob();
       const dateStamp = new Date().toISOString().slice(0, 10);
