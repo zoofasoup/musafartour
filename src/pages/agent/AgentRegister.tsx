@@ -4,10 +4,8 @@ import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, Loader2, UserPlus, LogIn, CheckCircle, Phone, Mail, User } from "lucide-react";
+import { Eye, EyeOff, Loader2, UserPlus, LogIn, Phone, Mail, User, IdCard, Clock } from "lucide-react";
 import { toast } from "sonner";
-import musafarLogo from "@/assets/musafar-logo.svg";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 
 const AgentRegister = () => {
@@ -41,8 +39,8 @@ const AgentRegister = () => {
   };
 
   const validateForm = () => {
-    if (!formData.name.trim()) {
-      toast.error("Nama lengkap harus diisi");
+    if (formData.name.trim().length < 2) {
+      toast.error("Nama lengkap minimal 2 huruf");
       return false;
     }
     if (!formData.email.trim()) {
@@ -57,8 +55,9 @@ const AgentRegister = () => {
       toast.error("Nomor telepon harus diisi");
       return false;
     }
-    if (formData.phone.length < 10) {
-      toast.error("Nomor telepon minimal 10 digit");
+    const phoneDigits = formData.phone.replace(/\D/g, '');
+    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+      toast.error("Nomor telepon harus 10-15 digit");
       return false;
     }
     if (!formData.password) {
@@ -100,35 +99,38 @@ const AgentRegister = () => {
   };
 
   if (success) {
+    const steps = [
+      { icon: Mail, title: "Konfirmasi email", text: `Buka email yang kami kirim ke ${formData.email.trim()}, lalu klik tautan konfirmasi. Cek folder spam jika belum ada.` },
+      { icon: LogIn, title: "Masuk ke portal agen", text: "Setelah email dikonfirmasi, masuk dengan email dan password yang baru Anda buat." },
+      { icon: IdCard, title: "Lengkapi data identitas", text: "Isi KTP, foto KTP, dan alamat domisili. Data ini dipakai admin untuk verifikasi." },
+      { icon: Clock, title: "Tunggu persetujuan admin", text: "Admin memeriksa data Anda, biasanya 1-2 hari kerja. Setelah disetujui, akun Anda aktif." },
+    ];
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border-border/50 shadow-xl">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-muted dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle className="h-8 w-8 text-foreground dark:text-green-400" />
-            </div>
-            <CardTitle className="text-2xl">Pendaftaran Berhasil!</CardTitle>
-            <CardDescription className="text-base mt-2">
-              Akun Anda telah dibuat dan sedang menunggu persetujuan admin.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
-              <p className="mb-2">📧 Kami akan mengirimkan email konfirmasi setelah akun Anda disetujui.</p>
-              <p>⏰ Proses persetujuan biasanya memakan waktu 1-2 hari kerja.</p>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button 
-              className="w-full" 
-              onClick={() => navigate("/agent/login")}
-            >
-              <LogIn className="mr-2 h-4 w-4" />
-              Kembali ke Login
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
+      <AuthLayout
+        title="Pendaftaran Berhasil"
+        subtitle="Satu langkah lagi: konfirmasi email Anda, lalu lanjutkan sesuai urutan di bawah."
+      >
+        <ol className="space-y-3">
+          {steps.map((step, i) => (
+            <li key={step.title} className="flex gap-3 rounded-lg border bg-muted/50 p-4">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-card border text-sm font-semibold">
+                {i + 1}
+              </span>
+              <div className="min-w-0">
+                <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <step.icon className="h-4 w-4 text-muted-foreground" aria-hidden />
+                  {step.title}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">{step.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <Button className="mt-6 w-full" onClick={() => navigate("/agent/login")}>
+          <LogIn className="mr-2 h-4 w-4" />
+          Ke Halaman Login
+        </Button>
+      </AuthLayout>
     );
   }
 

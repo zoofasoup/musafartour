@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, UploadCloud, CheckCircle2 } from "lucide-react";
+import { Loader2, UploadCloud, CheckCircle2, Clock } from "lucide-react";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { toast } from "sonner";
 import { compressImage } from "@/utils/imageCompression";
 import { RegionSelector } from "@/components/agent/RegionSelector";
@@ -47,7 +48,9 @@ const AgentOnboarding = () => {
         setFormData(prev => ({
           ...prev,
           name: agent.name || '',
-          phone: agent.phone?.startsWith('000') ? '' : (agent.phone || '')
+          // '000...' is a placeholder (Google sign-in, or the number was taken): fall back to the
+          // WhatsApp number given at registration so the user only has to confirm it.
+          phone: agent.phone?.startsWith('000') ? (agent.wa_number || '') : (agent.phone || '')
         }));
       }
     }
@@ -167,6 +170,15 @@ const AgentOnboarding = () => {
     if (result.success) {
       toast.success("Profil berhasil dilengkapi! Menunggu verifikasi admin.");
       navigate("/agent/dashboard");
+    } else {
+      const reason = result.error || "";
+      if (reason.includes("agents_phone_key")) {
+        toast.error("Nomor telepon sudah terdaftar pada akun lain.");
+      } else if (reason.includes("agents_ktp_number_key")) {
+        toast.error("Nomor KTP sudah terdaftar pada akun lain.");
+      } else {
+        toast.error("Gagal menyimpan profil. Periksa koneksi Anda, lalu coba lagi.");
+      }
     }
   };
 
@@ -183,6 +195,14 @@ const AgentOnboarding = () => {
             <p className="text-muted-foreground mt-2">
               Langkah terakhir sebelum Anda bisa mulai berjualan paket umroh
             </p>
+            {agent?.status === "pending" && (
+              <div className="mt-3 flex flex-col items-center gap-2 sm:items-start">
+                <StatusBadge kind="warn" icon={Clock}>Menunggu verifikasi admin</StatusBadge>
+                <p className="text-sm text-muted-foreground">
+                  Akun Anda aktif setelah data di bawah dikirim dan disetujui admin.
+                </p>
+              </div>
+            )}
           </div>
           <Button 
             variant="outline" 

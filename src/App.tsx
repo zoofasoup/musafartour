@@ -73,6 +73,7 @@ const PublicMarketingKit = lazy(() => import("./pages/PublicMarketingKit"));
 // Agent Portal
 const AgentLogin = lazy(() => import("./pages/agent/AgentLogin"));
 const AgentRegister = lazy(() => import("./pages/agent/AgentRegister"));
+const AgentForgotPassword = lazy(() => import("./pages/agent/AgentForgotPassword"));
 const AgentOnboarding = lazy(() => import("./pages/agent/AgentOnboarding"));
 const AgentDashboard = lazy(() => import("./pages/agent/AgentDashboard"));
 const AgentPackages = lazy(() => import("./pages/agent/AgentPackages"));
@@ -161,6 +162,7 @@ const ROUTE_META: { match: (p: string) => boolean; title: string; description?: 
   { match: (p) => p === "/admin/setup", title: "Setup Admin - Musafar Tour", noindex: true },
   { match: (p) => p.startsWith("/admin"), title: "Admin - Musafar Tour", noindex: true },
   { match: (p) => p === "/set-password", title: "Atur Password - Musafar Tour", noindex: true },
+  { match: (p) => p === "/agent/forgot-password", title: "Lupa Password Agen - Musafar Tour", noindex: true },
   {
     match: (p) => p === "/agent/register",
     title: "Daftar Jadi Agen Umroh - Musafar Tour",
@@ -341,6 +343,7 @@ const App = () => (
                     </AgentProtectedRoute>
                   } />
                   <Route path="/agent/login" element={<AgentLogin />} />
+                  <Route path="/agent/forgot-password" element={<AgentForgotPassword />} />
                   <Route path="/agent/register" element={<AgentRegister />} />
                   <Route
                     path="/agent/onboarding"

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,10 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, KeyRound } from "lucide-react";
+import { translateAuthError } from "@/lib/authErrors";
 import musafarLogo from "@/assets/musafar-logo.svg";
+
+// Internal paths the page may send the user to after saving the password (no open redirect:
+// anything not in this list is ignored and the default destination is used).
+const ALLOWED_NEXT = ["/agent/login", "/auth"];
 
 const SetPassword = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedNext = searchParams.get("next");
+  const nextPath = requestedNext && ALLOWED_NEXT.includes(requestedNext) ? requestedNext : null;
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -40,7 +48,7 @@ const SetPassword = () => {
           description: "Tautan tidak valid atau sudah kadaluarsa. Silakan minta undangan baru.",
           variant: "destructive"
         });
-        navigate("/auth");
+        navigate(nextPath ?? "/auth");
       } else {
         setVerifying(false);
       }
@@ -51,7 +59,7 @@ const SetPassword = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, toast]);
+  }, [navigate, toast, nextPath]);
 
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,15 +90,15 @@ const SetPassword = () => {
 
       toast({
         title: "Berhasil",
-        description: "Password Anda berhasil dibuat! Mengalihkan ke dashboard...",
+        description: nextPath === "/agent/login" ? "Password Anda berhasil disimpan." : "Password Anda berhasil dibuat! Mengalihkan ke dashboard...",
       });
       
-      // Redirect to admin dashboard
-      navigate("/admin");
+      // Allow-listed `next` (e.g. password reset from the agent portal), otherwise admin dashboard
+      navigate(nextPath ?? "/admin");
     } catch (error: any) {
       toast({
         title: "Gagal membuat password",
-        description: error.message,
+        description: translateAuthError(error),
         variant: "destructive"
       });
     } finally {
@@ -116,7 +124,9 @@ const SetPassword = () => {
             <CardTitle className="text-2xl">Buat Password</CardTitle>
           </div>
           <CardDescription>
-            Selamat datang di tim Musafar Tour! Silakan buat password untuk akun Anda.
+            {nextPath === "/agent/login"
+              ? "Masukkan password baru untuk akun Anda."
+              : "Selamat datang di tim Musafar Tour! Silakan buat password untuk akun Anda."}
           </CardDescription>
         </CardHeader>
         <CardContent>

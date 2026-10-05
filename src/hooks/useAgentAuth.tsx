@@ -2,7 +2,7 @@ import { useState, useEffect, createContext, useContext, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { translateAuthError } from "@/lib/authErrors";
 
 interface Agent {
   id: string;
@@ -66,19 +66,19 @@ export const useAgentAuth = () => {
   return context;
 };
 
-// Generate referral code
-const generateReferralCode = async (): Promise<string> => {
-  const { data, error } = await supabase.rpc('generate_referral_code');
+// Creates (or returns) the agents row for the logged-in user. Runs server-side because the row
+// can only be created once the user has a session (RLS: auth.uid() = user_id), and the server
+// reads the signup data from the user's own metadata. Idempotent.
+const registerAgentProfile = async (): Promise<{ agent: Agent | null; error?: string }> => {
+  const { data, error } = await supabase.rpc('register_agent_profile');
   if (error) {
-    // Fallback to client-side generation
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let result = 'MUS-';
-    for (let i = 0; i < 6; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
+    console.error("Error registering agent profile:", error);
+    return {
+      agent: null,
+      error: error.code === 'P0001' ? error.message : 'Gagal menyiapkan profil agen. Silakan coba lagi.',
+    };
   }
-  return data as string;
+  return { agent: (data as unknown as Agent) ?? null };
 };
 
 export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
@@ -123,34 +123,15 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      // If user exists in auth but not in agents table (e.g. Google Sign In).
-      // This provider wraps the whole app, so only auto-create on agent pages: otherwise
-      // every jamaah who logs in got an agent row (and an admin "new agent" alert).
-      // /agent/register creates its own row, so skip there to avoid racing it.
+      // Signed in but no agents row yet (first login after email confirmation, or Google sign-in).
+      // This provider wraps the whole app, so only run it on agent pages: otherwise every jamaah
+      // or admin who logs in would get an agent row (and an admin "new agent" alert).
+      // /agent/register is skipped so a half-finished sign-up never creates a row by itself.
       const path = window.location.pathname;
       const onAgentPage = path.startsWith("/agent") && !path.startsWith("/agent/register");
       if (!data && !error && user.email && onAgentPage) {
-        const referralCode = await generateReferralCode();
-        // Generate a random dummy phone number to satisfy the UNIQUE constraint 
-        // until they complete onboarding
-        const dummyPhone = `000${Math.floor(Math.random() * 1000000000)}`;
-        
-        const { data: newAgent, error: insertError } = await supabase
-          .from('agents')
-          .insert([{
-            user_id: user.id,
-            email: user.email,
-            phone: dummyPhone,
-            name: user.user_metadata?.full_name || user.email.split('@')[0],
-            referral_code: referralCode,
-            status: 'pending'
-          }])
-          .select()
-          .maybeSingle();
-          
-        if (!insertError && newAgent) {
-          return newAgent as Agent;
-        }
+        const created = await registerAgentProfile();
+        if (created.agent) return created.agent;
       }
 
       if (error) {
@@ -167,114 +148,48 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (data: SignUpData): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Check if email already exists in agents table
-      const { data: existingAgent } = await supabase
-        .from('agents')
-        .select('email')
-        .eq('email', data.email)
-        .maybeSingle();
-
-      if (existingAgent) {
-        return { success: false, error: 'Email sudah terdaftar sebagai agent' };
-      }
-
-      // Check if phone already exists
-      const { data: existingPhone } = await supabase
-        .from('agents')
-        .select('phone')
-        .eq('phone', data.phone)
-        .maybeSingle();
-
-      if (existingPhone) {
-        return { success: false, error: 'Nomor telepon sudah terdaftar' };
-      }
-
-      // Look up referrer if referral code provided
-      let referrerId: string | null = null;
-      if (data.referral_code) {
-        const { data: referrer } = await supabase
-          .from('agents')
-          .select('id')
-          .eq('referral_code', data.referral_code.toUpperCase().trim())
-          .eq('status', 'active')
-          .maybeSingle();
-
-        if (referrer) {
-          referrerId = referrer.id;
-        }
-      }
-
-      // Sign up with Supabase Auth
+      // The agents row is NOT created here: with email confirmation on there is no session yet, so
+      // RLS would reject it. The form data travels in user_metadata and register_agent_profile()
+      // turns it into the row on first login. Duplicate/referral checks happen there too (anon
+      // cannot read agents, so checking from the browser never worked).
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: data.email,
+        email: data.email.trim(),
         password: data.password,
         options: {
           emailRedirectTo: window.location.origin + '/agent/login',
-        }
+          data: {
+            full_name: data.name.trim(),
+            phone: data.phone,
+            wa_number: data.wa_number || data.phone,
+            referral_code: (data.referral_code || '').trim().toUpperCase(),
+            agent_signup: true,
+          },
+        },
       });
 
       if (authError) {
         console.error("Auth signup error:", authError);
-        if (authError.message.includes('already registered')) {
-          return { success: false, error: 'Email sudah terdaftar. Silakan login atau gunakan email lain.' };
-        }
-        return { success: false, error: authError.message };
+        return { success: false, error: translateAuthError(authError) };
       }
 
       if (!authData.user) {
-        return { success: false, error: 'Gagal membuat akun' };
+        return { success: false, error: 'Gagal membuat akun. Silakan coba lagi.' };
       }
 
-      // Generate unique referral code
-      const referralCode = await generateReferralCode();
-
-      // Wait a moment for auth session to be established
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Create agent profile - retry logic for session propagation
-      let agentError = null;
-      for (let attempt = 0; attempt < 3; attempt++) {
-        const { error } = await supabase
-          .from('agents')
-          .insert({
-            user_id: authData.user.id,
-            email: data.email,
-            phone: data.phone,
-            wa_number: data.wa_number || data.phone,
-            name: data.name,
-            referral_code: referralCode,
-            referred_by_id: referrerId,
-            status: 'pending',
-          });
-
-        if (!error) {
-          agentError = null;
-          break;
-        }
-        
-        agentError = error;
-        console.error(`Attempt ${attempt + 1} - Error creating agent profile:`, error);
-        
-        // Wait before retry
-        if (attempt < 2) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
+      // Supabase hides existing emails: it returns a user with no identities instead of an error.
+      if (authData.user.identities && authData.user.identities.length === 0) {
+        return { success: false, error: translateAuthError({ code: 'user_already_exists' }) };
       }
 
-      if (agentError) {
-        console.error("Final error creating agent profile:", agentError);
-        // Sign out the user since agent profile creation failed
+      // Make sure no session lingers: the user logs in after confirming the email.
+      if (authData.session) {
         await supabase.auth.signOut();
-        return { success: false, error: 'Gagal membuat profil agent. Silakan coba lagi.' };
       }
-
-      // Sign out after successful registration (user needs admin approval)
-      await supabase.auth.signOut();
 
       return { success: true };
     } catch (error) {
       console.error("Sign up error:", error);
-      return { success: false, error: 'Terjadi kesalahan saat pendaftaran' };
+      return { success: false, error: translateAuthError(error) };
     }
   };
 
@@ -286,11 +201,11 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: translateAuthError(error) };
       }
 
       if (!data.user) {
-        return { success: false, error: 'Login gagal' };
+        return { success: false, error: 'Login gagal. Silakan coba lagi.' };
       }
 
       // Check if user is an admin - admins should use admin portal
@@ -313,17 +228,26 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
         .eq('user_id', data.user.id)
         .maybeSingle();
 
-      if (agentError || !agentData) {
+      let status: Agent['status'] | undefined = agentData?.status as Agent['status'] | undefined;
+
+      // First login after email confirmation: the row does not exist yet, create it server-side
+      // from the signup metadata instead of turning the user away.
+      if (!agentError && !agentData) {
+        const created = await registerAgentProfile();
+        if (!created.agent) {
+          await supabase.auth.signOut();
+          return { success: false, error: created.error || 'Gagal menyiapkan profil agen. Silakan coba lagi.' };
+        }
+        status = created.agent.status;
+        queryClient.setQueryData(['agent-profile', data.user.id], created.agent);
+      } else if (agentError) {
         await supabase.auth.signOut();
-        return { success: false, error: 'Akun agent tidak ditemukan. Silakan daftar terlebih dahulu.' };
+        return { success: false, error: 'Gagal memuat akun agen. Silakan coba lagi.' };
       }
 
-      if (agentData.status === 'pending') {
-        await supabase.auth.signOut();
-        return { success: false, error: 'Akun Anda masih menunggu approval dari admin' };
-      }
-
-      if (agentData.status === 'suspended') {
+      // 'pending' agents are allowed in: they must reach /agent/onboarding to submit KTP and
+      // address. AgentProtectedRoute shows the "Menunggu Persetujuan" screen after that.
+      if (status === 'suspended') {
         await supabase.auth.signOut();
         return { success: false, error: 'Akun Anda telah dinonaktifkan. Hubungi admin untuk informasi lebih lanjut' };
       }
@@ -331,7 +255,7 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
       return { success: true };
     } catch (error) {
       console.error("Sign in error:", error);
-      return { success: false, error: 'Terjadi kesalahan saat login' };
+      return { success: false, error: translateAuthError(error) };
     }
   };
 
@@ -345,13 +269,13 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: translateAuthError(error) };
       }
 
       return { success: true };
     } catch (error) {
       console.error("Google sign in error:", error);
-      return { success: false, error: 'Terjadi kesalahan saat login dengan Google' };
+      return { success: false, error: translateAuthError(error) };
     }
   };
 
