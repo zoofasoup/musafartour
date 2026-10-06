@@ -56,9 +56,13 @@ export function PackageStickyMobileBar(props: PackagePricingBodyProps) {
                     className="min-w-0 flex-1 rounded-md py-1 text-left"
                     aria-label="Lihat rincian harga"
                   >
-                    <span className="block text-xs uppercase text-muted-foreground">Total ({paxCount} orang)</span>
+                    <span className="block text-xs uppercase text-muted-foreground">
+                      {grandTotal > 0 ? `Total (${paxCount} orang)` : "Mulai dari"}
+                    </span>
                     <span className="flex items-center gap-1 text-base font-bold text-primary">
-                      <span className="truncate">{formatCurrency(grandTotal)}</span>
+                      <span className="truncate">
+                        {grandTotal > 0 ? formatCurrency(grandTotal) : `${formatCurrency(props.price?.quad ?? 0)} / orang`}
+                      </span>
                       <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
                     </span>
                   </button>

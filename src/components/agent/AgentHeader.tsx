@@ -24,7 +24,7 @@ export const AgentHeader = () => {
             <button
               onClick={toggleSidebar}
               className="text-muted-foreground hover:bg-muted p-2 rounded-lg transition-colors"
-              title="Expand Sidebar"
+              title="Buka menu" aria-label="Buka menu"
             >
               <PanelLeft className="h-4 w-4" />
             </button>

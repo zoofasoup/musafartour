@@ -22,6 +22,7 @@ interface PackagePrice {
 
 interface Package {
   id: string;
+  slug?: string | null;
   package_name: string;
   departure_date: string;
   duration_days: number;
@@ -55,7 +56,7 @@ const PackageShareModal = ({
   const [copied, setCopied] = useState(false);
 
   const baseUrl = window.location.origin;
-  const shareUrl = `${baseUrl}/paket-umroh/${pkg.id}${agentCode ? `?ref=${agentCode}` : ""}`;
+  const shareUrl = `${baseUrl}/paket-umroh/${pkg.slug || pkg.id}${agentCode ? `?ref=${agentCode}` : ""}`;
 
   const formatPrice = (price: number) => formatCurrency(price);
 

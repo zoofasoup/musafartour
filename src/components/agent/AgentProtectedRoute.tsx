@@ -4,13 +4,15 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { Loader2 } from "lucide-react";
 import AgentLayout from "./AgentLayout";
+import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 interface AgentProtectedRouteProps {
   children: ReactNode;
 }
 
 const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
-  const { user, agent, loading } = useAgentAuth();
+  const { user, agent, loading, signOut } = useAgentAuth();
   const location = useLocation();
 
   if (loading) {
@@ -43,43 +45,35 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
   }
 
   // Agent not active
-  if (agent.status === 'pending' && !isOnboardingPage) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="text-center max-w-md">
-          <div className="mx-auto w-16 h-16 bg-status-warn-bg dark:bg-yellow-900/30 rounded-full flex items-center justify-center mb-4">
-            <Loader2 className="h-8 w-8 text-status-warn-fg" />
-          </div>
-          <h1 className="text-2xl font-bold mb-2">Menunggu Persetujuan</h1>
-          <p className="text-muted-foreground mb-6">
-            Akun Anda masih dalam proses verifikasi oleh admin. Kami akan menghubungi Anda setelah akun diaktifkan.
-          </p>
-          <a 
-            href="/agent/login" 
-            className="text-primary hover:underline"
-            onClick={(e) => {
-              e.preventDefault();
-              window.location.href = '/agent/login';
-            }}
-          >
-            Kembali ke halaman login
-          </a>
-        </div>
-      </div>
+  if ((agent.status === 'pending' && !isOnboardingPage) || agent.status === 'suspended') {
+    const pending = agent.status === 'pending';
+    const waText = encodeURIComponent(
+      pending
+        ? `Halo CS Musafar, saya ${agent.name} (kode ${agent.referral_code}). Mohon dicek persetujuan akun agen saya.`
+        : `Halo CS Musafar, saya ${agent.name} (kode ${agent.referral_code}). Akun agen saya dinonaktifkan, mohon info lebih lanjut.`
     );
-  }
-
-  if (agent.status === 'suspended') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="text-center max-w-md">
-          <div className="mx-auto w-16 h-16 bg-status-bad-bg dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
-            <span className="text-3xl">🚫</span>
+        <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 text-center shadow-sm">
+          <div className="mx-auto mb-4">
+            <StatusBadge kind={pending ? "warn" : "bad"}>{pending ? "Menunggu verifikasi" : "Dinonaktifkan"}</StatusBadge>
           </div>
-          <h1 className="text-2xl font-bold mb-2">Akun Dinonaktifkan</h1>
-          <p className="text-muted-foreground mb-6">
-            Akun Anda telah dinonaktifkan. Silakan hubungi admin untuk informasi lebih lanjut.
+          <h1 className="mb-2 text-2xl font-bold">{pending ? "Menunggu Persetujuan" : "Akun Dinonaktifkan"}</h1>
+          <p className="mb-6 text-sm text-muted-foreground">
+            {pending
+              ? "Data kamu sudah kami terima dan sedang diperiksa admin, biasanya 1-2 hari kerja. Kami kabari lewat WhatsApp begitu akun aktif."
+              : "Akun agen kamu sedang dinonaktifkan. Hubungi CS untuk informasi lebih lanjut."}
           </p>
+          <div className="flex flex-col gap-2">
+            <Button asChild variant="brand" className="w-full">
+              <a href={`https://wa.me/6281917403797?text=${waText}`} target="_blank" rel="noopener noreferrer">
+                Hubungi CS via WhatsApp
+              </a>
+            </Button>
+            <Button variant="outline" className="w-full" onClick={() => signOut()}>
+              Keluar
+            </Button>
+          </div>
         </div>
       </div>
     );

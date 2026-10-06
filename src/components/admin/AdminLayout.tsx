@@ -206,7 +206,7 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   onClick={toggleSidebar} 
-                  tooltip="Expand Sidebar" 
+                  tooltip="Buka sidebar" 
                   className="hover:bg-slate-200 transition-all duration-300 ease-in-out text-slate-500"
                 >
                   <PanelLeft className="h-4 w-4" />
@@ -216,10 +216,10 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
           )}
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Back to Website" className="hover:bg-white hover:shadow-sm hover:border-slate-200 border border-transparent rounded-lg transition-all duration-300 ease-in-out text-slate-600 mt-2">
+              <SidebarMenuButton asChild tooltip="Kembali ke Website" className="hover:bg-white hover:shadow-sm hover:border-slate-200 border border-transparent rounded-lg transition-all duration-300 ease-in-out text-slate-600 mt-2">
                 <Link to="/">
                   <Home className="h-4 w-4" />
-                  <span className="font-medium">Back to Website</span>
+                  <span className="font-medium">Kembali ke Website</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -293,7 +293,7 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
               {open && (
                 <SidebarMenuAction 
                   onClick={handleSignOut} 
-                  title="Log Out" 
+                  title="Keluar" aria-label="Keluar" 
                   className="mr-1 text-slate-400 hover:text-red-600 hover:bg-red-50"
                 >
                   <LogOut className="h-4 w-4" />
@@ -310,7 +310,8 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
           {/* Top Header matching the design */}
           <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 sm:px-10 py-4 flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
-              <span>Main Menu</span>
+              <SidebarTrigger className="mr-1 h-11 w-11 md:hidden" aria-label="Buka menu" />
+              <span>Menu Utama</span>
               <span className="text-slate-300">/</span>
               <span className="text-slate-800 font-semibold flex items-center gap-2">
                 <LayoutDashboard className="w-4 h-4" />
@@ -323,7 +324,7 @@ const SidebarLayout = ({ menuSections, isActive, user, userRole, handleSignOut }
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input 
                   type="text" 
-                  placeholder="Search anything..." 
+                  placeholder="Cari..." 
                   className="pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-full text-sm w-[280px] focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-300 transition-all text-slate-800 placeholder:text-slate-400"
                 />
               </div>

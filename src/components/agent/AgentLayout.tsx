@@ -16,6 +16,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
+  SidebarTrigger,
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
@@ -101,11 +102,12 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
       {/* Open on wide screens so the menu is there when an agent lands; phones keep the slide-in menu. */}
       <SidebarProvider defaultOpen={typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches}>
         <Sidebar className="border-r border-border bg-muted">
-          <SidebarHeader className="p-4 border-b border-border h-[72px] flex items-center justify-center">
-            <Link to="/agent/dashboard" className="flex items-center gap-2 transition-transform hover:scale-105">
+          <SidebarHeader className="p-4 border-b border-border h-[72px] flex flex-row items-center justify-between gap-2">
+            <Link to="/agent/dashboard" className="flex items-center gap-2">
               <img src={musafarLogo} alt="Musafar Tour" className="h-8 w-auto" />
-              <span className="font-bold text-xl text-primary hidden sm:inline-block">Agent</span>
+              <span className="font-bold text-xl text-primary hidden sm:inline-block">Agen</span>
             </Link>
+            <SidebarTrigger className="hidden h-9 w-9 shrink-0 text-muted-foreground hover:bg-field-hover lg:inline-flex" aria-label="Ciutkan menu" />
           </SidebarHeader>
 
           <SidebarContent className="p-2 gap-0 pt-4">

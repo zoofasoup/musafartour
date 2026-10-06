@@ -575,11 +575,11 @@ export default function AgentLeaderboard() {
                   {levelIcons[level.level_name]}
                   <span className="font-semibold capitalize">{level.level_name}</span>
                   {level.level_name === agent?.level && (
-                    <Badge variant="default" className="ml-auto text-xs">Current</Badge>
+                    <Badge variant="default" className="ml-auto text-xs">Level kamu</Badge>
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Komisi: {level.commission_rate_min}% - {level.commission_rate_max}%
+                  Mulai {level.min_sales} jamaah lunas
                 </p>
                 <ul className="space-y-1">
                   {level.benefits?.map((benefit, i) => (
