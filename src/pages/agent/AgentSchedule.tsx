@@ -281,7 +281,7 @@ const AgentSchedule = () => {
                 Harga: {formatCurrency(price)}
               </span>
               <span className="text-sm text-foreground font-medium">
-                Komisi: {formatCurrency(commission)}
+                Komisi (perkiraan): {formatCurrency(commission)}
               </span>
             </div>
           </div>
@@ -329,7 +329,7 @@ const AgentSchedule = () => {
                   <p className="font-bold text-lg">{formatCurrency(price)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Komisi</p>
+                  <p className="text-sm text-muted-foreground">Komisi (perkiraan)</p>
                   <p className="font-bold text-lg text-foreground">
                     {formatCurrency(commission)}
                   </p>

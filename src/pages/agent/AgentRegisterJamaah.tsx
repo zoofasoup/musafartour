@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -23,6 +23,9 @@ export default function AgentRegisterJamaah() {
   const qc = useQueryClient();
   const { data: packages = [], isPending: loadingPackages } = usePublishedPackages();
   const [params] = useSearchParams();
+  // "Daftarkan jamaah" on Lead Saya passes the lead's name and number in the navigation state (not in the URL).
+  const lead = (useLocation().state as { lead?: { name?: string; phone?: string } } | null)?.lead;
+  const initialContact = lead?.name && lead?.phone ? { name: lead.name, phone: lead.phone } : undefined;
   // /agent/daftar-jamaah?paket=<id> opens with that package chosen (the package pages link here).
   const [packageId, setPackageId] = useState(params.get("paket") ?? "");
   const [formKey, setFormKey] = useState(0);
@@ -67,6 +70,9 @@ export default function AgentRegisterJamaah() {
   return (
     <div className="space-y-8">
       <AgentPageHeader title="Daftarkan Jamaah" description="Isi data jamaah sendiri, atau kirim link supaya jamaah mengisi sendiri. Keduanya tercatat atas namamu." icon={UserPlus} />
+      <p className="-mt-4 text-sm text-muted-foreground">
+        Sebelum jamaah mendaftar, catat dulu sebagai lead di <Link to="/agent/leads" className="font-medium text-foreground underline underline-offset-2">Lead Saya</Link>.
+      </p>
 
       <section aria-labelledby="pilih-paket" className="space-y-3">
         <h2 id="pilih-paket" className="text-lg font-bold">1. Pilih paket</h2>
@@ -100,6 +106,7 @@ export default function AgentRegisterJamaah() {
               submit={submit}
               whatsappUrl={() => "#"}
               agent={{ name: agent.name, onAnother: () => setFormKey((k) => k + 1) }}
+              initialContact={initialContact}
             />
           </div>
         </section>

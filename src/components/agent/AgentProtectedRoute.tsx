@@ -7,6 +7,7 @@ import AgentLayout from "./AgentLayout";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { AGENT_CS_WHATSAPP } from "@/lib/agentSupport";
+import { AgentSetupChecklist } from "@/components/agent/AgentSetupChecklist";
 
 interface AgentProtectedRouteProps {
   children: ReactNode;
@@ -50,19 +51,20 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
     const pending = agent.status === 'pending';
     const waText = encodeURIComponent(
       pending
-        ? `Halo CS Musafar, saya ${agent.name} (kode ${agent.referral_code}). Mohon dicek persetujuan akun agen saya.`
-        : `Halo CS Musafar, saya ${agent.name} (kode ${agent.referral_code}). Akun agen saya dinonaktifkan, mohon info lebih lanjut.`
+        ? `Halo CS Musafar, saya ${agent.name} (Agent ID ${agent.referral_code}). Mohon dicek persetujuan akun agen saya.`
+        : `Halo CS Musafar, saya ${agent.name} (Agent ID ${agent.referral_code}). Akun agen saya dinonaktifkan, mohon info lebih lanjut.`
     );
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 text-center shadow-sm">
+        <div className="w-full max-w-lg space-y-4">
+        <div className="rounded-lg border border-border bg-card p-6 text-center shadow-sm">
           <div className="mx-auto mb-4">
-            <StatusBadge kind={pending ? "warn" : "bad"}>{pending ? "Menunggu verifikasi" : "Dinonaktifkan"}</StatusBadge>
+            <StatusBadge kind={pending ? "warn" : "bad"}>{pending ? "Calon Agen" : "Dinonaktifkan"}</StatusBadge>
           </div>
           <h1 className="mb-2 text-2xl font-bold">{pending ? "Menunggu Persetujuan" : "Akun Dinonaktifkan"}</h1>
           <p className="mb-6 text-sm text-muted-foreground">
             {pending
-              ? "Data kamu sudah kami terima dan sedang diperiksa admin, biasanya 1-2 hari kerja. Kami kabari lewat WhatsApp begitu akun aktif."
+              ? "Data kamu sudah kami terima dan sedang diperiksa admin, biasanya 1-2 hari kerja. Selesaikan dua langkah di bawah supaya verifikasi tidak tertunda. Kami kabari lewat WhatsApp begitu akun aktif."
               : "Akun agen kamu sedang dinonaktifkan. Hubungi CS untuk informasi lebih lanjut."}
           </p>
           <div className="flex flex-col gap-2">
@@ -75,6 +77,8 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
               Keluar
             </Button>
           </div>
+        </div>
+        {pending && <AgentSetupChecklist />}
         </div>
       </div>
     );

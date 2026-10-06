@@ -7,7 +7,7 @@ export interface Agent {
   phone: string;
   wa_number: string | null;
   name: string;
-  level: "bronze" | "silver" | "gold" | "platinum";
+  level: "duta" | "silver" | "gold" | "platinum";
   total_sales: number;
   total_commission: number;
   available_balance: number;
@@ -19,6 +19,10 @@ export interface Agent {
   status: "pending" | "active" | "suspended";
   created_at: string;
   approved_at: string | null;
+  registration_fee_status?: "unpaid" | "paid" | "waived";
+  registration_fee_paid_at?: string | null;
+  sop_accepted_at?: string | null;
+  sop_version?: string | null;
   ktp_number: string | null;
   ktp_image_url: string | null;
   address: string | null;
@@ -66,7 +70,7 @@ export function approvedMessage(agent: Pick<Agent, "name" | "email" | "referral_
   return (
     `Assalamu'alaikum ${agent.name},\n\n` +
     `Akun agen Musafar Tour kamu sudah aktif. Silakan masuk di ${AGENT_LOGIN_URL} dengan email ${agent.email}.\n` +
-    `Kode referral kamu: ${agent.referral_code}.\n\n` +
+    `Agent ID kamu: ${agent.referral_code}.\n\n` +
     `Kalau ada kendala saat masuk, balas pesan ini ya. Jazakumullah khairan.`
   );
 }
@@ -97,6 +101,19 @@ export function missingFields(agent: Pick<Agent, "ktp_number" | "ktp_image_url" 
   return out;
 }
 
+/**
+ * Everything worth a second look before approving: missing identity data, the registration fee not received,
+ * the SOP not accepted. Approving anyway stays possible; this only feeds the warning.
+ */
+export function approvalWarnings(
+  agent: Pick<Agent, "ktp_number" | "ktp_image_url" | "address" | "phone" | "wa_number" | "registration_fee_status" | "sop_accepted_at">
+): string[] {
+  const out = missingFields(agent).map((k) => MISSING_LABEL[k]);
+  if ((agent.registration_fee_status ?? "unpaid") === "unpaid") out.push("Biaya registrasi belum diterima");
+  if (!agent.sop_accepted_at) out.push("SOP belum disetujui");
+  return out;
+}
+
 /** Storage path inside bucket agent-documents, from the (never loadable) public URL saved at upload time. */
 export function ktpStoragePath(url: string | null | undefined): string | null {
   const raw = (url ?? "").trim();
@@ -115,4 +132,4 @@ export function ktpStoragePath(url: string | null | undefined): string | null {
 
 export const isPaidStatus = (s: string) => s === "paid" || s === "completed";
 
-export const LEVEL_LABEL: Record<Agent["level"], string> = { bronze: "Bronze", silver: "Silver", gold: "Gold", platinum: "Platinum" };
+export const LEVEL_LABEL: Record<Agent["level"], string> = { duta: "Duta Musafar", silver: "Silver", gold: "Gold", platinum: "Platinum" };

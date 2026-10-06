@@ -430,7 +430,7 @@ const AgentMarketingKit = () => {
                       <div className="flex-1">
                         <h3 className="font-semibold">Your Personal Landing Page</h3>
                         <p className="text-sm text-muted-foreground mb-3">
-                          Halaman khusus dengan kode referral kamu
+                          Halaman khusus dengan Agent ID kamu
                         </p>
                         <div className="flex items-center gap-2 p-2 bg-background rounded border mb-3">
                           <Link2 className="h-4 w-4 text-muted-foreground shrink-0" />

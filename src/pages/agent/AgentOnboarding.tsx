@@ -14,6 +14,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { toast } from "sonner";
 import { compressImage } from "@/utils/imageCompression";
 import { RegionSelector } from "@/components/agent/RegionSelector";
+import { AgentSetupChecklist } from "@/components/agent/AgentSetupChecklist";
 
 const AgentOnboarding = () => {
   const { agent, user, updateAgentProfile, loading: authLoading, signOut } = useAgentAuth();
@@ -168,7 +169,7 @@ const AgentOnboarding = () => {
     setLoading(false);
     
     if (result.success) {
-      toast.success("Profil berhasil dilengkapi! Menunggu verifikasi admin.");
+      toast.success("Data terkirim! Selesaikan biaya registrasi dan persetujuan SOP supaya akunmu bisa diverifikasi.");
       navigate("/agent/dashboard");
     } else {
       const reason = result.error || "";
@@ -199,7 +200,7 @@ const AgentOnboarding = () => {
               <div className="mt-3 flex flex-col items-center gap-2 sm:items-start">
                 <StatusBadge kind="warn" icon={Clock}>Menunggu verifikasi admin</StatusBadge>
                 <p className="text-sm text-muted-foreground">
-                  Akun kamu aktif setelah data di bawah dikirim dan disetujui admin.
+                  Akun kamu aktif setelah data, biaya registrasi, dan persetujuan SOP selesai dan disetujui admin.
                 </p>
               </div>
             )}
@@ -221,7 +222,7 @@ const AgentOnboarding = () => {
             <CardHeader>
               <CardTitle>Data Identitas & Domisili</CardTitle>
               <CardDescription>
-                Data ini diperlukan untuk verifikasi legalitas dan perhitungan komisi kamu.
+                Data ini diperlukan untuk verifikasi identitas dan pencairan komisi kamu.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -399,6 +400,10 @@ const AgentOnboarding = () => {
             </CardFooter>
           </form>
         </Card>
+
+        <div className="mt-6">
+          <AgentSetupChecklist />
+        </div>
       </div>
     </div>
   );

@@ -21,10 +21,10 @@ import { AgentDetailDialog } from "@/components/admin/agents/AgentDetailDialog";
 import { WithdrawalsPanel } from "@/components/admin/agents/WithdrawalsPanel";
 import {
   LEVEL_LABEL,
-  MISSING_LABEL,
   agentWaNumber,
   approvedMessage,
   missingFields,
+  approvalWarnings,
   waLink,
   type Agent,
   type Withdrawal,
@@ -49,8 +49,8 @@ import { id } from "date-fns/locale";
 import { formatCurrency } from "@/lib/utils";
 
 const STATUS_BADGE = {
-  pending: { kind: "warn", label: "Menunggu" },
-  active: { kind: "ok", label: "Aktif" },
+  pending: { kind: "warn", label: "Calon Agen" },
+  active: { kind: "ok", label: "Agen Aktif" },
   suspended: { kind: "bad", label: "Ditangguhkan" },
 } as const;
 
@@ -200,6 +200,24 @@ const AgentManagement = () => {
     },
   });
 
+  // Registration fee: staff mark it received (paid + paid_at) or waive it
+  const updateFeeMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: "paid" | "waived" }) => {
+      const { error } = await supabase
+        .from('agents')
+        .update({ registration_fee_status: status, registration_fee_paid_at: status === 'paid' ? new Date().toISOString() : null })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-agents'] });
+      toast.success(v.status === 'paid' ? "Biaya registrasi ditandai diterima" : "Biaya registrasi dibebaskan");
+    },
+    onError: (error) => {
+      toast.error("Gagal memperbarui biaya registrasi: " + error.message);
+    },
+  });
+
   // Delete agent mutation
   const deleteAgentMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -281,7 +299,7 @@ const AgentManagement = () => {
 
   // Identity fields missing: ask before approving blindly.
   const handleApprove = (agent: Agent) => {
-    if (missingFields(agent).length > 0) setApproveTarget(agent);
+    if (approvalWarnings(agent).length > 0) setApproveTarget(agent);
     else approve(agent);
   };
 
@@ -303,7 +321,7 @@ const AgentManagement = () => {
     setDetailOpen(true);
   };
 
-  const approveMissing = approveTarget ? missingFields(approveTarget).map((k) => MISSING_LABEL[k]) : [];
+  const approveMissing = approveTarget ? approvalWarnings(approveTarget) : [];
 
   return (
     <div className="space-y-6">
@@ -381,7 +399,7 @@ const AgentManagement = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 name="agent-search"
-                placeholder="Cari nama, email, telepon, atau kode referral..."
+                placeholder="Cari nama, email, telepon, atau Agent ID..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"
@@ -425,7 +443,7 @@ const AgentManagement = () => {
                 <TableHeader className="bg-muted">
                   <TableRow>
                     <TableHead>Agen</TableHead>
-                    <TableHead>Kode Referral</TableHead>
+                    <TableHead>Agent ID</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Level</TableHead>
                     <TableHead>Penjualan</TableHead>
@@ -547,6 +565,7 @@ const AgentManagement = () => {
         open={detailOpen}
         onOpenChange={setDetailOpen}
         onLevelChange={(agent, level) => updateLevelMutation.mutate({ id: agent.id, level })}
+        onFeeChange={(agent, status) => updateFeeMutation.mutate({ id: agent.id, status })}
         onApprove={(agent) => {
           setDetailOpen(false);
           handleApprove(agent);
@@ -560,8 +579,8 @@ const AgentManagement = () => {
         title="Setujui agen ini?"
         description={
           <>
-            Data identitas belum lengkap. Setujui tetap?
-            {approveMissing.length > 0 && <> Yang masih kosong: <span className="font-semibold text-foreground">{approveMissing.join(", ")}</span>.</>}
+            Ada hal yang belum beres. Setujui tetap?
+            {approveMissing.length > 0 && <> Yang belum: <span className="font-semibold text-foreground">{approveMissing.join(", ")}</span>.</>}
           </>
         }
         confirmLabel="Setujui tetap"

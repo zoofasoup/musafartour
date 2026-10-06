@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
 import { AgentStatCard } from "@/components/agent/AgentStatCard";
 import { agentCsWhatsAppUrl, AGENT_MIN_WITHDRAWAL as MIN_WITHDRAWAL } from "@/lib/agentSupport";
+import { COMMISSION_ESTIMATE_NOTE, COMMISSION_PAYOUT_TEXT, WITHDRAWAL_SOP_NOTE } from "@/lib/sopAgen";
 
 /** What the database says when a withdrawal is refused, in words an agent can act on. */
 const withdrawalErrorMessage = (error: unknown): string => {
@@ -376,23 +377,28 @@ const AgentCommission = () => {
           icon={Wallet}
         />
 
+        <p className="flex items-start gap-2 rounded-lg border bg-card p-3 text-sm text-muted-foreground">
+          <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <span>{COMMISSION_PAYOUT_TEXT} Angka di halaman ini adalah perkiraan. {COMMISSION_ESTIMATE_NOTE}</span>
+        </p>
+
         {/* Overview Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <AgentStatCard
             icon={TrendingUp}
-            label="Total komisi masuk"
+            label="Total komisi (perkiraan)"
             value={formatCurrency(totalEarned)}
             helper={<span className="text-muted-foreground">Sepanjang waktu</span>}
           />
           <AgentStatCard
             icon={Clock}
-            label="Komisi menunggu"
+            label="Komisi menunggu (perkiraan)"
             value={formatCurrency(pendingCommission)}
-            helper={<span className="text-muted-foreground">Belum masuk saldo</span>}
+            helper={<span className="text-muted-foreground">Belum tercatat di saldo</span>}
           />
           <AgentStatCard
             icon={Wallet}
-            label="Bisa ditarik"
+            label="Saldo (perkiraan)"
             value={formatCurrency(availableBalance)}
             helper={
               <span className="text-muted-foreground">
@@ -413,7 +419,7 @@ const AgentCommission = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Penarikan Saldo</CardTitle>
-            <CardDescription>Tarik komisi ke rekening bank kamu</CardDescription>
+            <CardDescription>{WITHDRAWAL_SOP_NOTE}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">

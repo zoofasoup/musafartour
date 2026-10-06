@@ -23,6 +23,7 @@ import {
 import { USD_KURS } from "@/lib/calcConfig";
 import { CHILD_PRICE, INFANT_PRICE } from "@/lib/roomCombos";
 import { Link } from "react-router-dom";
+import { COMMISSION_PAYOUT_TEXT } from "@/lib/sopAgen";
 import { useHomepageData } from "@/hooks/useHomepageData";
 
 const fmt = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
@@ -177,6 +178,7 @@ const AgentSalesGuide = () => {
             <li>DP <strong>{fmt(5_000_000)}/pax</strong> untuk booking seat - <strong>non-refundable</strong>.</li>
             <li>Pelunasan maksimal <strong>H-30</strong> sebelum keberangkatan.</li>
             <li>Cicilan <strong>bebas</strong>: kapan saja dan berapa saja, asal lunas H-30. Semua transfer hanya ke rekening PT Musa Amanah Wisata.</li>
+            <li>Komisi untukmu: {COMMISSION_PAYOUT_TEXT} Besarnya mengikuti tingkat dan paket, dikonfirmasi PIC Agen.</li>
             <li>Harga mengikuti asumsi kurs USD = <strong>{fmt(USD_KURS)}</strong>; harga final dikonfirmasi saat pendaftaran.</li>
             <li>Harga & program bisa berubah sewaktu-waktu mengikuti kebijakan pemerintah Indonesia/Arab Saudi, hotel, dan maskapai - selalu sampaikan ini di awal supaya jamaah tidak kaget.</li>
             <li>Jamaah bisa <strong>upgrade kamar atau kelas penerbangan</strong> di luar harga paket - ini peluang upsell, tawarkan kalau relevan.</li>

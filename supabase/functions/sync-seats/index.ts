@@ -3,7 +3,7 @@ import Papa from 'https://esm.sh/papaparse@5.4.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sync-secret',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
@@ -27,6 +27,23 @@ function parseSheetDate(v: string): string | null {
   return d.toISOString().split('T')[0];
 }
 
+// Compares two strings without leaking where they differ (hash both, then XOR every byte).
+async function safeEqual(a: string, b: string): Promise<boolean> {
+  const enc = new TextEncoder();
+  const [ha, hb] = await Promise.all([
+    crypto.subtle.digest('SHA-256', enc.encode(a)),
+    crypto.subtle.digest('SHA-256', enc.encode(b)),
+  ]);
+  const x = new Uint8Array(ha);
+  const y = new Uint8Array(hb);
+  let diff = 0;
+  for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
+  return diff === 0;
+}
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -36,6 +53,37 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // 0. Who is calling? This function writes with the service role and is deployed with verify_jwt = false,
+    //    so it must check the caller itself. Callers: two pg_cron jobs (daily-seat-sync, sync-seats-5min) and the
+    //    "Sync Sisa Seat" button in the admin (signed-in admin / superadmin).
+    //    Enforced ONLY when the SYNC_SEATS_SECRET env var is set, so existing cron jobs that send no secret keep working
+    //    until the owner has added the header to them. Once set, the caller must send either
+    //      x-sync-secret: <SYNC_SEATS_SECRET>   (cron jobs / scripts), or
+    //      Authorization: Bearer <JWT of a user with role admin or superadmin>   (the admin button).
+    const secret = Deno.env.get('SYNC_SEATS_SECRET');
+    if (secret) {
+      const given = req.headers.get('x-sync-secret');
+      let allowed = !!given && (await safeEqual(given, secret));
+      if (!allowed) {
+        const bearer = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
+        if (bearer) {
+          const { data: { user } } = await supabase.auth.getUser(bearer);
+          if (user) {
+            const { data: roles } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', user.id)
+              .in('role', ['admin', 'superadmin'])
+              .limit(1);
+            allowed = !!roles && roles.length > 0;
+          }
+        }
+      }
+      if (!allowed) return json({ success: false, error: 'Unauthorized' }, 401);
+    } else {
+      console.warn('sync-seats: SYNC_SEATS_SECRET is not set, the endpoint is open to anyone. Set it in Supabase and send x-sync-secret from the cron jobs.');
+    }
 
     // 1. Fetch the sheet as CSV (public, no auth required)
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&_cb=${Date.now()}`;

@@ -2,6 +2,8 @@
 Tes SQL untuk aturan keamanan database (`01_security.sql`), portal agen (`02_agent_portal.sql`) dan alur
 pendaftaran jamaah beserta komisi agen (`03_registration.sql`), dan fungsi Cek status pendaftaran beserta batas percobaannya (`06_intake_status.sql`).
 
+**Lead agen** (`08_agent_leads.sql`) menguji migrasi `20261006180000_agent_leads.sql`: perlindungan 30 hari, isolasi antaragen, dan tautan ke pendaftaran.
+
 **Menjalankan** (dari folder mana pun): `./scripts/run-db-tests.sh`, atau satu file: `./scripts/run-db-tests.sh tests/db/03_registration.sql`
 
 **Aman.** Tes berjalan di database live yang di-link, tetapi di dalam transaksi yang selalu dibatalkan di akhir

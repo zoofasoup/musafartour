@@ -51,7 +51,8 @@ const AgentDashboard = () => {
   const owed = owing.reduce((s, j) => s + Math.max(0, j.outstanding), 0);
   const waitingCs = (intakes.data ?? []).filter((i) => i.status === "new").length;
 
-  const level = agent.level as AgentLevel;
+  // Unknown/legacy level values fall back to the starting level instead of crashing the page.
+  const level = (agent.level in AGENT_LEVEL_PROGRESSION ? agent.level : "duta") as AgentLevel;
   const levelInfo = AGENT_LEVEL_PROGRESSION[level];
   const salesLeft = Math.max(0, levelInfo.salesNeeded - agent.total_sales);
 
@@ -70,10 +71,10 @@ const AgentDashboard = () => {
               <Badge className={`${AGENT_LEVEL_COLORS[level]} gap-1 text-white`}><Award className="h-3.5 w-3.5" aria-hidden />{AGENT_LEVEL_LABELS[level]}</Badge>
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-primary-foreground">
-              <span>Kode referral kamu:</span>
+              <span>Agent ID kamu:</span>
               <span className="inline-flex items-center gap-1">
                 <code className="rounded bg-white/15 px-1.5 py-0.5 font-mono font-bold">{agent.referral_code}</code>
-                <button type="button" aria-label="Salin kode referral" className={`inline-flex h-8 w-8 items-center justify-center rounded hover:bg-white/15 ${TOUCH_H} [@media(pointer:coarse)]:w-11`} onClick={() => copy(agent.referral_code, "Kode referral disalin.")}>
+                <button type="button" aria-label="Salin Agent ID" className={`inline-flex h-8 w-8 items-center justify-center rounded hover:bg-white/15 ${TOUCH_H} [@media(pointer:coarse)]:w-11`} onClick={() => copy(agent.referral_code, "Agent ID disalin.")}>
                   <Copy className="h-4 w-4" aria-hidden />
                 </button>
               </span>
@@ -95,7 +96,7 @@ const AgentDashboard = () => {
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <AgentStatCard icon={Users} label="Jamaah aktif" value={jamaah.isPending ? "…" : active.length} helper={<span className="text-muted-foreground">{list.filter((j) => j.pay_state === "lunas").length} sudah lunas</span>} />
         <AgentStatCard icon={Clock} label="Belum lunas" value={jamaah.isPending ? "…" : owing.length} helper={<span className="text-muted-foreground">Sisa {juta(owed)}</span>} />
-        <AgentStatCard icon={Sparkles} label="Komisi menunggu" value={jamaah.isPending ? "…" : juta(held)} helper={<span className="text-muted-foreground">Masuk saat jamaah lunas</span>} />
+        <AgentStatCard icon={Sparkles} label="Komisi menunggu (perkiraan)" value={jamaah.isPending ? "…" : juta(held)} helper={<span className="text-muted-foreground">Besaran final mengikuti tingkat dan SOP.</span>} />
         <AgentStatCard icon={Wallet} label="Saldo komisi" value={formatCurrency(Number(agent.available_balance))} helper={<Link to="/agent/commission" className="inline-block py-2 font-medium text-foreground underline-offset-2 hover:underline">Lihat dan tarik komisi</Link>} />
       </div>
 
@@ -156,13 +157,13 @@ const AgentDashboard = () => {
             ) : (
               <p className="text-muted-foreground">Belum ada peringkat</p>
             )}
-            <p className="mt-1 text-[13px] text-muted-foreground">Dihitung dari jumlah jamaah yang sudah lunas.</p>
+            <p className="mt-1 text-[13px] text-muted-foreground">Tingkat dihitung dari jumlah jamaah per tahun.</p>
           </div>
           {levelInfo.next && (
             <div className="flex items-center gap-3 rounded-lg border border-status-warn-border bg-status-warn-bg p-3 text-status-warn-text">
               <Target className="h-6 w-6 shrink-0" aria-hidden />
               <div>
-                <p className="font-medium">{salesLeft} jamaah lunas lagi</p>
+                <p className="font-medium">{salesLeft} jamaah lagi</p>
                 <p className="text-sm">{AGENT_LEVEL_LABELS[level]} → {levelInfo.next}</p>
               </div>
             </div>

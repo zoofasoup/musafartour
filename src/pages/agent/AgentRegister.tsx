@@ -274,7 +274,7 @@ const AgentRegister = () => {
 
               {/* Referral Code */}
               <div className="space-y-2">
-                <Label htmlFor="referral_code">Kode Referral (opsional)</Label>
+                <Label htmlFor="referral_code">Agent ID agen yang mengajak (opsional)</Label>
                 <Input
                   id="referral_code"
                   name="referral_code"

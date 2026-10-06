@@ -49,6 +49,8 @@ interface Props {
   whatsappUrl: (message: string) => string;
   /** Set when an agent registers their own jamaah from the agent portal: no Turnstile, and the success view points back to the portal. */
   agent?: { name: string; onAnother: () => void };
+  /** Opens with the contact filled in (the agent portal passes a lead's name and number). */
+  initialContact?: { name: string; phone: string };
   onSubmitted?: (info: { code: string; people: number; value: number }) => void;
 }
 
@@ -80,9 +82,9 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
-export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, onSubmitted }: Props) {
+export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, initialContact, onSubmitted }: Props) {
   const defaultRoom: Room = "quad";
-  const [contact, setContact] = useState({ name: "", phone: "", city: "" });
+  const [contact, setContact] = useState({ name: initialContact?.name ?? "", phone: initialContact?.phone ?? "", city: "" });
   const [attending, setAttending] = useState(true);
   const [people, setPeople] = useState<PersonDraft[]>([blankPerson(defaultRoom, "Diri sendiri")]);
   const [payTogether, setPayTogether] = useState(true);
@@ -198,7 +200,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, onS
           <p className="text-2xl font-bold tracking-wider">{done.code}</p>
         </div>
         <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground">
-          CS akan mengecek seat dan menghubungi jamaah lewat WhatsApp. Pantau statusnya di daftar "Pendaftaran saya". Komisi dihitung setelah jamaah lunas.
+          CS akan mengecek seat dan menghubungi jamaah lewat WhatsApp. Pantau statusnya di daftar "Pendaftaran saya". Komisi dicatat setelah syarat terpenuhi dan dibayarkan sesuai SOP agen.
         </p>
         <Button variant="brand" type="button" className="mt-6 h-12 px-6 text-base font-bold" onClick={agent.onAnother}>Daftarkan jamaah lain</Button>
       </div>
@@ -273,9 +275,9 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, onS
           {agent ? "Orang ini ikut berangkat" : "Saya sendiri ikut berangkat"}
         </label>
         {agent ? (
-          <p className="mt-3 text-sm text-muted-foreground">Pendaftaran ini dicatat atas nama kamu sebagai agen (kode <span className="font-medium text-foreground">{refCode}</span>). Isi data jamaah yang mau kamu daftarkan.</p>
+          <p className="mt-3 text-sm text-muted-foreground">Pendaftaran ini dicatat atas nama kamu sebagai agen (Agent ID <span className="font-medium text-foreground">{refCode}</span>). Isi data jamaah yang mau kamu daftarkan.</p>
         ) : (
-          refCode && <p className="mt-3 text-sm text-muted-foreground">Kamu mendaftar lewat agen resmi Musafar (kode <span className="font-medium text-foreground">{refCode}</span>).</p>
+          refCode && <p className="mt-3 text-sm text-muted-foreground">Kamu mendaftar lewat agen resmi Musafar (Agent ID <span className="font-medium text-foreground">{refCode}</span>).</p>
         )}
       </section>
 

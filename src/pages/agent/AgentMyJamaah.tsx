@@ -27,8 +27,8 @@ type Tab = "semua" | "belum_dp" | "dp" | "lunas" | "antre";
 const day = (d: string) => format(new Date(`${d.slice(0, 10)}T00:00:00`), "d MMM yyyy", { locale: localeId });
 
 const COMMISSION_TEXT: Record<AgentJamaah["commission_status"], (j: AgentJamaah) => string | null> = {
-  earned: (j) => `Komisi ${rupiah(j.commission_amount)} sudah masuk saldo`,
-  waiting: (j) => `Komisi ${rupiah(j.commission_amount)} masuk saat jamaah lunas`,
+  earned: (j) => `Komisi ${rupiah(j.commission_amount)} sudah tercatat di saldo`,
+  waiting: (j) => `Perkiraan komisi ${rupiah(j.commission_amount)}, dicatat setelah syarat terpenuhi`,
   none: () => null,
 };
 
@@ -116,7 +116,7 @@ export default function AgentMyJamaah() {
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatCard label="Jamaah aktif" value={String(active.length)} hint={`${count("lunas")} sudah lunas`} />
           <StatCard label="Belum lunas" value={String(owing.length)} hint={`Sisa ${juta(totals.outstanding)}`} />
-          <StatCard label="Komisi menunggu" value={juta(totals.held)} hint="Masuk saat jamaah lunas" />
+          <StatCard label="Komisi menunggu (perkiraan)" value={juta(totals.held)} hint="Besaran final mengikuti tingkat dan SOP." />
           <StatCard label="Menunggu CS" value={String(waiting.length)} hint="Pendaftaran belum dicek" />
         </div>
       )}

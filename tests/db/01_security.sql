@@ -134,7 +134,7 @@ BEGIN
   END IF;
 
   -- =============================================================================================
-  -- 1a. agents: a self-registered row is forced to pending / 0 / bronze
+  -- 1a. agents: a self-registered row is forced to pending / 0 / duta
   -- =============================================================================================
   _new_uid := gen_random_uuid();
   INSERT INTO auth.users (id, email, instance_id, aud, role)
@@ -147,9 +147,9 @@ BEGIN
             'active', 'gold', 50, 9999999, 9999999, now())
     RETURNING status, level, total_sales, total_commission, available_balance, approved_at INTO _r;
     RESET ROLE;
-    IF _r.status = 'pending' AND _r.level = 'bronze' AND _r.total_sales = 0 AND _r.total_commission = 0
+    IF _r.status = 'pending' AND _r.level = 'duta' AND _r.total_sales = 0 AND _r.total_commission = 0
        AND _r.available_balance = 0 AND _r.approved_at IS NULL THEN
-      _out := _out || E'PASS agents: new row by non-staff forced to pending / bronze / balance 0 / no approved_at\n';
+      _out := _out || E'PASS agents: new row by non-staff forced to pending / duta / balance 0 / no approved_at\n';
     ELSE
       _out := _out || format(E'FAIL agents: new row kept status=%s level=%s sales=%s commission=%s balance=%s approved_at=%s\n',
                              _r.status, _r.level, _r.total_sales, _r.total_commission, _r.available_balance, _r.approved_at);

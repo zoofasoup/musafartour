@@ -163,7 +163,7 @@ const PackageShareModal = ({
             </div>
             {agentCode && (
               <p className="text-xs text-muted-foreground">
-                Kode referral kamu ({agentCode}) sudah termasuk di link
+                Agent ID kamu ({agentCode}) sudah termasuk di link
               </p>
             )}
           </div>

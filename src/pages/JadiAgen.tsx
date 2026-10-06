@@ -1,72 +1,74 @@
 import { Link } from "react-router-dom";
-import { BadgeCheck, Banknote, CalendarClock, CheckCircle2, ClipboardCheck, IdCard, Mail, MessageCircle, UserPlus, Wallet } from "lucide-react";
+import { Award, BadgeCheck, Banknote, CalendarClock, CheckCircle2, ClipboardCheck, FileText, Gift, IdCard, MessageCircle, UserPlus, Wallet } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useHomepageData } from "@/hooks/useHomepageData";
-import { AGENT_COMMISSION_PER_JAMAAH, AGENT_MIN_WITHDRAWAL } from "@/lib/agentSupport";
-import { LUNAS_DAYS_BEFORE_DEPARTURE, rupiah } from "@/lib/jamaah";
+import { rupiah } from "@/lib/jamaah";
 import { formatWhatsAppUrl } from "@/lib/utils";
+import {
+  AGENT_FEE_INCLUDES,
+  AGENT_LEVEL_RULES,
+  AGENT_REGISTRATION_FEE,
+  AGENT_REQUIREMENTS,
+  BONUS_TEXT,
+  COMMISSION_PAYOUT_TEXT,
+  COMMISSION_PER_LEVEL_TEXT,
+} from "@/lib/sopAgen";
 
 const FALLBACK_WHATSAPP = "6281917403797";
 
 const BENEFITS = [
   {
     icon: Banknote,
-    title: `${rupiah(AGENT_COMMISSION_PER_JAMAAH)} per jamaah`,
-    text: "Komisi tetap, sama untuk semua paket. Kamu tahu penghasilanmu sebelum menawarkan paket.",
+    title: "Komisi sesuai tingkat dan paket",
+    text: "Besarnya dikonfirmasi PIC Agen. Makin banyak jamaah per tahun, makin tinggi tingkatmu.",
   },
   {
     icon: CheckCircle2,
-    title: "Dibayar setelah jamaah lunas",
-    text: "Komisi masuk ke saldo saat jamaah yang kamu ajak sudah melunasi pembayarannya.",
+    title: "Dibayar H sampai H+2 landing",
+    text: "Komisi dibayarkan hari H sampai H+2 setelah jamaah landing di negara tujuan, bila semua syarat terpenuhi.",
   },
   {
-    icon: Wallet,
-    title: `Tarik mulai ${rupiah(AGENT_MIN_WITHDRAWAL)}`,
-    text: "Ajukan penarikan kapan saja dari portal agen, ke rekening bank atas namamu sendiri.",
+    icon: Award,
+    title: "Pelatihan dan sertifikat",
+    text: "Pelatihan sales gratis, materi promosi, dan sertifikat Agen Resmi.",
   },
 ] as const;
 
 const STEPS = [
-  { icon: UserPlus, title: "Daftar", text: "Isi nama, email, nomor WhatsApp, dan password. Gratis, tidak ada biaya bergabung." },
-  { icon: Mail, title: "Konfirmasi email", text: "Buka email dari kami dan klik tautan konfirmasi. Belum masuk? Kamu bisa minta kirim ulang." },
-  { icon: IdCard, title: "Lengkapi data KTP", text: "Isi nomor KTP, foto KTP, dan alamat. Dipakai admin untuk memastikan kamu orang yang tepat." },
-  { icon: ClipboardCheck, title: "Disetujui admin", text: "Admin memeriksa datamu, biasanya 1-2 hari kerja. Setelah disetujui, portal agenmu aktif." },
-] as const;
-
-const REQUIREMENTS = [
-  "KTP yang masih berlaku, untuk verifikasi identitas.",
-  "Rekening bank atas nama sendiri, untuk pencairan komisi.",
-  "Nomor WhatsApp dan email yang aktif.",
-  "Setuju dengan Kebijakan Privasi dan Syarat & Ketentuan Musafar Tour.",
+  { icon: UserPlus, title: "Daftar", text: "Isi nama, email, nomor WhatsApp, dan password." },
+  { icon: IdCard, title: "Verifikasi data", text: "Lengkapi KTP dan alamat, bayar biaya registrasi, lalu setujui SOP." },
+  { icon: ClipboardCheck, title: "Disetujui", text: "Admin memeriksa datamu, biasanya 1-2 hari kerja." },
+  { icon: BadgeCheck, title: "Dapat Agent ID", text: "Agent ID (format MUS-XXXXXX) mencatat jamaah yang kamu ajak." },
+  { icon: FileText, title: "Onboarding", text: "Ikuti pembinaan dan pelatihan, lalu mulai menawarkan paket." },
 ] as const;
 
 const FAQS = [
   {
-    q: "Kapan komisi saya masuk?",
-    a: `Komisi dicatat saat jamaah yang kamu ajak sudah lunas, yaitu seluruh pembayarannya terverifikasi. Pelunasan paling lambat H-${LUNAS_DAYS_BEFORE_DEPARTURE} sebelum keberangkatan. Selama jamaah belum lunas, komisinya tampil sebagai "menunggu" dan belum bisa ditarik.`,
-  },
-  {
-    q: "Bagaimana kalau jamaah hanya bayar DP lalu batal?",
-    a: "DP tidak dapat dikembalikan, dan komisi hanya dibayar untuk jamaah yang lunas. Jamaah yang batal sebelum lunas tidak menghasilkan komisi. Jelaskan aturan DP ini ke calon jamaah sejak awal.",
-  },
-  {
     q: "Apakah ada biaya untuk jadi agen?",
-    a: "Tidak ada. Mendaftar, memakai portal agen, dan materi marketing semuanya gratis.",
+    a: `Ada, biaya registrasi ${rupiah(AGENT_REGISTRATION_FEE)} dibayar satu kali seumur hidup. Biaya ini mencakup welcome kit, perlengkapan, marketing kit, grup WhatsApp, pelatihan sales gratis, dan sertifikat Agen Resmi. Pembayaran hanya ke rekening PT Musa Amanah Wisata, lalu bukti transfer dikirim ke PIC Agen.`,
+  },
+  {
+    q: "Berapa komisi saya?",
+    a: `${COMMISSION_PER_LEVEL_TEXT} Tingkatnya naik mengikuti jumlah jamaah per tahun: Silver 1 sampai 15, Gold 15 sampai 30, Platinum di atas 30.`,
+  },
+  {
+    q: "Kapan komisi dibayar?",
+    a: `${COMMISSION_PAYOUT_TEXT} Ketentuan tanggal dapat berubah dan akan diinformasikan.`,
+  },
+  {
+    q: "Bagaimana kalau jamaah batal atau refund?",
+    a: "Komisi tidak berlaku untuk jamaah yang batal atau refund. Kalau komisi sudah dibayar, komisi dipotong dari komisi berikutnya, dikembalikan agen, atau diselesaikan lewat mekanisme lain yang disepakati.",
   },
   {
     q: "Apakah agen menerima uang dari jamaah?",
-    a: "Tidak. Semua pembayaran jamaah hanya ke rekening resmi PT, tidak pernah ke rekening pribadi agen. Tugasmu mengajak dan mendampingi, pembayaran dicatat langsung oleh CS.",
+    a: "Tidak. Semua pembayaran jamaah hanya ke rekening resmi Musafar. Agen tidak boleh menerima pembayaran ke rekening pribadi tanpa persetujuan perusahaan.",
   },
   {
     q: "Berapa lama persetujuan akun?",
-    a: "Biasanya 1-2 hari kerja setelah data KTP dan alamatmu lengkap. Kalau lebih lama, hubungi CS lewat WhatsApp.",
-  },
-  {
-    q: "Bagaimana cara menarik komisi?",
-    a: `Atur rekening di portal agen, lalu ajukan penarikan. Jumlah minimal ${rupiah(AGENT_MIN_WITHDRAWAL)}, dan rekening harus atas namamu sendiri.`,
+    a: "Biasanya 1-2 hari kerja setelah data, biaya registrasi, dan persetujuan SOP lengkap. Kalau lebih lama, hubungi CS lewat WhatsApp.",
   },
 ] as const;
 
@@ -83,10 +85,10 @@ export default function JadiAgen() {
         <section className="rounded-3xl bg-primary px-6 py-10 text-primary-foreground sm:px-10 sm:py-14" aria-labelledby="judul">
           <p className="text-sm font-semibold uppercase tracking-wider text-primary-foreground/70">Program agen Musafar Tour</p>
           <h1 id="judul" className="mt-3 max-w-2xl text-4xl font-extrabold leading-tight tracking-tight [text-wrap:balance] sm:text-5xl">
-            Jadi agen umroh, komisi {rupiah(AGENT_COMMISSION_PER_JAMAAH)} per jamaah lunas
+            Jadi agen resmi umroh Musafar Tour
           </h1>
           <p className="mt-4 max-w-2xl text-lg text-primary-foreground/85">
-            Ajak keluarga, teman, atau jamaah pengajianmu berangkat umroh. Kami yang mengurus pendaftaran, pembayaran, dan keberangkatan.
+            Ajak keluarga, teman, atau jamaah pengajianmu berangkat umroh. Komisi sesuai tingkat dan paket. Registrasi sekali seumur hidup.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild variant="brand" className="h-12 gap-2 px-6 text-base font-bold">
@@ -118,14 +120,45 @@ export default function JadiAgen() {
               </li>
             ))}
           </ul>
-          <p className="mt-4 flex items-start gap-2 text-foreground/80">
-            <BadgeCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand" aria-hidden />
-            <span>Portal agen berisi daftar paket dan jadwal, materi marketing, tautan referral pribadi, dan pantauan status jamaah serta komisimu.</span>
+        </section>
+
+        <section className="mt-12 rounded-2xl border bg-card p-6 shadow-sm" aria-labelledby="biaya">
+          <h2 id="biaya" className="text-2xl font-bold text-foreground">Biaya registrasi {rupiah(AGENT_REGISTRATION_FEE)}, sekali seumur hidup</h2>
+          <p className="mt-2 text-foreground/80">Sudah termasuk:</p>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+            {AGENT_FEE_INCLUDES.map((i) => (
+              <li key={i} className="flex items-start gap-3 text-foreground">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-status-ok-text" aria-hidden />
+                <span>{i}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
+            <Wallet className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>Dibayar ke rekening PT Musa Amanah Wisata, lalu bukti transfer dikirim ke PIC Agen.</span>
           </p>
         </section>
 
+        <section className="mt-12" aria-labelledby="tingkat">
+          <h2 id="tingkat" className="text-2xl font-bold text-foreground sm:text-3xl">Empat tingkat agen</h2>
+          <p className="mt-2 text-foreground/80">Tingkat dihitung dari jumlah jamaah per tahun. {COMMISSION_PER_LEVEL_TEXT}</p>
+          <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {AGENT_LEVEL_RULES.map((l) => (
+              <li key={l.key} className="rounded-2xl border bg-card p-5 shadow-sm">
+                <h3 className="text-lg font-bold text-foreground">{l.label}</h3>
+                <p className="mt-1 text-foreground/80">{l.range}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mt-12 rounded-2xl border bg-card p-6 shadow-sm" aria-labelledby="program-bonus">
+          <h2 id="program-bonus" className="flex items-center gap-2 text-2xl font-bold text-foreground"><Gift className="h-6 w-6" aria-hidden />Program dan bonus</h2>
+          <p className="mt-3 text-foreground/80">{BONUS_TEXT}</p>
+        </section>
+
         <section className="mt-12" aria-labelledby="cara">
-          <h2 id="cara" className="text-2xl font-bold text-foreground sm:text-3xl">Cara bergabung, 4 langkah</h2>
+          <h2 id="cara" className="text-2xl font-bold text-foreground sm:text-3xl">Cara bergabung, 5 langkah</h2>
           <ol className="mt-5 grid gap-4 sm:grid-cols-2">
             {STEPS.map(({ icon: Icon, title, text }, i) => (
               <li key={title} className="flex items-start gap-4 rounded-2xl border bg-card p-5 shadow-sm">
@@ -143,9 +176,9 @@ export default function JadiAgen() {
         </section>
 
         <section className="mt-12 rounded-2xl border bg-card p-6 shadow-sm" aria-labelledby="syarat">
-          <h2 id="syarat" className="text-2xl font-bold text-foreground">Yang perlu disiapkan</h2>
+          <h2 id="syarat" className="text-2xl font-bold text-foreground">Syarat jadi agen</h2>
           <ul className="mt-4 space-y-3">
-            {REQUIREMENTS.map((r) => (
+            {AGENT_REQUIREMENTS.map((r) => (
               <li key={r} className="flex items-start gap-3 text-foreground">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-status-ok-text" aria-hidden />
                 <span>{r}</span>
@@ -155,7 +188,7 @@ export default function JadiAgen() {
           <p className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
             <CalendarClock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             <span>
-              Data diproses sesuai <Link to="/kebijakan-privasi" className="font-semibold text-foreground underline underline-offset-4">Kebijakan Privasi</Link> dan{" "}
+              Baca <Link to="/sop-agen" className="font-semibold text-foreground underline underline-offset-4">SOP Program Agen</Link> selengkapnya. Data diproses sesuai <Link to="/kebijakan-privasi" className="font-semibold text-foreground underline underline-offset-4">Kebijakan Privasi</Link> dan{" "}
               <Link to="/syarat-ketentuan" className="font-semibold text-foreground underline underline-offset-4">Syarat &amp; Ketentuan</Link>.
             </span>
           </p>
@@ -174,7 +207,7 @@ export default function JadiAgen() {
         </section>
 
         <section className="mt-12 rounded-3xl bg-primary px-6 py-10 text-center text-primary-foreground sm:px-10" aria-labelledby="ajakan">
-          <h2 id="ajakan" className="text-2xl font-bold sm:text-3xl [text-wrap:balance]">Siap mulai? Daftarnya gratis dan cuma beberapa menit</h2>
+          <h2 id="ajakan" className="text-2xl font-bold sm:text-3xl [text-wrap:balance]">Siap jadi agen resmi Musafar Tour?</h2>
           <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild variant="brand" className="h-12 gap-2 px-6 text-base font-bold">
               <Link to="/agent/register">

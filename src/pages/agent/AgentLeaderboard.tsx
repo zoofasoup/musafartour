@@ -18,7 +18,7 @@ import {
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
-import { AGENT_LEVEL_COLORS as levelColors, AGENT_LEVEL_ICONS as levelIcons } from "@/lib/agentLevels";
+import { AGENT_LEVEL_COLORS as levelColors, AGENT_LEVEL_ICONS as levelIcons, agentLevelLabel } from "@/lib/agentLevels";
 
 // Icon mapping
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -486,11 +486,11 @@ export default function AgentLeaderboard() {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Current Level Card */}
-          <div className={`p-4 rounded-lg ${levelColors[agent?.level || 'bronze']} text-white`}>
+          <div className={`p-4 rounded-lg ${levelColors[agent?.level || 'duta']} text-white`}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm opacity-90">Level Saat Ini</p>
-                <p className="text-2xl font-bold capitalize">{agent?.level || 'Bronze'}</p>
+                <p className="text-2xl font-bold">{agentLevelLabel(agent?.level)}</p>
               </div>
               <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
                 {agent?.level === 'platinum' ? <Crown className="h-8 w-8" /> :
@@ -499,7 +499,7 @@ export default function AgentLeaderboard() {
                  <Award className="h-8 w-8" />}
               </div>
             </div>
-            <p className="mt-2 text-sm opacity-90">{agent?.total_sales || 0} penjualan</p>
+            <p className="mt-2 text-sm opacity-90">{agent?.total_sales || 0} jamaah</p>
           </div>
 
           {/* Level Progression */}
@@ -515,8 +515,8 @@ export default function AgentLeaderboard() {
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${levelColors[level.level_name]}`}>
                     {levelIcons[level.level_name]}
                   </div>
-                  <p className="text-xs mt-1 capitalize font-medium">{level.level_name}</p>
-                  <p className="text-xs text-muted-foreground">{level.min_sales}+ sales</p>
+                  <p className="text-xs mt-1 font-medium">{agentLevelLabel(level.level_name)}</p>
+                  <p className="text-xs text-muted-foreground">{level.min_sales}+ jamaah/tahun</p>
                 </div>
               ))}
             </div>
@@ -525,7 +525,7 @@ export default function AgentLeaderboard() {
             {nextLevel && (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Progress ke {nextLevel.level_name}</span>
+                  <span className="text-muted-foreground">Progress ke {agentLevelLabel(nextLevel.level_name)}</span>
                   <span className="font-medium">{agent?.total_sales || 0}/{nextLevel.min_sales}</span>
                 </div>
                 <Progress 
@@ -533,7 +533,7 @@ export default function AgentLeaderboard() {
                   className="h-3" 
                 />
                 <p className="text-sm text-center text-muted-foreground">
-                  {salesNeeded} penjualan lagi untuk naik level!
+                  {salesNeeded} jamaah lagi untuk naik tingkat.
                 </p>
               </div>
             )}
@@ -550,13 +550,13 @@ export default function AgentLeaderboard() {
               >
                 <div className="flex items-center gap-2 mb-2">
                   {levelIcons[level.level_name]}
-                  <span className="font-semibold capitalize">{level.level_name}</span>
+                  <span className="font-semibold">{agentLevelLabel(level.level_name)}</span>
                   {level.level_name === agent?.level && (
                     <Badge variant="default" className="ml-auto text-xs">Level kamu</Badge>
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Mulai {level.min_sales} jamaah lunas
+                  Mulai {level.min_sales} jamaah per tahun
                 </p>
                 <ul className="space-y-1">
                   {level.benefits?.map((benefit, i) => (

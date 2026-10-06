@@ -21,6 +21,7 @@ const EXACT = new Set([
   "/cek-status",
   "/cara-bayar",
   "/jadi-agen",
+  "/sop-agen",
   "/chat",
   "/booth",
   "/kalkulator",

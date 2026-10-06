@@ -322,7 +322,7 @@ const AgentPackages = () => {
                       </div>
                       <div className="text-foreground font-semibold flex items-center gap-1.5">
                         <Wallet className="h-4 w-4" />
-                        Komisi: {formatPrice(commission)}
+                        Komisi (perkiraan): {formatPrice(commission)}
                       </div>
                     </div>
 

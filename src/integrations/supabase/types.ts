@@ -242,6 +242,87 @@ export type Database = {
           },
         ]
       }
+      agent_lead_followups: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          kind: string
+          lead_id: string
+          note: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          lead_id: string
+          note?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          lead_id?: string
+          note?: string | null
+        }
+        Relationships: []
+      }
+      agent_leads: {
+        Row: {
+          agent_id: string
+          created_at: string
+          helped_by_agent_id: string | null
+          id: string
+          inactive_reason: string | null
+          intake_id: string | null
+          interest_note: string | null
+          last_followup_at: string | null
+          name: string
+          package_id: string | null
+          protected_until: string
+          registered_at: string
+          status: string
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          helped_by_agent_id?: string | null
+          id?: string
+          inactive_reason?: string | null
+          intake_id?: string | null
+          interest_note?: string | null
+          last_followup_at?: string | null
+          name: string
+          package_id?: string | null
+          protected_until?: string
+          registered_at?: string
+          status?: string
+          updated_at?: string
+          whatsapp: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          helped_by_agent_id?: string | null
+          id?: string
+          inactive_reason?: string | null
+          intake_id?: string | null
+          interest_note?: string | null
+          last_followup_at?: string | null
+          name?: string
+          package_id?: string | null
+          protected_until?: string
+          registered_at?: string
+          status?: string
+          updated_at?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
       agent_levels: {
         Row: {
           benefits: string[] | null
@@ -569,7 +650,11 @@ export type Database = {
           province: string | null
           referral_code: string
           referred_by_id: string | null
+          registration_fee_paid_at: string | null
+          registration_fee_status: string
           social_links: Json | null
+          sop_accepted_at: string | null
+          sop_version: string | null
           status: string
           total_commission: number
           total_sales: number
@@ -597,7 +682,11 @@ export type Database = {
           province?: string | null
           referral_code: string
           referred_by_id?: string | null
+          registration_fee_paid_at?: string | null
+          registration_fee_status?: string
           social_links?: Json | null
+          sop_accepted_at?: string | null
+          sop_version?: string | null
           status?: string
           total_commission?: number
           total_sales?: number
@@ -625,7 +714,11 @@ export type Database = {
           province?: string | null
           referral_code?: string
           referred_by_id?: string | null
+          registration_fee_paid_at?: string | null
+          registration_fee_status?: string
           social_links?: Json | null
+          sop_accepted_at?: string | null
+          sop_version?: string | null
           status?: string
           total_commission?: number
           total_sales?: number
@@ -2885,7 +2978,70 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Tables"]["agents"]["Row"]
       }
+      accept_agent_sop: { Args: { _version: string }; Returns: undefined }
       set_agent_referrer: { Args: { _code: string }; Returns: undefined }
+      create_agent_lead: {
+        Args: { _name: string; _note?: string; _package_id?: string; _whatsapp: string }
+        Returns: Json
+      }
+      add_lead_followup: {
+        Args: { _kind: string; _lead_id: string; _note?: string }
+        Returns: Json
+      }
+      set_lead_status: {
+        Args: { _lead_id: string; _reason?: string; _status: string }
+        Returns: Json
+      }
+      set_lead_helper: {
+        Args: { _helper_referral_code: string; _lead_id: string }
+        Returns: undefined
+      }
+      list_my_agent_leads: {
+        Args: never
+        Returns: {
+          id: string
+          name: string
+          whatsapp: string
+          package_id: string | null
+          package_name: string | null
+          interest_note: string | null
+          status: string
+          registered_at: string
+          protected_until: string
+          days_left: number
+          last_followup_at: string | null
+          followup_count: number
+          helper_code: string | null
+          intake_code: string | null
+          intake_status: string | null
+          inactive_reason: string | null
+        }[]
+      }
+      admin_agent_leads: {
+        Args: never
+        Returns: {
+          id: string
+          agent_id: string
+          agent_name: string
+          agent_code: string
+          name: string
+          whatsapp: string
+          package_id: string | null
+          package_name: string | null
+          interest_note: string | null
+          status: string
+          registered_at: string
+          protected_until: string
+          last_followup_at: string | null
+          followup_count: number
+          helper_name: string | null
+          helper_code: string | null
+          inactive_reason: string | null
+          intake_code: string | null
+          conflict_intake_agent_name: string | null
+        }[]
+      }
+      normalize_wa_phone: { Args: { _raw: string }; Returns: string }
       get_agent_leaderboard: {
         Args: never
         Returns: {

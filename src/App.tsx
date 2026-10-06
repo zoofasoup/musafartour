@@ -75,6 +75,7 @@ const PublicMarketingKit = lazy(() => import("./pages/PublicMarketingKit"));
 const AgentLogin = lazy(() => import("./pages/agent/AgentLogin"));
 const AgentRegister = lazy(() => import("./pages/agent/AgentRegister"));
 const JadiAgen = lazy(() => import("./pages/JadiAgen"));
+const SopAgen = lazy(() => import("./pages/SopAgen"));
 const AgentForgotPassword = lazy(() => import("./pages/agent/AgentForgotPassword"));
 const AgentOnboarding = lazy(() => import("./pages/agent/AgentOnboarding"));
 const AgentDashboard = lazy(() => import("./pages/agent/AgentDashboard"));
@@ -88,6 +89,8 @@ const AgentLeaderboard = lazy(() => import("./pages/agent/AgentLeaderboard"));
 const AgentSalesGuide = lazy(() => import("./pages/agent/AgentSalesGuide"));
 const AgentRegisterJamaah = lazy(() => import("./pages/agent/AgentRegisterJamaah"));
 const AgentMyJamaah = lazy(() => import("./pages/agent/AgentMyJamaah"));
+const AgentLeads = lazy(() => import("./pages/agent/AgentLeads"));
+const AdminAgentLeads = lazy(() => import("./pages/admin/AgentLeads"));
 const SalesCalculator = lazy(() => import("./pages/admin/SalesCalculator"));
 const PackageBrochure = lazy(() => import("./pages/admin/PackageBrochure"));
 const AgentProtectedRoute = lazy(() => import("./components/agent/AgentProtectedRoute"));
@@ -170,8 +173,13 @@ const ROUTE_META: { match: (p: string) => boolean; title: string; description?: 
   { match: (p) => p === "/agent/forgot-password", title: "Lupa Password Agen - Musafar Tour", noindex: true },
   {
     match: (p) => p === "/jadi-agen",
-    title: "Jadi Agen Umroh Musafar Tour: Komisi Rp 1.500.000 per Jamaah",
-    description: "Daftar gratis jadi agen umroh Musafar Tour. Komisi tetap Rp 1.500.000 per jamaah lunas, penarikan mulai Rp 100.000, materi marketing siap pakai.",
+    title: "Jadi Agen Umroh Musafar Tour: Komisi Sesuai Tingkat dan Paket",
+    description: "Jadi agen resmi umroh Musafar Tour. Biaya registrasi Rp 1.500.000 sekali seumur hidup, empat tingkat agen, komisi sesuai tingkat dan paket, pelatihan dan sertifikat.",
+  },
+  {
+    match: (p) => p === "/sop-agen",
+    title: "SOP Program Agen Musafar Tour",
+    description: "SOP/AGEN/001: syarat, tingkat, biaya registrasi, komisi, larangan, dan sanksi untuk agen resmi PT Musa Amanah Wisata (Musafar Tour).",
   },
   {
     match: (p) => p === "/agent/register",
@@ -363,6 +371,7 @@ const App = () => (
                   <Route path="/agent/login" element={<AgentLogin />} />
                   <Route path="/agent/forgot-password" element={<AgentForgotPassword />} />
                   <Route path="/jadi-agen" element={<JadiAgen />} />
+                  <Route path="/sop-agen" element={<SopAgen />} />
                   <Route path="/agent/register" element={<AgentRegister />} />
                   <Route
                     path="/agent/onboarding"
@@ -430,6 +439,16 @@ const App = () => (
                       <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
                         <AgentProtectedRoute>
                           <AgentMyJamaah />
+                        </AgentProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/agent/leads"
+                    element={
+                      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+                        <AgentProtectedRoute>
+                          <AgentLeads />
                         </AgentProtectedRoute>
                       </Suspense>
                     }
@@ -526,6 +545,7 @@ const App = () => (
                     <Route path="chat-rotation" element={<ChatRotation />} />
                     <Route path="url-shortener" element={<URLShortener />} />
                     <Route path="agents" element={<AgentManagement />} />
+                    <Route path="agent-leads" element={<AdminAgentLeads />} />
                     <Route path="jamaah" element={<Jamaah />} />
                     <Route path="jamaah/semua" element={<JamaahAll />} />
                     <Route path="jamaah/masuk" element={<JamaahIntake />} />

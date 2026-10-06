@@ -143,7 +143,26 @@ Deno.serve(async (req) => {
 
       // Ensure they cannot demote themselves accidentally
       if (userId === user.id && role !== 'superadmin' && roleData?.role === 'superadmin') {
-        return new Response(JSON.stringify({ error: 'You cannot remove your own Super Admin access' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: 'Kamu tidak bisa menurunkan peran Super Admin dirimu sendiri' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      // Never leave the system without a superadmin.
+      if (role !== 'superadmin') {
+        const { data: targetRoles, error: targetError } = await supabaseAdmin
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId);
+        if (targetError) throw targetError;
+        if (targetRoles?.some((r) => r.role === 'superadmin')) {
+          const { count: superadminCount, error: countError } = await supabaseAdmin
+            .from('user_roles')
+            .select('id', { count: 'exact', head: true })
+            .eq('role', 'superadmin');
+          if (countError) throw countError;
+          if ((superadminCount ?? 0) <= 1) {
+            return new Response(JSON.stringify({ error: 'Super Admin terakhir tidak bisa diturunkan perannya' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+          }
+        }
       }
 
       const { error: updateError } = await supabaseAdmin
@@ -159,30 +178,56 @@ Deno.serve(async (req) => {
     }
 
     // --- HANDLE DELETE (Remove Access) ---
+    // Only removes the person's admin roles (user_roles rows). The auth account is NEVER deleted:
+    // the same person may be an agent, may hold other data, and can be given a role again later.
     if (req.method === 'DELETE') {
       const { userId } = await req.json();
-      
+
       if (!userId) {
         return new Response(JSON.stringify({ error: 'Missing user ID' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
       if (userId === user.id) {
-        return new Response(JSON.stringify({ error: 'You cannot remove yourself' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: 'Kamu tidak bisa mencabut akses dirimu sendiri' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      // Hapus data dari tabel user_roles
-      await supabaseAdmin
+      const { data: targetRoles, error: targetError } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+      if (targetError) throw targetError;
+
+      if (!targetRoles || targetRoles.length === 0) {
+        // Nothing to remove (already removed): report success so a double click is harmless.
+        return new Response(JSON.stringify({ success: true, message: 'Akses sudah dicabut' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      if (targetRoles.some((r) => r.role === 'superadmin')) {
+        // Only a superadmin may remove another superadmin, and the last one can never be removed.
+        const callerIsSuperadmin = roleData.role === 'superadmin';
+        if (!callerIsSuperadmin) {
+          return new Response(JSON.stringify({ error: 'Hanya Super Admin yang bisa mencabut akses Super Admin lain' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+        const { count: superadminCount, error: countError } = await supabaseAdmin
+          .from('user_roles')
+          .select('id', { count: 'exact', head: true })
+          .eq('role', 'superadmin');
+        if (countError) throw countError;
+        if ((superadminCount ?? 0) <= 1) {
+          return new Response(JSON.stringify({ error: 'Super Admin terakhir tidak bisa dicabut aksesnya' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+      }
+
+      const { error: deleteError } = await supabaseAdmin
         .from('user_roles')
         .delete()
         .eq('user_id', userId);
-        
-      // Hapus akun mereka secara permanen dari sistem Auth Supabase
-      // sehingga jika diundang lagi, mereka harus membuat password dari awal.
-      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
       if (deleteError) throw deleteError;
 
-      return new Response(JSON.stringify({ success: true, message: 'User deleted permanently' }), { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      return new Response(JSON.stringify({ success: true, message: 'Akses admin dicabut. Akun tetap ada.' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 

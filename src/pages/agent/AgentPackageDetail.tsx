@@ -145,7 +145,7 @@ const AgentPackageDetail = () => {
 📞 Hubungi saya untuk info lebih lanjut dan pendaftaran!
 ${pkg.slug && agent?.referral_code ? `📝 Daftar langsung: ${window.location.origin}/daftar/${pkg.slug}?ref=${agent.referral_code}` : ""}
 
-${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
+${agent?.referral_code ? `Agent ID: ${agent.referral_code}` : ""}`;
   };
 
   const copySalesScript = async () => {
@@ -299,12 +299,12 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
                 <p className="text-sm text-muted-foreground">/pax (Quad)</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Komisi kamu</p>
+                <p className="text-sm text-muted-foreground">Komisi kamu (perkiraan)</p>
                 <p className="text-3xl font-bold text-foreground">{formatPrice(commission)}</p>
-                <p className="text-sm text-muted-foreground">per pax</p>
+                <p className="text-sm text-muted-foreground">per pax. Besaran final mengikuti tingkat dan SOP.</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Potensi 10 Pax</p>
+                <p className="text-sm text-muted-foreground">Perkiraan 10 Pax</p>
                 <p className="text-3xl font-bold text-foreground">{formatPrice(commission * 10)}</p>
                 <p className="text-sm text-muted-foreground">total komisi</p>
               </div>

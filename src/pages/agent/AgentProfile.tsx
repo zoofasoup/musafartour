@@ -54,6 +54,8 @@ import { format, formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { formatCurrency } from "@/lib/utils";
 import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
+import { AgentIdCard } from "@/components/agent/AgentIdCard";
+import { agentStatusLabel } from "@/lib/agentSupport";
 import { AGENT_LEVEL_COLORS as levelColors, AGENT_LEVEL_LABELS as levelLabels, type AgentLevel } from "@/lib/agentLevels";
 
 const BANK_LIST = [
@@ -279,7 +281,7 @@ const AgentProfile = () => {
     if (agent?.referral_code) {
       await navigator.clipboard.writeText(agent.referral_code);
       setCopied(true);
-      toast.success("Kode referral disalin!");
+      toast.success("Agent ID disalin!");
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -371,7 +373,7 @@ const AgentProfile = () => {
                     {levelLabels[agentLevel]}
                   </Badge>
                   <Badge variant={agent.status === 'active' ? 'default' : 'secondary'}>
-                    {agent.status === 'active' ? 'Aktif' : agent.status}
+                    {agentStatusLabel(agent.status)}
                   </Badge>
                 </div>
                 <p className="text-muted-foreground">{agent.email}</p>
@@ -386,7 +388,7 @@ const AgentProfile = () => {
                       size="icon"
                       className="h-6 w-6 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
                       onClick={copyReferralCode}
-                      aria-label="Salin kode referral"
+                      aria-label="Salin Agent ID"
                     >
                       {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                     </Button>
@@ -414,6 +416,8 @@ const AgentProfile = () => {
             </div>
           </CardContent>
         </Card>
+
+        <AgentIdCard name={agent.name} agentId={agent.referral_code} level={agent.level} status={agent.status} since={agent.approved_at} />
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">

@@ -294,7 +294,7 @@ export default function JamaahIntake() {
                     {pkg ? `${format(new Date(`${pkg.departure_date.slice(0, 10)}T00:00:00`), "d MMM yyyy", { locale: localeId })} · ${pkg.package_name}` : "Paket tidak ditemukan"}
                   </p>
                   <p className="text-[13px] text-muted-foreground">
-                    {by ? `Agen ${by}` : intake.heard_from ? `Tahu dari: ${intake.heard_from}` : intake.ref_code ? `Kode referral ${intake.ref_code}` : "Tanpa agen"}
+                    {by ? `Agen ${by}` : intake.heard_from ? `Tahu dari: ${intake.heard_from}` : intake.ref_code ? `Agent ID ${intake.ref_code}` : "Tanpa agen"}
                     {intake.source === "agent" ? " · lewat portal agen" : ""}
                   </p>
                 </div>

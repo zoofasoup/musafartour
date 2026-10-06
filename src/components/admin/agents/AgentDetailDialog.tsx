@@ -6,6 +6,8 @@ import { CheckCircle2, ExternalLink, ImageOff, Key, Loader2, Mail, MessageCircle
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { rupiah } from "@/lib/jamaah";
+import { REGISTRATION_FEE_LABELS } from "@/lib/agentSupport";
+import { AGENT_REGISTRATION_FEE } from "@/lib/sopAgen";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -25,8 +27,8 @@ import {
 } from "./agentData";
 
 const STATUS_BADGE = {
-  pending: { kind: "warn", label: "Menunggu" },
-  active: { kind: "ok", label: "Aktif" },
+  pending: { kind: "warn", label: "Calon Agen" },
+  active: { kind: "ok", label: "Agen Aktif" },
   suspended: { kind: "bad", label: "Ditangguhkan" },
 } as const;
 
@@ -140,6 +142,7 @@ export function AgentDetailDialog({
   open,
   onOpenChange,
   onLevelChange,
+  onFeeChange,
   onApprove,
   approving,
 }: {
@@ -147,6 +150,7 @@ export function AgentDetailDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onLevelChange: (agent: Agent, level: Agent["level"]) => void;
+  onFeeChange: (agent: Agent, status: "paid" | "waived") => void;
   onApprove: (agent: Agent) => void;
   approving: boolean;
 }) {
@@ -176,6 +180,7 @@ export function AgentDetailDialog({
   };
 
   const missing = agent ? missingFields(agent) : [];
+  const fee = (agent?.registration_fee_status ?? "unpaid") as keyof typeof REGISTRATION_FEE_LABELS;
   const wa = agent ? agentWaNumber(agent) : null;
   const status = agent ? STATUS_BADGE[agent.status] : null;
 
@@ -198,7 +203,7 @@ export function AgentDetailDialog({
               </div>
               <DialogDescription className="flex flex-wrap items-center gap-x-4 gap-y-1">
                 <span className="inline-flex items-center gap-1.5"><Mail className="h-4 w-4" aria-hidden /> {agent.email}</span>
-                <span>Kode referral <code className="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-sm text-foreground">{agent.referral_code}</code></span>
+                <span>Agent ID <code className="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-sm text-foreground">{agent.referral_code}</code></span>
                 <span>Terdaftar {format(new Date(agent.created_at), "d MMM yyyy", { locale: idLocale })}</span>
               </DialogDescription>
             </DialogHeader>
@@ -231,6 +236,32 @@ export function AgentDetailDialog({
                     </p>
                   )}
                 </div>
+              </section>
+
+              {/* Registration fee and SOP */}
+              <section className="space-y-3">
+                <h3 className={SECTION}>Biaya registrasi dan SOP</h3>
+                <div className="divide-y rounded-lg border bg-card">
+                  <Row label={`Biaya registrasi ${rupiah(AGENT_REGISTRATION_FEE)}`}>
+                    <StatusBadge kind={fee === "unpaid" ? "warn" : fee === "paid" ? "ok" : "info"}>{REGISTRATION_FEE_LABELS[fee]}</StatusBadge>
+                  </Row>
+                  {agent.registration_fee_paid_at && (
+                    <Row label="Diterima pada">{format(new Date(agent.registration_fee_paid_at), "d MMM yyyy, HH:mm", { locale: idLocale })}</Row>
+                  )}
+                  <Row label="Persetujuan SOP">
+                    {agent.sop_accepted_at
+                      ? `${format(new Date(agent.sop_accepted_at), "d MMM yyyy, HH:mm", { locale: idLocale })} (${agent.sop_version ?? "-"})`
+                      : <span className="font-normal text-muted-foreground">Belum disetujui</span>}
+                  </Row>
+                </div>
+                {fee === "unpaid" && (
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button type="button" className="gap-2" onClick={() => onFeeChange(agent, "paid")}>
+                      <CheckCircle2 className="h-4 w-4" aria-hidden /> Tandai biaya diterima
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => onFeeChange(agent, "waived")}>Bebaskan biaya</Button>
+                  </div>
+                )}
               </section>
 
               {/* Identity */}

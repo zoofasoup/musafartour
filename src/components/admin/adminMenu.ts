@@ -80,6 +80,7 @@ export const ADMIN_MENU_SECTIONS: AdminMenuSection[] = [
     label: "Pemasaran & Agen",
     items: [
       { icon: UserCog, label: "Kelola Agen", path: "/admin/agents", roles: ["admin", "superadmin", "agent_admin"] },
+      { icon: Target, label: "Lead Agen", path: "/admin/agent-leads", roles: ["admin", "superadmin", "agent_admin", "cs_admin"] },
       { icon: Trophy, label: "Gamifikasi", path: "/admin/gamification", roles: ["admin", "superadmin", "agent_admin"] },
       { icon: Download, label: "Pembuat Flyer", path: "/admin/flyer-generator", roles: ["admin", "superadmin", "content_admin"] },
       // Access is enforced in get_analytics_summary (admin/superadmin/advertiser).

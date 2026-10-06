@@ -2,7 +2,7 @@ import { Outlet, Navigate } from "react-router-dom";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import {
   LayoutDashboard, Package, Calendar, Wallet,
-  Palette, Trophy, BookOpen, UserPlus, Users, LifeBuoy,
+  Palette, Trophy, BookOpen, UserPlus, Users, LifeBuoy, Target,
 } from "lucide-react";
 import { AppShell, type ShellNavGroup, type ShellNavItem } from "@/components/shell";
 import { agentLevelLabel } from "@/lib/agentLevels";
@@ -11,6 +11,7 @@ import { agentCsWhatsAppUrl } from "@/lib/agentSupport";
 const navItems: ShellNavItem[] = [
   { title: "Dashboard", url: "/agent/dashboard", icon: LayoutDashboard },
   { title: "Daftarkan Jamaah", url: "/agent/daftar-jamaah", icon: UserPlus },
+  { title: "Lead Saya", url: "/agent/leads", icon: Target },
   { title: "Jamaah Saya", url: "/agent/jamaah", icon: Users },
   { title: "Paket", url: "/agent/packages", icon: Package },
   { title: "Jadwal", url: "/agent/schedule", icon: Calendar },
@@ -58,7 +59,7 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
       bottomNav={bottomNav}
       sidebarExtra={
         <div className="rounded-md bg-card p-3 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Kode referral</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Agent ID</p>
           <p className="mt-0.5 truncate text-sm font-semibold text-foreground">{agent.referral_code}</p>
         </div>
       }

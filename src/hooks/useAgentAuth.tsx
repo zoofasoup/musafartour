@@ -12,7 +12,7 @@ interface Agent {
   phone: string;
   wa_number: string | null;
   name: string;
-  level: 'bronze' | 'silver' | 'gold' | 'platinum';
+  level: 'duta' | 'silver' | 'gold' | 'platinum';
   total_sales: number;
   total_commission: number;
   available_balance: number;
@@ -24,6 +24,11 @@ interface Agent {
   status: 'pending' | 'active' | 'suspended';
   created_at: string;
   approved_at: string | null;
+  // SOP: registration fee (unpaid / paid / waived) and acceptance of the agent SOP
+  registration_fee_status?: 'unpaid' | 'paid' | 'waived';
+  registration_fee_paid_at?: string | null;
+  sop_accepted_at?: string | null;
+  sop_version?: string | null;
   // Onboarding fields
   agency_name?: string | null;
   ktp_number?: string | null;
