@@ -4,7 +4,10 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useEffect } from 'react';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useEffect, useState } from 'react';
 import { 
   Bold, 
   Italic, 
@@ -25,7 +28,9 @@ interface RichTextEditorProps {
   placeholder?: string;
 }
 
-const RichTextEditor = ({ value, onChange, placeholder = "Write your content here..." }: RichTextEditorProps) => {
+const RichTextEditor = ({ value, onChange, placeholder = "Tulis isi artikel di sini..." }: RichTextEditorProps) => {
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -67,84 +72,90 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
   }
 
   const addLink = () => {
-    const url = prompt('Enter URL:');
+    // Start from the link under the cursor so it can be edited.
+    setLinkUrl((editor.getAttributes('link').href as string | undefined) ?? "");
+    setLinkOpen(true);
+  };
+
+  const applyLink = () => {
+    const url = linkUrl.trim();
     if (url) {
-      let formattedUrl = url.trim();
-      if (!formattedUrl.match(/^https?:\/\//)) {
-        formattedUrl = 'https://' + formattedUrl;
-      }
+      const formattedUrl = /^https?:\/\//.test(url) ? url : 'https://' + url;
       editor.chain().focus().setLink({ href: formattedUrl }).run();
+    } else {
+      editor.chain().focus().unsetLink().run();
     }
+    setLinkOpen(false);
   };
 
   const toolbarButtons = [
     {
       icon: Bold,
-      label: "Bold",
+      label: "Tebal",
       action: () => editor.chain().focus().toggleBold().run(),
       isActive: editor.isActive('bold'),
     },
     {
       icon: Italic,
-      label: "Italic",
+      label: "Miring",
       action: () => editor.chain().focus().toggleItalic().run(),
       isActive: editor.isActive('italic'),
     },
     { separator: true },
     {
       icon: Heading1,
-      label: "Heading 1",
+      label: "Judul 1",
       action: () => editor.chain().focus().toggleHeading({ level: 1 }).run(),
       isActive: editor.isActive('heading', { level: 1 }),
     },
     {
       icon: Heading2,
-      label: "Heading 2",
+      label: "Judul 2",
       action: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
       isActive: editor.isActive('heading', { level: 2 }),
     },
     {
       icon: Heading3,
-      label: "Heading 3",
+      label: "Judul 3",
       action: () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
       isActive: editor.isActive('heading', { level: 3 }),
     },
     { separator: true },
     {
       icon: List,
-      label: "Bullet List",
+      label: "Daftar poin",
       action: () => editor.chain().focus().toggleBulletList().run(),
       isActive: editor.isActive('bulletList'),
     },
     {
       icon: ListOrdered,
-      label: "Numbered List",
+      label: "Daftar nomor",
       action: () => editor.chain().focus().toggleOrderedList().run(),
       isActive: editor.isActive('orderedList'),
     },
     { separator: true },
     {
       icon: Quote,
-      label: "Quote",
+      label: "Kutipan",
       action: () => editor.chain().focus().toggleBlockquote().run(),
       isActive: editor.isActive('blockquote'),
     },
     {
       icon: LinkIcon,
-      label: "Insert Link",
+      label: "Sisipkan link",
       action: addLink,
       isActive: editor.isActive('link'),
     },
     { separator: true },
     {
       icon: Undo,
-      label: "Undo",
+      label: "Urungkan",
       action: () => editor.chain().focus().undo().run(),
       isActive: false,
     },
     {
       icon: Redo,
-      label: "Redo",
+      label: "Ulangi",
       action: () => editor.chain().focus().redo().run(),
       isActive: false,
     },
@@ -167,6 +178,7 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
               size="sm"
               onClick={button.action}
               title={button.label}
+              aria-label={button.label}
               className="h-8 w-8 p-0"
             >
               <ButtonIcon className="h-4 w-4" />
@@ -183,8 +195,40 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
       </div>
       
       <p className="text-xs text-muted-foreground">
-        What you see in the editor matches the published article output.
+        Tampilan di editor sama dengan artikel yang terbit.
       </p>
+
+      <Dialog open={linkOpen} onOpenChange={setLinkOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Sisipkan link</DialogTitle>
+            <DialogDescription>Tempel alamat tujuan. Kosongkan lalu simpan untuk menghapus link.</DialogDescription>
+          </DialogHeader>
+          {/* Not a <form>: this dialog is rendered inside the article form and a submit would bubble into it. */}
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="rte-link-url">Alamat link</Label>
+              <Input
+                id="rte-link-url"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    applyLink();
+                  }
+                }}
+                placeholder="https://"
+                autoComplete="off"
+              />
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button type="button" variant="ghost" onClick={() => setLinkOpen(false)}>Batal</Button>
+              <Button type="button" onClick={applyLink}>Simpan link</Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -6,24 +6,24 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Mail, Shield, Clock, MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { Loader2, Plus, Mail, Shield, Clock, MoreHorizontal, Edit, UserMinus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 const roleOptions = [
-  { value: "superadmin", label: "Super Admin (Full Access)" },
+  { value: "superadmin", label: "Super Admin (akses penuh)" },
   { value: "product_admin", label: "Product PIC (ubah & finalkan paket)" },
   { value: "product_contributor", label: "Product Contributor (lihat & usul)" },
   { value: "cs_admin", label: "CS Administrasi (input jamaah & pembayaran)" },
-  { value: "content_admin", label: "Content Admin (Marketing)" },
-  { value: "agent_admin", label: "Agent Admin (Partner Support)" },
+  { value: "content_admin", label: "Admin Konten (marketing)" },
+  { value: "agent_admin", label: "Admin Agen (dukungan mitra)" },
   { value: "sales", label: "Sales" },
-  { value: "advertiser", label: "Advertiser (Paid Ads)" },
+  { value: "advertiser", label: "Advertiser (iklan berbayar)" },
 ];
 
 const roleColors: Record<string, string> = {
@@ -36,6 +36,16 @@ const roleColors: Record<string, string> = {
   sales: "bg-amber-100 text-amber-800",
   advertiser: "bg-pink-100 text-pink-800",
 };
+
+/** The edge function explains refusals in its JSON body; supabase-js hides that behind a generic message. */
+async function functionError(err: unknown): Promise<string> {
+  const e = err as { context?: { json?: () => Promise<{ error?: string }> }; message?: string } | null;
+  try {
+    const body = await e?.context?.json?.();
+    if (body?.error) return String(body.error);
+  } catch { /* fall through */ }
+  return e?.message ?? "Terjadi kesalahan";
+}
 
 export default function Team() {
   const { session, userRole, user } = useAuth();
@@ -62,6 +72,10 @@ export default function Team() {
     fullName: "",
     role: "product_admin",
   });
+
+  const superadminCount = team.filter((m) => m.role === "superadmin").length;
+  // Name to type before removing a Super Admin (falls back to the email when the account has no name).
+  const confirmNameFor = (m: { full_name?: string; email?: string } | null) => (m?.full_name && m.full_name !== "Unknown" ? m.full_name : m?.email ?? "");
 
   const fetchTeam = async () => {
     if (!session?.access_token) return;
@@ -105,7 +119,7 @@ export default function Team() {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      toast.success("Undangan terkirim!", { description: `${formData.email} berhasil diundang sebagai ${formData.role}` });
+      toast.success("Undangan terkirim", { description: `${formData.email} diundang sebagai ${roleOptions.find((r) => r.value === formData.role)?.label ?? formData.role}` });
       setIsInviteOpen(false);
       setFormData({ email: "", fullName: "", role: "product_admin" });
       fetchTeam();
@@ -131,12 +145,12 @@ export default function Team() {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      toast.success("Berhasil mengubah jabatan!");
+      toast.success("Peran berhasil diubah");
       setIsChangeRoleOpen(false);
       fetchTeam();
     } catch (err: any) {
       console.error(err);
-      toast.error("Gagal mengubah jabatan", { description: err.message });
+      toast.error("Gagal mengubah peran", { description: await functionError(err) });
     } finally {
       setUpdating(false);
     }
@@ -156,10 +170,10 @@ export default function Team() {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      toast.success("Email terkirim ulang!", { description: `Undangan baru telah dikirim ke ${member.email}` });
+      toast.success("Undangan dikirim ulang", { description: `Undangan baru telah dikirim ke ${member.email}` });
     } catch (err: any) {
       console.error(err);
-      toast.error("Gagal mengirim ulang email", { description: err.message });
+      toast.error("Gagal mengirim ulang undangan", { description: err.message });
     } finally {
       setResendingId(null);
     }
@@ -179,12 +193,12 @@ export default function Team() {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      toast.success("Akses berhasil dicabut", { description: `${selectedMember.full_name} tidak lagi memiliki akses admin.` });
+      toast.success("Akses admin dicabut", { description: `${selectedMember.full_name} tidak lagi bisa membuka panel admin. Akunnya tetap ada.` });
       setIsRemoveOpen(false);
       fetchTeam();
     } catch (err: any) {
       console.error(err);
-      toast.error("Gagal mencabut akses", { description: err.message });
+      toast.error("Gagal mencabut akses", { description: await functionError(err) });
     } finally {
       setRemoving(false);
     }
@@ -194,8 +208,8 @@ export default function Team() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] mx-auto">
         <Shield className="h-16 w-16 text-slate-300 mb-4" />
-        <h2 className="text-2xl font-bold text-slate-700">Access Denied</h2>
-        <p className="text-slate-500">Only Super Admins can manage the team.</p>
+        <h2 className="text-2xl font-bold text-slate-700">Akses ditolak</h2>
+        <p className="text-slate-500">Hanya Super Admin yang bisa mengelola tim.</p>
       </div>
     );
   }
@@ -204,22 +218,22 @@ export default function Team() {
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Team Management</h1>
-          <p className="text-muted-foreground">Kelola anggota tim dan hak akses admin</p>
+          <h1 className="text-3xl font-bold">Manajemen Tim</h1>
+          <p className="text-muted-foreground">Kelola anggota tim dan hak akses panel admin</p>
         </div>
         
         <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
-              Invite Member
+              Undang Anggota
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Undang Anggota Tim Baru</DialogTitle>
+              <DialogTitle>Undang anggota tim baru</DialogTitle>
               <DialogDescription>
-                Mereka akan menerima email berisi link untuk membuat password dan masuk ke dashboard.
+                Mereka akan menerima email berisi link untuk membuat kata sandi dan masuk ke panel admin.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleInvite} className="space-y-4 pt-4">
@@ -243,10 +257,10 @@ export default function Team() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Role / Hak Akses</Label>
+                <Label>Peran / hak akses</Label>
                 <Select value={formData.role} onValueChange={(v) => setFormData({...formData, role: v})}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Pilih Role" />
+                    <SelectValue placeholder="Pilih peran" />
                   </SelectTrigger>
                   <SelectContent>
                     {roleOptions.map(opt => (
@@ -270,7 +284,7 @@ export default function Team() {
       <Card>
         <CardHeader>
           <CardTitle>Daftar Anggota</CardTitle>
-          <CardDescription>Semua akun yang memiliki akses ke Admin Dashboard</CardDescription>
+          <CardDescription>Semua akun yang punya akses ke panel admin</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -284,9 +298,9 @@ export default function Team() {
                   <TableRow>
                     <TableHead>Nama</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
+                    <TableHead>Peran</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Terakhir Login</TableHead>
+                    <TableHead>Terakhir masuk</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -294,7 +308,7 @@ export default function Team() {
                   {team.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center p-8 text-muted-foreground">
-                        Belum ada anggota tim selain Anda.
+                        Belum ada anggota tim selain kamu.
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -325,13 +339,13 @@ export default function Team() {
                               {format(new Date(member.last_sign_in_at), 'dd MMM yyyy, HH:mm')}
                             </span>
                           ) : (
-                            <span className="italic text-slate-400 text-sm">Belum pernah login</span>
+                            <span className="italic text-slate-400 text-sm">Belum pernah masuk</span>
                           )}
                         </TableCell>
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0" disabled={member.id === user?.id}>
+                              <Button variant="ghost" className="h-8 w-8 p-0" disabled={member.id === user?.id} aria-label={`Aksi untuk ${member.full_name}`} title={member.id === user?.id ? "Kamu tidak bisa mengubah akunmu sendiri" : undefined}>
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -361,17 +375,18 @@ export default function Team() {
                                 className="cursor-pointer"
                               >
                                 <Edit className="h-4 w-4 mr-2" />
-                                Ubah Role
+                                Ubah Peran
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 onClick={() => {
                                   setSelectedMember(member);
                                   setIsRemoveOpen(true);
                                 }}
+                                disabled={member.role === "superadmin" && superadminCount <= 1}
                                 className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
                               >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Hapus Akses
+                                <UserMinus className="h-4 w-4 mr-2" />
+                                {member.role === "superadmin" && superadminCount <= 1 ? "Super Admin terakhir" : "Cabut akses"}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -390,17 +405,17 @@ export default function Team() {
       <Dialog open={isChangeRoleOpen} onOpenChange={setIsChangeRoleOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ubah Hak Akses</DialogTitle>
+            <DialogTitle>Ubah hak akses</DialogTitle>
             <DialogDescription>
-              Ubah jabatan dan hak akses untuk <strong>{selectedMember?.full_name}</strong>.
+              Ubah peran dan hak akses untuk <strong>{selectedMember?.full_name}</strong>.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="space-y-2">
-              <Label>Role / Hak Akses Baru</Label>
+              <Label>Peran / hak akses baru</Label>
               <Select value={selectedNewRole} onValueChange={setSelectedNewRole}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pilih Role" />
+                  <SelectValue placeholder="Pilih peran" />
                 </SelectTrigger>
                 <SelectContent>
                   {roleOptions.map(opt => (
@@ -420,25 +435,25 @@ export default function Team() {
         </DialogContent>
       </Dialog>
 
-      {/* Remove Access Alert */}
-      <AlertDialog open={isRemoveOpen} onOpenChange={setIsRemoveOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cabut Akses Admin?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tindakan ini akan menghapus <strong>{selectedMember?.full_name}</strong> dari daftar admin. 
-              Mereka tidak akan bisa lagi mengakses Admin Dashboard ini.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <Button variant="destructive" onClick={handleRemoveAccess} disabled={removing}>
-              {removing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
-              Ya, Cabut Akses
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Remove access: takes the admin roles away; the login account is never deleted. */}
+      <ConfirmDialog
+        open={isRemoveOpen}
+        onOpenChange={setIsRemoveOpen}
+        title={`Cabut akses admin ${selectedMember?.full_name ?? ""}?`}
+        description={
+          <>
+            Peran admin <strong>{selectedMember?.full_name}</strong> dicabut, jadi mereka tidak bisa lagi membuka panel admin.
+            Akun login mereka <strong>tidak dihapus</strong>, dan data lain (misalnya sebagai agen) tidak berubah.
+            Kamu bisa memberi peran lagi kapan saja lewat Undang Anggota.
+            {selectedMember?.role === "superadmin" && " Ini akun Super Admin, jadi ketik namanya untuk melanjutkan."}
+          </>
+        }
+        confirmLabel="Ya, cabut akses"
+        destructive
+        busy={removing}
+        confirmText={selectedMember?.role === "superadmin" ? confirmNameFor(selectedMember) : undefined}
+        onConfirm={handleRemoveAccess}
+      />
     </div>
   );
 }

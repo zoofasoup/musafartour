@@ -137,7 +137,7 @@ export function ImportWorkbookDialog({ open, onOpenChange, packages, agents, isO
           return;
         }
       }
-      toast.success(`${added} jamaah diimport dari ${tabsToImport} tab.`);
+      toast.success(`${added} jamaah diimpor dari ${tabsToImport} tab.`);
       onImported();
       onOpenChange(false);
     } finally {
@@ -152,7 +152,7 @@ export function ImportWorkbookDialog({ open, onOpenChange, packages, agents, isO
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Import semua tab dari Google Sheet</DialogTitle>
+          <DialogTitle>Impor semua tab dari Google Sheet</DialogTitle>
           <DialogDescription>
             Unggah satu file .xlsx yang berisi banyak tab. Tiap tab dicocokkan dengan paket yang berangkat di tanggal pada nama tab; cek dan ubah
             pilihannya sebelum Import. Baris kosong dan baris total dilewati otomatis.
@@ -177,7 +177,7 @@ export function ImportWorkbookDialog({ open, onOpenChange, packages, agents, isO
         {tabs.length > 0 && (
           <>
             <p className="text-sm">
-              <strong>{totalReady}</strong> jamaah siap diimport dari {tabsToImport} tab
+              <strong>{totalReady}</strong> jamaah siap diimpor dari {tabsToImport} tab
               {!isOwner && ". Saldo awal dari kolom Realisasi menunggu verifikasi owner."}
             </p>
             <div className="max-h-[48vh] overflow-auto rounded-md border">
@@ -251,8 +251,8 @@ export function ImportWorkbookDialog({ open, onOpenChange, packages, agents, isO
               </div>
             )}
             <p className="text-xs text-muted-foreground">
-              Realisasi yang lebih besar dari harga (transfer satu keluarga di satu baris) diimport apa adanya dan tampil sebagai Lebih bayar; rapikan lewat Catat Pembayaran rombongan.
-              Jamaah yang sudah lunas saat import tidak mengkredit komisi agen lagi.
+              Realisasi yang lebih besar dari harga (transfer satu keluarga di satu baris) diimpor apa adanya dan tampil sebagai Lebih bayar; rapikan lewat Catat Pembayaran rombongan.
+              Jamaah yang sudah lunas saat impor tidak mengkredit komisi agen lagi.
             </p>
           </>
         )}
@@ -262,7 +262,7 @@ export function ImportWorkbookDialog({ open, onOpenChange, packages, agents, isO
           <Button type="button" variant="outline" className="[@media(pointer:coarse)]:h-11" onClick={() => onOpenChange(false)} disabled={importing}>Batal</Button>
           <Button type="button" onClick={run} disabled={importing || !totalReady} className="gap-1 [@media(pointer:coarse)]:h-11">
             <Upload className="h-4 w-4" />
-            {importing ? "Mengimport..." : `Import ${totalReady} jamaah`}
+            {importing ? "Mengimpor..." : `Impor ${totalReady} jamaah`}
           </Button>
         </DialogFooter>
       </DialogContent>

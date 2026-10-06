@@ -12,6 +12,8 @@ interface FAQSectionProps {
 }
 
 export const FAQSection = ({ faqItems }: FAQSectionProps) => {
+  if (faqItems.length === 0) return null;
+
   const schemaData = {
     "@context": "https://schema.org",
     "@type": "FAQPage",

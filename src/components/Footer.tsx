@@ -99,12 +99,15 @@ const Footer = () => {
                   <li><Link to="/artikel" className="inline-block py-1.5 hover:text-white transition-colors">Artikel</Link></li>
                   <li><Link to="/tentang-kami" className="inline-block py-1.5 hover:text-white transition-colors">Tentang Kami</Link></li>
                   <li><Link to="/galeri" className="inline-block py-1.5 hover:text-white transition-colors">Galeri</Link></li>
+                  <li><Link to="/jadi-agen" className="inline-block py-1.5 hover:text-white transition-colors">Jadi Agen Musafar</Link></li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-medium text-white mb-6 text-lg">Support</h4>
                 <ul className="space-y-2 text-white/60">
                   <li><Link to="/#faq" className="inline-block py-1.5 hover:text-white transition-colors">FAQs</Link></li>
+                  <li><Link to="/cara-bayar" className="inline-block py-1.5 hover:text-white transition-colors">Cara Bayar</Link></li>
+                  <li><Link to="/cek-status" className="inline-block py-1.5 hover:text-white transition-colors">Cek Status Pendaftaran</Link></li>
                   <li><Link to="/kebijakan-privasi" className="inline-block py-1.5 hover:text-white transition-colors">Kebijakan Privasi</Link></li>
                   <li><Link to="/syarat-ketentuan" className="inline-block py-1.5 hover:text-white transition-colors">Syarat & Ketentuan</Link></li>
                   <li><Link to="/kontak" className="inline-block py-1.5 hover:text-white transition-colors">Kontak</Link></li>

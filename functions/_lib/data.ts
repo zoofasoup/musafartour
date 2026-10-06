@@ -104,3 +104,39 @@ export async function fetchWebsiteSettings(env: Env): Promise<WebsiteSettings | 
   const rows = (await res.json()) as WebsiteSettings[];
   return rows[0] || null;
 }
+
+/**
+ * Whether a package page exists for this slug (published, departed ones included: they stay reachable).
+ * Returns null when the database cannot be reached, so the caller can fail open instead of
+ * turning a valid page into a 404 during an outage. Cached for 60 seconds at the edge.
+ */
+export async function packageSlugExists(env: Env, slug: string): Promise<boolean | null> {
+  if (!/^[a-z0-9-]{1,200}$/.test(slug)) return false;
+  try {
+    const { url, anonKey } = getSupabaseConfig(env);
+    const res = await fetch(`${url}/rest/v1/packages?select=slug&slug=eq.${encodeURIComponent(slug)}&status=eq.published&limit=1`, {
+      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+      cf: { cacheTtl: 60, cacheEverything: true },
+    } as RequestInit);
+    if (!res.ok) return null;
+    return ((await res.json()) as unknown[]).length > 0;
+  } catch {
+    return null;
+  }
+}
+
+/** Active redirect (admin > Redirects) for an old path, so a server 301 replaces the client-side hop. null: none, or lookup failed. */
+export async function findRedirect(env: Env, fromPath: string): Promise<string | null> {
+  try {
+    const { url, anonKey } = getSupabaseConfig(env);
+    const res = await fetch(`${url}/rest/v1/redirects?select=to_path&is_active=eq.true&from_path=eq.${encodeURIComponent(fromPath)}&limit=1`, {
+      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+      cf: { cacheTtl: 60, cacheEverything: true },
+    } as RequestInit);
+    if (!res.ok) return null;
+    const rows = (await res.json()) as { to_path: string }[];
+    return rows[0]?.to_path ?? null;
+  } catch {
+    return null;
+  }
+}

@@ -205,7 +205,7 @@ const URLTemplateManager = () => {
     a.download = `url-templates-${format(new Date(), 'yyyy-MM-dd')}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success(`${toExport.length} template berhasil diexport`);
+    toast.success(`${toExport.length} template berhasil diekspor`);
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -227,7 +227,7 @@ const URLTemplateManager = () => {
       const merged = [...existingTemplates, ...imported];
       localStorage.setItem('musafar_url_templates', JSON.stringify(merged));
       
-      toast.success(`${imported.length} template berhasil diimport`);
+      toast.success(`${imported.length} template berhasil diimpor`);
       loadTemplates();
     };
     reader.readAsText(file);
@@ -289,7 +289,7 @@ const URLTemplateManager = () => {
           </div>
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
             <SelectTrigger className="w-full md:w-[180px]">
-              <SelectValue placeholder="Sort by" />
+              <SelectValue placeholder="Urutkan" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="created_at">Terbaru</SelectItem>
@@ -311,11 +311,11 @@ const URLTemplateManager = () => {
             ) : (
               <Square className="w-4 h-4 mr-2" />
             )}
-            {selectedIds.size === filteredTemplates.length ? 'Unselect All' : 'Select All'}
+            {selectedIds.size === filteredTemplates.length ? 'Batal pilih semua' : 'Pilih semua'}
           </Button>
           {selectedIds.size > 0 && (
             <>
-              <Badge variant="secondary">{selectedIds.size} selected</Badge>
+              <Badge variant="secondary">{selectedIds.size} dipilih</Badge>
               <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
                 <Trash2 className="w-4 h-4 mr-2" />
                 Hapus Terpilih
@@ -325,7 +325,7 @@ const URLTemplateManager = () => {
           <div className="flex-1" />
           <Button variant="outline" size="sm" onClick={handleExport}>
             <Download className="w-4 h-4 mr-2" />
-            Export {selectedIds.size > 0 ? 'Terpilih' : 'Semua'}
+            Ekspor {selectedIds.size > 0 ? 'terpilih' : 'semua'}
           </Button>
           <input
             type="file"
@@ -336,7 +336,7 @@ const URLTemplateManager = () => {
           />
           <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
             <Upload className="w-4 h-4 mr-2" />
-            Import
+            Impor
           </Button>
         </div>
 
@@ -391,7 +391,7 @@ const URLTemplateManager = () => {
                         <span>
                           Last: {template.last_used 
                             ? format(new Date(template.last_used), 'dd MMM, HH:mm', { locale: localeId })
-                            : 'Never'}
+                            : 'Belum pernah'}
                         </span>
                       </div>
                     </div>
@@ -400,7 +400,7 @@ const URLTemplateManager = () => {
                         size="icon"
                         variant="ghost"
                         onClick={() => handleCopyUrl(template)}
-                        title="Copy URL"
+                        title="Salin URL" aria-label="Salin URL"
                       >
                         <Copy className="w-4 h-4" />
                       </Button>
@@ -409,7 +409,7 @@ const URLTemplateManager = () => {
                           size="icon"
                           variant="ghost"
                           onClick={() => handlePreview(template)}
-                          title="Preview"
+                          title="Pratinjau" aria-label="Pratinjau"
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -418,7 +418,7 @@ const URLTemplateManager = () => {
                         size="icon"
                         variant="ghost"
                         onClick={() => handleEditTemplate(template)}
-                        title="Edit"
+                        title="Ubah" aria-label="Ubah"
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>
@@ -426,7 +426,7 @@ const URLTemplateManager = () => {
                         size="icon"
                         variant="ghost"
                         onClick={() => handleDeleteTemplate(template)}
-                        title="Delete"
+                        title="Hapus" aria-label="Hapus"
                       >
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>

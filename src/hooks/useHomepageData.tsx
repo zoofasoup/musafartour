@@ -58,74 +58,6 @@ const fetchSellingPoints = async (): Promise<SellingPoint[]> => {
   return data || [];
 };
 
-const fallbackReviews: Testimonial[] = [
-  {
-    id: "1",
-    name: "Budi Santoso",
-    content: "Alhamdulillah perjalanan umroh bersama Musafar Tour sangat berkesan. Pelayanannya luar biasa dari awal pendaftaran sampai kembali ke tanah air. Hotelnya benar-benar dekat dengan Masjidil Haram, makanan khas Indonesia cocok untuk orang tua, dan muthawif sangat sabar membimbing. Sangat direkomendasikan untuk umroh keluarga!",
-    location: "Bekasi",
-    gender: "male",
-    image_url: null,
-    rating: 5,
-    is_active: true,
-    display_order: 1,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: "2",
-    name: "Siti Aminah",
-    content: "Travel yang sangat amanah. Saya berangkat bawa anak kecil dan orang tua yang butuh kursi roda. Tim Musafar sangat responsif membantu dari bandara sampai di Mekkah. Fasilitas pas di kantong tapi layanannya rasa VIP. InsyaAllah kalau ada rezeki umroh lagi pasti pakai Musafar Tour.",
-    location: "Jakarta",
-    gender: "female",
-    image_url: null,
-    rating: 5,
-    is_active: true,
-    display_order: 2,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: "3",
-    name: "Ahmad Fauzi",
-    content: "Harga transparan dan tidak ada biaya tersembunyi. Hotel di Madinah dekat pintu gate, hotel di Mekkah juga tinggal turun lift. Muthawif ustadznya sangat berilmu dan kajiannya mendalam. Kajian sejarah di Madinah sangat berkesan. Terima kasih Musafar Tour!",
-    location: "Depok",
-    gender: "male",
-    image_url: null,
-    rating: 5,
-    is_active: true,
-    display_order: 3,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: "4",
-    name: "Rina Kusuma",
-    content: "Berangkat umroh sendirian awalnya ragu, tapi ternyata jamaahnya sangat kekeluargaan. Tour leader dari Jakarta sangat care memastikan semua jamaah kumpul dan tidak nyasar. Makanannya enak banget berasa masakan rumah. Sukses terus Musafar Tour PT Musa Amanah Wisata!",
-    location: "Tangerang",
-    gender: "female",
-    image_url: null,
-    rating: 5,
-    is_active: true,
-    display_order: 4,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: "5",
-    name: "Hendra Wijaya",
-    content: "Sangat profesional. Pengurusan visa dan paspor cepat dibantu. Pas di sana ada jamaah yang sakit langsung ditangani dengan sigap oleh dokter pendamping. Benar-benar travel yang memprioritaskan ibadah dan keselamatan jamaah. Recommended 100%.",
-    location: "Bogor",
-    gender: "male",
-    image_url: null,
-    rating: 5,
-    is_active: true,
-    display_order: 5,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-];
-
 const fetchTestimonials = async (): Promise<Testimonial[]> => {
   const { data, error } = await supabase
     .from("testimonials")
@@ -133,10 +65,9 @@ const fetchTestimonials = async (): Promise<Testimonial[]> => {
     .eq("is_active", true)
     .order("display_order", { ascending: true });
 
-  if (error || !data || data.length === 0) {
-    return fallbackReviews;
-  }
-  return data;
+  // No stand-in reviews: when there are none (or the query fails) the section is hidden.
+  if (error) throw error;
+  return data ?? [];
 };
 
 /** Same query key as the homepage's own testimonials fetch, so pages sharing it also share the cache. */
@@ -148,57 +79,58 @@ export const useTestimonials = () => {
   });
 };
 
+const stamp = { is_active: true, created_at: "2026-10-06T00:00:00Z", updated_at: "2026-10-06T00:00:00Z" } as const;
+
+/**
+ * Shown only while the faq_items table is empty. Every statement here holds for every package
+ * (PRODUCT.md: no claim about hotels, airlines or schedules that does not apply to all of them).
+ */
 const fallbackFaqs: FAQItem[] = [
   {
-    id: "1",
-    question: "Apakah jadwal keberangkatan sudah pasti?",
+    id: "fallback-1",
+    question: "Bagaimana cara daftar dan membayar?",
     category: "general",
-    answer: "Ya, InsyaAllah 100% PASTI BERANGKAT. Kami menggunakan sistem block seat pesawat sejak awal, sehingga tiket pesawat dan jadwal sudah terjamin tidak akan berubah-ubah atau tertunda.",
-    is_active: true,
+    answer:
+      "Isi form pendaftaran di halaman paket yang kamu pilih. CS kami menghubungi lewat WhatsApp untuk mengecek data dan seat, lalu kamu transfer DP Rp 5.000.000 per orang (DP tidak dapat dikembalikan). Cicilan bebas, kapan saja dan berapa saja, asalkan lunas paling lambat 30 hari sebelum tanggal berangkat. Semua pembayaran hanya ke rekening atas nama PT Musa Amanah Wisata.",
     display_order: 1,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    ...stamp,
   },
   {
-    id: "2",
-    question: "Apa saja fasilitas yang termasuk dalam harga paket?",
+    id: "fallback-2",
+    question: "Apa syarat paspor?",
     category: "general",
-    answer: "Harga sudah All-In meliputi: Tiket Pesawat PP, Visa Umroh, Hotel Bintang 4/5 (sangat dekat dengan masjid), Katering 3x sehari dengan menu khas Nusantara, Bus AC eksklusif selama di Arab Saudi, Muthawwif bersertifikat, perlengkapan umroh (koper, ihram/mukena, seragam), asuransi, dan air Zam-zam 5 liter.",
-    is_active: true,
+    answer:
+      "Paspor berlaku minimal 12 bulan setelah tanggal berangkat, dan nama di paspor minimal dua kata. Data paspor dan dokumen dilengkapi setelah DP, lewat link pribadi yang dikirim CS.",
     display_order: 2,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    ...stamp,
   },
   {
-    id: "3",
-    question: "Bagaimana jika ada jamaah lansia atau yang menggunakan kursi roda?",
+    id: "fallback-3",
+    question: "Apakah Musafar Tour berizin resmi?",
     category: "general",
-    answer: "Musafar Tour sangat dikenal sebagai Travel Umroh Ramah Lansia dan Keluarga. Muthawwif kami akan memberikan pendampingan khusus. Jika membutuhkan kursi roda, kami bisa menyediakannya beserta jasa pendorong selama tawaf dan sa'i (biaya tambahan berlaku untuk jasa pendorong dari pihak Masjidil Haram).",
-    is_active: true,
+    answer:
+      "Musafar Tour adalah PT Musa Amanah Wisata, penyelenggara perjalanan ibadah umrah dengan izin PPIU Kemenag nomor 17102200953750002.",
     display_order: 3,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    ...stamp,
   },
   {
-    id: "4",
-    question: "Berapa jarak hotel ke Masjidil Haram dan Masjid Nabawi?",
+    id: "fallback-4",
+    question: "Apa saja yang termasuk dalam harga paket?",
     category: "general",
-    answer: "Kami menjamin lokasi hotel yang sangat strategis. Untuk paket Premium, jarak hotel di Mekkah (seperti Zamzam Tower) dan Madinah berada tepat di pelataran masjid (0-100 meter). Anda cukup turun lift dan langsung berada di area masjid.",
-    is_active: true,
+    answer:
+      "Berbeda untuk setiap paket. Rincian yang termasuk dan tidak termasuk, hotel, dan maskapai tertulis di halaman masing-masing paket. Kalau ada yang belum jelas, tanyakan ke CS sebelum mendaftar.",
     display_order: 4,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    ...stamp,
   },
   {
-    id: "5",
-    question: "Bagaimana prosedur pendaftaran dan sistem pembayarannya?",
+    id: "fallback-5",
+    question: "Bagaimana cara mengecek status pendaftaranku?",
     category: "general",
-    answer: "Sangat mudah! Anda cukup membayar Uang Muka (DP) sebesar Rp 5.000.000/pax untuk booking seat (DP non-refundable). Cicilan bebas, kapan saja dan berapa saja, asalkan lunas paling lambat H-30 sebelum tanggal keberangkatan. Demi keamanan, SEMUA transaksi hanya ditransfer ke Rekening Resmi Perusahaan (PT Musa Amanah Wisata).",
-    is_active: true,
+    answer:
+      "Buka halaman Cek status pendaftaran, lalu isi kode pendaftaran (contoh MSF-12345) dan nomor WhatsApp yang kamu pakai saat mendaftar.",
     display_order: 5,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
+    ...stamp,
+  },
 ];
 
 const fetchFaqItems = async (): Promise<FAQItem[]> => {

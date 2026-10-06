@@ -13,6 +13,7 @@ const navLinks = [
   { href: "/galeri", label: "Galeri" },
   { href: "/artikel", label: "Artikel" },
   { href: "/tentang-kami", label: "Tentang Kami" },
+  { href: "/jadi-agen", label: "Jadi Agen" },
 ];
 
 // The mobile menu has room for the pages the desktop bar leaves out.

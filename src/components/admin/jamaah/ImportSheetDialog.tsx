@@ -78,11 +78,11 @@ export function ImportSheetDialog({ open, onOpenChange, pkg, registrations, agen
     setImporting(true);
     try {
       const added = await importRows(pkg.id, rows);
-      toast.success(`${added} jamaah diimport beserta saldo awalnya.`);
+      toast.success(`${added} jamaah diimpor beserta saldo awalnya.`);
       onImported();
       onOpenChange(false);
     } catch (err) {
-      toast.error(`Import gagal, tidak ada data yang tersimpan: ${(err as Error).message}`);
+      toast.error(`Impor gagal, tidak ada data yang tersimpan: ${(err as Error).message}`);
     } finally {
       setImporting(false);
     }
@@ -92,7 +92,7 @@ export function ImportSheetDialog({ open, onOpenChange, pkg, registrations, agen
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Import dari Google Sheet</DialogTitle>
+          <DialogTitle>Impor dari Google Sheet</DialogTitle>
           <DialogDescription>
             Untuk {pkg?.package_name}. Unggah file .xlsx dari Google Sheet (File → Download → Microsoft Excel). Kalau berisi banyak tab, pilih tab untuk paket ini.
             Kolom yang dibaca: Nama Jamaah, Size, Ambil Perlengkapan, Paket, Rencana, Realisasi, Domisili, Start, Keterangan, Agen.
@@ -136,7 +136,7 @@ export function ImportSheetDialog({ open, onOpenChange, pkg, registrations, agen
         {rows.length > 0 && (
           <>
             <p className="text-sm">
-              <strong>{ready.length}</strong> siap diimport ·{" "}
+              <strong>{ready.length}</strong> siap diimpor ·{" "}
               {rows.filter((r) => r.duplicate).length} sudah ada · {rows.filter((r) => r.skipped).length} baris kosong atau total dilewati ·{" "}
               {rows.filter((r) => r.errors.length).length} perlu diperbaiki
             </p>
@@ -183,7 +183,7 @@ export function ImportSheetDialog({ open, onOpenChange, pkg, registrations, agen
           <Button type="button" variant="outline" className="[@media(pointer:coarse)]:h-11" onClick={() => onOpenChange(false)} disabled={importing}>Batal</Button>
           <Button type="button" onClick={run} disabled={importing || !ready.length} className="gap-1 [@media(pointer:coarse)]:h-11">
             <Upload className="h-4 w-4" />
-            {importing ? "Mengimport..." : `Import ${ready.length} jamaah`}
+            {importing ? "Mengimpor..." : `Impor ${ready.length} jamaah`}
           </Button>
         </DialogFooter>
       </DialogContent>

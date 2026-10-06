@@ -138,7 +138,7 @@ const ArticlesPage = () => {
     link.href = URL.createObjectURL(blob);
     link.download = `artikel-${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
-    toast.success(`${ids.length} artikel berhasil di-export`);
+    toast.success(`${ids.length} artikel berhasil diekspor`);
   };
 
   const bulkActions = [
@@ -222,7 +222,7 @@ const ArticlesPage = () => {
                         <Checkbox
                           checked={isSelected(article.id)}
                           onCheckedChange={() => toggleSelect(article.id)}
-                          aria-label={`Select ${article.title}`}
+                          aria-label={`Pilih ${article.title}`}
                         />
                       </TableCell>
                     )}
@@ -230,7 +230,7 @@ const ArticlesPage = () => {
                     <TableCell>{article.category || "-"}</TableCell>
                     <TableCell>
                       <Badge variant={article.status === "published" ? "default" : "secondary"}>
-                        {article.status === "published" ? "Published" : "Draft"}
+                        {article.status === "published" ? "Terbit" : "Draf"}
                       </Badge>
                     </TableCell>
                     <TableCell>{format(new Date(article.created_at), "dd MMM yyyy")}</TableCell>

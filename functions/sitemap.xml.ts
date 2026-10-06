@@ -6,6 +6,8 @@ const STATIC_URLS: { loc: string; changefreq: string; priority: string }[] = [
   { loc: "https://musafartour.com/paket-umroh", changefreq: "daily", priority: "0.9" },
   { loc: "https://musafartour.com/jadwal-umroh", changefreq: "daily", priority: "0.8" },
   { loc: "https://musafartour.com/kalkulator", changefreq: "monthly", priority: "0.6" },
+  { loc: "https://musafartour.com/cara-bayar", changefreq: "monthly", priority: "0.6" },
+  { loc: "https://musafartour.com/jadi-agen", changefreq: "monthly", priority: "0.6" },
   { loc: "https://musafartour.com/tentang-kami", changefreq: "monthly", priority: "0.7" },
   { loc: "https://musafartour.com/galeri", changefreq: "weekly", priority: "0.6" },
   { loc: "https://musafartour.com/kontak", changefreq: "monthly", priority: "0.7" },

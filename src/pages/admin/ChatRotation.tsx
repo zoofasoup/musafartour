@@ -62,8 +62,10 @@ import URLTemplateManager from '@/components/admin/URLTemplateManager';
 import CSAnalyticsDashboard from '@/components/admin/CSAnalyticsDashboard';
 import { id as localeId } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 
 const ChatRotation = () => {
+  const { ask, dialog } = useConfirmDialog();
   const [csNumbers, setCsNumbers] = useState<CSNumber[]>([]);
   const [stats, setStats] = useState<Record<string, number>>({});
   const [campaignStats, setCampaignStats] = useState<Record<string, number>>({});
@@ -187,10 +189,10 @@ const ChatRotation = () => {
         .eq('id', editingCS.id);
 
       if (error) {
-        toast.error('Gagal mengupdate CS');
+        toast.error('Gagal memperbarui CS');
         return;
       }
-      toast.success('CS berhasil diupdate');
+      toast.success('CS berhasil diperbarui');
     } else {
       // Get max display order
       const maxOrder = Math.max(0, ...csNumbers.map(c => c.display_order));
@@ -217,8 +219,10 @@ const ChatRotation = () => {
     fetchData();
   };
 
-  const handleDelete = async (cs: CSNumber) => {
-    if (!confirm(`Hapus ${cs.name}?`)) return;
+  const handleDelete = (cs: CSNumber) =>
+    ask({ title: `Hapus ${cs.name}?`, description: "Nomor ini keluar dari rotasi chat dan tidak bisa dikembalikan." }, () => performDelete(cs));
+
+  const performDelete = async (cs: CSNumber) => {
 
     const { error } = await supabase
       .from('whatsapp_cs')
@@ -286,7 +290,7 @@ const ChatRotation = () => {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editingCS ? 'Edit CS' : 'Tambah CS Baru'}</DialogTitle>
+                <DialogTitle>{editingCS ? 'Ubah CS' : 'Tambah CS baru'}</DialogTitle>
                 <DialogDescription>
                   Masukkan data customer service untuk rotasi WhatsApp
                 </DialogDescription>
@@ -438,7 +442,7 @@ const ChatRotation = () => {
                           Weight: {weight}
                         </Badge>
                         {nextCS?.id === cs.id && (
-                          <Badge variant="default" className="text-xs">Next</Badge>
+                          <Badge variant="default" className="text-xs">Berikutnya</Badge>
                         )}
                       </div>
                       <span className="text-sm font-medium">
@@ -717,6 +721,7 @@ const ChatRotation = () => {
 
       {/* URL Template Management */}
       <URLTemplateManager />
+      {dialog}
     </div>
   );
 };

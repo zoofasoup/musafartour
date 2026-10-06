@@ -28,7 +28,7 @@ export const MarketingAutoGeneratorModal = ({ open, onOpenChange, packageId, pac
             Paket Berhasil Di-publish!
           </DialogTitle>
           <DialogDescription className="text-base text-slate-600">
-            "{packageTitle}" sudah aktif sebagai Single Source of Truth. Sistem sedang mengotomatisasi aset marketing Anda...
+            "{packageTitle}" sudah aktif sebagai Single Source of Truth. Sistem sedang mengotomatisasi aset marketing kamu...
           </DialogDescription>
         </DialogHeader>
 

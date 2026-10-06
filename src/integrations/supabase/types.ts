@@ -2839,30 +2839,6 @@ export type Database = {
       }
     }
     Views: {
-      agent_leaderboard: {
-        Row: {
-          id: string | null
-          level: string | null
-          name: string | null
-          total_commission: number | null
-          total_sales: number | null
-        }
-        Insert: {
-          id?: string | null
-          level?: string | null
-          name?: string | null
-          total_commission?: number | null
-          total_sales?: number | null
-        }
-        Update: {
-          id?: string | null
-          level?: string | null
-          name?: string | null
-          total_commission?: number | null
-          total_sales?: number | null
-        }
-        Relationships: []
-      }
       jamaah_registration_balances: {
         Row: {
           agreed_price: number | null
@@ -2908,6 +2884,16 @@ export type Database = {
       register_agent_profile: {
         Args: never
         Returns: Database["public"]["Tables"]["agents"]["Row"]
+      }
+      set_agent_referrer: { Args: { _code: string }; Returns: undefined }
+      get_agent_leaderboard: {
+        Args: never
+        Returns: {
+          id: string
+          level: string
+          name: string
+          total_sales: number
+        }[]
       }
       accept_jamaah_intake: {
         Args: { _force?: boolean; _intake_id: string; _people: Json }

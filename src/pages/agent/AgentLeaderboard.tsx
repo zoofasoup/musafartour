@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
+import { useAgentLeaderboard } from "@/hooks/useAgentLeaderboard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,22 +40,10 @@ import { formatCurrency } from "@/lib/utils";
 
 export default function AgentLeaderboard() {
   const { agent } = useAgentAuth();
-  const [leaderboardPeriod, setLeaderboardPeriod] = useState<"month" | "week" | "all">("month");
 
-  // Fetch leaderboard data
-  const { data: leaderboard, isLoading: loadingLeaderboard } = useQuery({
-    queryKey: ["agent-leaderboard", leaderboardPeriod],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("agent_leaderboard")
-        .select("id, name, total_sales, total_commission, level")
-        .order("total_sales", { ascending: false })
-        .limit(100);
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
+  // Fetch leaderboard data (name, sales, level; never anyone's commission)
+  const { data: leaderboardAll, isLoading: loadingLeaderboard } = useAgentLeaderboard();
+  const leaderboard = leaderboardAll?.slice(0, 100);
 
   // Fetch levels
   const { data: levels } = useQuery({
@@ -191,7 +179,7 @@ export default function AgentLeaderboard() {
         icon={Trophy}
       />
 
-      {/* Your Ranking Widget - not sticky, since AgentHeader above already sticks to the same scroll container and would collide with it */}
+      {/* Your Ranking Widget - not sticky, since the shell header above already sticks to the same scroll container and would collide with it */}
       {agent && (
         <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
           <CardContent className="py-4">
@@ -200,7 +188,7 @@ export default function AgentLeaderboard() {
                 <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/20">
                   {myRank >= 0 && myRank < 3 ? (
                     myRank === 0 ? <Trophy className="h-6 w-6 text-status-warn-fg" /> :
-                    myRank === 1 ? <Medal className="h-6 w-6 text-slate-400" /> :
+                    myRank === 1 ? <Medal className="h-6 w-6 text-muted-foreground" /> :
                     <Medal className="h-6 w-6 text-status-warn-fg" />
                   ) : (
                     <span className="text-lg font-bold text-primary">#{myRank >= 0 ? myRank + 1 : '--'}</span>
@@ -237,13 +225,6 @@ export default function AgentLeaderboard() {
               </CardTitle>
               <CardDescription>Agen dengan jamaah lunas terbanyak</CardDescription>
             </div>
-            <Tabs value={leaderboardPeriod} onValueChange={(v) => setLeaderboardPeriod(v as typeof leaderboardPeriod)}>
-              <TabsList className="h-auto [@media(pointer:coarse)]:h-11">
-                <TabsTrigger value="week" className="text-xs px-2">Minggu Ini</TabsTrigger>
-                <TabsTrigger value="month" className="text-xs px-2">Bulan Ini</TabsTrigger>
-                <TabsTrigger value="all" className="text-xs px-2">All Time</TabsTrigger>
-              </TabsList>
-            </Tabs>
           </div>
         </CardHeader>
         <CardContent>
@@ -269,7 +250,7 @@ export default function AgentLeaderboard() {
                       </div>
                     ) : index === 1 ? (
                       <div className="w-10 h-10 rounded-full bg-muted-foreground/20 flex items-center justify-center">
-                        <Medal className="h-5 w-5 text-slate-400" />
+                        <Medal className="h-5 w-5 text-muted-foreground" />
                       </div>
                     ) : index === 2 ? (
                       <div className="w-10 h-10 rounded-full bg-status-warn-fg/20 flex items-center justify-center">
@@ -293,10 +274,6 @@ export default function AgentLeaderboard() {
                       <span className="flex items-center gap-1">
                         <TrendingUp className="h-3 w-3" />
                         {item.total_sales} paket
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <DollarSign className="h-3 w-3" />
-                        {formatCurrency(Number(item.total_commission))}
                       </span>
                     </div>
                   </div>

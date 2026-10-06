@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { FileUpload } from "@/components/admin/FileUpload";
 import { compressAndConvertToWebP } from "@/lib/imageUtils";
 import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
+import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 
 interface Testimonial {
   id: string;
@@ -31,9 +32,12 @@ interface Testimonial {
 }
 
 const Testimonials = () => {
+  const { ask, dialog } = useConfirmDialog();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, loading: authLoading, isAdmin } = useAuth();
+  const { user, loading: authLoading, isAdmin: isOwner, userRole } = useAuth();
+  // The menu also shows this page to content_admin, so the page has to let that role in (it used to render blank).
+  const isAdmin = isOwner || userRole === "content_admin";
   
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -78,8 +82,8 @@ const Testimonials = () => {
       setTestimonials(data || []);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to load testimonials",
+        title: "Gagal",
+        description: "Testimoni belum bisa dimuat.",
         variant: "destructive",
       });
     } finally {
@@ -112,13 +116,13 @@ const Testimonials = () => {
       setFormData({ ...formData, image_url: publicUrl });
       
       toast({
-        title: "Success",
-        description: "Image uploaded successfully",
+        title: "Berhasil",
+        description: "Foto berhasil diunggah.",
       });
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to upload image",
+        title: "Gagal",
+        description: error.message || "Foto gagal diunggah.",
         variant: "destructive",
       });
     } finally {
@@ -138,32 +142,34 @@ const Testimonials = () => {
           .update(formData)
           .eq("id", editingItem.id);
         if (error) throw error;
-        toast({ title: "Success", description: "Testimonial updated" });
+        toast({ title: "Berhasil", description: "Testimoni diperbarui." });
       } else {
         const { error } = await (supabase as any)
           .from("testimonials")
           .insert({ ...formData, is_active: true });
         if (error) throw error;
-        toast({ title: "Success", description: "Testimonial created" });
+        toast({ title: "Berhasil", description: "Testimoni ditambahkan." });
       }
 
       setIsDialogOpen(false);
       resetForm();
       fetchTestimonials();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Gagal", description: error.message, variant: "destructive" });
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this testimonial?")) return;
+  const handleDelete = (id: string) =>
+    ask({ title: "Hapus testimoni ini?", description: "Testimoni ini hilang dari website dan tidak bisa dikembalikan." }, () => performDelete(id));
+
+  const performDelete = async (id: string) => {
     try {
       const { error } = await (supabase as any).from("testimonials").delete().eq("id", id);
       if (error) throw error;
-      toast({ title: "Success", description: "Testimonial deleted" });
+      toast({ title: "Berhasil", description: "Testimoni dihapus." });
       fetchTestimonials();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Gagal", description: error.message, variant: "destructive" });
     }
   };
 
@@ -213,7 +219,7 @@ const Testimonials = () => {
       t.location || "",
       t.rating,
       `"${t.content}"`,
-      t.is_active ? "Active" : "Inactive",
+      t.is_active ? "Aktif" : "Nonaktif",
       t.display_order,
     ]);
 
@@ -223,7 +229,7 @@ const Testimonials = () => {
     link.href = URL.createObjectURL(blob);
     link.download = `testimonials-${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
-    sonnerToast.success(`${ids.length} testimonial berhasil di-export`);
+    sonnerToast.success(`${ids.length} testimonial berhasil diekspor`);
   };
 
   const openEditDialog = (item: Testimonial) => {
@@ -274,8 +280,8 @@ const Testimonials = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Testimonials</h1>
-          <p className="text-muted-foreground">Manage customer testimonials</p>
+          <h1 className="text-3xl font-bold">Testimoni</h1>
+          <p className="text-muted-foreground">Atur testimoni jamaah yang tampil di website</p>
         </div>
         <div className="flex items-center gap-2">
           {selectionMode ? (
@@ -291,20 +297,20 @@ const Testimonials = () => {
             <DialogTrigger asChild>
               <Button onClick={resetForm}>
                 <Plus className="mr-2 h-4 w-4" />
-                Add Testimonial
+                Tambah testimoni
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>{editingItem ? "Edit" : "Add"} Testimonial</DialogTitle>
+                <DialogTitle>{editingItem ? "Ubah" : "Tambah"} testimoni</DialogTitle>
                 <DialogDescription>
-                  {editingItem ? "Update" : "Create"} a customer testimonial
+                  {editingItem ? "Perbarui" : "Buat"} testimoni jamaah
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Name</Label>
+                    <Label htmlFor="name">Nama</Label>
                     <Input
                       id="name"
                       value={formData.name}
@@ -312,17 +318,17 @@ const Testimonials = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
+                    <Label htmlFor="location">Kota</Label>
                     <Input
                       id="location"
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                      placeholder="e.g., Jakarta"
+                      placeholder="Contoh: Jakarta"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="content">Review Content (max 200 characters)</Label>
+                  <Label htmlFor="content">Isi testimoni (maksimal 200 karakter)</Label>
                   <Textarea
                     id="content"
                     value={formData.content}
@@ -344,7 +350,7 @@ const Testimonials = () => {
                     currentImage={formData.image_url}
                     loading={uploading}
                   />
-                  <p className="text-xs text-muted-foreground">If no photo is uploaded, a default avatar based on gender will be used.</p>
+                  <p className="text-xs text-muted-foreground">Kalau tidak ada foto, dipakai avatar bawaan sesuai jenis kelamin.</p>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
@@ -366,7 +372,7 @@ const Testimonials = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="gender">Gender</Label>
+                    <Label htmlFor="gender">Jenis kelamin</Label>
                     <Select
                       value={formData.gender}
                       onValueChange={(val) => setFormData({ ...formData, gender: val as "male" | "female" })}
@@ -381,7 +387,7 @@ const Testimonials = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="display_order">Display Order</Label>
+                    <Label htmlFor="display_order">Urutan tampil</Label>
                     <Input
                       id="display_order"
                       type="number"
@@ -394,7 +400,7 @@ const Testimonials = () => {
               <DialogFooter>
                 <Button onClick={handleSave}>
                   <Save className="mr-2 h-4 w-4" />
-                  Save
+                  Simpan
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -404,7 +410,7 @@ const Testimonials = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Testimonials List</CardTitle>
+          <CardTitle>Daftar testimoni</CardTitle>
         </CardHeader>
         <CardContent>
           {selectionMode && (
@@ -422,13 +428,13 @@ const Testimonials = () => {
             <TableHeader>
               <TableRow>
                 {selectionMode && <TableHead className="w-12"></TableHead>}
-                <TableHead>Order</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Location</TableHead>
+                <TableHead>Urutan</TableHead>
+                <TableHead>Nama</TableHead>
+                <TableHead>Kota</TableHead>
                 <TableHead>Rating</TableHead>
-                <TableHead>Review</TableHead>
+                <TableHead>Isi</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -439,7 +445,7 @@ const Testimonials = () => {
                       <Checkbox
                         checked={isSelected(item.id)}
                         onCheckedChange={() => toggleSelect(item.id)}
-                        aria-label={`Select ${item.name}`}
+                        aria-label={`Pilih ${item.name}`}
                       />
                     </TableCell>
                   )}
@@ -454,14 +460,14 @@ const Testimonials = () => {
                   <TableCell className="max-w-sm truncate">{item.content}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded text-xs ${item.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                      {item.is_active ? 'Active' : 'Inactive'}
+                      {item.is_active ? 'Aktif' : 'Nonaktif'}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}>
+                    <Button variant="ghost" size="sm" aria-label="Ubah" onClick={() => openEditDialog(item)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Button variant="ghost" size="sm" aria-label="Hapus" onClick={() => handleDelete(item.id)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </TableCell>
@@ -471,6 +477,7 @@ const Testimonials = () => {
           </Table>
         </CardContent>
       </Card>
+      {dialog}
     </div>
   );
 };

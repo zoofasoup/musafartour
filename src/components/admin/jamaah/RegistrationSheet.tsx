@@ -128,7 +128,7 @@ export function RegistrationSheet({ registration, payments, agents, groups, depa
 
             <h3 className="mb-2 text-sm font-semibold">Pembayaran</h3>
             <div className="mb-6">
-              <PaymentTable payments={regPayments} isOwner={isOwner} currentUserId={currentUserId} onChanged={onChanged} />
+              <PaymentTable payments={regPayments} isOwner={isOwner} currentUserId={currentUserId} confirmName={() => registration.full_name} onChanged={onChanged} />
             </div>
 
             <h3 className="mb-2 text-sm font-semibold">Riwayat perubahan</h3>

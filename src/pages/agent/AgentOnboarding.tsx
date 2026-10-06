@@ -135,7 +135,7 @@ const AgentOnboarding = () => {
       return;
     }
     if (!formData.experience_level) {
-      toast.error("Pilih tingkat pengalaman Anda");
+      toast.error("Pilih tingkat pengalaman kamu");
       return;
     }
 
@@ -177,7 +177,7 @@ const AgentOnboarding = () => {
       } else if (reason.includes("agents_ktp_number_key")) {
         toast.error("Nomor KTP sudah terdaftar pada akun lain.");
       } else {
-        toast.error("Gagal menyimpan profil. Periksa koneksi Anda, lalu coba lagi.");
+        toast.error("Gagal menyimpan profil. Periksa koneksi kamu, lalu coba lagi.");
       }
     }
   };
@@ -193,13 +193,13 @@ const AgentOnboarding = () => {
           <div className="text-center sm:text-left">
             <h1 className="text-3xl font-bold text-foreground">Lengkapi Profil Agent</h1>
             <p className="text-muted-foreground mt-2">
-              Langkah terakhir sebelum Anda bisa mulai berjualan paket umroh
+              Langkah terakhir sebelum kamu bisa mulai berjualan paket umroh
             </p>
             {agent?.status === "pending" && (
               <div className="mt-3 flex flex-col items-center gap-2 sm:items-start">
                 <StatusBadge kind="warn" icon={Clock}>Menunggu verifikasi admin</StatusBadge>
                 <p className="text-sm text-muted-foreground">
-                  Akun Anda aktif setelah data di bawah dikirim dan disetujui admin.
+                  Akun kamu aktif setelah data di bawah dikirim dan disetujui admin.
                 </p>
               </div>
             )}
@@ -221,7 +221,7 @@ const AgentOnboarding = () => {
             <CardHeader>
               <CardTitle>Data Identitas & Domisili</CardTitle>
               <CardDescription>
-                Data ini diperlukan untuk verifikasi legalitas dan perhitungan komisi Anda.
+                Data ini diperlukan untuk verifikasi legalitas dan perhitungan komisi kamu.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -232,7 +232,7 @@ const AgentOnboarding = () => {
                   <Input 
                     id="name" 
                     name="name"
-                    placeholder="Nama Lengkap Anda"
+                    placeholder="Nama Lengkap Kamu"
                     value={formData.name}
                     onChange={handleChange}
                     required
@@ -351,7 +351,7 @@ const AgentOnboarding = () => {
                     onValueChange={(val) => setFormData(prev => ({ ...prev, experience_level: val }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih pengalaman Anda" />
+                      <SelectValue placeholder="Pilih pengalaman kamu" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pemula">Baru Mulai (Pemula)</SelectItem>
@@ -389,7 +389,7 @@ const AgentOnboarding = () => {
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 border-t pt-6">
               <p className="text-sm text-muted-foreground flex items-center gap-1">
                 <CheckCircle2 className="h-4 w-4 text-foreground" />
-                Data Anda aman & terenkripsi
+                Data kamu aman & terenkripsi
               </p>
               <Button type="submit" disabled={loading || uploading} className="w-full sm:w-auto min-w-[200px]">
                 {(loading || uploading) ? (

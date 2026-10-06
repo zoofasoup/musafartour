@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 import { 
   Loader2, Plus, Edit, Trash2, Save, Trophy, Award, Gift, 
   Target, Calendar, DollarSign, Star, Users, Zap, Shield, 
@@ -73,6 +74,7 @@ interface Reward {
 }
 
 const Gamification = () => {
+  const { ask, dialog } = useConfirmDialog();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("challenges");
 
@@ -169,7 +171,7 @@ const Gamification = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-challenges"] });
-      toast.success(editingChallenge ? "Challenge updated!" : "Challenge created!");
+      toast.success(editingChallenge ? "Tantangan diperbarui" : "Tantangan dibuat");
       setChallengeDialogOpen(false);
       resetChallengeForm();
     },
@@ -183,7 +185,7 @@ const Gamification = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-challenges"] });
-      toast.success("Challenge deleted!");
+      toast.success("Tantangan dihapus");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -204,7 +206,7 @@ const Gamification = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-badges"] });
-      toast.success(editingBadge ? "Badge updated!" : "Badge created!");
+      toast.success(editingBadge ? "Lencana diperbarui" : "Lencana dibuat");
       setBadgeDialogOpen(false);
       resetBadgeForm();
     },
@@ -218,7 +220,7 @@ const Gamification = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-badges"] });
-      toast.success("Badge deleted!");
+      toast.success("Lencana dihapus");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -239,7 +241,7 @@ const Gamification = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-rewards"] });
-      toast.success(editingReward ? "Reward updated!" : "Reward created!");
+      toast.success(editingReward ? "Hadiah diperbarui" : "Hadiah dibuat");
       setRewardDialogOpen(false);
       resetRewardForm();
     },
@@ -253,7 +255,7 @@ const Gamification = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-rewards"] });
-      toast.success("Reward deleted!");
+      toast.success("Hadiah dihapus");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -362,10 +364,10 @@ const Gamification = () => {
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Trophy className="h-8 w-8 text-primary" />
-          Gamification
+          Gamifikasi
         </h1>
         <p className="text-muted-foreground">
-          Kelola challenges, badges, dan rewards untuk agent
+          Kelola tantangan, lencana, dan hadiah untuk agen
         </p>
       </div>
 
@@ -373,15 +375,15 @@ const Gamification = () => {
         <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
           <TabsTrigger value="challenges" className="flex items-center gap-2">
             <Target className="h-4 w-4" />
-            Challenges
+            Tantangan
           </TabsTrigger>
           <TabsTrigger value="badges" className="flex items-center gap-2">
             <Award className="h-4 w-4" />
-            Badges
+            Lencana
           </TabsTrigger>
           <TabsTrigger value="rewards" className="flex items-center gap-2">
             <Gift className="h-4 w-4" />
-            Rewards
+            Hadiah
           </TabsTrigger>
         </TabsList>
 
@@ -389,8 +391,8 @@ const Gamification = () => {
         <TabsContent value="challenges" className="space-y-4">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-xl font-semibold">Challenges</h2>
-              <p className="text-sm text-muted-foreground">Tantangan bulanan untuk agent</p>
+              <h2 className="text-xl font-semibold">Tantangan</h2>
+              <p className="text-sm text-muted-foreground">Tantangan bulanan untuk agen</p>
             </div>
             <Dialog open={challengeDialogOpen} onOpenChange={setChallengeDialogOpen}>
               <DialogTrigger asChild>
@@ -401,31 +403,31 @@ const Gamification = () => {
               </DialogTrigger>
               <DialogContent className="max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>{editingChallenge ? "Edit" : "Add"} Challenge</DialogTitle>
+                  <DialogTitle>{editingChallenge ? "Ubah" : "Tambah"} tantangan</DialogTitle>
                   <DialogDescription>
-                    Buat tantangan baru untuk memotivasi agent
+                    Buat tantangan baru untuk memotivasi agen
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Title</Label>
+                    <Label>Judul</Label>
                     <Input
                       value={challengeForm.title}
                       onChange={(e) => setChallengeForm({ ...challengeForm, title: e.target.value })}
-                      placeholder="e.g., First Sale of 2025"
+                      placeholder="Contoh: Penjualan pertama 2025"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Description</Label>
+                    <Label>Deskripsi</Label>
                     <Textarea
                       value={challengeForm.description}
                       onChange={(e) => setChallengeForm({ ...challengeForm, description: e.target.value })}
-                      placeholder="Deskripsi challenge..."
+                      placeholder="Deskripsi tantangan..."
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Target Type</Label>
+                      <Label>Jenis target</Label>
                       <Select
                         value={challengeForm.target_type}
                         onValueChange={(val) => setChallengeForm({ ...challengeForm, target_type: val })}
@@ -434,13 +436,13 @@ const Gamification = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="sales">Sales</SelectItem>
-                          <SelectItem value="referrals">Referrals</SelectItem>
+                          <SelectItem value="sales">Penjualan</SelectItem>
+                          <SelectItem value="referrals">Referral</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Target Value</Label>
+                      <Label>Nilai target</Label>
                       <Input
                         type="number"
                         min={1}
@@ -451,7 +453,7 @@ const Gamification = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Reward Type</Label>
+                      <Label>Jenis hadiah</Label>
                       <Select
                         value={challengeForm.reward_type}
                         onValueChange={(val) => setChallengeForm({ ...challengeForm, reward_type: val })}
@@ -460,14 +462,14 @@ const Gamification = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="cash">Cash</SelectItem>
-                          <SelectItem value="points">Points</SelectItem>
-                          <SelectItem value="badge">Badge</SelectItem>
+                          <SelectItem value="cash">Tunai</SelectItem>
+                          <SelectItem value="points">Poin</SelectItem>
+                          <SelectItem value="badge">Lencana</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Reward Value</Label>
+                      <Label>Nilai hadiah</Label>
                       <Input
                         value={challengeForm.reward_value}
                         onChange={(e) => setChallengeForm({ ...challengeForm, reward_value: e.target.value })}
@@ -477,7 +479,7 @@ const Gamification = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Start Date</Label>
+                      <Label>Tanggal mulai</Label>
                       <Input
                         type="date"
                         value={challengeForm.start_date}
@@ -485,7 +487,7 @@ const Gamification = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>End Date</Label>
+                      <Label>Tanggal selesai</Label>
                       <Input
                         type="date"
                         value={challengeForm.end_date}
@@ -498,7 +500,7 @@ const Gamification = () => {
                       checked={challengeForm.is_active}
                       onCheckedChange={(checked) => setChallengeForm({ ...challengeForm, is_active: checked })}
                     />
-                    <Label>Active</Label>
+                    <Label>Aktif</Label>
                   </div>
                 </div>
                 <DialogFooter>
@@ -512,7 +514,7 @@ const Gamification = () => {
                   >
                     {saveChallengeMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     <Save className="mr-2 h-4 w-4" />
-                    Save
+                    Simpan
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -529,19 +531,19 @@ const Gamification = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Challenge</TableHead>
+                      <TableHead>Tantangan</TableHead>
                       <TableHead>Target</TableHead>
-                      <TableHead>Reward</TableHead>
-                      <TableHead>Period</TableHead>
+                      <TableHead>Hadiah</TableHead>
+                      <TableHead>Periode</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="text-right">Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {challenges.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          Belum ada challenge
+                          Belum ada tantangan
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -571,12 +573,12 @@ const Gamification = () => {
                           <TableCell>
                             <div className="text-sm">
                               <p>{formatDate(challenge.start_date)}</p>
-                              <p className="text-muted-foreground">to {formatDate(challenge.end_date)}</p>
+                              <p className="text-muted-foreground">sampai {formatDate(challenge.end_date)}</p>
                             </div>
                           </TableCell>
                           <TableCell>
                             <Badge variant={challenge.is_active ? "default" : "secondary"}>
-                              {challenge.is_active ? "Active" : "Inactive"}
+                              {challenge.is_active ? "Aktif" : "Nonaktif"}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
@@ -586,11 +588,8 @@ const Gamification = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                if (confirm("Delete this challenge?")) {
-                                  deleteChallengeMutation.mutate(challenge.id);
-                                }
-                              }}
+                              aria-label="Hapus tantangan"
+                              onClick={() => ask({ title: "Hapus tantangan ini?", description: "Tantangan ini dihapus permanen dan tidak bisa dikembalikan." }, () => deleteChallengeMutation.mutate(challenge.id))}
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -609,42 +608,42 @@ const Gamification = () => {
         <TabsContent value="badges" className="space-y-4">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-xl font-semibold">Badges</h2>
-              <p className="text-sm text-muted-foreground">Achievement badges untuk agent</p>
+              <h2 className="text-xl font-semibold">Lencana</h2>
+              <p className="text-sm text-muted-foreground">Lencana pencapaian untuk agen</p>
             </div>
             <Dialog open={badgeDialogOpen} onOpenChange={setBadgeDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={resetBadgeForm}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Badge
+                  Tambah lencana
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>{editingBadge ? "Edit" : "Add"} Badge</DialogTitle>
+                  <DialogTitle>{editingBadge ? "Ubah" : "Tambah"} lencana</DialogTitle>
                   <DialogDescription>
-                    Buat badge achievement baru
+                    Buat lencana pencapaian baru
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Name</Label>
+                    <Label>Nama</Label>
                     <Input
                       value={badgeForm.name}
                       onChange={(e) => setBadgeForm({ ...badgeForm, name: e.target.value })}
-                      placeholder="e.g., First Sale"
+                      placeholder="Contoh: Penjualan Pertama"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Description</Label>
+                    <Label>Deskripsi</Label>
                     <Textarea
                       value={badgeForm.description}
                       onChange={(e) => setBadgeForm({ ...badgeForm, description: e.target.value })}
-                      placeholder="Deskripsi badge..."
+                      placeholder="Deskripsi lencana..."
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Icon</Label>
+                    <Label>Ikon</Label>
                     <Select
                       value={badgeForm.icon}
                       onValueChange={(val) => setBadgeForm({ ...badgeForm, icon: val })}
@@ -666,7 +665,7 @@ const Gamification = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Requirement Type</Label>
+                      <Label>Jenis syarat</Label>
                       <Select
                         value={badgeForm.requirement_type}
                         onValueChange={(val) => setBadgeForm({ ...badgeForm, requirement_type: val })}
@@ -675,15 +674,15 @@ const Gamification = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="sales_count">Sales Count</SelectItem>
-                          <SelectItem value="referrals">Referrals</SelectItem>
-                          <SelectItem value="streak">Streak</SelectItem>
-                          <SelectItem value="first_sale">First Sale</SelectItem>
+                          <SelectItem value="sales_count">Jumlah penjualan</SelectItem>
+                          <SelectItem value="referrals">Referral</SelectItem>
+                          <SelectItem value="streak">Beruntun</SelectItem>
+                          <SelectItem value="first_sale">Penjualan pertama</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Requirement Value</Label>
+                      <Label>Nilai syarat</Label>
                       <Input
                         type="number"
                         min={1}
@@ -693,7 +692,7 @@ const Gamification = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>Points Reward</Label>
+                    <Label>Poin hadiah</Label>
                     <Input
                       type="number"
                       min={0}
@@ -713,7 +712,7 @@ const Gamification = () => {
                   >
                     {saveBadgeMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     <Save className="mr-2 h-4 w-4" />
-                    Save
+                    Simpan
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -730,17 +729,17 @@ const Gamification = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Badge</TableHead>
-                      <TableHead>Requirement</TableHead>
-                      <TableHead>Points Reward</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>Lencana</TableHead>
+                      <TableHead>Syarat</TableHead>
+                      <TableHead>Poin hadiah</TableHead>
+                      <TableHead className="text-right">Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {badges.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                          Belum ada badge
+                          Belum ada lencana
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -767,7 +766,7 @@ const Gamification = () => {
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <Star className="h-4 w-4 text-yellow-500" />
-                              <span>{badge.points_reward} pts</span>
+                              <span>{badge.points_reward} poin</span>
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
@@ -777,11 +776,8 @@ const Gamification = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                if (confirm("Delete this badge?")) {
-                                  deleteBadgeMutation.mutate(badge.id);
-                                }
-                              }}
+                              aria-label="Hapus lencana"
+                              onClick={() => ask({ title: "Hapus lencana ini?", description: "Lencana ini dihapus permanen dan tidak bisa dikembalikan." }, () => deleteBadgeMutation.mutate(badge.id))}
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -800,43 +796,43 @@ const Gamification = () => {
         <TabsContent value="rewards" className="space-y-4">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-xl font-semibold">Rewards Store</h2>
+              <h2 className="text-xl font-semibold">Toko Hadiah</h2>
               <p className="text-sm text-muted-foreground">Hadiah yang bisa ditukar dengan poin</p>
             </div>
             <Dialog open={rewardDialogOpen} onOpenChange={setRewardDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={resetRewardForm}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Reward
+                  Tambah hadiah
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>{editingReward ? "Edit" : "Add"} Reward</DialogTitle>
+                  <DialogTitle>{editingReward ? "Ubah" : "Tambah"} hadiah</DialogTitle>
                   <DialogDescription>
-                    Tambah item reward baru ke store
+                    Tambah hadiah baru ke toko
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Name</Label>
+                    <Label>Nama</Label>
                     <Input
                       value={rewardForm.name}
                       onChange={(e) => setRewardForm({ ...rewardForm, name: e.target.value })}
-                      placeholder="e.g., Kaos Exclusive"
+                      placeholder="Contoh: Kaos Eksklusif"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Description</Label>
+                    <Label>Deskripsi</Label>
                     <Textarea
                       value={rewardForm.description}
                       onChange={(e) => setRewardForm({ ...rewardForm, description: e.target.value })}
-                      placeholder="Deskripsi reward..."
+                      placeholder="Deskripsi hadiah..."
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Category</Label>
+                      <Label>Kategori</Label>
                       <Select
                         value={rewardForm.category}
                         onValueChange={(val) => setRewardForm({ ...rewardForm, category: val })}
@@ -846,14 +842,14 @@ const Gamification = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="merchandise">Merchandise</SelectItem>
-                          <SelectItem value="cash">Cash Bonus</SelectItem>
-                          <SelectItem value="training">Training</SelectItem>
-                          <SelectItem value="travel">Travel Perks</SelectItem>
+                          <SelectItem value="cash">Bonus tunai</SelectItem>
+                          <SelectItem value="training">Pelatihan</SelectItem>
+                          <SelectItem value="travel">Fasilitas perjalanan</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Points Cost</Label>
+                      <Label>Harga poin</Label>
                       <Input
                         type="number"
                         min={1}
@@ -864,7 +860,7 @@ const Gamification = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Stock (kosongkan jika unlimited)</Label>
+                      <Label>Stok (kosongkan jika tanpa batas)</Label>
                       <Input
                         type="number"
                         min={0}
@@ -873,11 +869,11 @@ const Gamification = () => {
                           ...rewardForm,
                           stock: e.target.value ? parseInt(e.target.value) : null
                         })}
-                        placeholder="Unlimited"
+                        placeholder="Tanpa batas"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Image URL (optional)</Label>
+                      <Label>URL gambar (opsional)</Label>
                       <Input
                         value={rewardForm.image_url}
                         onChange={(e) => setRewardForm({ ...rewardForm, image_url: e.target.value })}
@@ -890,7 +886,7 @@ const Gamification = () => {
                       checked={rewardForm.is_active}
                       onCheckedChange={(checked) => setRewardForm({ ...rewardForm, is_active: checked })}
                     />
-                    <Label>Active</Label>
+                    <Label>Aktif</Label>
                   </div>
                 </div>
                 <DialogFooter>
@@ -904,7 +900,7 @@ const Gamification = () => {
                   >
                     {saveRewardMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     <Save className="mr-2 h-4 w-4" />
-                    Save
+                    Simpan
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -921,19 +917,19 @@ const Gamification = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Reward</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Points</TableHead>
-                      <TableHead>Stock</TableHead>
+                      <TableHead>Hadiah</TableHead>
+                      <TableHead>Kategori</TableHead>
+                      <TableHead>Poin</TableHead>
+                      <TableHead>Stok</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="text-right">Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {rewards.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          Belum ada reward
+                          Belum ada hadiah
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -960,7 +956,7 @@ const Gamification = () => {
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <Star className="h-4 w-4 text-yellow-500" />
-                              <span>{reward.points_cost} pts</span>
+                              <span>{reward.points_cost} poin</span>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -968,7 +964,7 @@ const Gamification = () => {
                           </TableCell>
                           <TableCell>
                             <Badge variant={reward.is_active ? "default" : "secondary"}>
-                              {reward.is_active ? "Active" : "Inactive"}
+                              {reward.is_active ? "Aktif" : "Nonaktif"}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
@@ -978,11 +974,8 @@ const Gamification = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                if (confirm("Delete this reward?")) {
-                                  deleteRewardMutation.mutate(reward.id);
-                                }
-                              }}
+                              aria-label="Hapus hadiah"
+                              onClick={() => ask({ title: "Hapus hadiah ini?", description: "Hadiah ini dihapus permanen dan tidak bisa dikembalikan." }, () => deleteRewardMutation.mutate(reward.id))}
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -997,6 +990,7 @@ const Gamification = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      {dialog}
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { translateAuthError } from "@/lib/authErrors";
+import { takeAgentReferral } from "@/lib/agentReferral";
 
 interface Agent {
   id: string;
@@ -40,7 +41,7 @@ interface AgentAuthContextType {
   agent: Agent | null;
   loading: boolean;
   signUp: (data: SignUpData) => Promise<{ success: boolean; error?: string }>;
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string; needsEmailConfirmation?: boolean }>;
   signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   refreshAgent: () => void;
@@ -79,6 +80,16 @@ const registerAgentProfile = async (): Promise<{ agent: Agent | null; error?: st
     };
   }
   return { agent: (data as unknown as Agent) ?? null };
+};
+
+// A Google sign-up has no referral code in its metadata, so the register page remembered ?ref= in sessionStorage.
+// Once the agents row exists, hand the code to the database, which attributes it only for an active other agent and
+// only while the row has no referrer. Always silent: a wrong or stale code must never get in the way of logging in.
+const applyRememberedReferrer = async (agent: Agent): Promise<void> => {
+  const code = takeAgentReferral();
+  if (!code || agent.referred_by_id) return;
+  const { error } = await supabase.rpc('set_agent_referrer', { _code: code });
+  if (error) console.error("set_agent_referrer failed:", error);
 };
 
 export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
@@ -131,14 +142,20 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
       const onAgentPage = path.startsWith("/agent") && !path.startsWith("/agent/register");
       if (!data && !error && user.email && onAgentPage) {
         const created = await registerAgentProfile();
-        if (created.agent) return created.agent;
+        if (created.agent) {
+          await applyRememberedReferrer(created.agent);
+          return created.agent;
+        }
       }
 
       if (error) {
         console.error("Error fetching agent profile:", error);
+        // A failed refresh must not replace a good cached profile with null: that would bounce a signed-in agent to the login page.
+        if (queryClient.getQueryData(['agent-profile', user.id])) throw error;
         return null;
       }
 
+      if (data) await applyRememberedReferrer(data as Agent);
       return data as Agent | null;
     },
     enabled: !!user?.id,
@@ -193,7 +210,7 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string; needsEmailConfirmation?: boolean }> => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -201,7 +218,8 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        return { success: false, error: translateAuthError(error) };
+        const needsEmailConfirmation = error.code === 'email_not_confirmed' || /email not confirmed/i.test(error.message);
+        return { success: false, error: translateAuthError(error), needsEmailConfirmation };
       }
 
       if (!data.user) {
@@ -249,7 +267,7 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
       // address. AgentProtectedRoute shows the "Menunggu Persetujuan" screen after that.
       if (status === 'suspended') {
         await supabase.auth.signOut();
-        return { success: false, error: 'Akun Anda telah dinonaktifkan. Hubungi admin untuk informasi lebih lanjut' };
+        return { success: false, error: 'Akun kamu telah dinonaktifkan. Hubungi admin untuk informasi lebih lanjut' };
       }
 
       return { success: true };

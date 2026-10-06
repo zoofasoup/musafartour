@@ -57,6 +57,7 @@ const STATUS_BADGE = {
 type SortMode = "pending_first" | "newest";
 
 const AgentManagement = () => {
+  const [deleteTarget, setDeleteTarget] = useState<Agent | null>(null);
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") === "penarikan" ? "penarikan" : "agen";
@@ -292,11 +293,10 @@ const AgentManagement = () => {
     updateStatusMutation.mutate({ id: agent.id, status: 'active' });
   };
 
-  const handleDelete = (agent: Agent) => {
-    if (window.confirm(`Apakah Anda yakin ingin menghapus agen ${agent.name} secara permanen? Semua data terkait (komisi, riwayat) mungkin ikut terhapus.`)) {
-      deleteAgentMutation.mutate(agent.id);
-    }
-  };
+  const handleDelete = (agent: Agent) => setDeleteTarget(agent);
+
+  // An agent who already earned something is typed-name protected: the commission history goes with the agent.
+  const deleteHasMoney = !!deleteTarget && (Number(deleteTarget.total_commission) > 0 || Number(deleteTarget.available_balance) > 0 || Number(deleteTarget.total_sales) > 0);
 
   const openDetail = (agent: Agent) => {
     setSelectedId(agent.id);
@@ -567,6 +567,26 @@ const AgentManagement = () => {
         confirmLabel="Setujui tetap"
         onConfirm={() => approveTarget && approve(approveTarget)}
         busy={updateStatusMutation.isPending}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title={`Hapus agen ${deleteTarget?.name ?? ""}?`}
+        description={
+          <>
+            Agen ini dihapus permanen dan tidak bisa dikembalikan. Data terkait (komisi, riwayat penjualan) ikut hilang.
+            {deleteHasMoney && <> Agen ini sudah punya penjualan atau komisi, jadi ketik namanya untuk melanjutkan. Kalau hanya ingin menghentikan akses, pakai Tangguhkan.</>}
+          </>
+        }
+        confirmLabel="Hapus agen"
+        destructive
+        confirmText={deleteHasMoney ? deleteTarget?.name : undefined}
+        busy={deleteAgentMutation.isPending}
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          deleteAgentMutation.mutate(deleteTarget.id, { onSettled: () => setDeleteTarget(null) });
+        }}
       />
 
       {/* Log a Sale Dialog - the only write path into agent_sales */}

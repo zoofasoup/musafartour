@@ -35,6 +35,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 
 interface PackageItem {
   id: string;
@@ -119,6 +120,7 @@ const SortableRow = ({
 };
 
 const PackageItems = () => {
+  const { ask, dialog } = useConfirmDialog();
   const [items, setItems] = useState<PackageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -201,7 +203,7 @@ const PackageItems = () => {
     if (editItem) {
       const { error } = await supabase.from("package_items").update(payload as any).eq("id", editItem.id);
       if (error) { toast.error("Gagal menyimpan"); setSaving(false); return; }
-      toast.success("Item berhasil diupdate");
+      toast.success("Item berhasil diperbarui");
     } else {
       const { error } = await supabase.from("package_items").insert(payload as any);
       if (error) { toast.error("Gagal menambah"); setSaving(false); return; }
@@ -212,8 +214,10 @@ const PackageItems = () => {
     fetchItems();
   };
 
-  const handleDelete = async (item: PackageItem) => {
-    if (!confirm(`Hapus "${item.name}"?`)) return;
+  const handleDelete = (item: PackageItem) =>
+    ask({ title: `Hapus "${item.name}"?`, description: "Item ini hilang dari daftar fasilitas dan tidak bisa dikembalikan." }, () => performDelete(item));
+
+  const performDelete = async (item: PackageItem) => {
     const { error } = await supabase.from("package_items").delete().eq("id", item.id);
     if (error) { toast.error("Gagal menghapus"); return; }
     toast.success("Item dihapus");
@@ -225,7 +229,7 @@ const PackageItems = () => {
       .from("package_items")
       .update({ is_active: !item.is_active } as any)
       .eq("id", item.id);
-    if (error) { toast.error("Gagal update"); return; }
+    if (error) { toast.error("Gagal memperbarui"); return; }
     fetchItems();
   };
 
@@ -361,7 +365,7 @@ const PackageItems = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Fasilitas Paket</h1>
-        <p className="text-muted-foreground">Kelola item yang termasuk dan tidak termasuk dalam paket umroh. Drag untuk mengurutkan.</p>
+        <p className="text-muted-foreground">Kelola item yang termasuk dan tidak termasuk dalam paket umroh. Seret untuk mengurutkan.</p>
       </div>
 
       <Tabs defaultValue="include">
@@ -393,7 +397,7 @@ const PackageItems = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editItem ? "Edit Item" : "Tambah Item"}</DialogTitle>
+            <DialogTitle>{editItem ? "Ubah item" : "Tambah item"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
@@ -432,6 +436,7 @@ const PackageItems = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {dialog}
     </div>
   );
 };

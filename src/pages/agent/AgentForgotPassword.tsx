@@ -45,7 +45,7 @@ const AgentForgotPassword = () => {
   if (sent) {
     return (
       <AuthLayout
-        title="Cek Email Anda"
+        title="Cek Email Kamu"
         subtitle="Jika email tersebut terdaftar, kami sudah mengirim tautan untuk membuat password baru."
       >
         <div className="flex gap-3 rounded-lg border bg-muted/50 p-4">
@@ -67,7 +67,7 @@ const AgentForgotPassword = () => {
   return (
     <AuthLayout
       title="Lupa Password"
-      subtitle="Masukkan email akun agen Anda. Kami kirim tautan untuk membuat password baru."
+      subtitle="Masukkan email akun agen kamu. Kami kirim tautan untuk membuat password baru."
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">

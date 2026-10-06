@@ -36,10 +36,10 @@ export const SEOPreview = ({ title, description, url, ogImage }: SEOPreviewProps
                     <span className="text-sm text-gray-600">musafartour.com</span>
                   </div>
                   <h3 className="text-xl text-blue-600 hover:underline cursor-pointer mb-1">
-                    {title || "Page Title"}
+                    {title || "Judul halaman"}
                   </h3>
                   <p className="text-sm text-gray-600 line-clamp-2">
-                    {description || "Page description will appear here"}
+                    {description || "Deskripsi halaman akan tampil di sini"}
                   </p>
                 </div>
               </div>
@@ -57,7 +57,7 @@ export const SEOPreview = ({ title, description, url, ogImage }: SEOPreviewProps
                 <div className="aspect-video bg-gray-200 relative">
                   <img 
                     src={ogImage} 
-                    alt="Preview" 
+                    alt="Pratinjau" 
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -65,10 +65,10 @@ export const SEOPreview = ({ title, description, url, ogImage }: SEOPreviewProps
               <div className="p-3 border-t">
                 <p className="text-xs text-gray-500 uppercase mb-1">MUSAFARTOUR.COM</p>
                 <h3 className="font-semibold text-lg mb-1 line-clamp-2">
-                  {title || "Page Title"}
+                  {title || "Judul halaman"}
                 </h3>
                 <p className="text-sm text-gray-600 line-clamp-2">
-                  {description || "Page description"}
+                  {description || "Deskripsi halaman"}
                 </p>
               </div>
             </div>
@@ -81,17 +81,17 @@ export const SEOPreview = ({ title, description, url, ogImage }: SEOPreviewProps
                 <div className="aspect-video bg-gray-200 relative">
                   <img 
                     src={ogImage} 
-                    alt="Preview" 
+                    alt="Pratinjau" 
                     className="w-full h-full object-cover"
                   />
                 </div>
               )}
               <div className="p-3 border-t">
                 <h3 className="font-semibold text-base mb-1 line-clamp-1">
-                  {title || "Page Title"}
+                  {title || "Judul halaman"}
                 </h3>
                 <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                  {description || "Page description"}
+                  {description || "Deskripsi halaman"}
                 </p>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
                   <Share2 className="w-3 h-3" />

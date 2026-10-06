@@ -1,4 +1,4 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -29,6 +29,7 @@ import { PackageHeader } from "@/components/package-detail/PackageHeader";
 import { PackageHotels } from "@/components/package-detail/PackageHotels";
 import { PackageFeatures } from "@/components/package-detail/PackageFeatures";
 import { PackagePricing } from "@/components/package-detail/PackagePricing";
+import { PackagePaymentTerms } from "@/components/package-detail/PackagePaymentTerms";
 import { PackageCtaButtons } from "@/components/package-detail/PackageCtaButtons";
 import { PackageTestimonials } from "@/components/package-detail/PackageTestimonials";
 import { PackageStickyMobileBar } from "@/components/package-detail/PackageStickyMobileBar";
@@ -56,7 +57,6 @@ const SITE_URL = "https://musafartour.com";
 
 const PackageDetailPage = () => {
   const { id: slug } = useParams();
-  const navigate = useNavigate();
 
   const { data: packageData, isLoading: loading } = usePackageBySlug(slug);
 
@@ -214,13 +214,16 @@ const PackageDetailPage = () => {
   if (!packageData) {
     return (
       <div className="min-h-screen bg-background">
+        <SEO title="Paket Tidak Ditemukan - Musafar Tour" noindex useDefaults={false} />
         <Navbar />
         <div className="container mx-auto px-6 md:px-8 py-16 text-center">
-          <Package className="h-24 w-24 mx-auto mb-6 text-muted-foreground" />
+          <Package className="h-24 w-24 mx-auto mb-6 text-muted-foreground" aria-hidden />
           <h1 className="text-3xl font-bold mb-4 text-foreground">Paket tidak ditemukan</h1>
-          <p className="text-muted-foreground mb-8">Paket yang Anda cari tidak tersedia atau sudah tidak aktif.</p>
-          <Button variant="brand" onClick={() => navigate("/paket-umroh")}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Kembali ke Paket Umroh
+          <p className="text-muted-foreground mb-8">Paket yang kamu cari tidak tersedia atau sudah tidak aktif.</p>
+          <Button variant="brand" asChild>
+            <Link to="/paket-umroh">
+              <ArrowLeft className="mr-2 h-4 w-4" aria-hidden /> Lihat semua paket umroh
+            </Link>
           </Button>
         </div>
         <Footer />
@@ -323,12 +326,15 @@ const PackageDetailPage = () => {
 
           <PackageHeader packageData={packageData} price={price} transport={transport} />
 
+
           <PackageHotels packageData={packageData} hotels={hotels} />
 
           <PackageFeatures
             includedItems={includedItems}
             excludedItems={excludedItems}
           />
+
+          <PackagePaymentTerms />
 
           <PackageTestimonials />
 

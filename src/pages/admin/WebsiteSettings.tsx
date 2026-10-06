@@ -62,8 +62,8 @@ const WebsiteSettings = () => {
     } catch (error: any) {
       console.error("Error fetching settings:", error);
       toast({
-        title: "Error",
-        description: "Failed to load settings",
+        title: "Gagal",
+        description: "Pengaturan belum bisa dimuat.",
         variant: "destructive",
       });
     } finally {
@@ -104,16 +104,16 @@ const WebsiteSettings = () => {
       }
 
       toast({
-        title: "Success",
-        description: "Settings updated successfully",
+        title: "Berhasil",
+        description: "Pengaturan diperbarui.",
       });
       
       fetchSettings();
     } catch (error: any) {
       console.error("Error saving settings:", error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to save settings",
+        title: "Gagal",
+        description: error.message || "Pengaturan gagal disimpan.",
         variant: "destructive",
       });
     } finally {
@@ -136,19 +136,19 @@ const WebsiteSettings = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Website Settings</h1>
-        <p className="text-muted-foreground">Configure website settings and preferences</p>
+        <h1 className="text-3xl font-bold">Pengaturan Website</h1>
+        <p className="text-muted-foreground">Atur identitas, kontak, dan link website</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>General Information</CardTitle>
-          <CardDescription>Basic website information and branding</CardDescription>
+          <CardTitle>Informasi umum</CardTitle>
+          <CardDescription>Nama dan identitas dasar website</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="site_name">Site Name</Label>
+              <Label htmlFor="site_name">Nama website</Label>
               <Input
                 id="site_name"
                 value={settings.site_name}
@@ -156,12 +156,12 @@ const WebsiteSettings = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="site_tagline">Site Tagline</Label>
+              <Label htmlFor="site_tagline">Slogan website</Label>
               <Input
                 id="site_tagline"
                 value={settings.site_tagline || ""}
                 onChange={(e) => setSettings({ ...settings, site_tagline: e.target.value })}
-                placeholder="e.g., Travel Umroh & Haji Terpercaya"
+                placeholder="Contoh: Travel Umroh & Haji Terpercaya"
               />
             </div>
           </div>
@@ -170,13 +170,13 @@ const WebsiteSettings = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Contact Information</CardTitle>
-          <CardDescription>Contact details for customers</CardDescription>
+          <CardTitle>Kontak</CardTitle>
+          <CardDescription>Kontak yang ditampilkan untuk calon jamaah</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="phone_number">Phone Number</Label>
+              <Label htmlFor="phone_number">Nomor telepon</Label>
               <Input
                 id="phone_number"
                 value={settings.phone_number}
@@ -185,7 +185,7 @@ const WebsiteSettings = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="whatsapp_number">WhatsApp Number (with country code)</Label>
+              <Label htmlFor="whatsapp_number">Nomor WhatsApp (dengan kode negara)</Label>
               <Input
                 id="whatsapp_number"
                 value={settings.whatsapp_number}
@@ -204,7 +204,7 @@ const WebsiteSettings = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">Alamat</Label>
             <Textarea
               id="address"
               value={settings.address || ""}
@@ -213,12 +213,12 @@ const WebsiteSettings = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="office_hours">Office Hours</Label>
+            <Label htmlFor="office_hours">Jam kantor</Label>
             <Input
               id="office_hours"
               value={settings.office_hours || ""}
               onChange={(e) => setSettings({ ...settings, office_hours: e.target.value })}
-              placeholder="e.g., Mon-Fri: 9AM-5PM"
+              placeholder="Contoh: Senin sampai Jumat, 09.00 sampai 17.00"
             />
           </div>
         </CardContent>
@@ -226,12 +226,12 @@ const WebsiteSettings = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Social Media & Links</CardTitle>
-          <CardDescription>Social media profiles and external links</CardDescription>
+          <CardTitle>Media sosial dan link</CardTitle>
+          <CardDescription>Akun media sosial dan link luar</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="google_maps_url">Google Maps URL</Label>
+            <Label htmlFor="google_maps_url">Link Google Maps</Label>
             <Input
               id="google_maps_url"
               value={settings.google_maps_url || ""}
@@ -240,7 +240,7 @@ const WebsiteSettings = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="google_review_url">Google Review URL</Label>
+            <Label htmlFor="google_review_url">Link ulasan Google</Label>
             <Input
               id="google_review_url"
               value={settings.google_review_url || ""}
@@ -250,7 +250,7 @@ const WebsiteSettings = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="instagram_url">Instagram URL</Label>
+              <Label htmlFor="instagram_url">Link Instagram</Label>
               <Input
                 id="instagram_url"
                 value={settings.instagram_url || ""}
@@ -259,7 +259,7 @@ const WebsiteSettings = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="facebook_url">Facebook URL</Label>
+              <Label htmlFor="facebook_url">Link Facebook</Label>
               <Input
                 id="facebook_url"
                 value={settings.facebook_url || ""}
@@ -269,7 +269,7 @@ const WebsiteSettings = () => {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="youtube_url">YouTube URL</Label>
+            <Label htmlFor="youtube_url">Link YouTube</Label>
             <Input
               id="youtube_url"
               value={settings.youtube_url || ""}
@@ -284,12 +284,12 @@ const WebsiteSettings = () => {
         {saving ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Saving...
+            Menyimpan...
           </>
         ) : (
           <>
             <Save className="mr-2 h-4 w-4" />
-            Save All Settings
+            Simpan semua pengaturan
           </>
         )}
       </Button>

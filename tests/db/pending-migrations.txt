@@ -1,0 +1,4 @@
+# Migrations that exist in supabase/migrations but have not been pushed to the linked project yet.
+# scripts/run-db-tests.sh applies each one inside every test's own (always aborted) transaction, so the tests
+# can cover them before `supabase db push`. One path per line, relative to the repo root.
+# After the push, delete the lines (they are harmless but redundant once the migration is live).

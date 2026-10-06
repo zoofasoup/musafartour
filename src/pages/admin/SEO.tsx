@@ -18,7 +18,9 @@ import { Switch } from "@/components/ui/switch";
 import { checkSEO } from "@/lib/seoScoreChecker";
 
 const SEO = () => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin: isOwner, userRole } = useAuth();
+  // The menu also shows this page to content_admin, so the page has to let that role in (it used to render blank).
+  const isAdmin = isOwner || userRole === "content_admin";
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -75,8 +77,8 @@ const SEO = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["seo-settings"] });
       toast({
-        title: "Saved",
-        description: "Global SEO settings updated successfully.",
+        title: "Tersimpan",
+        description: "Pengaturan SEO global diperbarui.",
       });
     },
   });
@@ -93,8 +95,8 @@ const SEO = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["page-seo"] });
       toast({
-        title: "Saved",
-        description: "Page SEO updated successfully.",
+        title: "Tersimpan",
+        description: "SEO halaman diperbarui.",
       });
     },
   });
@@ -116,8 +118,8 @@ const SEO = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["redirects"] });
       toast({
-        title: "Saved",
-        description: "Redirect rule saved successfully.",
+        title: "Tersimpan",
+        description: "Aturan pengalihan disimpan.",
       });
     },
   });
@@ -138,9 +140,9 @@ const SEO = () => {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">SEO Management</h1>
+        <h1 className="text-3xl font-bold">Kelola SEO</h1>
         <p className="text-muted-foreground">
-          Manage your website's search engine optimization settings
+          Atur pengaturan optimasi mesin pencari website
         </p>
       </div>
 
@@ -148,15 +150,15 @@ const SEO = () => {
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="global">
             <Globe className="w-4 h-4 mr-2" />
-            Global Settings
+            Pengaturan global
           </TabsTrigger>
           <TabsTrigger value="pages">
             <FileText className="w-4 h-4 mr-2" />
-            Pages
+            Halaman
           </TabsTrigger>
           <TabsTrigger value="redirects">
             <LinkIcon className="w-4 h-4 mr-2" />
-            Redirects
+            Pengalihan
           </TabsTrigger>
           <TabsTrigger value="robots">
             <Settings className="w-4 h-4 mr-2" />
@@ -172,14 +174,14 @@ const SEO = () => {
         <TabsContent value="global">
           <Card>
             <CardHeader>
-              <CardTitle>Default SEO Settings</CardTitle>
+              <CardTitle>Pengaturan SEO bawaan</CardTitle>
               <CardDescription>
-                These settings will be used as defaults across your website
+                Dipakai sebagai nilai bawaan di seluruh website
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="site_title">Site Title</Label>
+                <Label htmlFor="site_title">Judul website</Label>
                 <Input
                   id="site_title"
                   defaultValue={globalSettings?.site_title}
@@ -190,7 +192,7 @@ const SEO = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="site_description">Default Meta Description</Label>
+                <Label htmlFor="site_description">Deskripsi meta bawaan</Label>
                 <Textarea
                   id="site_description"
                   rows={3}
@@ -200,15 +202,15 @@ const SEO = () => {
                   }
                 />
                 <p className="text-sm text-muted-foreground">
-                  {globalSettings?.site_description?.length || 0} characters
+                  {globalSettings?.site_description?.length || 0} karakter
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="default_keywords">Default Keywords</Label>
+                <Label htmlFor="default_keywords">Kata kunci bawaan</Label>
                 <Input
                   id="default_keywords"
-                  placeholder="Comma-separated keywords"
+                  placeholder="Pisahkan dengan koma"
                   defaultValue={globalSettings?.default_keywords}
                   onChange={(e) =>
                     saveGlobalMutation.mutate({ default_keywords: e.target.value })
@@ -217,7 +219,7 @@ const SEO = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="default_og_image">Default Social Sharing Image (URL)</Label>
+                <Label htmlFor="default_og_image">Gambar bawaan saat dibagikan (URL)</Label>
                 <Input
                   id="default_og_image"
                   placeholder="https://..."
@@ -229,7 +231,7 @@ const SEO = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="twitter_site">Twitter Handle</Label>
+                <Label htmlFor="twitter_site">Akun Twitter</Label>
                 <Input
                   id="twitter_site"
                   placeholder="@musafartour"
@@ -247,20 +249,20 @@ const SEO = () => {
         <TabsContent value="pages">
           <Card>
             <CardHeader>
-              <CardTitle>Page-Level SEO</CardTitle>
+              <CardTitle>SEO per halaman</CardTitle>
               <CardDescription>
-                Configure SEO settings for individual pages
+                Atur SEO untuk tiap halaman
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Page</TableHead>
-                    <TableHead>Meta Title</TableHead>
-                    <TableHead>Meta Description</TableHead>
+                    <TableHead>Halaman</TableHead>
+                    <TableHead>Judul meta</TableHead>
+                    <TableHead>Deskripsi meta</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -285,7 +287,7 @@ const SEO = () => {
                       </TableCell>
                       <TableCell>
                         <Button size="sm" variant="outline">
-                          Edit
+                          Ubah
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -300,26 +302,26 @@ const SEO = () => {
         <TabsContent value="redirects">
           <Card>
             <CardHeader>
-              <CardTitle>301 Redirects</CardTitle>
+              <CardTitle>Pengalihan 301</CardTitle>
               <CardDescription>
-                Manage URL redirects to prevent broken links
+                Atur pengalihan URL supaya tidak ada link yang mati
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="mb-4">
                 <Button>
                   <LinkIcon className="w-4 h-4 mr-2" />
-                  Add New Redirect
+                  Tambah pengalihan
                 </Button>
               </div>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>From</TableHead>
-                    <TableHead>To</TableHead>
-                    <TableHead>Type</TableHead>
+                    <TableHead>Dari</TableHead>
+                    <TableHead>Ke</TableHead>
+                    <TableHead>Jenis</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -336,12 +338,12 @@ const SEO = () => {
                       </TableCell>
                       <TableCell>
                         <Badge variant={redirect.is_active ? "default" : "secondary"}>
-                          {redirect.is_active ? "Active" : "Inactive"}
+                          {redirect.is_active ? "Aktif" : "Nonaktif"}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <Button size="sm" variant="ghost">
-                          Edit
+                          Ubah
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -349,7 +351,7 @@ const SEO = () => {
                   {redirects?.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        No redirects configured
+                        Belum ada pengalihan
                       </TableCell>
                     </TableRow>
                   )}
@@ -363,9 +365,9 @@ const SEO = () => {
         <TabsContent value="robots">
           <Card>
             <CardHeader>
-              <CardTitle>Robots.txt Editor</CardTitle>
+              <CardTitle>Robots.txt</CardTitle>
               <CardDescription>
-                Control which pages search engines can crawl
+                Atur halaman mana yang boleh dirayapi mesin pencari
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -377,9 +379,9 @@ const SEO = () => {
                   saveGlobalMutation.mutate({ robots_txt: e.target.value })
                 }
               />
-              <Button onClick={() => toast({ title: "Saved", description: "Robots.txt updated" })}>
+              <Button onClick={() => toast({ title: "Tersimpan", description: "Robots.txt diperbarui." })}>
                 <Save className="w-4 h-4 mr-2" />
-                Save Robots.txt
+                Simpan Robots.txt
               </Button>
             </CardContent>
           </Card>
@@ -389,9 +391,9 @@ const SEO = () => {
         <TabsContent value="sitemap">
           <Card>
             <CardHeader>
-              <CardTitle>XML Sitemap</CardTitle>
+              <CardTitle>Peta situs XML</CardTitle>
               <CardDescription>
-                Your sitemap is automatically generated and updated
+                Peta situs dibuat dan diperbarui otomatis
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -402,26 +404,26 @@ const SEO = () => {
                 <Button variant="outline" asChild>
                   <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="w-4 h-4 mr-2" />
-                    View Sitemap
+                    Lihat peta situs
                   </a>
                 </Button>
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-semibold">Included Pages:</h4>
+                <h4 className="font-semibold">Halaman yang disertakan:</h4>
                 <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                  <li>All published static pages</li>
-                  <li>All published articles</li>
-                  <li>All published packages</li>
+                  <li>Semua halaman statis yang terbit</li>
+                  <li>Semua artikel yang terbit</li>
+                  <li>Semua paket yang terbit</li>
                 </ul>
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-semibold">Excluded Pages:</h4>
+                <h4 className="font-semibold">Halaman yang dikecualikan:</h4>
                 <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                  <li>Admin dashboard pages</li>
-                  <li>Authentication pages</li>
-                  <li>Draft content</li>
+                  <li>Halaman panel admin</li>
+                  <li>Halaman login</li>
+                  <li>Konten draf</li>
                 </ul>
               </div>
             </CardContent>

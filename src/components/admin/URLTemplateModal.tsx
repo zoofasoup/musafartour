@@ -147,7 +147,7 @@ const URLTemplateModal = ({ open, onOpenChange, template, onSave }: URLTemplateM
 
   const copyPreview = () => {
     navigator.clipboard.writeText(`https://${previewUrl}`);
-    toast.success('URL preview berhasil disalin!');
+    toast.success('URL pratinjau berhasil disalin');
   };
 
   return (
@@ -165,7 +165,7 @@ const URLTemplateModal = ({ open, onOpenChange, template, onSave }: URLTemplateM
         <div className="space-y-6 py-4">
           {/* Template Name */}
           <div className="space-y-2">
-            <Label htmlFor="name">Template Name</Label>
+            <Label htmlFor="name">Nama template</Label>
             <Input
               id="name"
               placeholder="Instagram Story - Promo Ramadhan"
@@ -178,7 +178,7 @@ const URLTemplateModal = ({ open, onOpenChange, template, onSave }: URLTemplateM
 
           {/* Base URL */}
           <div className="space-y-2">
-            <Label htmlFor="baseUrl">Base URL</Label>
+            <Label htmlFor="baseUrl">URL dasar</Label>
             <Input
               id="baseUrl"
               placeholder="musafartour.com/chat"
@@ -193,7 +193,7 @@ const URLTemplateModal = ({ open, onOpenChange, template, onSave }: URLTemplateM
 
           {/* Custom Message */}
           <div className="space-y-2">
-            <Label htmlFor="message">Custom Message (optional)</Label>
+            <Label htmlFor="message">Pesan kustom (opsional)</Label>
             <Textarea
               id="message"
               placeholder="Saya mau tanya paket Ramadhan"
@@ -284,9 +284,9 @@ const URLTemplateModal = ({ open, onOpenChange, template, onSave }: URLTemplateM
               {errors.utmCampaign && <p className="text-sm text-destructive">{errors.utmCampaign}</p>}
             </div>
 
-            {/* UTM Content (optional) */}
+            {/* UTM Content (opsional) */}
             <div className="space-y-2">
-              <Label htmlFor="utmContent">UTM Content (optional)</Label>
+              <Label htmlFor="utmContent">UTM Content (opsional)</Label>
               <Input
                 id="utmContent"
                 placeholder="video_1"
@@ -298,9 +298,9 @@ const URLTemplateModal = ({ open, onOpenChange, template, onSave }: URLTemplateM
               </p>
             </div>
 
-            {/* UTM Term (optional) */}
+            {/* UTM Term (opsional) */}
             <div className="space-y-2">
-              <Label htmlFor="utmTerm">UTM Term (optional)</Label>
+              <Label htmlFor="utmTerm">UTM Term (opsional)</Label>
               <Input
                 id="utmTerm"
                 placeholder="paket_umroh"
@@ -317,7 +317,7 @@ const URLTemplateModal = ({ open, onOpenChange, template, onSave }: URLTemplateM
 
           {/* Preview */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Preview URL</Label>
+            <Label className="text-base font-semibold">Pratinjau URL</Label>
             <div className="p-4 bg-muted rounded-lg">
               <code className="text-sm text-primary break-all">
                 {previewUrl}
@@ -331,7 +331,7 @@ const URLTemplateModal = ({ open, onOpenChange, template, onSave }: URLTemplateM
               className="w-full"
             >
               <Copy className="w-4 h-4 mr-2" />
-              Copy Preview URL
+              Salin URL pratinjau
             </Button>
           </div>
         </div>

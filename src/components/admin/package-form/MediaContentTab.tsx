@@ -23,7 +23,7 @@ export const MediaContentTab = ({
       <Card className="shadow-md border-slate-200 overflow-hidden mb-6">
         <CardHeader className="bg-slate-50/80 border-b border-slate-100 pb-4">
           <CardTitle>Flyer, Katalog & Itinerary</CardTitle>
-          <CardDescription>Upload file dan/atau masukkan link drive</CardDescription>
+          <CardDescription>Unggah file dan/atau masukkan link drive</CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -66,13 +66,13 @@ export const MediaContentTab = ({
       {/* Gallery Images */}
       <Card className="shadow-md border-slate-200 overflow-hidden mb-6">
         <CardHeader className="bg-slate-50/80 border-b border-slate-100 pb-4">
-          <CardTitle>Gallery Images</CardTitle>
-          <CardDescription>Upload gambar galeri (maksimal 10 gambar)</CardDescription>
+          <CardTitle>Gambar galeri</CardTitle>
+          <CardDescription>Unggah gambar galeri (maksimal 10 gambar)</CardDescription>
         </CardHeader>
         <CardContent>
           <ImageDropZone
-            label="Upload Gallery Images"
-            description="Maks 10 gambar, 5MB each. Drag & drop atau Ctrl+V."
+            label="Unggah gambar galeri"
+            description="Maksimal 10 gambar, 5MB per file. Seret dan lepas, atau Ctrl+V."
             multiple
             maxFiles={10}
             previews={galleryPreviews}

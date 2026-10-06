@@ -52,7 +52,7 @@ const SortableCSItem = ({
           {...attributes}
           {...listeners}
           className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded touch-none"
-          aria-label="Drag to reorder"
+          aria-label="Seret untuk mengubah urutan"
         >
           <GripVertical className="w-5 h-5 text-muted-foreground" />
         </button>
@@ -70,7 +70,7 @@ const SortableCSItem = ({
               <Badge variant="secondary" className="text-xs">Nonaktif</Badge>
             )}
             {cs.is_active && isNext && (
-              <Badge variant="default" className="text-xs">Next</Badge>
+              <Badge variant="default" className="text-xs">Berikutnya</Badge>
             )}
           </div>
           <span className="text-sm text-muted-foreground">+{cs.phone_number}</span>
@@ -81,10 +81,10 @@ const SortableCSItem = ({
           checked={cs.is_active}
           onCheckedChange={() => onToggleActive(cs)}
         />
-        <Button variant="ghost" size="icon" onClick={() => onEdit(cs)}>
+        <Button variant="ghost" size="icon" aria-label="Ubah" onClick={() => onEdit(cs)}>
           <Pencil className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="icon" onClick={() => onDelete(cs)}>
+        <Button variant="ghost" size="icon" aria-label="Hapus" onClick={() => onDelete(cs)}>
           <Trash2 className="w-4 h-4 text-destructive" />
         </Button>
       </div>

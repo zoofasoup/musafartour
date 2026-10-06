@@ -70,7 +70,7 @@ const URLTemplatePreview = ({ open, onOpenChange, template }: URLTemplatePreview
         <div className="space-y-6 py-4">
           {/* Full URL Display */}
           <div className="space-y-2">
-            <p className="text-sm font-medium">Full URL</p>
+            <p className="text-sm font-medium">URL lengkap</p>
             <div className="p-4 bg-muted rounded-lg space-y-1">
               <p className="text-sm text-primary font-medium">{baseUrl}</p>
               {params.length > 0 && (
@@ -103,7 +103,7 @@ const URLTemplatePreview = ({ open, onOpenChange, template }: URLTemplatePreview
               <div className="grid grid-cols-2 gap-2 text-sm">
                 {template.utm_params.utm_source && (
                   <div className="p-2 bg-muted rounded">
-                    <span className="text-muted-foreground">Source:</span>{' '}
+                    <span className="text-muted-foreground">Sumber:</span>{' '}
                     <span className="font-medium">{template.utm_params.utm_source}</span>
                   </div>
                 )}
@@ -115,7 +115,7 @@ const URLTemplatePreview = ({ open, onOpenChange, template }: URLTemplatePreview
                 )}
                 {template.utm_params.utm_campaign && (
                   <div className="p-2 bg-muted rounded col-span-2">
-                    <span className="text-muted-foreground">Campaign:</span>{' '}
+                    <span className="text-muted-foreground">Kampanye:</span>{' '}
                     <span className="font-medium">{template.utm_params.utm_campaign}</span>
                   </div>
                 )}
@@ -137,7 +137,7 @@ const URLTemplatePreview = ({ open, onOpenChange, template }: URLTemplatePreview
                 />
               ) : (
                 <div className="w-48 h-48 bg-muted rounded-lg flex items-center justify-center">
-                  <p className="text-muted-foreground">Loading...</p>
+                  <p className="text-muted-foreground">Memuat...</p>
                 </div>
               )}
             </div>
@@ -147,15 +147,15 @@ const URLTemplatePreview = ({ open, onOpenChange, template }: URLTemplatePreview
           <div className="grid grid-cols-3 gap-2">
             <Button onClick={copyUrl} variant="outline" className="w-full">
               <Copy className="w-4 h-4 mr-2" />
-              Copy URL
+              Salin URL
             </Button>
             <Button onClick={downloadQR} variant="outline" className="w-full">
               <Download className="w-4 h-4 mr-2" />
-              Download QR
+              Unduh QR
             </Button>
             <Button onClick={openUrl} variant="outline" className="w-full">
               <ExternalLink className="w-4 h-4 mr-2" />
-              Open
+              Buka
             </Button>
           </div>
         </div>

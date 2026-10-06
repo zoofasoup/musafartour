@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { FileUpload } from "@/components/admin/FileUpload";
 import { compressAndConvertToWebP } from "@/lib/imageUtils";
 import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
+import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 
 interface GalleryImage {
   id: string;
@@ -28,9 +29,12 @@ interface GalleryImage {
 }
 
 const GalleryManagement = () => {
+  const { ask, dialog } = useConfirmDialog();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, loading: authLoading, isAdmin } = useAuth();
+  const { user, loading: authLoading, isAdmin: isOwner, userRole } = useAuth();
+  // The menu also shows this page to content_admin, so the page has to let that role in (it used to render blank).
+  const isAdmin = isOwner || userRole === "content_admin";
   
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -82,7 +86,7 @@ const GalleryManagement = () => {
             ];
             await (supabase as any).from("gallery_images").insert(defaultImages);
             fetchImages();
-            toast({ title: "Success", description: "Default jamaah photos added to gallery!" });
+            toast({ title: "Berhasil", description: "Foto jamaah bawaan ditambahkan ke galeri." });
           }
         }
       } catch (error) {
@@ -107,8 +111,8 @@ const GalleryManagement = () => {
       setImages(data || []);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to load gallery images",
+        title: "Gagal",
+        description: "Foto galeri belum bisa dimuat.",
         variant: "destructive",
       });
     } finally {
@@ -141,13 +145,13 @@ const GalleryManagement = () => {
       setFormData({ ...formData, image_url: publicUrl });
       
       toast({
-        title: "Success",
-        description: "Image uploaded successfully",
+        title: "Berhasil",
+        description: "Foto berhasil diunggah.",
       });
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to upload image",
+        title: "Gagal",
+        description: error.message || "Foto gagal diunggah.",
         variant: "destructive",
       });
     } finally {
@@ -167,32 +171,34 @@ const GalleryManagement = () => {
           .update(formData)
           .eq("id", editingItem.id);
         if (error) throw error;
-        toast({ title: "Success", description: "Image updated" });
+        toast({ title: "Berhasil", description: "Foto diperbarui." });
       } else {
         const { error } = await (supabase as any)
           .from("gallery_images")
           .insert({ ...formData, is_active: true });
         if (error) throw error;
-        toast({ title: "Success", description: "Image added" });
+        toast({ title: "Berhasil", description: "Foto ditambahkan." });
       }
 
       setIsDialogOpen(false);
       resetForm();
       fetchImages();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Gagal", description: error.message, variant: "destructive" });
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this image?")) return;
+  const handleDelete = (id: string) =>
+    ask({ title: "Hapus foto ini?", description: "Foto ini hilang dari galeri dan tidak bisa dikembalikan." }, () => performDelete(id));
+
+  const performDelete = async (id: string) => {
     try {
       const { error } = await (supabase as any).from("gallery_images").delete().eq("id", id);
       if (error) throw error;
-      toast({ title: "Success", description: "Image deleted" });
+      toast({ title: "Berhasil", description: "Foto dihapus." });
       fetchImages();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Gagal", description: error.message, variant: "destructive" });
     }
   };
 
@@ -236,13 +242,13 @@ const GalleryManagement = () => {
 
   const exportToCSV = (ids: string[]) => {
     const selectedImages = images.filter((img) => ids.includes(img.id));
-    const headers = ["Title", "Description", "Category", "Image URL", "Status", "Display Order"];
+    const headers = ["Judul", "Deskripsi", "Kategori", "URL gambar", "Status", "Urutan tampil"];
     const rows = selectedImages.map((img) => [
       `"${img.title}"`,
       `"${img.description || ""}"`,
       img.category,
       img.image_url,
-      img.is_active ? "Active" : "Inactive",
+      img.is_active ? "Aktif" : "Nonaktif",
       img.display_order,
     ]);
 
@@ -252,7 +258,7 @@ const GalleryManagement = () => {
     link.href = URL.createObjectURL(blob);
     link.download = `gallery-${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
-    sonnerToast.success(`${ids.length} gambar berhasil di-export`);
+    sonnerToast.success(`${ids.length} gambar berhasil diekspor`);
   };
 
   const openEditDialog = (item: GalleryImage) => {
@@ -299,8 +305,8 @@ const GalleryManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Gallery Management</h1>
-          <p className="text-muted-foreground">Manage photo galleries</p>
+          <h1 className="text-3xl font-bold">Kelola Galeri</h1>
+          <p className="text-muted-foreground">Atur foto galeri di website</p>
         </div>
         <div className="flex gap-2">
           <div className="flex border rounded-md">
@@ -332,19 +338,19 @@ const GalleryManagement = () => {
             <DialogTrigger asChild>
               <Button onClick={resetForm}>
                 <Plus className="mr-2 h-4 w-4" />
-                Add Image
+                Tambah foto
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editingItem ? "Edit" : "Add"} Gallery Image</DialogTitle>
+                <DialogTitle>{editingItem ? "Ubah" : "Tambah"} foto galeri</DialogTitle>
                 <DialogDescription>
-                  {editingItem ? "Update" : "Add"} an image to the gallery
+                  {editingItem ? "Perbarui" : "Tambahkan"} foto di galeri
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Title</Label>
+                  <Label htmlFor="title">Judul</Label>
                   <Input
                     id="title"
                     value={formData.title}
@@ -352,7 +358,7 @@ const GalleryManagement = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Deskripsi</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
@@ -361,7 +367,7 @@ const GalleryManagement = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Image</Label>
+                  <Label>Gambar</Label>
                   <FileUpload
                     onFileSelect={handleImageUpload}
                     onRemove={handleRemoveImage}
@@ -371,7 +377,7 @@ const GalleryManagement = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
+                    <Label htmlFor="category">Kategori</Label>
                     <Select
                       value={formData.category}
                       onValueChange={(val) => setFormData({ ...formData, category: val })}
@@ -383,12 +389,12 @@ const GalleryManagement = () => {
                         <SelectItem value="umroh">Umroh</SelectItem>
                         <SelectItem value="haji">Haji</SelectItem>
                         <SelectItem value="wisata">Wisata Halal</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="other">Lainnya</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="display_order">Display Order</Label>
+                    <Label htmlFor="display_order">Urutan tampil</Label>
                     <Input
                       id="display_order"
                       type="number"
@@ -401,7 +407,7 @@ const GalleryManagement = () => {
               <DialogFooter>
                 <Button onClick={handleSave}>
                   <Save className="mr-2 h-4 w-4" />
-                  Save
+                  Simpan
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -476,7 +482,7 @@ const GalleryManagement = () => {
               
               {!item.is_active && (
                 <div className="absolute bottom-3 right-3 bg-black/60 px-2 py-0.5 rounded text-[10px] text-white font-medium backdrop-blur-sm">
-                  Inactive
+                  Nonaktif
                 </div>
               )}
             </div>
@@ -489,12 +495,12 @@ const GalleryManagement = () => {
               <thead className="border-b">
                 <tr>
                   {selectionMode && <th className="p-4 w-12"></th>}
-                  <th className="p-4 text-left">Image</th>
-                  <th className="p-4 text-left">Title</th>
-                  <th className="p-4 text-left">Category</th>
-                  <th className="p-4 text-left">Order</th>
+                  <th className="p-4 text-left">Gambar</th>
+                  <th className="p-4 text-left">Judul</th>
+                  <th className="p-4 text-left">Kategori</th>
+                  <th className="p-4 text-left">Urutan</th>
                   <th className="p-4 text-left">Status</th>
-                  <th className="p-4 text-right">Actions</th>
+                  <th className="p-4 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -505,7 +511,7 @@ const GalleryManagement = () => {
                         <Checkbox
                           checked={isSelected(item.id)}
                           onCheckedChange={() => toggleSelect(item.id)}
-                          aria-label={`Select ${item.title}`}
+                          aria-label={`Pilih ${item.title}`}
                         />
                       </td>
                     )}
@@ -517,7 +523,7 @@ const GalleryManagement = () => {
                     <td className="p-4">{item.display_order}</td>
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded text-xs ${item.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                        {item.is_active ? 'Active' : 'Inactive'}
+                        {item.is_active ? 'Aktif' : 'Nonaktif'}
                       </span>
                     </td>
                     <td className="p-4 text-right">
@@ -535,6 +541,7 @@ const GalleryManagement = () => {
           </CardContent>
         </Card>
       )}
+      {dialog}
     </div>
   );
 };

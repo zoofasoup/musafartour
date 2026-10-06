@@ -40,13 +40,13 @@ export const FileUpload = ({
     setError("");
     
     if (!file.type.startsWith("image/")) {
-      setError("Please upload an image file");
+      setError("Unggah file gambar saja");
       return false;
     }
 
     const sizeMB = file.size / (1024 * 1024);
     if (sizeMB > maxSizeMB) {
-      setError(`File size must be less than ${maxSizeMB}MB`);
+      setError(`Ukuran file harus di bawah ${maxSizeMB}MB`);
       return false;
     }
 
@@ -101,7 +101,7 @@ export const FileUpload = ({
           <div className="relative rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-50">
             <img
               src={currentImage}
-              alt="Preview"
+              alt="Pratinjau"
               className="w-full h-auto max-h-[300px] object-cover"
             />
           </div>
@@ -125,7 +125,7 @@ export const FileUpload = ({
             <div key={idx} className="relative">
               <img
                 src={img}
-                alt={`Preview ${idx + 1}`}
+                alt={`Pratinjau ${idx + 1}`}
                 className="w-full h-32 object-cover rounded-lg border"
               />
             </div>
@@ -172,10 +172,10 @@ export const FileUpload = ({
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium">
-                  {isDragging ? "Drop file here" : "Click to upload or drag and drop"}
+                  {isDragging ? "Lepas file di sini" : "Klik untuk unggah atau seret file ke sini"}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {multiple ? `Up to ${maxFiles} images` : "Single image"}, max {maxSizeMB}MB each
+                  {multiple ? `Maksimal ${maxFiles} gambar` : "Satu gambar"}, maksimal {maxSizeMB}MB per file
                 </p>
               </div>
             </>

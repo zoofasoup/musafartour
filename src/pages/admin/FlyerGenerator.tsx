@@ -103,14 +103,14 @@ export default function FlyerGenerator() {
           <FlyerRowPicker packages={packages} selectedIds={selectedIds} onToggle={toggle} />
           <div className="flex gap-2">
             <Button onClick={() => handleExport("png")} disabled={exporting !== null || selectedPackages.length === 0}>
-              {exporting === "png" ? "Membuat..." : "Download PNG"}
+              {exporting === "png" ? "Membuat..." : "Unduh PNG"}
             </Button>
             <Button
               variant="outline"
               onClick={() => handleExport("jpeg")}
               disabled={exporting !== null || selectedPackages.length === 0}
             >
-              {exporting === "jpeg" ? "Membuat..." : "Download JPEG"}
+              {exporting === "jpeg" ? "Membuat..." : "Unduh JPEG"}
             </Button>
           </div>
         </div>

@@ -11,6 +11,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 import { useMarketingPixels } from "./hooks/useMarketingPixels";
 import { logPageView, isInternalBrowser } from "./lib/tracking";
+import { isPrivateRoute } from "./lib/privateRoutes";
 import { useRedirects } from "./hooks/useRedirects";
 import { ErrorBoundary, CHUNK_RELOAD_FLAG } from "./components/ErrorBoundary";
 import { FavoritesProvider } from "./hooks/useFavorites";
@@ -73,6 +74,7 @@ const PublicMarketingKit = lazy(() => import("./pages/PublicMarketingKit"));
 // Agent Portal
 const AgentLogin = lazy(() => import("./pages/agent/AgentLogin"));
 const AgentRegister = lazy(() => import("./pages/agent/AgentRegister"));
+const JadiAgen = lazy(() => import("./pages/JadiAgen"));
 const AgentForgotPassword = lazy(() => import("./pages/agent/AgentForgotPassword"));
 const AgentOnboarding = lazy(() => import("./pages/agent/AgentOnboarding"));
 const AgentDashboard = lazy(() => import("./pages/agent/AgentDashboard"));
@@ -103,6 +105,8 @@ const JamaahAll = lazy(() => import("./pages/admin/JamaahAll"));
 const JamaahIntake = lazy(() => import("./pages/admin/JamaahIntake"));
 const Daftar = lazy(() => import("./pages/Daftar"));
 const SyaratUmroh = lazy(() => import("./pages/SyaratUmroh"));
+const CekStatus = lazy(() => import("./pages/CekStatus"));
+const CaraBayar = lazy(() => import("./pages/CaraBayar"));
 const Lengkapi = lazy(() => import("./pages/Lengkapi"));
 const Styleguide = lazy(() => import("./pages/Styleguide"));
 const JamaahFinance = lazy(() => import("./pages/admin/JamaahFinance"));
@@ -122,7 +126,7 @@ const TikTokPixelTracker = () => {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname === '/flyer-print') return;
+    if (isPrivateRoute(location.pathname)) return;
     if (window.ttq) {
       window.ttq.page();
     }
@@ -137,7 +141,8 @@ const MarketingPixelsLoader = () => {
   // No ad pixels on internal pages or in staff browsers (flag set on admin login),
   // so the team's own browsing doesn't count as traffic or join retargeting audiences.
   // /flyer-print is screenshotted by a headless browser on every flyer export.
-  const internalPage = location.pathname === '/flyer-print' || /^\/(admin|agent)(\/|$)/.test(location.pathname);
+  // Same list covers private-data routes (/lengkapi/<token>, /daftar, /cek-status, /set-password): no third-party tag there.
+  const internalPage = isPrivateRoute(location.pathname);
   useMarketingPixels(!internalPage && !isInternalBrowser());
 
   // First-party analytics records every page view for the admin Analytics dashboard.
@@ -164,6 +169,11 @@ const ROUTE_META: { match: (p: string) => boolean; title: string; description?: 
   { match: (p) => p === "/set-password", title: "Atur Password - Musafar Tour", noindex: true },
   { match: (p) => p === "/agent/forgot-password", title: "Lupa Password Agen - Musafar Tour", noindex: true },
   {
+    match: (p) => p === "/jadi-agen",
+    title: "Jadi Agen Umroh Musafar Tour: Komisi Rp 1.500.000 per Jamaah",
+    description: "Daftar gratis jadi agen umroh Musafar Tour. Komisi tetap Rp 1.500.000 per jamaah lunas, penarikan mulai Rp 100.000, materi marketing siap pakai.",
+  },
+  {
     match: (p) => p === "/agent/register",
     title: "Daftar Jadi Agen Umroh - Musafar Tour",
     description: "Bergabung menjadi agen umroh Musafar Tour: komisi per jamaah, materi marketing siap pakai, dan dukungan tim.",
@@ -173,6 +183,12 @@ const ROUTE_META: { match: (p: string) => boolean; title: string; description?: 
   { match: (p) => p.startsWith("/daftar/"), title: "Daftar Umroh - Musafar Tour", noindex: true },
   { match: (p) => p.startsWith("/lengkapi/"), title: "Lengkapi Data Jamaah - Musafar Tour", noindex: true },
   { match: (p) => p === "/styleguide", title: "Styleguide - Musafar Tour", noindex: true },
+  { match: (p) => p === "/cek-status", title: "Cek Status Pendaftaran - Musafar Tour", noindex: true },
+  {
+    match: (p) => p === "/cara-bayar",
+    title: "Cara Bayar Umroh - Musafar Tour",
+    description: "DP Rp 5 juta per orang, cicilan bebas kapan saja, lunas paling lambat 30 hari sebelum berangkat. Pembayaran hanya ke rekening PT Musa Amanah Wisata.",
+  },
   { match: (p) => p === "/syarat-umroh", title: "Persyaratan dan Term of Service Umroh - Musafar Tour" },
   { match: (p) => p === "/packages", title: "Marketing Kit - Musafar Tour", noindex: true },
   {
@@ -313,6 +329,8 @@ const App = () => (
                   <Route path="/paket-umroh/:id" element={<PackageDetail />} />
                   <Route path="/daftar/:slug" element={<Daftar />} />
                   <Route path="/syarat-umroh" element={<SyaratUmroh />} />
+                  <Route path="/cek-status" element={<CekStatus />} />
+                  <Route path="/cara-bayar" element={<CaraBayar />} />
                   <Route path="/lengkapi/:token" element={<Lengkapi />} />
                   <Route path="/styleguide" element={<Styleguide />} />
                   <Route path="/tentang-kami" element={<TentangKami />} />
@@ -344,6 +362,7 @@ const App = () => (
                   } />
                   <Route path="/agent/login" element={<AgentLogin />} />
                   <Route path="/agent/forgot-password" element={<AgentForgotPassword />} />
+                  <Route path="/jadi-agen" element={<JadiAgen />} />
                   <Route path="/agent/register" element={<AgentRegister />} />
                   <Route
                     path="/agent/onboarding"

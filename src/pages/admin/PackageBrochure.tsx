@@ -701,7 +701,7 @@ export default function PackageBrochure() {
             {currentPkg.itinerary_link && (
               <a href={currentPkg.itinerary_link} target="_blank" rel="noopener noreferrer">
                 <Button variant="outline" className="gap-2 tracking-tight">
-                  <Download className="h-4 w-4" /> Download Itinerary
+                  <Download className="h-4 w-4" /> Unduh itinerary
                 </Button>
               </a>
             )}

@@ -462,7 +462,7 @@ export default function Analytics() {
             <Card>
               <CardHeader>
                 <CardTitle>Short link</CardTitle>
-                <CardDescription>Klik link pendek dari URL Shortener.</CardDescription>
+                <CardDescription>Klik link pendek dari Pemendek Link.</CardDescription>
               </CardHeader>
               <CardContent>
                 <SimpleTable

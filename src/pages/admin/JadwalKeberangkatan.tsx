@@ -32,7 +32,9 @@ const WEEKDAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 const JadwalKeberangkatan = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, loading: authLoading, isAdmin } = useAuth();
+  const { user, loading: authLoading, isAdmin: isOwner, userRole } = useAuth();
+  // The menu also shows this page to product_admin, so the page has to let that role in (it used to render blank).
+  const isAdmin = isOwner || userRole === "product_admin";
   
   const [loading, setLoading] = useState(false);
   const [packages, setPackages] = useState<Package[]>([]);
@@ -62,8 +64,8 @@ const JadwalKeberangkatan = () => {
       setPackages(data || []);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to load packages",
+        title: "Gagal",
+        description: "Paket belum bisa dimuat.",
         variant: "destructive",
       });
     } finally {

@@ -15,6 +15,7 @@ import { toast as sonnerToast } from "sonner";
 import { Loader2, Plus, Edit, Trash2, Save } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
+import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 
 interface FAQItem {
   id: string;
@@ -26,9 +27,12 @@ interface FAQItem {
 }
 
 const FAQ = () => {
+  const { ask, dialog } = useConfirmDialog();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, loading: authLoading, isAdmin } = useAuth();
+  const { user, loading: authLoading, isAdmin: isOwner, userRole } = useAuth();
+  // The menu also shows this page to content_admin, so the page has to let that role in (it used to render blank).
+  const isAdmin = isOwner || userRole === "content_admin";
   
   const [loading, setLoading] = useState(false);
   const [faqs, setFaqs] = useState<FAQItem[]>([]);
@@ -70,8 +74,8 @@ const FAQ = () => {
       setFaqs(data || []);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to load FAQs",
+        title: "Gagal",
+        description: "FAQ belum bisa dimuat.",
         variant: "destructive",
       });
     } finally {
@@ -87,32 +91,34 @@ const FAQ = () => {
           .update(formData)
           .eq("id", editingItem.id);
         if (error) throw error;
-        toast({ title: "Success", description: "FAQ updated" });
+        toast({ title: "Berhasil", description: "FAQ diperbarui." });
       } else {
         const { error } = await (supabase as any)
           .from("faq_items")
           .insert({ ...formData, is_active: true });
         if (error) throw error;
-        toast({ title: "Success", description: "FAQ created" });
+        toast({ title: "Berhasil", description: "FAQ ditambahkan." });
       }
 
       setIsDialogOpen(false);
       resetForm();
       fetchFAQs();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Gagal", description: error.message, variant: "destructive" });
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this FAQ?")) return;
+  const handleDelete = (id: string) =>
+    ask({ title: "Hapus FAQ ini?", description: "FAQ ini hilang dari website dan tidak bisa dikembalikan." }, () => performDelete(id));
+
+  const performDelete = async (id: string) => {
     try {
       const { error } = await (supabase as any).from("faq_items").delete().eq("id", id);
       if (error) throw error;
-      toast({ title: "Success", description: "FAQ deleted" });
+      toast({ title: "Berhasil", description: "FAQ dihapus." });
       fetchFAQs();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Gagal", description: error.message, variant: "destructive" });
     }
   };
 
@@ -161,7 +167,7 @@ const FAQ = () => {
       `"${f.question}"`,
       `"${f.answer}"`,
       f.category,
-      f.is_active ? "Active" : "Inactive",
+      f.is_active ? "Aktif" : "Nonaktif",
       f.display_order,
     ]);
 
@@ -171,7 +177,7 @@ const FAQ = () => {
     link.href = URL.createObjectURL(blob);
     link.download = `faq-${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
-    sonnerToast.success(`${ids.length} FAQ berhasil di-export`);
+    sonnerToast.success(`${ids.length} FAQ berhasil diekspor`);
   };
 
   const openEditDialog = (item: FAQItem) => {
@@ -216,8 +222,8 @@ const FAQ = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">FAQ Management</h1>
-          <p className="text-muted-foreground">Manage frequently asked questions</p>
+          <h1 className="text-3xl font-bold">Kelola FAQ</h1>
+          <p className="text-muted-foreground">Atur pertanyaan yang sering ditanyakan di website</p>
         </div>
         <div className="flex items-center gap-2">
           {selectionMode ? (
@@ -233,19 +239,19 @@ const FAQ = () => {
             <DialogTrigger asChild>
               <Button onClick={resetForm}>
                 <Plus className="mr-2 h-4 w-4" />
-                Add FAQ
+                Tambah FAQ
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>{editingItem ? "Edit" : "Add"} FAQ</DialogTitle>
+                <DialogTitle>{editingItem ? "Ubah" : "Tambah"} FAQ</DialogTitle>
                 <DialogDescription>
-                  {editingItem ? "Update" : "Create"} a frequently asked question
+                  {editingItem ? "Perbarui" : "Buat"} pertanyaan yang sering ditanyakan
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="question">Question</Label>
+                  <Label htmlFor="question">Pertanyaan</Label>
                   <Input
                     id="question"
                     value={formData.question}
@@ -253,7 +259,7 @@ const FAQ = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="answer">Answer</Label>
+                  <Label htmlFor="answer">Jawaban</Label>
                   <Textarea
                     id="answer"
                     value={formData.answer}
@@ -263,7 +269,7 @@ const FAQ = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
+                    <Label htmlFor="category">Kategori</Label>
                     <Select
                       value={formData.category}
                       onValueChange={(val) => setFormData({ ...formData, category: val })}
@@ -272,16 +278,16 @@ const FAQ = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="general">General</SelectItem>
+                        <SelectItem value="general">Umum</SelectItem>
                         <SelectItem value="umroh">Umroh</SelectItem>
                         <SelectItem value="haji">Haji</SelectItem>
                         <SelectItem value="visa">Visa</SelectItem>
-                        <SelectItem value="payment">Payment</SelectItem>
+                        <SelectItem value="payment">Pembayaran</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="display_order">Display Order</Label>
+                    <Label htmlFor="display_order">Urutan tampil</Label>
                     <Input
                       id="display_order"
                       type="number"
@@ -294,7 +300,7 @@ const FAQ = () => {
               <DialogFooter>
                 <Button onClick={handleSave}>
                   <Save className="mr-2 h-4 w-4" />
-                  Save
+                  Simpan
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -304,8 +310,8 @@ const FAQ = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>FAQ List</CardTitle>
-          <CardDescription>All frequently asked questions</CardDescription>
+          <CardTitle>Daftar FAQ</CardTitle>
+          <CardDescription>Semua pertanyaan yang sering ditanyakan</CardDescription>
         </CardHeader>
         <CardContent>
           {selectionMode && (
@@ -323,12 +329,12 @@ const FAQ = () => {
             <TableHeader>
               <TableRow>
                 {selectionMode && <TableHead className="w-12"></TableHead>}
-                <TableHead>Order</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Question</TableHead>
-                <TableHead>Answer</TableHead>
+                <TableHead>Urutan</TableHead>
+                <TableHead>Kategori</TableHead>
+                <TableHead>Pertanyaan</TableHead>
+                <TableHead>Jawaban</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -339,7 +345,7 @@ const FAQ = () => {
                       <Checkbox
                         checked={isSelected(item.id)}
                         onCheckedChange={() => toggleSelect(item.id)}
-                        aria-label={`Select ${item.question}`}
+                        aria-label={`Pilih ${item.question}`}
                       />
                     </TableCell>
                   )}
@@ -349,14 +355,14 @@ const FAQ = () => {
                   <TableCell className="max-w-md truncate">{item.answer}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded text-xs ${item.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                      {item.is_active ? 'Active' : 'Inactive'}
+                      {item.is_active ? 'Aktif' : 'Nonaktif'}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}>
+                    <Button variant="ghost" size="sm" aria-label="Ubah" onClick={() => openEditDialog(item)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Button variant="ghost" size="sm" aria-label="Hapus" onClick={() => handleDelete(item.id)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </TableCell>
@@ -366,6 +372,7 @@ const FAQ = () => {
           </Table>
         </CardContent>
       </Card>
+      {dialog}
     </div>
   );
 };

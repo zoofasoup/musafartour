@@ -434,22 +434,21 @@ BEGIN
     END;
   END LOOP;
 
-  -- KNOWN: the agent_leaderboard view runs with its owner's rights and anon keeps SELECT on it, so a visitor
-  -- without any login can read the name, total_sales, total_commission and level of every active agent.
-  -- If that is not intended, REVOKE SELECT ON public.agent_leaderboard FROM anon (the portal is behind login)
-  -- and flip this check to a plain assertion.
+  -- The ranking is a function (get_agent_leaderboard), not a view: a view runs with its owner's rights and anon/any signed-in
+  -- account could read every agent's name and total commission. A visitor without a login must not be able to call it at all.
   BEGIN
     PERFORM set_config('request.jwt.claims', '{"role":"anon"}', true);
     SET LOCAL ROLE anon;
-    SELECT count(*) INTO _n FROM public.agent_leaderboard;
+    SELECT count(*) INTO _n FROM public.get_agent_leaderboard();
     RESET ROLE;
-    IF _n = 0 THEN _out := _out || E'PASS tables: anon sees no rows of agent_leaderboard\n';
-    ELSE _out := _out || format(E'FAIL tables: anon can read agent_leaderboard (%s agents: name, total_sales, total_commission, level); review whether this is intended\n', _n); END IF;
+    _out := _out || format(E'FAIL tables: anon called get_agent_leaderboard() and got %s rows\n', _n);
   EXCEPTION WHEN OTHERS THEN
     RESET ROLE;
-    IF SQLSTATE = '42501' THEN _out := _out || E'PASS tables: anon cannot read agent_leaderboard (42501)\n';
-    ELSE _out := _out || format(E'FAIL tables: anon read of agent_leaderboard raised %s (%s)\n', SQLSTATE, SQLERRM); END IF;
+    IF SQLSTATE = '42501' THEN _out := _out || E'PASS tables: anon cannot call get_agent_leaderboard() (42501)\n';
+    ELSE _out := _out || format(E'FAIL tables: anon call of get_agent_leaderboard() raised %s (%s)\n', SQLSTATE, SQLERRM); END IF;
   END;
+  IF to_regclass('public.agent_leaderboard') IS NULL THEN _out := _out || E'PASS tables: the agent_leaderboard view (name + total_commission of every agent) is gone\n';
+  ELSE _out := _out || E'FAIL tables: view public.agent_leaderboard still exists\n'; END IF;
 
   -- Private tables show anon nothing, even when they hold rows
   FOREACH _fn IN ARRAY ARRAY['agents', 'agent_sales', 'agent_withdrawals', 'user_roles', 'jamaah_registrations',

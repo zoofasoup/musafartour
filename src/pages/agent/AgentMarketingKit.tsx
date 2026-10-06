@@ -339,8 +339,8 @@ const AgentMarketingKit = () => {
                 <Card>
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-4">
-                      <div className="h-12 w-12 bg-status-info-bg dark:bg-blue-900/30 rounded-lg flex items-center justify-center shrink-0">
-                        <MessageSquare className="h-6 w-6 text-status-info-fg dark:text-blue-400" />
+                      <div className="h-12 w-12 bg-status-info-bg rounded-lg flex items-center justify-center shrink-0">
+                        <MessageSquare className="h-6 w-6 text-status-info-fg" />
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold">Sales Script WhatsApp</h3>
@@ -610,16 +610,18 @@ const AgentMarketingKit = () => {
                               <Button 
                                 size="icon" 
                                 variant="ghost" 
-                                className="h-8 w-8"
+                                className="h-8 w-8 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
                                 onClick={() => handleCopy(`${window.location.origin}/l/${link.short_code}`, link.id)}
+                                aria-label={`Salin tautan ${link.short_code}`}
                               >
                                 {copiedId === link.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                               </Button>
                               <Button 
                                 size="icon" 
                                 variant="ghost" 
-                                className="h-8 w-8 text-destructive"
+                                className="h-8 w-8 text-destructive [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
                                 onClick={() => deleteLinkMutation.mutate(link.id)}
+                                aria-label={`Hapus tautan ${link.short_code}`}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

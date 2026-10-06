@@ -20,12 +20,12 @@ interface AgentStatCardProps {
 export function AgentStatCard({ icon: Icon, label, value, helper, className }: AgentStatCardProps) {
   return (
     <Card className={cn("hover:shadow-lg transition-shadow", className)}>
-      <CardContent className="p-5">
+      <CardContent className="p-4 sm:p-5">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Icon className="h-4 w-4 text-foreground shrink-0" />
           <span className="leading-tight">{label}</span>
         </div>
-        <p className="mt-2 whitespace-nowrap text-2xl font-bold text-foreground sm:text-3xl">{value}</p>
+        <p className="mt-2 whitespace-nowrap text-xl font-bold text-foreground sm:text-2xl lg:text-3xl">{value}</p>
         {helper && <div className="text-sm mt-1">{helper}</div>}
       </CardContent>
     </Card>

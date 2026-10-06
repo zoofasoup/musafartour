@@ -652,13 +652,13 @@ const AgentSchedule = () => {
       <Card>
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+            <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} aria-label="Bulan sebelumnya">
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <h2 className="font-bold text-lg">
               {format(currentMonth, 'MMMM yyyy', { locale: localeId })}
             </h2>
-            <Button variant="outline" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+            <Button variant="outline" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} aria-label="Bulan berikutnya">
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -689,6 +689,7 @@ const AgentSchedule = () => {
                   key={day.toISOString()}
                   onClick={() => hasPackages && setSelectedDate(day)}
                   disabled={!hasPackages}
+                  aria-label={`${format(day, 'd MMMM yyyy', { locale: localeId })}${hasPackages ? `, ${dayPackages.length} paket` : ', tidak ada paket'}`}
                   className={cn(
                     "aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-colors relative",
                     isCurrentMonth ? "text-foreground" : "text-muted-foreground/50",

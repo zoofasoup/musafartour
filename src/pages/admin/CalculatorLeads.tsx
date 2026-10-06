@@ -180,7 +180,7 @@ export default function CalculatorLeads() {
           <p className="text-sm text-muted-foreground mt-1">Lead dari Umroh Financial Planner</p>
         </div>
         <Button onClick={exportCSV} variant="outline" className="gap-2">
-          <Download className="h-4 w-4" /> Export CSV
+          <Download className="h-4 w-4" /> Ekspor CSV
         </Button>
       </div>
 

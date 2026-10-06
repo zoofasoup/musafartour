@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Edit, Trash2, Save } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 
 interface SellingPoint {
   id: string;
@@ -22,9 +23,12 @@ interface SellingPoint {
 }
 
 const SellingPoints = () => {
+  const { ask, dialog } = useConfirmDialog();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, loading: authLoading, isAdmin } = useAuth();
+  const { user, loading: authLoading, isAdmin: isOwner, userRole } = useAuth();
+  // The menu also shows this page to content_admin, so the page has to let that role in (it used to render blank).
+  const isAdmin = isOwner || userRole === "content_admin";
   
   const [loading, setLoading] = useState(false);
   const [points, setPoints] = useState<SellingPoint[]>([]);
@@ -62,8 +66,8 @@ const SellingPoints = () => {
     } catch (error: any) {
       console.error("Error fetching selling points:", error);
       toast({
-        title: "Error",
-        description: "Failed to load selling points",
+        title: "Gagal",
+        description: "Poin keunggulan belum bisa dimuat.",
         variant: "destructive",
       });
     } finally {
@@ -80,14 +84,14 @@ const SellingPoints = () => {
           .eq("id", editingPoint.id);
 
         if (error) throw error;
-        toast({ title: "Success", description: "Selling point updated" });
+        toast({ title: "Berhasil", description: "Poin keunggulan diperbarui." });
       } else {
         const { error } = await (supabase as any)
           .from("selling_points")
           .insert({ ...formData, is_active: true });
 
         if (error) throw error;
-        toast({ title: "Success", description: "Selling point created" });
+        toast({ title: "Berhasil", description: "Poin keunggulan ditambahkan." });
       }
 
       setIsDialogOpen(false);
@@ -95,15 +99,17 @@ const SellingPoints = () => {
       fetchPoints();
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: "Gagal",
         description: error.message,
         variant: "destructive",
       });
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this selling point?")) return;
+  const handleDelete = (id: string) =>
+    ask({ title: "Hapus poin keunggulan ini?", description: "Poin ini hilang dari website dan tidak bisa dikembalikan." }, () => performDelete(id));
+
+  const performDelete = async (id: string) => {
 
     try {
       const { error } = await (supabase as any)
@@ -112,11 +118,11 @@ const SellingPoints = () => {
         .eq("id", id);
 
       if (error) throw error;
-      toast({ title: "Success", description: "Selling point deleted" });
+      toast({ title: "Berhasil", description: "Poin keunggulan dihapus." });
       fetchPoints();
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: "Gagal",
         description: error.message,
         variant: "destructive",
       });
@@ -158,26 +164,26 @@ const SellingPoints = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Selling Points</h1>
-          <p className="text-muted-foreground">Manage key features and benefits</p>
+          <h1 className="text-3xl font-bold">Poin Keunggulan</h1>
+          <p className="text-muted-foreground">Atur keunggulan utama yang tampil di beranda</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
               <Plus className="mr-2 h-4 w-4" />
-              Add Selling Point
+              Tambah poin keunggulan
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{editingPoint ? "Edit" : "Add"} Selling Point</DialogTitle>
+              <DialogTitle>{editingPoint ? "Ubah" : "Tambah"} poin keunggulan</DialogTitle>
               <DialogDescription>
-                {editingPoint ? "Update" : "Create"} a selling point for your homepage
+                {editingPoint ? "Perbarui" : "Buat"} poin keunggulan untuk beranda
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title">Judul</Label>
                 <Input
                   id="title"
                   value={formData.title}
@@ -185,7 +191,7 @@ const SellingPoints = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Deskripsi</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
@@ -195,16 +201,16 @@ const SellingPoints = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="icon">Icon (Lucide name)</Label>
+                  <Label htmlFor="icon">Ikon (nama dari Lucide)</Label>
                   <Input
                     id="icon"
                     value={formData.icon}
                     onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                    placeholder="e.g., check-circle"
+                    placeholder="Contoh: check-circle"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="display_order">Display Order</Label>
+                  <Label htmlFor="display_order">Urutan tampil</Label>
                   <Input
                     id="display_order"
                     type="number"
@@ -217,7 +223,7 @@ const SellingPoints = () => {
             <DialogFooter>
               <Button onClick={handleSave}>
                 <Save className="mr-2 h-4 w-4" />
-                Save
+                Simpan
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -226,19 +232,19 @@ const SellingPoints = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Selling Points List</CardTitle>
-          <CardDescription>Manage all selling points displayed on your website</CardDescription>
+          <CardTitle>Daftar poin keunggulan</CardTitle>
+          <CardDescription>Semua poin keunggulan yang tampil di website</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Icon</TableHead>
+                <TableHead>Urutan</TableHead>
+                <TableHead>Judul</TableHead>
+                <TableHead>Deskripsi</TableHead>
+                <TableHead>Ikon</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -250,14 +256,14 @@ const SellingPoints = () => {
                   <TableCell>{point.icon}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded text-xs ${point.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                      {point.is_active ? 'Active' : 'Inactive'}
+                      {point.is_active ? 'Aktif' : 'Nonaktif'}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => openEditDialog(point)}>
+                    <Button variant="ghost" size="sm" aria-label="Ubah" onClick={() => openEditDialog(point)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(point.id)}>
+                    <Button variant="ghost" size="sm" aria-label="Hapus" onClick={() => handleDelete(point.id)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </TableCell>
@@ -267,6 +273,7 @@ const SellingPoints = () => {
           </Table>
         </CardContent>
       </Card>
+      {dialog}
     </div>
   );
 };

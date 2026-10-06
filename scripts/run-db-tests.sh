@@ -46,7 +46,23 @@ for f in "${FILES[@]}"; do
     continue
   fi
   echo "=== $f"
-  npx supabase db query --linked -f "$f" > "$TMP/out.txt" 2> "$TMP/err.txt"
+  # Migrations written but not pushed yet (tests/db/pending-migrations.txt) are applied inside the test's own
+  # transaction, right after its first BEGIN;, so the tests can exercise them before `supabase db push`.
+  RUNFILE="$f"
+  if [ -f tests/db/pending-migrations.txt ]; then
+    python3 - "$f" "$TMP/run.sql" <<'PY'
+import sys
+src, dst = sys.argv[1], sys.argv[2]
+pending = [l.strip() for l in open("tests/db/pending-migrations.txt") if l.strip() and not l.strip().startswith("#")]
+mig = "".join("-- pending migration: %s\n%s\n" % (m, open(m).read()) for m in pending)
+lines = open(src).read().split("\n")
+i = next(n for n, l in enumerate(lines) if l.strip() == "BEGIN;")
+lines.insert(i + 1, mig)
+open(dst, "w").write("\n".join(lines))
+PY
+    RUNFILE="$TMP/run.sql"
+  fi
+  npx supabase db query --linked -f "$RUNFILE" > "$TMP/out.txt" 2> "$TMP/err.txt"
   python3 -c "$PARSER" < "$TMP/out.txt" > "$TMP/report.txt"
   rc=$?
   cat "$TMP/report.txt"

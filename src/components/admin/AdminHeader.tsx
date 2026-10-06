@@ -1,7 +1,6 @@
 import { Fragment, useMemo, useState } from "react";
 import { Archive, ArchiveRestore, ArrowLeft, Bell, Check, CheckCheck, ChevronDown, Inbox, Settings, X } from "lucide-react";
 import { useAdminNotifications, type AdminNotification } from "@/hooks/useAdminNotifications";
-import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -318,20 +317,21 @@ export const AdminHeader = () => {
       }}
     >
       <PopoverTrigger asChild>
-        <SidebarMenuButton
-          tooltip="Notifikasi"
-          className="text-slate-500 hover:bg-slate-200/50 hover:text-slate-800 rounded-lg transition-all duration-300 ease-in-out relative"
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={unreadCount > 0 ? `Notifikasi, ${unreadCount} belum dibaca` : "Notifikasi"}
+          className="relative text-muted-foreground hover:bg-field-hover hover:text-foreground"
         >
-          <Bell />
+          <Bell className="h-5 w-5" aria-hidden />
           {unreadCount > 0 && (
-            <span className="absolute left-5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold leading-none text-destructive-foreground">
+            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-xs font-semibold leading-none text-destructive-foreground">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
-          <span className="font-medium">Notifikasi</span>
-        </SidebarMenuButton>
+        </Button>
       </PopoverTrigger>
-      <PopoverContent side="right" align="end" sideOffset={12} className="flex max-h-[85vh] w-[min(28rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl p-0">
+      <PopoverContent side="bottom" align="end" sideOffset={8} className="flex max-h-[85vh] w-[min(28rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl p-0">
         {view === "settings" ? (
           <>
             <div className="flex items-center gap-2 border-b px-4 py-3">

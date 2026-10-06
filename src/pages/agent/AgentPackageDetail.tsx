@@ -187,7 +187,7 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
         <Card className="p-8 text-center">
           <h2 className="text-xl font-semibold mb-2">Paket tidak ditemukan</h2>
           <p className="text-muted-foreground mb-4">
-            Paket yang Anda cari tidak tersedia
+            Paket yang kamu cari tidak tersedia
           </p>
           <Button onClick={() => navigate("/agent/packages")}>
             Kembali ke Katalog
@@ -290,7 +290,7 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
         </Card>
 
         {/* Price & Commission Card */}
-        <Card className="bg-gradient-to-r from-muted to-muted dark:from-emerald-900/20 dark:to-emerald-800/20 border-border">
+        <Card className="bg-muted border-border">
           <CardContent className="p-6">
             <div className="grid md:grid-cols-3 gap-6">
               <div>
@@ -299,7 +299,7 @@ ${agent?.referral_code ? `Kode Referral: ${agent.referral_code}` : ""}`;
                 <p className="text-sm text-muted-foreground">/pax (Quad)</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Komisi Anda</p>
+                <p className="text-sm text-muted-foreground">Komisi kamu</p>
                 <p className="text-3xl font-bold text-foreground">{formatPrice(commission)}</p>
                 <p className="text-sm text-muted-foreground">per pax</p>
               </div>

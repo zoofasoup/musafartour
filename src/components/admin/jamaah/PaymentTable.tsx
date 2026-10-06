@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { TOUCH_H } from "./touch";
 import { BANK_LABELS, PAYMENT_STATUS_CLASS, PAYMENT_STATUS_LABEL, docUrl, rupiah, type Payment } from "@/lib/jamaah";
 
@@ -19,14 +20,17 @@ interface Props {
   currentUserId?: string;
   /** Extra label per payment (jamaah name + package), shown on the verification page. */
   describe?: (p: Payment) => React.ReactNode;
+  /** Name the person must type before a payment is deleted (the jamaah name). Without it a plain confirmation is shown. */
+  confirmName?: (p: Payment) => string | undefined;
   onChanged: () => void;
   empty?: string;
 }
 
-export function PaymentTable({ payments, isOwner, currentUserId, describe, onChanged, empty = "Belum ada pembayaran." }: Props) {
+export function PaymentTable({ payments, isOwner, currentUserId, describe, confirmName, onChanged, empty = "Belum ada pembayaran." }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState<Payment | null>(null);
   const [reason, setReason] = useState("");
+  const [deleting, setDeleting] = useState<Payment | null>(null);
 
   const act = async (id: string, run: () => PromiseLike<{ error: { message: string } | null }>, ok: string) => {
     setBusy(id);
@@ -54,9 +58,11 @@ export function PaymentTable({ payments, isOwner, currentUserId, describe, onCha
     setReason("");
   };
 
-  const remove = (p: Payment) => {
-    if (!window.confirm(`Hapus catatan pembayaran ${rupiah(Number(p.amount))}?`)) return;
-    act(p.id, () => supabase.from("jamaah_payments").delete().eq("id", p.id), "Catatan pembayaran dihapus");
+  const remove = async () => {
+    if (!deleting) return;
+    const p = deleting;
+    await act(p.id, () => supabase.from("jamaah_payments").delete().eq("id", p.id), "Catatan pembayaran dihapus");
+    setDeleting(null);
   };
 
   const openProof = async (path: string) => {
@@ -83,7 +89,7 @@ export function PaymentTable({ payments, isOwner, currentUserId, describe, onCha
         </Button>
       )}
       {canDelete(p) && (
-        <Button type="button" size="icon" variant="ghost" className={`h-8 w-8 ${TOUCH_H} [@media(pointer:coarse)]:w-11`} aria-label="Hapus catatan" disabled={busy === p.id} onClick={() => remove(p)}>
+        <Button type="button" size="icon" variant="ghost" className={`h-8 w-8 ${TOUCH_H} [@media(pointer:coarse)]:w-11`} aria-label="Hapus catatan" disabled={busy === p.id} onClick={() => setDeleting(p)}>
           <Trash2 className="h-4 w-4" />
         </Button>
       )}
@@ -194,6 +200,18 @@ export function PaymentTable({ payments, isOwner, currentUserId, describe, onCha
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(o) => !o && setDeleting(null)}
+        title={deleting ? `Hapus catatan pembayaran ${rupiah(Number(deleting.amount))}?` : "Hapus catatan pembayaran?"}
+        description="Catatan ini dihapus permanen dan tidak bisa dikembalikan. Kalau pembayarannya salah dicatat, lebih baik tolak lewat tombol Tolak supaya jejaknya tetap ada."
+        confirmLabel="Hapus catatan"
+        destructive
+        busy={!!deleting && busy === deleting.id}
+        confirmText={deleting ? confirmName?.(deleting) : undefined}
+        onConfirm={remove}
+      />
     </>
   );
 }

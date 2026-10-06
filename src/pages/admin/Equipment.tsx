@@ -29,6 +29,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 
 interface EquipmentItem {
   id: string;
@@ -92,6 +93,7 @@ const SortableCard = ({
 };
 
 const Equipment = () => {
+  const { ask, dialog } = useConfirmDialog();
   const [items, setItems] = useState<EquipmentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -146,7 +148,7 @@ const Equipment = () => {
       const { data: { publicUrl } } = supabase.storage.from("package-images").getPublicUrl(filePath);
       setFormImageUrl(publicUrl);
     } catch (error: any) {
-      toast.error(error.message || "Gagal upload gambar");
+      toast.error(error.message || "Gagal mengunggah gambar");
     } finally {
       setUploading(false);
     }
@@ -160,7 +162,7 @@ const Equipment = () => {
     if (editItem) {
       const { error } = await supabase.from("equipment_items").update(payload).eq("id", editItem.id);
       if (error) { toast.error("Gagal menyimpan"); setSaving(false); return; }
-      toast.success("Item berhasil diupdate");
+      toast.success("Item berhasil diperbarui");
     } else {
       const maxOrder = items.reduce((m, i) => Math.max(m, i.display_order), 0);
       const { error } = await supabase.from("equipment_items").insert({ ...payload, display_order: maxOrder + 1 });
@@ -172,8 +174,10 @@ const Equipment = () => {
     fetchItems();
   };
 
-  const handleDelete = async (item: EquipmentItem) => {
-    if (!confirm(`Hapus "${item.name}"?`)) return;
+  const handleDelete = (item: EquipmentItem) =>
+    ask({ title: `Hapus "${item.name}"?`, description: "Perlengkapan ini hilang dari daftar dan tidak bisa dikembalikan." }, () => performDelete(item));
+
+  const performDelete = async (item: EquipmentItem) => {
     const { error } = await supabase.from("equipment_items").delete().eq("id", item.id);
     if (error) { toast.error("Gagal menghapus"); return; }
     toast.success("Item dihapus");
@@ -182,7 +186,7 @@ const Equipment = () => {
 
   const toggleActive = async (item: EquipmentItem) => {
     const { error } = await supabase.from("equipment_items").update({ is_active: !item.is_active }).eq("id", item.id);
-    if (error) { toast.error("Gagal update"); return; }
+    if (error) { toast.error("Gagal memperbarui"); return; }
     fetchItems();
   };
 
@@ -214,7 +218,7 @@ const Equipment = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Perlengkapan Jamaah</h1>
-        <p className="text-muted-foreground">Kelola daftar perlengkapan yang diterima jamaah, lengkap dengan foto. Drag untuk mengurutkan.</p>
+        <p className="text-muted-foreground">Kelola daftar perlengkapan yang diterima jamaah, lengkap dengan foto. Seret untuk mengurutkan.</p>
       </div>
 
       <Card>
@@ -247,7 +251,7 @@ const Equipment = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editItem ? "Edit Item" : "Tambah Item"}</DialogTitle>
+            <DialogTitle>{editItem ? "Ubah item" : "Tambah item"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
@@ -270,6 +274,7 @@ const Equipment = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {dialog}
     </div>
   );
 };

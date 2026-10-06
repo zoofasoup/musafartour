@@ -243,7 +243,7 @@ const Packages = () => {
     try {
       const { data, error } = await supabase.functions.invoke("sync-seats");
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || "Sync gagal");
+      if (!data?.success) throw new Error(data?.error || "Sinkronisasi gagal");
       const updatedCount = data.updated?.length || 0;
       toast.success(
         updatedCount > 0
@@ -256,7 +256,7 @@ const Packages = () => {
         window.location.reload();
       }, 1500);
     } catch (err: any) {
-      toast.error(`Gagal sync Sisa Seat: ${err.message}`);
+      toast.error(`Gagal menyinkronkan sisa seat: ${err.message}`);
     } finally {
       setSyncingSeats(false);
     }
@@ -270,13 +270,13 @@ const Packages = () => {
       const { data, error } = await supabase.functions.invoke("sync-itinerary");
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast.success(data?.message || "Sync itinerary selesai");
+      toast.success(data?.message || "Sinkronisasi itinerary selesai");
       if (data?.details?.length) {
         console.log("Sync itinerary details:", data.details);
       }
       fetchPackages();
     } catch (err: any) {
-      toast.error(`Gagal sync itinerary: ${err.message}`);
+      toast.error(`Gagal menyinkronkan itinerary: ${err.message}`);
     } finally {
       setSyncingItinerary(false);
     }
@@ -369,7 +369,7 @@ const Packages = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Paket Umroh</h1>
           <p className="text-muted-foreground">
-            {canEdit ? "Kelola paket umroh Anda" : "Mode lihat saja: perubahan paket dilakukan oleh PIC produk"}
+            {canEdit ? "Kelola paket umrohmu" : "Mode lihat saja: perubahan paket dilakukan oleh PIC produk"}
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3">
@@ -388,11 +388,11 @@ const Packages = () => {
           </Button>
           <Button variant="outline" size="sm" onClick={() => setImportOpen(true)} className="flex items-center gap-2">
             <FileSpreadsheet className="h-4 w-4" />
-            Upload Excel
+            Unggah Excel
           </Button>
           <Button variant="outline" size="sm" onClick={() => setFlyerOpen(true)} className="flex items-center gap-2">
             <Images className="h-4 w-4" />
-            Upload Flyer
+            Unggah flyer
           </Button>
           <Button
             variant="outline"
@@ -453,7 +453,7 @@ const Packages = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua status</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="draft">Draf</SelectItem>
                 <SelectItem value="final">Final</SelectItem>
                 <SelectItem value="published">Tayang</SelectItem>
               </SelectContent>
@@ -542,7 +542,7 @@ const Packages = () => {
                                   toggleSelect(pkg.id);
                                   lastSelectedIndex.current = index;
                                 }}
-                                aria-label={`Select ${pkg.package_name}`}
+                                aria-label={`Pilih ${pkg.package_name}`}
                               />
                             </TableCell>
                           )}
@@ -647,7 +647,7 @@ const Packages = () => {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-slate-500 hover:text-blue-600 hover:bg-blue-50"
-                                aria-label={canEdit ? "Edit paket" : "Lihat paket"}
+                                aria-label={canEdit ? "Ubah paket" : "Lihat paket"}
                                 onClick={(e) => { e.stopPropagation(); navigate(`/admin/packages/${pkg.id}`); }}
                               >
                                 {canEdit ? <Edit className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

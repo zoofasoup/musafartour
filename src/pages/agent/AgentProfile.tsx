@@ -325,7 +325,7 @@ const AgentProfile = () => {
   return (
     <div className="pb-24 md:pb-6">
       <div className="max-w-3xl mx-auto space-y-6">
-        <AgentPageHeader title="Profil Saya" description="Kelola akun dan pengaturan Anda" icon={User} />
+        <AgentPageHeader title="Profil Saya" description="Kelola akun dan pengaturan kamu" icon={User} />
 
         {/* Profile Header Card */}
         <Card>
@@ -350,9 +350,10 @@ const AgentProfile = () => {
                 <Button
                   size="icon"
                   variant="secondary"
-                  className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full shadow-md"
+                  className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full shadow-md [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingAvatar}
+                  aria-label="Ganti foto profil"
                 >
                   {uploadingAvatar ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -383,8 +384,9 @@ const AgentProfile = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6"
+                      className="h-6 w-6 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
                       onClick={copyReferralCode}
+                      aria-label="Salin kode referral"
                     >
                       {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                     </Button>
@@ -440,7 +442,7 @@ const AgentProfile = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Informasi Pribadi</CardTitle>
-                  <CardDescription>Update data diri Anda</CardDescription>
+                  <CardDescription>Update data diri kamu</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -610,7 +612,7 @@ const AgentProfile = () => {
                   <Lock className="h-5 w-5" />
                   Ubah Password
                 </CardTitle>
-                <CardDescription>Perbarui password akun Anda</CardDescription>
+                <CardDescription>Perbarui password akun kamu</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handlePasswordChange} className="space-y-4">
@@ -630,8 +632,9 @@ const AgentProfile = () => {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
                         onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
+                        aria-label={showPasswords.new ? "Sembunyikan password baru" : "Tampilkan password baru"}
                       >
                         {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
@@ -654,8 +657,9 @@ const AgentProfile = () => {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
                         onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
+                        aria-label={showPasswords.confirm ? "Sembunyikan konfirmasi password" : "Tampilkan konfirmasi password"}
                       >
                         {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
@@ -703,7 +707,7 @@ const AgentProfile = () => {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Keluar dari semua perangkat?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Anda akan keluar dari semua perangkat yang sedang login, termasuk perangkat ini.
+                        Kamu akan keluar dari semua perangkat yang sedang login, termasuk perangkat ini.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -726,7 +730,7 @@ const AgentProfile = () => {
                   <Mail className="h-5 w-5" />
                   Notifikasi Email
                 </CardTitle>
-                <CardDescription>Kelola notifikasi yang dikirim ke email Anda</CardDescription>
+                <CardDescription>Kelola notifikasi yang dikirim ke email kamu</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -776,7 +780,7 @@ const AgentProfile = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Penjualan Dikonfirmasi</p>
-                    <p className="text-sm text-muted-foreground">Saat penjualan Anda diverifikasi admin</p>
+                    <p className="text-sm text-muted-foreground">Saat penjualan kamu diverifikasi admin</p>
                   </div>
                   <Switch
                     checked={notifications.pushSales}

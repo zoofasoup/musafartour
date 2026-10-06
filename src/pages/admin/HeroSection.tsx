@@ -15,7 +15,9 @@ import { compressAndConvertToWebP } from "@/lib/imageUtils";
 const HeroSection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, loading: authLoading, isAdmin } = useAuth();
+  const { user, loading: authLoading, isAdmin: isOwner, userRole } = useAuth();
+  // The menu also shows this page to content_admin, so the page has to let that role in (it used to render blank).
+  const isAdmin = isOwner || userRole === "content_admin";
   
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -58,8 +60,8 @@ const HeroSection = () => {
     } catch (error: any) {
       console.error("Error fetching hero data:", error);
       toast({
-        title: "Error",
-        description: "Failed to load hero data",
+        title: "Gagal",
+        description: "Data hero belum bisa dimuat.",
         variant: "destructive",
       });
     } finally {
@@ -97,14 +99,14 @@ const HeroSection = () => {
       setHeroData({ ...heroData, background_image: publicUrl });
       
       toast({
-        title: "Success",
-        description: "Background image uploaded successfully",
+        title: "Berhasil",
+        description: "Gambar latar berhasil diunggah.",
       });
     } catch (error: any) {
       console.error('Upload error:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to upload image",
+        title: "Gagal",
+        description: error.message || "Gambar gagal diunggah.",
         variant: "destructive",
       });
     } finally {
@@ -151,16 +153,16 @@ const HeroSection = () => {
       }
 
       toast({
-        title: "Success",
-        description: "Hero section updated successfully",
+        title: "Berhasil",
+        description: "Bagian hero diperbarui.",
       });
       
       fetchHeroData();
     } catch (error: any) {
       console.error("Error saving hero:", error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to save hero section",
+        title: "Gagal",
+        description: error.message || "Bagian hero gagal disimpan.",
         variant: "destructive",
       });
     } finally {
@@ -183,63 +185,63 @@ const HeroSection = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Hero Section</h1>
-        <p className="text-muted-foreground">Manage homepage hero content</p>
+        <h1 className="text-3xl font-bold">Hero Beranda</h1>
+        <p className="text-muted-foreground">Atur judul dan gambar utama di beranda</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Hero Content</CardTitle>
+          <CardTitle>Isi hero</CardTitle>
           <CardDescription>
-            Update the main hero section on your homepage
+            Ubah bagian utama yang pertama dilihat pengunjung di beranda
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">Judul</Label>
             <Input
               id="title"
               value={heroData.title}
               onChange={(e) => setHeroData({ ...heroData, title: e.target.value })}
-              placeholder="e.g., Wujudkan Impian Umroh Anda"
+              placeholder="Contoh: Wujudkan Impian Umroh Anda"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="subtitle">Subtitle</Label>
+            <Label htmlFor="subtitle">Subjudul</Label>
             <Textarea
               id="subtitle"
               value={heroData.subtitle || ""}
               onChange={(e) => setHeroData({ ...heroData, subtitle: e.target.value })}
-              placeholder="e.g., Paket umroh terpercaya dengan layanan terbaik"
+              placeholder="Contoh: Paket umroh terpercaya dengan layanan terbaik"
               rows={3}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="cta_text">Button Text</Label>
+              <Label htmlFor="cta_text">Teks tombol</Label>
               <Input
                 id="cta_text"
                 value={heroData.cta_text}
                 onChange={(e) => setHeroData({ ...heroData, cta_text: e.target.value })}
-                placeholder="e.g., Konsultasi Gratis"
+                placeholder="Contoh: Konsultasi Gratis"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cta_link">Button Link</Label>
+              <Label htmlFor="cta_link">Link tombol</Label>
               <Input
                 id="cta_link"
                 value={heroData.cta_link}
                 onChange={(e) => setHeroData({ ...heroData, cta_link: e.target.value })}
-                placeholder="e.g., https://wa.me/6281917403797"
+                placeholder="Contoh: https://wa.me/6281917403797"
               />
             </div>
           </div>
 
           <FileUpload
-            label="Background Image"
+            label="Gambar latar"
             currentImage={heroData.background_image}
             onFileSelect={handleImageUpload}
             onRemove={handleRemoveImage}
@@ -251,12 +253,12 @@ const HeroSection = () => {
             {saving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
+                Menyimpan...
               </>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                Save Changes
+                Simpan perubahan
               </>
             )}
           </Button>

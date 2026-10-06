@@ -80,14 +80,14 @@ const MarketingSettings = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["marketing-settings"] });
       toast({
-        title: "Success",
-        description: "Marketing settings saved successfully",
+        title: "Berhasil",
+        description: "Pengaturan marketing disimpan.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: `Failed to save settings: ${error.message}`,
+        title: "Gagal",
+        description: `Pengaturan gagal disimpan: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -121,9 +121,9 @@ const MarketingSettings = () => {
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Marketing Settings</h1>
+        <h1 className="text-3xl font-bold">Pengaturan Marketing</h1>
         <p className="text-muted-foreground mt-2">
-          Manage tracking pixels and analytics for your website
+          Atur pixel pelacakan dan analitik untuk website
         </p>
       </div>
 
@@ -134,7 +134,7 @@ const MarketingSettings = () => {
             <CardHeader>
               <CardTitle>Meta (Facebook) Pixel</CardTitle>
               <CardDescription>
-                Track visitor behavior and optimize Facebook ad campaigns
+                Lacak perilaku pengunjung dan optimalkan iklan Facebook
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -148,7 +148,7 @@ const MarketingSettings = () => {
                       <Input placeholder="123456789012345" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Find your Pixel ID in Meta Events Manager
+                      Cari Pixel ID di Meta Events Manager
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -160,9 +160,9 @@ const MarketingSettings = () => {
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">Enable Meta Pixel</FormLabel>
+                      <FormLabel className="text-base">Aktifkan Meta Pixel</FormLabel>
                       <FormDescription>
-                        Activate Meta Pixel tracking on your website
+                        Nyalakan pelacakan Meta Pixel di website
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -175,7 +175,7 @@ const MarketingSettings = () => {
                 )}
               />
               <Button type="submit" disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? "Saving..." : "Save Meta Pixel Settings"}
+                {saveMutation.isPending ? "Menyimpan..." : "Simpan pengaturan Meta Pixel"}
               </Button>
             </CardContent>
           </Card>
@@ -187,7 +187,7 @@ const MarketingSettings = () => {
             <CardHeader>
               <CardTitle>TikTok Pixel</CardTitle>
               <CardDescription>
-                Track conversions and optimize TikTok ad campaigns
+                Lacak konversi dan optimalkan iklan TikTok
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -201,7 +201,7 @@ const MarketingSettings = () => {
                       <Input placeholder="ABCDEFGH12345678" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Find your Pixel ID in TikTok Events Manager
+                      Cari Pixel ID di TikTok Events Manager
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -213,9 +213,9 @@ const MarketingSettings = () => {
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">Enable TikTok Pixel</FormLabel>
+                      <FormLabel className="text-base">Aktifkan TikTok Pixel</FormLabel>
                       <FormDescription>
-                        Activate TikTok Pixel tracking on your website
+                        Nyalakan pelacakan TikTok Pixel di website
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -228,7 +228,7 @@ const MarketingSettings = () => {
                 )}
               />
               <Button type="submit" disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? "Saving..." : "Save TikTok Pixel Settings"}
+                {saveMutation.isPending ? "Menyimpan..." : "Simpan pengaturan TikTok Pixel"}
               </Button>
             </CardContent>
           </Card>
@@ -240,7 +240,7 @@ const MarketingSettings = () => {
             <CardHeader>
               <CardTitle>Google Analytics</CardTitle>
               <CardDescription>
-                Track website traffic and user behavior with GA4
+                Lacak lalu lintas dan perilaku pengunjung dengan GA4
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -254,7 +254,7 @@ const MarketingSettings = () => {
                       <Input placeholder="G-XXXXXXXXXX" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Find your Measurement ID in Google Analytics property settings
+                      Cari Measurement ID di pengaturan properti Google Analytics
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -266,9 +266,9 @@ const MarketingSettings = () => {
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">Enable Google Analytics</FormLabel>
+                      <FormLabel className="text-base">Aktifkan Google Analytics</FormLabel>
                       <FormDescription>
-                        Activate GA4 tracking on your website
+                        Nyalakan pelacakan GA4 di website
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -281,7 +281,7 @@ const MarketingSettings = () => {
                 )}
               />
               <Button type="submit" disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? "Saving..." : "Save Google Analytics Settings"}
+                {saveMutation.isPending ? "Menyimpan..." : "Simpan pengaturan Google Analytics"}
               </Button>
             </CardContent>
           </Card>

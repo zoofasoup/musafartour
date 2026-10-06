@@ -342,7 +342,7 @@ BEGIN
         RAISE EXCEPTION 'applied' USING ERRCODE = 'XX001';
       EXCEPTION WHEN OTHERS THEN
         RESET ROLE;
-        IF SQLSTATE = '22023' THEN _out := _out || E'PASS withdrawal: a second request above balance minus pending is refused (22023), but the portal shows that as a raw toast (AGT-012)\n';
+        IF SQLSTATE = '22023' THEN _out := _out || E'PASS withdrawal: a second request above balance minus pending is refused (22023), and the portal shows the available amount minus pending requests and a readable message (AGT-012)\n';
         ELSE _out := _out || format(E'FAIL withdrawal: second request gave SQLSTATE %s (%s), expected 22023\n', SQLSTATE, SQLERRM); END IF;
       END;
 
@@ -613,16 +613,50 @@ BEGIN
   BEGIN
     PERFORM set_config('request.jwt.claims', json_build_object('sub', _uid_out, 'role', 'authenticated')::text, true);
     SET LOCAL ROLE authenticated;
-    SELECT count(*) INTO _n FROM public.agent_leaderboard;
+    SELECT count(*) INTO _n FROM public.get_agent_leaderboard();
     SELECT count(*) INTO _m FROM public.packages WHERE status = 'published' AND agent_commission_amount IS NOT NULL;
     RESET ROLE;
-    IF _n = 0 THEN _out := _out || E'PASS outsider: a signed-in user without an agent row cannot read agent_leaderboard\n';
-    ELSE _out := _out || format(E'KNOWN outsider: a signed-in user WITHOUT an agent row reads agent_leaderboard (%s agents with name, total_sales, total_commission) (AGT-008)\n', _n); END IF;
+    IF _n = 0 THEN _out := _out || E'PASS outsider: a signed-in user without an agent row gets nothing from get_agent_leaderboard() (AGT-008)\n';
+    ELSE _out := _out || format(E'FAIL outsider: a signed-in user WITHOUT an agent row reads %s agents from get_agent_leaderboard() (AGT-008)\n', _n); END IF;
     IF _m = 0 THEN _out := _out || E'PASS outsider: a signed-in user without an agent row cannot read packages.agent_commission_amount\n';
     ELSE _out := _out || format(E'KNOWN outsider: a signed-in user WITHOUT an agent row reads agent_commission_amount on %s published packages (AGT-008)\n', _m); END IF;
   EXCEPTION WHEN OTHERS THEN
     RESET ROLE;
     _out := _out || format(E'FAIL outsider: reads raised %s (%s)\n', SQLSTATE, SQLERRM);
+  END;
+
+  -- A pending (not yet approved) agent is not an active agent: no ranking either
+  IF _p.id IS NULL THEN
+    _out := _out || E'SKIP leaderboard: no pending agent with a login to try\n';
+  ELSE
+    BEGIN
+      PERFORM set_config('request.jwt.claims', json_build_object('sub', _p.user_id, 'role', 'authenticated')::text, true);
+      SET LOCAL ROLE authenticated;
+      SELECT count(*) INTO _n FROM public.get_agent_leaderboard();
+      RESET ROLE;
+      IF _n = 0 THEN _out := _out || E'PASS leaderboard: a pending agent gets no rows from get_agent_leaderboard()\n';
+      ELSE _out := _out || format(E'FAIL leaderboard: a pending agent reads %s agents from get_agent_leaderboard()\n', _n); END IF;
+    EXCEPTION WHEN OTHERS THEN
+      RESET ROLE;
+      _out := _out || format(E'FAIL leaderboard: pending agent call raised %s (%s)\n', SQLSTATE, SQLERRM);
+    END;
+  END IF;
+
+  -- An active agent gets the full ranking, with name, sales and level only (never anyone's commission)
+  BEGIN
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', _a.user_id, 'role', 'authenticated')::text, true);
+    SET LOCAL ROLE authenticated;
+    SELECT count(*) INTO _n FROM public.get_agent_leaderboard();
+    SELECT count(*) INTO _m FROM public.get_agent_leaderboard() WHERE id = _a.id;
+    RESET ROLE;
+    SELECT count(*) INTO _rc FROM public.agents WHERE status = 'active';
+    IF _n = _rc AND _m = 1 THEN _out := _out || format(E'PASS leaderboard: an active agent sees all %s active agents and their own row\n', _n);
+    ELSE _out := _out || format(E'FAIL leaderboard: active agent sees %s of %s active agents (own row: %s)\n', _n, _rc, _m); END IF;
+    IF pg_get_function_result('public.get_agent_leaderboard()'::regprocedure) !~* 'commission' THEN _out := _out || E'PASS leaderboard: the result has no commission column (peers\' income is private)\n';
+    ELSE _out := _out || E'FAIL leaderboard: the result exposes a commission column\n'; END IF;
+  EXCEPTION WHEN OTHERS THEN
+    RESET ROLE;
+    _out := _out || format(E'FAIL leaderboard: active agent call raised %s (%s)\n', SQLSTATE, SQLERRM);
   END;
 
   -- Every package pays the same flat commission and new packages inherit it
@@ -640,15 +674,15 @@ BEGIN
   IF _n = 0 THEN _out := _out || E'PASS levels: agent_levels no longer advertises percentage commissions\n';
   ELSE _out := _out || format(E'KNOWN levels: %s rows of agent_levels still advertise a percentage commission (4.5-6 percent) and benefits such as account manager and annual trip, shown to every agent, while the commission is a flat Rp 1.500.000 (AGT-003)\n', _n); END IF;
 
-  -- The dashboard computes the rank from public.agents, which an agent can only read for themselves
+  -- The dashboard rank comes from get_agent_leaderboard() (public.agents is readable only for the agent's own row)
   BEGIN
     PERFORM set_config('request.jwt.claims', json_build_object('sub', _a.user_id, 'role', 'authenticated')::text, true);
     SET LOCAL ROLE authenticated;
-    SELECT count(*) INTO _n FROM public.agents WHERE status = 'active';
+    SELECT count(*) INTO _n FROM public.get_agent_leaderboard();
     RESET ROLE;
     SELECT count(*) INTO _m FROM public.agents WHERE status = 'active';
-    IF _m <= 1 OR _n = _m THEN _out := _out || E'PASS dashboard rank: the agent can read all active agents, so the rank is real\n';
-    ELSE _out := _out || format(E'KNOWN dashboard rank: AgentDashboard ranks among the %s active agents the agent can read, but there are %s, so it always shows "Peringkat #1 dari 1 agen" (AGT-009)\n', _n, _m); END IF;
+    IF _n = _m THEN _out := _out || format(E'PASS dashboard rank: the agent reads all %s active agents through get_agent_leaderboard(), so "Peringkat #N dari M" is real (AGT-009)\n', _n);
+    ELSE _out := _out || format(E'FAIL dashboard rank: get_agent_leaderboard() returns %s of %s active agents (AGT-009)\n', _n, _m); END IF;
   EXCEPTION WHEN OTHERS THEN
     RESET ROLE;
     _out := _out || format(E'FAIL dashboard rank: raised %s (%s)\n', SQLSTATE, SQLERRM);

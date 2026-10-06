@@ -252,7 +252,7 @@ export default function JamaahAll() {
           </SelectContent>
         </Select>
         <Button type="button" variant="outline" size="sm" className="col-span-2 gap-1 sm:ml-auto sm:col-span-1 [@media(pointer:coarse)]:h-11" onClick={download} disabled={!visible.length}>
-          <Download className="h-4 w-4" /> Export Excel
+          <Download className="h-4 w-4" /> Ekspor Excel
         </Button>
       </div>
 

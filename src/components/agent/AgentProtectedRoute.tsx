@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import AgentLayout from "./AgentLayout";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { AGENT_CS_WHATSAPP } from "@/lib/agentSupport";
 
 interface AgentProtectedRouteProps {
   children: ReactNode;
@@ -66,7 +67,7 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
           </p>
           <div className="flex flex-col gap-2">
             <Button asChild variant="brand" className="w-full">
-              <a href={`https://wa.me/6281917403797?text=${waText}`} target="_blank" rel="noopener noreferrer">
+              <a href={`https://wa.me/${AGENT_CS_WHATSAPP}?text=${waText}`} target="_blank" rel="noopener noreferrer">
                 Hubungi CS via WhatsApp
               </a>
             </Button>

@@ -78,6 +78,9 @@ export const TestimonialsSection = ({
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<Testimonial | null>(null);
 
+  // No reviews in the database: show nothing rather than an empty promise.
+  if (testimonials.length === 0) return null;
+
   const scrollBy = (dir: 1 | -1) => {
     const el = scrollerRef.current;
     if (!el) return;

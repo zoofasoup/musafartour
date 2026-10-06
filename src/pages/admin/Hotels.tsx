@@ -65,7 +65,7 @@ const ImageCarousel = ({ images }: { images: (string | null)[] }) => {
           <img
             key={idx}
             src={getOptimizedImageUrl(img, 400)}
-            alt={`Hotel view ${idx + 1}`}
+            alt={`Foto hotel ${idx + 1}`}
             loading="lazy"
             className="w-full h-full object-cover bg-muted flex-shrink-0"
           />
@@ -166,7 +166,7 @@ const HotelCard = ({
             onClick={onEdit}
           >
             <Pencil className="mr-2 h-3 w-3" />
-            Edit
+            Ubah
           </Button>
           <Button variant="destructive" size="sm" onClick={onDelete}>
             <Trash2 className="h-3 w-3" />
@@ -298,7 +298,7 @@ const Hotels = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Hotel</AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus hotel ini? Tindakan ini tidak dapat dibatalkan.
+              Hapus hotel ini? Tindakan ini tidak bisa dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

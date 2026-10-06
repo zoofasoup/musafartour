@@ -42,6 +42,7 @@ import { History } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { PACKAGE_STATUSES, canEditPackages, packageStatusLabel, statusNeedsChangeReason } from "@/lib/packageStatus";
 import { tierFieldNames } from "@/lib/roomCombos";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const SearchableHotelSelect = ({ 
   hotels, 
@@ -285,7 +286,7 @@ const ImageDropZone = ({
       {hasSinglePreview ? (
         <div className="relative w-full">
           <div className="overflow-hidden rounded-lg border aspect-[4/5]">
-            <img src={previews[0]} alt="Preview" className="w-full h-full object-cover" />
+            <img src={previews[0]} alt="Pratinjau" className="w-full h-full object-cover" />
           </div>
           <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 w-7 h-7 shadow-md" onClick={() => onRemove(0)}>
             <X className="w-4 h-4" />
@@ -298,7 +299,7 @@ const ImageDropZone = ({
               {previews.map((preview, index) => (
                 <div key={index} className="relative">
                   <div className="overflow-hidden rounded-lg border aspect-square">
-                    <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                    <img src={preview} alt={`Pratinjau ${index + 1}`} className="w-full h-full object-cover" />
                   </div>
                   <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 w-6 h-6" onClick={() => onRemove(index)}>
                     <X className="w-3 h-3" />
@@ -333,7 +334,7 @@ const ImageDropZone = ({
               <div className="p-2 bg-muted rounded-full">
                 <Upload className="h-5 w-5 text-muted-foreground" />
               </div>
-              <p className="text-xs font-medium">Klik atau drag & drop</p>
+              <p className="text-xs font-medium">Klik atau seret file ke sini</p>
               <p className="text-xs text-muted-foreground">{description}</p>
             </div>
           </div>
@@ -360,7 +361,7 @@ const DocDropZone = ({
       <div className="relative w-full">
         {isImageUrl ? (
           <div className="overflow-hidden rounded-lg border aspect-[4/5]">
-            <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+            <img src={preview} alt="Pratinjau" className="w-full h-full object-cover" />
           </div>
         ) : (
           <div className="flex items-center gap-2 rounded-lg border bg-muted/50 aspect-[4/5] justify-center flex-col p-4">
@@ -392,7 +393,7 @@ const DocDropZone = ({
         <div className="p-2 bg-muted rounded-full">
           <Upload className="h-5 w-5 text-muted-foreground" />
         </div>
-        <p className="text-xs font-medium">Klik atau drag & drop</p>
+        <p className="text-xs font-medium">Klik atau seret file ke sini</p>
         <p className="text-xs text-muted-foreground">PDF, DOC, atau gambar</p>
       </div>
     </div>
@@ -409,6 +410,8 @@ interface PackageItemRecord {
 
 const PackageForm = () => {
   const navigate = useNavigate();
+  // Where the person wanted to go while there are unsaved changes (asks before leaving).
+  const [leavePath, setLeavePath] = useState<string | null>(null);
   const { id } = useParams();
   const [currentStep, setCurrentStep] = useState(1);
   const steps = [
@@ -1004,7 +1007,7 @@ const PackageForm = () => {
         if (error) throw error;
         // RLS rejects a write by returning zero rows, not an error.
         if (!updated?.length) throw new Error("Akun kamu tidak punya izin mengubah paket ini.");
-        toast.success("Paket berhasil diupdate");
+        toast.success("Paket berhasil diperbarui");
       } else {
         const { error } = await supabase.from("packages").insert(packageData);
         if (error) throw error;
@@ -1026,8 +1029,8 @@ const PackageForm = () => {
 
   const safeNavigate = (path: string) => {
     if (hasUnsavedChanges) {
-      const confirmed = window.confirm("Ada perubahan yang belum disimpan. Yakin ingin keluar?");
-      if (!confirmed) return;
+      setLeavePath(path);
+      return;
     }
     navigate(path);
   };
@@ -1223,13 +1226,13 @@ const PackageForm = () => {
                 <div className="flex items-center justify-between border-b pb-2">
                   <h3 className="font-semibold text-sm text-slate-800 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    Live Preview
+                    Pratinjau langsung
                   </h3>
                   
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Flyer Template</span>
                   <button type="button" onClick={handleDownloadFlyer} className="flex items-center gap-1 text-xs bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition-colors">
-                    <Download className="w-3 h-3" /> Export JPG
+                    <Download className="w-3 h-3" /> Ekspor JPG
                   </button>
                 </div>
 
@@ -1260,7 +1263,7 @@ const PackageForm = () => {
                 
                 <div className="text-xs text-center text-slate-500 mt-2 bg-slate-50 p-2 rounded-lg">
                   <span className="font-semibold text-slate-700">Auto-Generated!</span><br/>
-                  Desain template akan otomatis menyesuaikan dengan Tier yang Anda pilih (Hemat, Reguler, Premium, VIP).
+                  Desain template akan otomatis menyesuaikan dengan tier yang kamu pilih (Hemat, Reguler, Premium, VIP).
                 </div>
               </div>
             </div>
@@ -1407,7 +1410,7 @@ const PackageForm = () => {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <span className="text-lg tracking-tight font-medium">
-                {!canEdit ? "Lihat Paket" : id ? "Edit Paket" : "Tambah Paket"}
+                {!canEdit ? "Lihat paket" : id ? "Ubah paket" : "Tambah paket"}
               </span>
             </div>
             <div className="flex items-center gap-3">
@@ -1442,7 +1445,7 @@ const PackageForm = () => {
                   data-save-btn
                   className="bg-primary"
                 >
-                  {uploadingImages ? "Uploading..." : loading ? "Menyimpan..." : "Simpan"}
+                  {uploadingImages ? "Mengunggah..." : loading ? "Menyimpan..." : "Simpan"}
                 </Button>
               )}
             </div>
@@ -1451,7 +1454,7 @@ const PackageForm = () => {
 
         <div className="w-full max-w-[1700px] mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">{!canEdit ? "Lihat Paket" : id ? "Edit Paket" : "Tambah Paket"}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{!canEdit ? "Lihat paket" : id ? "Ubah paket" : "Tambah paket"}</h1>
             <p className="text-muted-foreground mt-1">
               {canEdit
                 ? "Lengkapi informasi paket umroh langkah demi langkah"
@@ -1619,7 +1622,7 @@ const PackageForm = () => {
                         // This used to force status "draft", which quietly took live packages off the website.
                         if (data.status === "draft") {
                           if (!data.package_name) {
-                            toast.error("Judul paket wajib diisi untuk menyimpan draft");
+                            toast.error("Judul paket wajib diisi untuk menyimpan draf");
                             return;
                           }
                           handleSave(data);
@@ -1640,7 +1643,7 @@ const PackageForm = () => {
                         className="rounded-md px-8"
                         onClick={() => form.setValue("status", "published")}
                       >
-                        {uploadingImages ? "Uploading..." : loading ? "Memproses..." : "Tayangkan Paket"}
+                        {uploadingImages ? "Mengunggah..." : loading ? "Memproses..." : "Tayangkan paket"}
                       </Button>
                     )}
                   </div>
@@ -1680,6 +1683,19 @@ const PackageForm = () => {
           packageTitle={savedPackageTitle} 
         />
         </div>
+        <ConfirmDialog
+          open={leavePath !== null}
+          onOpenChange={(open) => !open && setLeavePath(null)}
+          title="Keluar tanpa menyimpan?"
+          description="Ada perubahan yang belum disimpan. Kalau keluar sekarang, perubahan itu hilang."
+          confirmLabel="Keluar tanpa menyimpan"
+          destructive
+          onConfirm={() => {
+            const path = leavePath;
+            setLeavePath(null);
+            if (path) navigate(path);
+          }}
+        />
       </form>
     </Form>
   );

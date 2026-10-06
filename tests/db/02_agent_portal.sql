@@ -223,14 +223,17 @@ BEGIN
   BEGIN
     PERFORM set_config('request.jwt.claims', json_build_object('sub', _agent_uid, 'role', 'authenticated')::text, true);
     SET LOCAL ROLE authenticated;
-    SELECT count(*) INTO _n FROM public.agent_leaderboard;
-    SELECT count(*) INTO _own FROM public.agent_leaderboard WHERE id = _agent_id;
+    SELECT count(*) INTO _n FROM public.get_agent_leaderboard();
+    SELECT count(*) INTO _own FROM public.get_agent_leaderboard() WHERE id = _agent_id;
     RESET ROLE;
-    IF _n >= 1 AND _own = 1 THEN _out := _out || format(E'PASS agent_leaderboard: agent sees the ranking (%s agents) including themselves\n', _n);
-    ELSE _out := _out || format(E'FAIL agent_leaderboard: %s rows, own row present: %s\n', _n, _own); END IF;
+    IF _n >= 1 AND _own = 1 THEN _out := _out || format(E'PASS get_agent_leaderboard: agent sees the ranking (%s agents) including themselves\n', _n);
+    ELSE _out := _out || format(E'FAIL get_agent_leaderboard: %s rows, own row present: %s\n', _n, _own); END IF;
+    -- peers' income is private: the result has no commission column
+    IF pg_get_function_result('public.get_agent_leaderboard()'::regprocedure) !~* 'commission' THEN _out := _out || E'PASS get_agent_leaderboard: no commission column in the result\n';
+    ELSE _out := _out || format(E'FAIL get_agent_leaderboard: result exposes commission (%s)\n', pg_get_function_result('public.get_agent_leaderboard()'::regprocedure)); END IF;
   EXCEPTION WHEN OTHERS THEN
     RESET ROLE;
-    _out := _out || format(E'FAIL agent_leaderboard: raised %s (%s)\n', SQLSTATE, SQLERRM);
+    _out := _out || format(E'FAIL get_agent_leaderboard: raised %s (%s)\n', SQLSTATE, SQLERRM);
   END;
 
   -- Reference tables the leaderboard, schedule and marketing pages read

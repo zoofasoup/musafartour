@@ -22,6 +22,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { blocksTrackerEvents, safeTrackingPath } from "@/lib/privateRoutes";
 
 type EventParams = Record<string, unknown>;
 type PendingEvent = { name: string; params: EventParams; eventID: string };
@@ -46,6 +47,11 @@ export function markInternalBrowser() {
   } catch {
     /* ignore */
   }
+}
+
+/** Token and internal routes (/lengkapi/<token>, /cek-status, /admin, ...) send nothing to third parties. */
+function onPrivateRoute(): boolean {
+  return typeof window !== "undefined" && blocksTrackerEvents(window.location.pathname);
 }
 
 /** Staff browsers send no pixel events and no site analytics. */
@@ -91,7 +97,7 @@ const newEventId = () =>
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 function sendMeta(name: string, params: EventParams, dedupe: Dedupe | null, eventID = newEventId()) {
-  if (typeof window === "undefined" || isInternalBrowser()) return;
+  if (typeof window === "undefined" || isInternalBrowser() || onPrivateRoute()) return;
   if (dedupe && !claim({ ...dedupe, key: `meta:${dedupe.key}` })) return;
   if (typeof window.fbq === "function") {
     window.fbq("track", name, params, { eventID });
@@ -134,7 +140,8 @@ function sendCapi(name: string, params: EventParams, eventID: string) {
   const body = {
     event_name: name,
     event_id: eventID,
-    event_source_url: window.location.href,
+    // Origin + safe path only: never the query string or a token path.
+    event_source_url: `${window.location.origin}${safeTrackingPath(window.location.pathname)}`,
     custom_data: params,
     fbp: readCookie("_fbp"),
     fbc: readCookie("_fbc") ?? storedFbc,
@@ -169,7 +176,7 @@ export function flushPendingPixelEvents() {
 
 function sendTikTok(name: string, params: EventParams, dedupe: Dedupe | null) {
   // Only claim when TikTok is actually loaded, so a missing tag doesn't use up the dedupe mark.
-  if (typeof window === "undefined" || isInternalBrowser() || typeof window.ttq?.track !== "function") return;
+  if (typeof window === "undefined" || isInternalBrowser() || onPrivateRoute() || typeof window.ttq?.track !== "function") return;
   if (dedupe && !claim({ ...dedupe, key: `tiktok:${dedupe.key}` })) return;
   try {
     window.ttq.track(name, params);
@@ -180,7 +187,7 @@ function sendTikTok(name: string, params: EventParams, dedupe: Dedupe | null) {
 
 /** GA4 is analytics, not ad optimisation: every occurrence is sent and GA reports users itself. */
 function sendGa(name: string, params: EventParams) {
-  if (typeof window === "undefined" || isInternalBrowser() || typeof window.gtag !== "function") return;
+  if (typeof window === "undefined" || isInternalBrowser() || onPrivateRoute() || typeof window.gtag !== "function") return;
   window.gtag("event", name, params);
 }
 
@@ -196,7 +203,8 @@ const VISITOR_KEY = "musafar_vid";
 const SESSION_KEY = "musafar_sid";
 const SESSION_ATTR_KEY = "musafar_sattr";
 
-// Internal/tooling pages are not traffic.
+// Internal/tooling pages are not traffic. (/lengkapi and /cek-status are recorded, but only
+// under their route pattern: see safeTrackingPath.)
 const UNTRACKED_PATHS = /^\/(admin|agent|jamaah|flyer-print|auth)(\/|$)/;
 
 const randomId = () =>
@@ -275,7 +283,7 @@ function logSiteEvent(event: SiteEvent, extra: { packageId?: string; leadSource?
     visitor_id: storedId(window.localStorage, VISITOR_KEY, memVisitor),
     session_id: storedId(window.sessionStorage, SESSION_KEY, memSession),
     event,
-    path: path.slice(0, 300),
+    path: safeTrackingPath(path).slice(0, 300),
     package_id: extra.packageId && UUID_RE.test(extra.packageId) ? extra.packageId : null,
     lead_source: extra.leadSource?.slice(0, 60) ?? null,
     utm_source: attr.utm_source ?? null,
@@ -349,7 +357,7 @@ export function trackMetaPageView() {
 
 /** TikTok pixel just loaded on this page load. */
 export function trackTikTokPageView() {
-  if (typeof window === "undefined" || isInternalBrowser() || typeof window.ttq?.page !== "function") return;
+  if (typeof window === "undefined" || isInternalBrowser() || onPrivateRoute() || typeof window.ttq?.page !== "function") return;
   try {
     window.ttq.page();
   } catch {
@@ -387,7 +395,7 @@ export function trackLead(source: string, pkg?: TrackedPackage, eventID?: string
     content_name: pkg?.name ?? source,
     content_category: source === "umroh_calculator" ? "calculator" : "whatsapp",
     lead_source: source,
-    page_path: typeof window !== "undefined" ? window.location.pathname : undefined,
+    page_path: typeof window !== "undefined" ? safeTrackingPath(window.location.pathname) : undefined,
     ...(pkg ? { content_ids: [pkg.id], content_type: "product" } : {}),
     ...(pkg?.value ? { value: pkg.value, currency: "IDR" } : {}),
   };

@@ -50,7 +50,7 @@ const Profile = () => {
 
       toast({
         title: "Password berhasil diubah!",
-        description: "Password baru Anda telah disimpan.",
+        description: "Password barumu sudah disimpan.",
       });
 
       setNewPassword("");
@@ -84,7 +84,7 @@ const Profile = () => {
       if (error) throw error;
       toast({
         title: "Profil berhasil diperbarui!",
-        description: "Nama Anda telah disimpan.",
+        description: "Namamu sudah disimpan.",
       });
     } catch (error: any) {
       toast({
@@ -110,7 +110,7 @@ const Profile = () => {
 
       toast({
         title: "Email terkirim!",
-        description: "Cek email Anda untuk link reset password.",
+        description: "Cek emailmu untuk link atur ulang password.",
       });
     } catch (error: any) {
       toast({
@@ -127,7 +127,7 @@ const Profile = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Profil Admin</h1>
-        <p className="text-muted-foreground">Kelola informasi akun Anda</p>
+        <p className="text-muted-foreground">Kelola informasi akunmu</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -138,7 +138,7 @@ const Profile = () => {
               <User className="h-5 w-5" />
               Informasi Akun
             </CardTitle>
-            <CardDescription>Detail akun Anda saat ini</CardDescription>
+            <CardDescription>Detail akunmu saat ini</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <form onSubmit={handleUpdateProfile} className="space-y-5">
@@ -148,7 +148,7 @@ const Profile = () => {
                   id="fullName"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Masukkan nama Anda"
+                  placeholder="Masukkan namamu"
                   className="max-w-md"
                 />
               </div>
@@ -170,7 +170,7 @@ const Profile = () => {
                     </button>
                   ))}
                 </div>
-                <p className="text-[11px] text-slate-500">Emoji ini akan ditampilkan sebagai ikon profil Anda di sidebar.</p>
+                <p className="text-[11px] text-slate-500">Emoji ini akan ditampilkan sebagai ikon profilmu di sidebar.</p>
               </div>
 
               <Button type="submit" disabled={profileLoading} className="w-full max-w-md">
@@ -278,7 +278,7 @@ const Profile = () => {
 
             <div className="mt-4 pt-4 border-t">
               <p className="text-sm text-muted-foreground mb-2">
-                Atau kirim link reset password ke email Anda:
+                Atau kirim link atur ulang password ke emailmu:
               </p>
               <Button
                 variant="outline"
@@ -287,7 +287,7 @@ const Profile = () => {
                 disabled={loading}
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Kirim Link Reset via Email
+                Kirim link atur ulang lewat email
               </Button>
             </div>
           </CardContent>

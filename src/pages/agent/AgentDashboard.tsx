@@ -1,9 +1,8 @@
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Award, Clock, Copy, MessageCircle, Share2, Sparkles, Target, Trophy, UserPlus, Users, Wallet } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
+import { useAgentLeaderboard } from "@/hooks/useAgentLeaderboard";
 import { AGENT_STATE_CLASS, AGENT_STATE_LABEL, byUrgency, deadlineText, needsPayment, useAgentIntakes, useAgentJamaah } from "@/hooks/useAgentJamaah";
 import { AgentStatCard } from "@/components/agent/AgentStatCard";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
@@ -24,16 +23,14 @@ const AgentDashboard = () => {
   const jamaah = useAgentJamaah(!!agent?.id);
   const intakes = useAgentIntakes(!!agent?.id);
 
-  const { data: leaderboard, isLoading: leaderboardLoading } = useQuery({
-    queryKey: ["agent-leaderboard", agent?.id],
-    enabled: !!agent?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("agents").select("id, total_sales").eq("status", "active").order("total_sales", { ascending: false });
-      if (error) throw error;
-      const rank = data?.findIndex((a) => a.id === agent!.id) ?? -1;
-      return { rank: rank >= 0 ? rank + 1 : null, totalAgents: data?.length ?? 0 };
-    },
-  });
+  // Rank among the active agents, from the same function as the Peringkat page (an agent can only read their own agents row).
+  const ranking = useAgentLeaderboard(!!agent?.id);
+  const leaderboardLoading = ranking.isLoading;
+  const leaderboard = (() => {
+    if (!ranking.data || !agent) return undefined;
+    const rank = ranking.data.findIndex((a) => a.id === agent.id);
+    return { rank: rank >= 0 ? rank + 1 : null, totalAgents: ranking.data.length };
+  })();
 
   if (!agent) {
     return (

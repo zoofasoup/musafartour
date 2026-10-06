@@ -39,13 +39,12 @@ const Index = () => {
     },
   });
 
-  const minPrice = packages?.length
-    ? Math.min(...packages.map(p => getTierPrice(p).quad).filter((q) => q > 0))
-    : 20000000;
-  const maxPrice = packages?.length
-    ? Math.max(...packages.map(p => getTierPrice(p).double).filter((q) => q > 0)) // Double is usually highest
-    : 60000000;
-    
+  // Price range only from real packages: with none loaded there is nothing honest to publish.
+  const quads = (packages ?? []).map((p) => getTierPrice(p).quad).filter((q) => q > 0);
+  const doubles = (packages ?? []).map((p) => getTierPrice(p).double).filter((q) => q > 0);
+  const minPrice = quads.length ? Math.min(...quads) : 0;
+  const maxPrice = doubles.length ? Math.max(...doubles) : 0; // Double is usually highest
+
   const fmtShort = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
 
   // Dynamic structured data from settings
@@ -76,14 +75,14 @@ const Index = () => {
       websiteSettings?.youtube_url,
       `https://wa.me/${websiteSettings?.whatsapp_number || "6281917403797"}`,
     ].filter(Boolean),
-    priceRange: `${fmtShort(minPrice)} - ${fmtShort(maxPrice)}`,
+    ...(minPrice > 0 && maxPrice >= minPrice ? { priceRange: `${fmtShort(minPrice)} - ${fmtShort(maxPrice)}` } : {}),
   };
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <SEO
         title={pageSEO?.meta_title || "Musafar Tour - Paket Umroh & Haji Terpercaya 2026"}
-        description={pageSEO?.meta_description || "Paket umroh hemat hingga five star dengan pelayanan terbaik. Katering Indonesia, pembimbing berpengalaman, berizin resmi Kemenag. Daftar sekarang!"}
+        description={pageSEO?.meta_description || "Paket umroh dari PT Musa Amanah Wisata, berizin resmi PPIU Kemenag. Lihat jadwal, harga, dan hotel tiap paket. DP Rp 5 juta, cicilan bebas, lunas H-30."}
         keywords={pageSEO?.focus_keyword || "paket umroh, travel umroh terpercaya, umroh 2026, haji khusus, wisata halal"}
         canonicalUrl={pageSEO?.canonical_url || "https://musafartour.com/"}
         ogImage={pageSEO?.og_image}

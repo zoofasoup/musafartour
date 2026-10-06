@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -34,6 +34,8 @@ export function ConfirmDialog({
   confirmText?: string;
 }) {
   const [typed, setTyped] = useState("");
+  // Clear what was typed whenever the dialog closes, also when the parent closes it after a successful action.
+  useEffect(() => { if (!open) setTyped(""); }, [open]);
   const ready = !confirmText || norm(typed) === norm(confirmText);
   return (
     <Dialog open={open} onOpenChange={(o) => !busy && (setTyped(""), onOpenChange(o))}>

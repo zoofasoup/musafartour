@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,9 @@ import { getSlotsTaken } from "@/lib/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
+import { getAdminHomePath } from "@/components/admin/adminMenu";
 
-const AdminDashboard = () => {
+const OwnerDashboard = () => {
   const navigate = useNavigate();
   const { user, loading, isAdmin } = useAuth();
   const [migrating, setMigrating] = useState(false);
@@ -103,18 +104,8 @@ const AdminDashboard = () => {
     );
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription>Anda tidak memiliki akses admin</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
+  // Defensive: AdminDashboard only renders this for owners; never show a dead end.
+  if (!isAdmin) return <Navigate to="/admin/profile" replace />;
 
   const stats = [
     {
@@ -133,7 +124,7 @@ const AdminDashboard = () => {
       title: "Artikel",
       value: articlesCount?.toString() || "0",
       icon: FileText,
-      description: "Artikel published",
+      description: "Artikel terbit",
     },
     {
       title: "Klik WhatsApp",
@@ -180,12 +171,12 @@ const AdminDashboard = () => {
     try {
       const { data, error } = await supabase.functions.invoke('migrate-package-slugs');
       if (error) throw error;
-      toast.success(`Berhasil! ${data.updated} paket diupdate`, {
+      toast.success(`Berhasil! ${data.updated} paket diperbarui`, {
         description: `Total: ${data.total}, Gagal: ${data.failed}`
       });
     } catch (error: any) {
       console.error('Migration error:', error);
-      toast.error('Gagal migrasi slug: ' + (error.message || 'Unknown error'));
+      toast.error('Gagal migrasi slug: ' + (error.message || 'Galat tidak dikenal'));
     } finally {
       setMigrating(false);
     }
@@ -195,7 +186,7 @@ const AdminDashboard = () => {
     <div className="space-y-8 max-w-7xl mx-auto pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dasbor</h1>
           <p className="text-muted-foreground mt-1">Pusat komando Admin Musafar Tour.</p>
         </div>
       </div>
@@ -253,7 +244,7 @@ const AdminDashboard = () => {
                   <Calendar className="w-5 h-5 text-primary" />
                   Keberangkatan Terdekat
                 </CardTitle>
-                <CardDescription>Pantau sisa kuota (seat) secara real-time</CardDescription>
+                <CardDescription>Pantau sisa seat secara langsung</CardDescription>
               </div>
               <Button variant="ghost" size="sm" onClick={() => navigate('/admin/jadwal')} className="text-primary hover:text-primary/80">
                 Lihat Semua <ArrowRight className="w-4 h-4 ml-1" />
@@ -362,7 +353,7 @@ const AdminDashboard = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-colors group">
-                <h3 className="text-sm font-semibold text-slate-800">Update Slug Paket</h3>
+                <h3 className="text-sm font-semibold text-slate-800">Perbarui slug paket</h3>
                 <p className="text-xs text-slate-500 mb-4 mt-1 line-clamp-2">
                   Migrasi semua slug paket ke format baru secara massal.
                 </p>
@@ -416,7 +407,7 @@ const AdminDashboard = () => {
                   <div className="w-2 h-2 rounded-full bg-slate-300"></div>
                   <span className="text-sm font-medium text-slate-700">Meta Ads Integration</span>
                 </div>
-                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-md font-medium">Inactive</span>
+                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-md font-medium">Nonaktif</span>
               </div>
             </div>
           </CardContent>
@@ -424,6 +415,25 @@ const AdminDashboard = () => {
       </div>
     </div>
   );
+};
+
+/**
+ * /admin index. Owners (admin, superadmin) get the dashboard; every other staff role is
+ * sent to its first allowed page (see getAdminHomePath), so nobody lands on a dead end.
+ */
+const AdminDashboard = () => {
+  const { loading, userRole } = useAuth();
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  if (userRole && userRole !== "admin" && userRole !== "superadmin") {
+    return <Navigate to={getAdminHomePath(userRole) ?? "/admin/profile"} replace />;
+  }
+  return <OwnerDashboard />;
 };
 
 export default AdminDashboard;

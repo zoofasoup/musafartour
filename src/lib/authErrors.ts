@@ -15,10 +15,10 @@ export function translateAuthError(error: unknown): string {
     return "Email atau password salah. Periksa lagi, atau pakai \"Lupa password?\".";
   }
   if (m.includes("email not confirmed") || code === "email_not_confirmed") {
-    return "Email belum dikonfirmasi. Cek kotak masuk atau folder spam Anda.";
+    return "Email belum dikonfirmasi. Cek kotak masuk atau folder spam kamu.";
   }
   if (m.includes("already registered") || m.includes("already been registered") || code === "user_already_exists") {
-    return "Email ini sudah terdaftar. Silakan masuk, atau pakai \"Lupa password?\" jika Anda lupa passwordnya.";
+    return "Email ini sudah terdaftar. Silakan masuk, atau pakai \"Lupa password?\" jika kamu lupa passwordnya.";
   }
   if (
     status === 429 ||
@@ -37,7 +37,7 @@ export function translateAuthError(error: unknown): string {
     return "Password baru harus berbeda dari password sebelumnya.";
   }
   if (m.includes("failed to fetch") || m.includes("networkerror") || m.includes("network request failed") || m.includes("load failed")) {
-    return "Tidak bisa terhubung ke server. Periksa koneksi internet Anda, lalu coba lagi.";
+    return "Tidak bisa terhubung ke server. Periksa koneksi internet kamu, lalu coba lagi.";
   }
   if (m.includes("signups not allowed") || code === "signup_disabled") {
     return "Pendaftaran sedang ditutup. Hubungi admin.";

@@ -333,7 +333,7 @@ export const AddHotelModal = ({ open, onOpenChange, location, onSuccess }: AddHo
                         <label className="flex-1 cursor-pointer">
                           <div className="flex items-center justify-center gap-1 h-16 border-2 border-dashed rounded-lg hover:bg-muted/50 transition-colors">
                             <Upload className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-xs text-muted-foreground">Upload</span>
+                            <span className="text-xs text-muted-foreground">Unggah</span>
                           </div>
                           <input
                             type="file"

@@ -305,7 +305,7 @@ const HotelForm = () => {
                   className="pointer-events-none"
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  Upload
+                  Unggah
                 </Button>
                 <input
                   type="file"
@@ -333,7 +333,7 @@ const HotelForm = () => {
   );
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>Memuat...</div>;
   }
 
   return (
@@ -344,7 +344,7 @@ const HotelForm = () => {
         </Button>
         <div>
           <h1 className="text-3xl font-bold">
-            {id ? "Edit Hotel" : "Tambah Hotel Baru"}
+            {id ? "Ubah hotel" : "Tambah hotel baru"}
           </h1>
           <p className="text-muted-foreground">
             {id ? "Perbarui informasi hotel" : "Tambahkan hotel baru ke database"}

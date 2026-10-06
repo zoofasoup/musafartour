@@ -4,14 +4,12 @@ import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Eye, EyeOff, Loader2, LogIn, UserPlus } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2, LogIn, UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import { Toaster } from "sonner";
-import musafarLogo from "@/assets/musafar-logo.svg";
 import { AuthLayout } from "@/components/layout/AuthLayout";
+import { ResendConfirmation } from "@/components/agent/ResendConfirmation";
 
 const AgentLogin = () => {
   const navigate = useNavigate();
@@ -23,6 +21,19 @@ const AgentLogin = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  // The confirmation email is the first dead end of the journey: show a way out, not just a message.
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
+  const [linkExpired, setLinkExpired] = useState(false);
+
+  // Supabase sends an expired or already used confirmation link back here with #error_code=otp_expired.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const code = params.get("error_code");
+    if (code === "otp_expired" || (params.get("error") === "access_denied" && code)) {
+      setLinkExpired(true);
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  }, []);
 
   // Handle redirect after Google OAuth
   useEffect(() => {
@@ -39,6 +50,7 @@ const AgentLogin = () => {
       return;
     }
 
+    setUnconfirmedEmail(null);
     setLoading(true);
     const result = await signIn(email, password);
     setLoading(false);
@@ -46,6 +58,8 @@ const AgentLogin = () => {
     if (result.success) {
       toast.success("Login berhasil!");
       navigate("/agent/dashboard");
+    } else if (result.needsEmailConfirmation) {
+      setUnconfirmedEmail(email.trim());
     } else {
       toast.error(result.error || "Login gagal");
     }
@@ -65,8 +79,30 @@ const AgentLogin = () => {
   return (
     <AuthLayout
       title="Login Agent"
-      subtitle="Masukkan email dan password untuk melanjutkan ke dasbor Anda."
+      subtitle="Masukkan email dan password untuk melanjutkan ke dasbor kamu."
     >
+      {linkExpired && !unconfirmedEmail && (
+        <div role="alert" className="mb-6 rounded-lg border border-status-warn-border bg-status-warn-bg p-4 text-status-warn-fg">
+          <p className="flex items-start gap-2 text-sm font-semibold">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            Tautan konfirmasi sudah kedaluwarsa atau sudah pernah dipakai.
+          </p>
+          <p className="mt-1 text-sm">Kalau akunmu sudah aktif, langsung masuk di bawah. Kalau belum, minta email konfirmasi baru.</p>
+          <ResendConfirmation className="mt-3 rounded-md bg-card p-3 text-foreground" />
+        </div>
+      )}
+
+      {unconfirmedEmail && (
+        <div role="alert" className="mb-6 rounded-lg border border-status-warn-border bg-status-warn-bg p-4 text-status-warn-fg">
+          <p className="flex items-start gap-2 text-sm font-semibold">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            Email {unconfirmedEmail} belum dikonfirmasi.
+          </p>
+          <p className="mt-1 text-sm">Buka email konfirmasi yang kami kirim saat kamu mendaftar, lalu klik tautannya. Belum ada atau tautannya mati? Kirim ulang di bawah.</p>
+          <ResendConfirmation email={unconfirmedEmail} className="mt-3 rounded-md bg-card p-3 text-foreground" />
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
               <div className="space-y-2">
@@ -79,6 +115,7 @@ const AgentLogin = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
                   autoComplete="email"
+                  inputMode="email"
                 />
               </div>
 
@@ -100,6 +137,8 @@ const AgentLogin = () => {
                     size="icon"
                     className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                    aria-pressed={showPassword}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4 text-muted-foreground" />

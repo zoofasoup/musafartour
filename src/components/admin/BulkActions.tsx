@@ -77,7 +77,7 @@ export const BulkActions = ({
           <Checkbox
             checked={allSelected}
             onCheckedChange={(checked) => onSelectAll(!!checked)}
-            aria-label="Select all"
+            aria-label="Pilih semua"
           />
           <span className="text-sm text-muted-foreground">
             {hasSelection ? (
@@ -94,7 +94,7 @@ export const BulkActions = ({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" disabled={isLoading || actionLoading}>
-                Bulk Actions
+                Aksi massal
                 <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -133,7 +133,7 @@ export const BulkActions = ({
               disabled={actionLoading}
               className={confirmAction?.variant === "destructive" ? "bg-destructive hover:bg-destructive/90" : ""}
             >
-              {actionLoading ? "Loading..." : "Ya, Lanjutkan"}
+              {actionLoading ? "Memproses..." : "Ya, lanjutkan"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -178,44 +178,44 @@ export const useBulkSelection = <T extends { id: string }>(items: T[]) => {
 export const commonBulkActions = {
   delete: {
     id: "delete",
-    label: "Hapus Semua",
+    label: "Hapus semua",
     icon: <Trash2 className="h-4 w-4" />,
     variant: "destructive" as const,
-    confirmMessage: "Apakah Anda yakin ingin menghapus {count} item? Tindakan ini tidak dapat dibatalkan.",
+    confirmMessage: "Hapus {count} item? Tindakan ini tidak bisa dibatalkan.",
   },
   publish: {
     id: "publish",
-    label: "Publish Semua",
+    label: "Terbitkan semua",
     icon: <Eye className="h-4 w-4" />,
-    confirmMessage: "Publish {count} item yang dipilih?",
+    confirmMessage: "Terbitkan {count} item yang dipilih?",
   },
   unpublish: {
     id: "unpublish",
-    label: "Unpublish Semua",
+    label: "Tarik semua dari terbit",
     icon: <EyeOff className="h-4 w-4" />,
-    confirmMessage: "Unpublish {count} item yang dipilih?",
+    confirmMessage: "Tarik {count} item yang dipilih dari terbit?",
   },
   draft: {
     id: "draft",
-    label: "Jadikan Draft",
+    label: "Jadikan draf",
     icon: <EyeOff className="h-4 w-4" />,
-    confirmMessage: "Jadikan {count} item yang dipilih sebagai draft?",
+    confirmMessage: "Jadikan {count} item yang dipilih sebagai draf?",
   },
   activate: {
     id: "activate",
-    label: "Aktifkan Semua",
+    label: "Aktifkan semua",
     icon: <Eye className="h-4 w-4" />,
     confirmMessage: "Aktifkan {count} item yang dipilih?",
   },
   deactivate: {
     id: "deactivate",
-    label: "Nonaktifkan Semua",
+    label: "Nonaktifkan semua",
     icon: <EyeOff className="h-4 w-4" />,
     confirmMessage: "Nonaktifkan {count} item yang dipilih?",
   },
   export: {
     id: "export",
-    label: "Export CSV",
+    label: "Ekspor CSV",
     icon: <Download className="h-4 w-4" />,
   },
   markSoldOut: {

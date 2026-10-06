@@ -373,10 +373,10 @@ export default function Jamaah() {
                 <Link2 className="h-4 w-4" /> Salin link pendaftaran
               </Button>
               <Button type="button" variant="outline" size="sm" className="gap-1 [@media(pointer:coarse)]:h-11" onClick={() => setImportOpen(true)}>
-                <FileSpreadsheet className="h-4 w-4" /> Import dari Sheet
+                <FileSpreadsheet className="h-4 w-4" /> Impor dari Sheet
               </Button>
               <Button type="button" variant="outline" size="sm" className="gap-1 [@media(pointer:coarse)]:h-11" onClick={() => setImportAllOpen(true)}>
-                <FileSpreadsheet className="h-4 w-4" /> Import semua tab
+                <FileSpreadsheet className="h-4 w-4" /> Impor semua tab
               </Button>
               <Button
                 type="button"
@@ -388,7 +388,7 @@ export default function Jamaah() {
                   exportJamaahWorkbook({ packageName: pkg.package_name, departureDate: pkg.departure_date, registrations, payments, groups, agents })
                 }
               >
-                <Download className="h-4 w-4" /> Export Excel
+                <Download className="h-4 w-4" /> Ekspor Excel
               </Button>
               <Button type="button" variant="outline" size="sm" className="gap-1 [@media(pointer:coarse)]:h-11" disabled={!active.length} onClick={() => openPay(null)}>
                 <CreditCard className="h-4 w-4" /> Catat Pembayaran
@@ -433,7 +433,7 @@ export default function Jamaah() {
                       {registrations.length ? "Tidak ada jamaah yang cocok dengan filter." : (
                         <span className="inline-flex flex-col items-center gap-2">
                           <Users className="h-6 w-6" />
-                          Belum ada jamaah di paket ini. Tambah satu per satu, atau import dari Google Sheet.
+                          Belum ada jamaah di paket ini. Tambah satu per satu, atau impor dari Google Sheet.
                         </span>
                       )}
                     </TableCell>
@@ -559,7 +559,7 @@ export default function Jamaah() {
             items={cardItems}
             family={familySummary}
             loading={isLoading}
-            emptyText={registrations.length ? "Tidak ada jamaah yang cocok dengan filter." : "Belum ada jamaah di paket ini. Tambah satu per satu, atau import dari Google Sheet."}
+            emptyText={registrations.length ? "Tidak ada jamaah yang cocok dengan filter." : "Belum ada jamaah di paket ini. Tambah satu per satu, atau impor dari Google Sheet."}
             onOpen={(id) => setDetail(registrations.find((x) => x.id === id) ?? null)}
             onPay={openPay}
             onEquipment={(id, taken) => {

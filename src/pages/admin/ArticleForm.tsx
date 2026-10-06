@@ -145,7 +145,7 @@ const ArticleForm = () => {
       setImagePreview(publicUrl);
       toast.success("Gambar berhasil diupload dan dioptimasi");
     } catch (error: any) {
-      toast.error("Gagal upload gambar: " + error.message);
+      toast.error("Gagal mengunggah gambar: " + error.message);
     } finally {
       setUploading(false);
     }
@@ -171,7 +171,7 @@ const ArticleForm = () => {
           .eq("id", id);
 
         if (error) throw error;
-        toast.success("Artikel berhasil diupdate");
+        toast.success("Artikel berhasil diperbarui");
       } else {
         const { error } = await supabase
           .from("articles")
@@ -204,7 +204,7 @@ const ArticleForm = () => {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">{id ? "Edit Artikel" : "Tambah Artikel"}</h1>
+          <h1 className="text-3xl font-bold">{id ? "Ubah artikel" : "Tambah artikel"}</h1>
           <p className="text-muted-foreground">Tulis artikel untuk blog</p>
         </div>
       </div>
@@ -286,14 +286,14 @@ const ArticleForm = () => {
                 name="featured_image"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Header Image</FormLabel>
+                    <FormLabel>Gambar utama</FormLabel>
                     <FormControl>
                       <div className="space-y-4">
                         {imagePreview ? (
                           <div className="relative">
                             <img
                               src={imagePreview}
-                              alt="Preview"
+                              alt="Pratinjau"
                               className="w-full h-64 object-cover rounded-lg"
                             />
                             <Button
@@ -311,7 +311,7 @@ const ArticleForm = () => {
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
                               <Upload className="h-10 w-10 mb-3 text-muted-foreground" />
                               <p className="mb-2 text-sm text-muted-foreground">
-                                <span className="font-semibold">Click to upload</span> atau drag and drop
+                                <span className="font-semibold">Klik untuk unggah</span> atau seret file ke sini
                               </p>
                               <p className="text-xs text-muted-foreground">PNG, JPG, WEBP (MAX. 5MB)</p>
                             </div>
@@ -381,7 +381,7 @@ const ArticleForm = () => {
                 name="meta_title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Meta Title</FormLabel>
+                    <FormLabel>Judul meta</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="Judul untuk SEO (60 karakter)" />
                     </FormControl>
@@ -395,7 +395,7 @@ const ArticleForm = () => {
                 name="meta_description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Meta Description</FormLabel>
+                    <FormLabel>Deskripsi meta</FormLabel>
                     <FormControl>
                       <Textarea {...field} placeholder="Deskripsi untuk SEO (160 karakter)" rows={3} />
                     </FormControl>
@@ -424,8 +424,8 @@ const ArticleForm = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="published">Published</SelectItem>
+                        <SelectItem value="draft">Draf</SelectItem>
+                        <SelectItem value="published">Terbit</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

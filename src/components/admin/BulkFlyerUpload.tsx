@@ -91,7 +91,7 @@ export function BulkFlyerUpload({ open, onOpenChange, packages, onSuccess }: Pro
     <Dialog open={open} onOpenChange={o => !running && onOpenChange(o)}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Upload flyer massal</DialogTitle>
+          <DialogTitle>Unggah flyer massal</DialogTitle>
           <DialogDescription>
             Pilih semua file PNG flyer. Setiap file dicocokkan ke paket lewat tanggal, durasi, tier, dan maskapai di nama file.
             Flyer lama pada paket yang dicentang akan diganti.

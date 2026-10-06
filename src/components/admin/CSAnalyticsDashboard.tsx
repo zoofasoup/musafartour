@@ -198,7 +198,7 @@ const CSAnalyticsDashboard = () => {
     const campaigns: Record<string, { clicks: number; conversions: number }> = {};
     
     clicks.forEach(click => {
-      const campaign = click.utm_campaign || 'Direct';
+      const campaign = click.utm_campaign || 'Langsung';
       if (!campaigns[campaign]) {
         campaigns[campaign] = { clicks: 0, conversions: 0 };
       }
@@ -208,7 +208,7 @@ const CSAnalyticsDashboard = () => {
     conversions.forEach(conv => {
       // Find the associated click
       const click = clicks.find(c => c.id === conv.click_id);
-      const campaign = click?.utm_campaign || 'Direct';
+      const campaign = click?.utm_campaign || 'Langsung';
       if (campaigns[campaign]) {
         campaigns[campaign].conversions++;
       }
@@ -253,7 +253,7 @@ const CSAnalyticsDashboard = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold">Analytics Dashboard</h2>
+          <h2 className="text-xl font-bold">Dasbor Analitik</h2>
           <p className="text-muted-foreground">
             Analisis performa CS dan tracking konversi
           </p>
@@ -315,7 +315,7 @@ const CSAnalyticsDashboard = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold">{overallConversionRate.toFixed(1)}%</p>
-                <p className="text-sm text-muted-foreground">Conversion Rate</p>
+                <p className="text-sm text-muted-foreground">Tingkat konversi</p>
               </div>
             </div>
           </CardContent>
@@ -338,7 +338,7 @@ const CSAnalyticsDashboard = () => {
 
       <Tabs defaultValue="trend" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="trend">Trend Harian</TabsTrigger>
+          <TabsTrigger value="trend">Tren harian</TabsTrigger>
           <TabsTrigger value="cs-performance">Performa CS</TabsTrigger>
           <TabsTrigger value="campaigns">Kampanye</TabsTrigger>
         </TabsList>
@@ -347,7 +347,7 @@ const CSAnalyticsDashboard = () => {
         <TabsContent value="trend" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Trend Klik & Konversi</CardTitle>
+              <CardTitle>Tren klik dan konversi</CardTitle>
               <CardDescription>
                 Grafik klik dan konversi per hari dalam {dateRangeMap[dateRange]} hari terakhir
               </CardDescription>
@@ -464,11 +464,11 @@ const CSAnalyticsDashboard = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>CS</TableHead>
-                    <TableHead className="text-right">Weight</TableHead>
+                    <TableHead className="text-right">Bobot</TableHead>
                     <TableHead className="text-right">Klik</TableHead>
                     <TableHead className="text-right">Konversi</TableHead>
-                    <TableHead className="text-right">Conv. Rate</TableHead>
-                    <TableHead className="text-right">Trend</TableHead>
+                    <TableHead className="text-right">Tingkat konversi</TableHead>
+                    <TableHead className="text-right">Tren</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -546,7 +546,7 @@ const CSAnalyticsDashboard = () => {
                         <TableHead>Kampanye</TableHead>
                         <TableHead className="text-right">Klik</TableHead>
                         <TableHead className="text-right">Konversi</TableHead>
-                        <TableHead className="text-right">Conv. Rate</TableHead>
+                        <TableHead className="text-right">Tingkat konversi</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

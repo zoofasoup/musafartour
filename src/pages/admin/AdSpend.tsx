@@ -87,7 +87,7 @@ export default function AdSpend() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Spend dicatat");
+      toast.success("Biaya iklan dicatat");
       qc.invalidateQueries({ queryKey: ["campaign-spend"] });
       setCampaignName("");
       setAmount("");
@@ -143,7 +143,7 @@ export default function AdSpend() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-black tracking-tight">Ad Spend & Performance</h1>
+        <h1 className="text-3xl font-black tracking-tight">Biaya Iklan dan Performa</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Catat pengeluaran iklan per campaign supaya cost-per-conversion terlihat di sini, tanpa perlu bolak-balik ke Ads Manager.
         </p>
@@ -151,7 +151,7 @@ export default function AdSpend() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Log Spend</CardTitle>
+          <CardTitle>Catat biaya iklan</CardTitle>
           <CardDescription>Nama campaign harus sama persis dengan utm_campaign yang dipakai di iklan supaya bisa dicocokkan dengan data konversi.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -172,7 +172,7 @@ export default function AdSpend() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Spend (Rp)</Label>
+              <Label>Biaya iklan (Rp)</Label>
               <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="1000000" />
             </div>
             <div className="space-y-1.5">
@@ -193,7 +193,7 @@ export default function AdSpend() {
             onClick={() => addSpend.mutate()}
             disabled={addSpend.isPending || !campaignName.trim() || !amount || !periodStart || !periodEnd}
           >
-            {addSpend.isPending ? "Menyimpan..." : "Simpan Spend"}
+            {addSpend.isPending ? "Menyimpan..." : "Simpan biaya"}
           </Button>
         </CardContent>
       </Card>
@@ -209,7 +209,7 @@ export default function AdSpend() {
                 <thead className="border-b text-xs uppercase text-muted-foreground tracking-wider">
                   <tr>
                     <th className="text-left py-2">Campaign</th>
-                    <th className="text-right py-2">Total Spend</th>
+                    <th className="text-right py-2">Total biaya</th>
                     <th className="text-right py-2">Konversi</th>
                     <th className="text-right py-2">CPA</th>
                   </tr>
@@ -231,7 +231,7 @@ export default function AdSpend() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Riwayat Spend · {spendRows.length}</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Riwayat biaya iklan · {spendRows.length}</CardTitle></CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="py-8 space-y-3">
@@ -248,7 +248,7 @@ export default function AdSpend() {
                     <th className="text-left py-2">Periode</th>
                     <th className="text-left py-2">Campaign</th>
                     <th className="text-left py-2">Platform</th>
-                    <th className="text-right py-2">Spend</th>
+                    <th className="text-right py-2">Biaya</th>
                     <th className="text-right py-2">Aksi</th>
                   </tr>
                 </thead>
@@ -260,7 +260,7 @@ export default function AdSpend() {
                       <td className="py-3 text-xs">{PLATFORM_LABELS[row.platform] || row.platform}</td>
                       <td className="py-3 text-right">{formatCurrency(row.amount)}</td>
                       <td className="py-3 text-right">
-                        <Button size="icon" variant="ghost" onClick={() => deleteSpend.mutate(row.id)}>
+                        <Button size="icon" variant="ghost" aria-label="Hapus catatan" onClick={() => deleteSpend.mutate(row.id)}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </td>

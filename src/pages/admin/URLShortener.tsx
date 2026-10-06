@@ -210,12 +210,12 @@ const URLShortener = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-short-links'] });
-      toast.success('Link berhasil diupdate');
+      toast.success('Link berhasil diperbarui');
       setIsEditDialogOpen(false);
       setSelectedLink(null);
     },
     onError: () => {
-      toast.error('Gagal mengupdate link');
+      toast.error('Gagal memperbarui link');
     },
   });
 
@@ -346,7 +346,7 @@ const URLShortener = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">URL Shortener</h1>
+          <h1 className="text-2xl font-bold">Pemendek Link</h1>
           <p className="text-muted-foreground">
             Buat link pendek untuk broadcast follow-up
           </p>
@@ -530,7 +530,7 @@ const URLShortener = () => {
                               }}
                             >
                               <QrCode className="w-4 h-4 mr-2" />
-                              Download QR
+                              Unduh QR
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => openAnalyticsDialog(link)}>
                               <BarChart2 className="w-4 h-4 mr-2" />
@@ -538,7 +538,7 @@ const URLShortener = () => {
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => openEditDialog(link)}>
                               <Edit className="w-4 h-4 mr-2" />
-                              Edit
+                              Ubah
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => openDeleteDialog(link)}
@@ -654,7 +654,7 @@ const URLShortener = () => {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Link</DialogTitle>
+            <DialogTitle>Ubah link</DialogTitle>
             <DialogDescription>
               Edit detail link pendek
             </DialogDescription>

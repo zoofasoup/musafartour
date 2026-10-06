@@ -228,6 +228,9 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, onS
             <MessageCircle className="h-5 w-5" aria-hidden /> Chat CS sekarang
           </a>
         </Button>
+        <p className="mt-4 text-sm text-muted-foreground">
+          Mau lihat sudah sampai mana? <a href="/cek-status" className="font-semibold text-foreground underline underline-offset-4">Cek status pendaftaran</a> dengan kode di atas dan nomor WhatsAppmu. Cara transfer ada di <a href="/cara-bayar" className="font-semibold text-foreground underline underline-offset-4">Cara bayar</a>.
+        </p>
       </div>
     );
   }

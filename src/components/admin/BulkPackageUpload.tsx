@@ -824,7 +824,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
   const handleImport = async () => {
     const validRows = parsedData.filter((row) => row.errors.length === 0 && selectedRowIndices.has(row.rowIndex));
     if (validRows.length === 0) {
-      toast.error("Tidak ada data valid yang dipilih untuk diimport");
+      toast.error("Tidak ada data valid yang dipilih untuk diimpor");
       return;
     }
 
@@ -903,10 +903,10 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5" />
-            Import Paket dari Excel
+            Impor paket dari Excel
           </DialogTitle>
           <DialogDescription>
-            Upload file Excel (.xlsx) untuk menambahkan atau memperbarui paket secara massal. Sistem akan mencocokkan nama maskapai dan hotel secara otomatis.
+            Unggah file Excel (.xlsx) untuk menambahkan atau memperbarui paket secara massal. Sistem akan mencocokkan nama maskapai dan hotel secara otomatis.
           </DialogDescription>
         </DialogHeader>
 
@@ -914,7 +914,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
           <div className="flex flex-col items-center gap-6 py-8">
             <div className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-12 text-center w-full hover:border-primary/50 transition-colors">
               <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-lg font-medium mb-1">Drop file Excel di sini</p>
+              <p className="text-lg font-medium mb-1">Lepas file Excel di sini</p>
               <p className="text-sm text-muted-foreground mb-4">
                 Format: .xlsx, .xls, atau .csv
               </p>
@@ -1115,7 +1115,7 @@ export const BulkPackageUpload = ({ open, onOpenChange, onSuccess }: BulkPackage
                             </div>
                           ) : (
                             row.isUpdate ? (
-                              <span className="text-blue-600 dark:text-blue-400 text-xs font-medium">Update</span>
+                              <span className="text-blue-600 dark:text-blue-400 text-xs font-medium">Perbarui</span>
                             ) : (
                               <span className="text-green-600 dark:text-green-400 text-xs font-medium">Baru</span>
                             )

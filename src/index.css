@@ -56,21 +56,15 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
+    /* Sidebar of the work areas (agent and admin): grey surface, raised white capsule for the active item (DESIGN.md). */
+    --sidebar-background: 180 2% 93%;
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-primary: 0 0% 15%;
     --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 180 2% 90%;
+    --sidebar-accent-foreground: 0 0% 15%;
+    --sidebar-border: 180 2% 89%;
+    --sidebar-ring: 0 0% 15%;
 
     /* Status colors for money and document states (jamaah pages). bg/fg/border for badges, text for inline numbers. */
     --status-ok-bg: 149 80% 90%;      --status-ok-fg: 164 86% 16%;      --status-ok-border: 152 81% 80%;   --status-ok-text: 161 94% 30%;
