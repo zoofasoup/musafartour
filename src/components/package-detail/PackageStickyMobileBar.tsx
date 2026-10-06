@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Bell, ChevronUp, CalendarCheck } from "lucide-react";
+import { Bell, ChevronUp, ClipboardList } from "lucide-react";
 import { formatCurrency, isPackageUnavailable, isPackageDeparted } from "@/lib/utils";
 import { PackagePricingBody, type PackagePricingBodyProps } from "./PackagePricing";
 import { PackageUrgencyBar } from "./PackageUrgencyBar";
@@ -49,18 +49,30 @@ export function PackageStickyMobileBar(props: PackagePricingBodyProps) {
                   <Bell className="h-4 w-4" /> Gabung Waitlist
                 </Button>
               ) : (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-muted-foreground uppercase">Total ({paxCount} orang)</p>
-                      <p className="text-base font-bold text-primary truncate">{formatCurrency(grandTotal)}</p>
-                    </div>
-                    <Button variant="brand" onClick={() => setOpen(true)} className="gap-1.5 shrink-0">
-                      Lihat Rincian Harga <ChevronUp className="h-4 w-4" />
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setOpen(true)}
+                    className="min-w-0 flex-1 rounded-md py-1 text-left"
+                    aria-label="Lihat rincian harga"
+                  >
+                    <span className="block text-xs uppercase text-muted-foreground">Total ({paxCount} orang)</span>
+                    <span className="flex items-center gap-1 text-base font-bold text-primary">
+                      <span className="truncate">{formatCurrency(grandTotal)}</span>
+                      <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                    </span>
+                  </button>
+                  {packageData.slug ? (
+                    <Button variant="brand" asChild className="h-12 shrink-0 gap-2 px-6 text-base font-bold">
+                      <Link to={`/daftar/${packageData.slug}`}>
+                        <ClipboardList className="h-4 w-4" aria-hidden /> Daftar Sekarang
+                      </Link>
                     </Button>
-                  </div>
-
-                  {/* Direct online booking button removed per user request (all CTAs to WhatsApp) */}
+                  ) : (
+                    <Button variant="brand" onClick={() => setOpen(true)} className="h-12 shrink-0 gap-1.5 px-5">
+                      Lihat Rincian Harga
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
