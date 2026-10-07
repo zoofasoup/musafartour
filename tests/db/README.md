@@ -4,6 +4,8 @@ pendaftaran jamaah beserta komisi agen (`03_registration.sql`), dan fungsi Cek s
 
 **Lead agen** (`08_agent_leads.sql`) menguji migrasi `20261006180000_agent_leads.sql`: perlindungan 30 hari, isolasi antaragen, dan tautan ke pendaftaran.
 
+**Komisi per level** (`09_commission_rates.sql`) menguji migrasi `20261007100000_commission_rates.sql`: tarif per keberangkatan, kelas dan level agen, fallback ke komisi flat, dan alur lunas sampai komisi tercatat.
+
 **Menjalankan** (dari folder mana pun): `./scripts/run-db-tests.sh`, atau satu file: `./scripts/run-db-tests.sh tests/db/03_registration.sql`
 
 **Aman.** Tes berjalan di database live yang di-link, tetapi di dalam transaksi yang selalu dibatalkan di akhir

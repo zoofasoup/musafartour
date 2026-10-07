@@ -269,6 +269,47 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_commission_rates: {
+        Row: {
+          amount: number
+          id: string
+          level: string
+          note: string | null
+          package_id: string
+          tier: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          amount: number
+          id?: string
+          level: string
+          note?: string | null
+          package_id: string
+          tier: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          amount?: number
+          id?: string
+          level?: string
+          note?: string | null
+          package_id?: string
+          tier?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_commission_rates_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_leads: {
         Row: {
           agent_id: string
@@ -2979,6 +3020,37 @@ export type Database = {
         Returns: Database["public"]["Tables"]["agents"]["Row"]
       }
       accept_agent_sop: { Args: { _version: string }; Returns: undefined }
+      set_commission_rate: {
+        Args: { _amount: number; _level: string; _note?: string; _package_id: string; _tier: string }
+        Returns: Json
+      }
+      clear_commission_rate: {
+        Args: { _level: string; _package_id: string; _tier: string }
+        Returns: Json
+      }
+      admin_list_commission_rates: {
+        Args: never
+        Returns: {
+          package_id: string
+          package_name: string
+          departure_date: string
+          flight: string | null
+          status: string
+          tier: string
+          level: string
+          amount: number | null
+          note: string | null
+          updated_at: string | null
+        }[]
+      }
+      get_my_commission_rates: {
+        Args: never
+        Returns: {
+          package_id: string
+          tier: string
+          amount: number
+        }[]
+      }
       set_agent_referrer: { Args: { _code: string }; Returns: undefined }
       create_agent_lead: {
         Args: { _name: string; _note?: string; _package_id?: string; _whatsapp: string }

@@ -14,10 +14,10 @@ import {
   Eye,
   Search,
   Filter,
-  Wallet,
   Package as PackageIcon,
 } from "lucide-react";
 import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
+import { MyCommission } from "@/components/agent/MyCommission";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +63,6 @@ interface Package {
   slots_total: number | null;
   slots_filled: number | null;
   slots_booked_online: number | null;
-  agent_commission_amount: number | null;
   catalog_link: string | null;
   available_tiers?: string[] | null;
 }
@@ -268,12 +267,6 @@ const AgentPackages = () => {
             const slotStatus = getSlotStatus(pkg);
             const avgStars = getAvgHotelStars(pkg);
             const lowestPrice = getLowestQuad(pkg);
-  // Flat Rupiah commission per pax, straight off the package. The old
-  // percentage-based calculateCommission() read pkg.commission_rate, which the
-  // flat-commission migration dropped from packages - with select("*") that
-  // silently came back undefined and a "|| 4.5" fallback invented a 4.5% rate
-  // that no longer exists anywhere. Mirrors AgentSchedule.tsx.
-            const commission = pkg.agent_commission_amount || 0;
 
             return (
               <Card key={pkg.id} className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -320,10 +313,7 @@ const AgentPackages = () => {
                         {formatPrice(lowestPrice)}
                         <span className="text-sm font-normal text-muted-foreground">/pax</span>
                       </div>
-                      <div className="text-foreground font-semibold flex items-center gap-1.5">
-                        <Wallet className="h-4 w-4" />
-                        Komisi (perkiraan): {formatPrice(commission)}
-                      </div>
+                      <MyCommission packageId={pkg.id} />
                     </div>
 
                     {/* Hotel Info */}

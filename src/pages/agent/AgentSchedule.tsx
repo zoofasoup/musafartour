@@ -26,6 +26,7 @@ import { cn, formatCurrency, getTierPrice, getSlotsTaken, todayJakarta } from "@
 import { AGENT_PACKAGE_COLUMNS } from "@/hooks/usePackages";
 import PackageShareModal from "@/components/package-detail/PackageShareModal";
 import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
+import { MyCommission } from "@/components/agent/MyCommission";
 
 interface Package {
   id: string;
@@ -37,7 +38,6 @@ interface Package {
   five_star_package_price?: { quad?: number; triple?: number; double?: number } | null;
   pelataran_package_price?: { quad?: number; triple?: number; double?: number } | null;
   available_tiers?: string[] | null;
-  agent_commission_amount: number;
   slots_total: number;
   slots_filled: number;
   slots_booked_online: number | null;
@@ -261,7 +261,6 @@ const AgentSchedule = () => {
 
   const PackageCard = ({ pkg, compact = false }: { pkg: Package; compact?: boolean }) => {
     const price = getTierPrice(pkg).quad;
-    const commission = pkg.agent_commission_amount || 0;
     
     if (compact) {
       return (
@@ -280,9 +279,7 @@ const AgentSchedule = () => {
               <span className="text-sm text-muted-foreground">
                 Harga: {formatCurrency(price)}
               </span>
-              <span className="text-sm text-foreground font-medium">
-                Komisi (perkiraan): {formatCurrency(commission)}
-              </span>
+              <MyCommission packageId={pkg.id} variant="compact" />
             </div>
           </div>
           <Button
@@ -328,12 +325,7 @@ const AgentSchedule = () => {
                   <p className="text-sm text-muted-foreground">Harga</p>
                   <p className="font-bold text-lg">{formatCurrency(price)}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Komisi (perkiraan)</p>
-                  <p className="font-bold text-lg text-foreground">
-                    {formatCurrency(commission)}
-                  </p>
-                </div>
+                <MyCommission packageId={pkg.id} />
               </div>
             </div>
             

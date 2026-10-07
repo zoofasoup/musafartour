@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { MyCommission } from "@/components/agent/MyCommission";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { formatCurrency, getTierPrice, getSlotsTaken } from "@/lib/utils";
@@ -65,7 +66,6 @@ interface Package {
   slots_total: number | null;
   slots_filled: number | null;
   slots_booked_online: number | null;
-  agent_commission_amount: number | null;
   catalog_link: string | null;
   itinerary_link: string | null;
   included_items: string | null;
@@ -200,12 +200,6 @@ ${agent?.referral_code ? `Agent ID: ${agent.referral_code}` : ""}`;
   const slotStatus = getSlotStatus(pkg);
   const tierPrice = getTierPrice(pkg);
   const lowestPrice = tierPrice.quad;
-  // Flat Rupiah commission per pax, straight off the package. The old
-  // percentage-based calculateCommission() read pkg.commission_rate, which the
-  // flat-commission migration dropped from packages - with select("*") that
-  // silently came back undefined and a "|| 4.5" fallback invented a 4.5% rate
-  // that no longer exists anywhere. Mirrors AgentSchedule.tsx.
-  const commission = pkg.agent_commission_amount || 0;
 
   const includedItems = pkg.included_items?.split("\n").filter(Boolean) || [];
   const excludedItems = pkg.excluded_items?.split("\n").filter(Boolean) || [];
@@ -292,22 +286,13 @@ ${agent?.referral_code ? `Agent ID: ${agent.referral_code}` : ""}`;
         {/* Price & Commission Card */}
         <Card className="bg-muted border-border">
           <CardContent className="p-6">
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <p className="text-sm text-muted-foreground">Harga Mulai Dari</p>
                 <p className="text-3xl font-bold text-primary">{formatPrice(lowestPrice)}</p>
                 <p className="text-sm text-muted-foreground">/pax (Quad)</p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Komisi kamu (perkiraan)</p>
-                <p className="text-3xl font-bold text-foreground">{formatPrice(commission)}</p>
-                <p className="text-sm text-muted-foreground">per pax. Besaran final mengikuti tingkat dan SOP.</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Perkiraan 10 Pax</p>
-                <p className="text-3xl font-bold text-foreground">{formatPrice(commission * 10)}</p>
-                <p className="text-sm text-muted-foreground">total komisi</p>
-              </div>
+              <MyCommission packageId={pkg.id} variant="detail" />
             </div>
           </CardContent>
         </Card>

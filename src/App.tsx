@@ -95,6 +95,7 @@ const SalesCalculator = lazy(() => import("./pages/admin/SalesCalculator"));
 const PackageBrochure = lazy(() => import("./pages/admin/PackageBrochure"));
 const AgentProtectedRoute = lazy(() => import("./components/agent/AgentProtectedRoute"));
 const AgentManagement = lazy(() => import("./pages/admin/AgentManagement"));
+const AgentCommissions = lazy(() => import("./pages/admin/AgentCommissions"));
 const Gamification = lazy(() => import("./pages/admin/Gamification"));
 const PackageItems = lazy(() => import("./pages/admin/PackageItems"));
 const Equipment = lazy(() => import("./pages/admin/Equipment"));
@@ -545,6 +546,7 @@ const App = () => (
                     <Route path="chat-rotation" element={<ChatRotation />} />
                     <Route path="url-shortener" element={<URLShortener />} />
                     <Route path="agents" element={<AgentManagement />} />
+                    <Route path="komisi-agen" element={<AgentCommissions />} />
                     <Route path="agent-leads" element={<AdminAgentLeads />} />
                     <Route path="jamaah" element={<Jamaah />} />
                     <Route path="jamaah/semua" element={<JamaahAll />} />
