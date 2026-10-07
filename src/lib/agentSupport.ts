@@ -1,5 +1,5 @@
-/** WhatsApp of the Musafar CS that agents contact (same number the pending/suspended screens use). */
-export const AGENT_CS_WHATSAPP = "6281917403797";
+/** WhatsApp of the PIC Agen (Virna, Partnership Management) that agents contact for help, fee proof and approval questions. */
+export const AGENT_CS_WHATSAPP = "6285287471835";
 
 /** Opens a chat with CS, prefilled with who is asking. */
 export const agentCsWhatsAppUrl = (name: string, referralCode: string, topic = "Saya butuh bantuan untuk akun agen saya."): string =>
