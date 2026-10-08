@@ -147,7 +147,11 @@ const MarketingPixelsLoader = () => {
   // /flyer-print is screenshotted by a headless browser on every flyer export.
   // Same list covers private-data routes (/lengkapi/<token>, /daftar, /cek-status, /set-password): no third-party tag there.
   const internalPage = isPrivateRoute(location.pathname);
-  useMarketingPixels(!internalPage && !isInternalBrowser());
+  const staffBrowser = isInternalBrowser();
+  useMarketingPixels(!internalPage && !staffBrowser);
+  useEffect(() => {
+    if (staffBrowser) console.info("[tracking] Pixel tidak dimuat: browser ini ditandai staf (musafar_internal). Buka ?px=on untuk mematikan penanda.");
+  }, [staffBrowser]);
 
   // First-party analytics records every page view for the admin Analytics dashboard.
   useEffect(() => {

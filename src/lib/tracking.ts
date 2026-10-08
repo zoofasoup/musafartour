@@ -54,6 +54,23 @@ function onPrivateRoute(): boolean {
   return typeof window !== "undefined" && blocksTrackerEvents(window.location.pathname);
 }
 
+// Testing switch: open any page with ?px=on to make THIS browser count as a normal visitor again (removes the staff
+// flag that admin login sets), ?px=off to mark it as staff. Needed to test the pixel from a browser that was used for admin.
+if (typeof window !== "undefined") {
+  try {
+    const px = new URLSearchParams(window.location.search).get("px");
+    if (px === "on") {
+      localStorage.removeItem(INTERNAL_KEY);
+      console.info("[tracking] Browser ini sekarang dihitung sebagai pengunjung biasa (px=on).");
+    } else if (px === "off") {
+      localStorage.setItem(INTERNAL_KEY, "1");
+      console.info("[tracking] Browser ini ditandai sebagai staf: tidak ada pelacakan (px=off).");
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Staff browsers send no pixel events and no site analytics. */
 export function isInternalBrowser(): boolean {
   try {
@@ -96,8 +113,17 @@ const newEventId = () =>
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
+let skipExplained = false;
+function explainSkip(reason: string) {
+  if (skipExplained) return;
+  skipExplained = true;
+  console.info(`[tracking] Event Meta tidak dikirim: ${reason}`);
+}
+
 function sendMeta(name: string, params: EventParams, dedupe: Dedupe | null, eventID = newEventId()) {
-  if (typeof window === "undefined" || isInternalBrowser() || onPrivateRoute()) return;
+  if (typeof window === "undefined") return;
+  if (isInternalBrowser()) return explainSkip("browser ini ditandai staf (musafar_internal). Buka ?px=on untuk mematikan penanda.");
+  if (onPrivateRoute()) return explainSkip("halaman ini bertoken atau internal, sengaja tanpa pelacakan.");
   if (dedupe && !claim({ ...dedupe, key: `meta:${dedupe.key}` })) return;
   if (typeof window.fbq === "function") {
     window.fbq("track", name, params, { eventID });
