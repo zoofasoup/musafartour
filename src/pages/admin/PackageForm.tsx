@@ -26,7 +26,6 @@ import { cn } from "@/lib/utils";
 import { compressAndConvertToWebP, generateContextualFileName } from "@/lib/imageUtils";
 import { AddHotelModal } from "@/components/admin/AddHotelModal";
 import { BasicInfoTab } from "@/components/admin/package-form/BasicInfoTab";
-import { MarketingAutoGeneratorModal } from "@/components/admin/MarketingAutoGeneratorModal";
 import html2canvas from "html2canvas";
 import { Download } from "lucide-react";
 import { SinglePackageFlyer } from "@/components/admin/flyer/SinglePackageFlyer";
@@ -420,7 +419,6 @@ const PackageForm = () => {
     { id: 3, title: "Itinerary & Marketing", description: "Jadwal perjalanan & hasil Flyer" }
   ];
   const [loading, setLoading] = useState(false);
-  const [showAutoGenerator, setShowAutoGenerator] = useState(false);
   const [savedPackageTitle, setSavedPackageTitle] = useState("");
   const [initialLoading, setInitialLoading] = useState(!!id);
   const [bannerPreview, setBannerPreview] = useState<string>("");
@@ -1020,7 +1018,15 @@ const PackageForm = () => {
       setPendingSave(null);
       setHasUnsavedChanges(false);
       setSavedPackageTitle(values.package_name);
-      setShowAutoGenerator(true);
+      // Honest next step per status. The old "Berhasil Di-publish" dialog ran on a timer and claimed
+      // flyers were generated and sent to agents on every save, even for a Draft; nothing of the sort happened.
+      const nextStep: Record<string, string> = {
+        draft: "Disimpan sebagai Draft. Belum tampil di website.",
+        final: "Harga dikunci (Final). Berikutnya: unggah flyer di langkah 3, lalu ubah status ke Tayang.",
+        published: "Paket Tayang dan tampil di website.",
+      };
+      toast.success(nextStep[values.status as string] ?? "Paket disimpan.");
+      navigate("/admin/packages");
     } catch (error: any) {
       toast.error("Gagal menyimpan paket: " + error.message);
     } finally {
@@ -1223,7 +1229,7 @@ const PackageForm = () => {
             </div>
             
             {/* Live Flyer Preview Right Panel */}
-            <div className="hidden lg:block sticky top-24 h-[calc(100vh-8rem)]">
+            <div className="hidden 2xl:block sticky top-24 h-[calc(100vh-8rem)]">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-4 sticky top-24">
                 <div className="flex items-center justify-between border-b pb-2">
                   <h3 className="font-semibold text-sm text-slate-800 flex items-center gap-2">
@@ -1470,7 +1476,7 @@ const PackageForm = () => {
             )}
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr_400px] xl:grid-cols-[280px_1fr_450px] gap-6 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_400px] gap-6 items-start">
             {/* Sidebar Stepper */}
             <div className="sticky top-24 hidden lg:block border border-primary/10 bg-white p-6 rounded-lg shadow-sm">
               
@@ -1521,7 +1527,7 @@ const PackageForm = () => {
               </div>
               
               <div className={currentStep === 2 ? "block space-y-8" : "hidden"}>
-                <div className="w-full xl:w-[150%] xl:-ml-[25%]">
+                <div className="w-full min-w-0">
                   <CogsCalculator
                     packageId={id && id !== 'new' && id !== 'add' ? id : undefined}
                     initialData={form.getValues("cogs_data")}
@@ -1677,12 +1683,6 @@ const PackageForm = () => {
           onOpenChange={setHotelModalOpen}
           location={hotelModalLocation}
           onSuccess={handleHotelAdded}
-        />
-        <MarketingAutoGeneratorModal 
-          open={showAutoGenerator} 
-          onOpenChange={(open) => { setShowAutoGenerator(open); if (!open) navigate("/admin/product-development"); }} 
-          packageId={id} 
-          packageTitle={savedPackageTitle} 
         />
         </div>
         <ConfirmDialog
