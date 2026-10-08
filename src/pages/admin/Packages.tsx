@@ -414,7 +414,7 @@ const Packages = () => {
             <Route className={`h-4 w-4 ${syncingItinerary ? "animate-spin" : ""}`} />
             {syncingItinerary ? "Syncing..." : "Sync Itinerary"}
           </Button>
-          <Button onClick={() => navigate("/admin/packages/add")} size="sm">
+          <Button onClick={() => navigate("/admin/packages/new")} size="sm">
             <Plus className="mr-2 h-4 w-4" />
             Tambah Paket
           </Button>

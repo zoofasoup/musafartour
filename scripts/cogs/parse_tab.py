@@ -32,6 +32,48 @@ def first_run(cells):
     return None
 
 
+# Kalkulator di admin mengikat tiap baris ke id tetap (e1..e9, hn1..hn5, v1..v3, l1..l3).
+# Data impor harus memakai id yang sama, kalau tidak baris di layar kosong/tidak tercentang.
+ESENSIAL = [("e1", "tiket"), ("e2", "perlengkapan"), ("e3", "transmitter"), ("e4", "manasik"), ("e5", "handling"),
+            ("e6", "siskopatuh"), ("e7", "asuransi"), ("e8", "tour leader"), ("e9", "anggaran marketing")]
+HANDLING = [("hn1", "mutawif"), ("hn2", "snack"), ("hn3", "zam"), ("hn4", "ziarah"), ("hn5", "tiping")]
+VISA = [("v1", "visa"), ("v2", "brn"), ("v3", "bus")]
+LAIN = [("l1", "sales"), ("l2", "reserved"), ("l3", "gimmick")]
+ZERO = dict(double=0, triple=0, quad=0)
+
+
+def _slot(items, table, label_default):
+    out, used = [], set()
+    for sid, key in table:
+        hit = next((i for i in items if key in i["name"].lower() and id(i) not in used), None)
+        if hit:
+            used.add(id(hit))
+            out.append({**hit, "id": sid})
+        else:
+            out.append(dict(id=sid, name=label_default.get(sid, key.title()), checked=False, **ZERO))
+    leftovers = [i for i in items if id(i) not in used]
+    return out, leftovers
+
+
+def normalize(c):
+    la = c["land_arrangement"]
+    hn, _ = _slot(la["handling"], HANDLING, {"hn1": "Mutawif/ah", "hn2": "Snack", "hn3": "Zam - zam 5L", "hn4": "Ziarah/City Tour", "hn5": "Tiping & Handling"})
+    vs, _ = _slot(la["visa"], VISA, {"v1": "Visa Umroh", "v2": "BRN Hotel", "v3": "Bus"})
+    es, extra = _slot(c["indo_expenses"]["esensial"], ESENSIAL, {})
+    addons = [dict(i, id=f"ao_{n}", checked=i.get("checked", True)) for n, i in enumerate(c["indo_expenses"]["add_ons"] + extra)]
+    ln, extra_l = _slot(c["lain_lain"], LAIN, {})
+    for sid_item in (hn, vs, ln):
+        for i in sid_item:
+            i.pop("checked", None) if i.get("checked") is False and i["double"] == 0 and i["triple"] == 0 and i["quad"] == 0 else None
+    for n, i in enumerate(extra_l):
+        ln.append(dict(i, id=f"l{4+n}"))
+    es = [i for i in es if i["id"] not in ("e6", "e7") or True]
+    for n, h in enumerate(la["hotels"]):
+        h["id"] = f"h{n+1}"
+    return dict(c, land_arrangement=dict(hotels=la["hotels"], handling=hn, visa=vs),
+                indo_expenses=dict(esensial=es, add_ons=addons), lain_lain=ln)
+
+
 def parse(tab):
     rows = fetch(tab)
     c0 = None
@@ -90,7 +132,9 @@ def parse(tab):
             continue
         trio = first_run(cells)
         if trio and "TOTAL" not in up and "KURS" not in up:
-            name = text[-1]
+            heads = {"HANDLING", "VISA", "ESENSIAL", "ADD ONS", "ADD ON", "LAIN - LAIN", "LAIN-LAIN", "MUSAFAR'S EXPENSES (INDONESIA)", "LAND ARRANGEMENT (SAUDI)"}
+            names = [t for t in text if t.upper() not in heads]
+            name = names[0] if names else text[-1]
             item = dict(id=f"x{len(esensial)+len(addons)+len(lain)+len(handling)+len(visa)}", name=name, double=trio[0], triple=trio[1], quad=trio[2])
             if section == "indo" or section == "addons":
                 item["checked"] = flag != "FALSE"
@@ -102,11 +146,11 @@ def parse(tab):
             elif rates["usd_idr"] == 0:
                 handling.append(item)
     return dict(
-        cogs=dict(version="2.0", rates=rates,
+        cogs=normalize(dict(version="2.0", rates=rates,
                   land_arrangement=dict(hotels=hotels, handling=handling, visa=visa),
                   indo_expenses=dict(esensial=esensial, add_ons=addons), lain_lain=lain,
                   pricing=dict(harga_jual=dict(zip(("double", "triple", "quad"), harga_jual or (0, 0, 0))),
-                               harga_diskon=dict(zip(("double", "triple", "quad"), harga_diskon or (0, 0, 0)))) ),
+                               harga_diskon=dict(zip(("double", "triple", "quad"), harga_diskon or (0, 0, 0)))) )),
         sheet_total_cogs=dict(zip(("double", "triple", "quad"), sheet_total or (0, 0, 0))))
 
 

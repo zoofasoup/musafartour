@@ -686,6 +686,8 @@ const PackageForm = () => {
           itinerary_link: data.itinerary_link || "",
           banner_link: data.banner_image || "",
           status: data.status,
+          // Without this the COGS sheet never reached the form, so the next Simpan wrote the template over it.
+          cogs_data: (data as any).cogs_data ?? undefined,
           is_sold_out: data.is_sold_out || false,
           waitlist_count: data.waitlist_count || 0,
         });
