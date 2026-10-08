@@ -25,9 +25,24 @@ const add = (...parts: RoomPricing[]): RoomPricing =>
     quad: 0,
   });
 
+const OCCUPANCY: Record<keyof RoomPricing, number> = { double: 2, triple: 3, quad: 4 };
+
+/** SAR per person for the whole stay, from per-room-per-night rates. */
+export function hotelSarPerPerson(hotels: (RoomPricing & { dur_n?: number })[]): RoomPricing {
+  const out: RoomPricing = { double: 0, triple: 0, quad: 0 };
+  for (const h of hotels) {
+    const nights = Number(h.dur_n) || 0;
+    (Object.keys(OCCUPANCY) as (keyof RoomPricing)[]).forEach((k) => {
+      out[k] += ((Number(h[k]) || 0) * nights) / OCCUPANCY[k];
+    });
+  }
+  return out;
+}
+
 export function computeCogs(data: CogsDataV2) {
-  // 1. Hotel, entered in SAR per person for the whole stay.
-  const totalHotelSar = sum(data.land_arrangement.hotels);
+  // 1. Hotel: the sheet enters SAR per ROOM per night. Per person for the whole stay =
+  //    rate x nights / people in the room (double 2, triple 3, quad 4), as in the "COGS" tabs.
+  const totalHotelSar = hotelSarPerPerson(data.land_arrangement.hotels);
   // 2. SAR -> USD
   const totalHotelUsd = map(totalHotelSar, (sar) => (data.rates.sar_usd > 0 ? sar / data.rates.sar_usd : 0));
   // 3. Handling & visa, entered in USD
