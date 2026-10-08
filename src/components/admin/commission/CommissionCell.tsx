@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AlertCircle, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { SaveCancelled } from "@/hooks/useCommissionRates";
 
 type CellStatus = "idle" | "saving" | "saved" | "error";
 
@@ -60,6 +61,11 @@ export function CommissionCell({
       timer.current = setTimeout(() => setStatus("idle"), 2000);
     } catch (e) {
       known.current = previous;
+      if (e instanceof SaveCancelled) {
+        setDraft(fmt(previous));
+        setStatus("idle");
+        return;
+      }
       setStatus("error");
       toast.error(e instanceof Error && e.message ? e.message : "Komisi belum tersimpan");
     }

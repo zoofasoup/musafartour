@@ -55,6 +55,8 @@ type SortMode = "pending_first" | "newest";
 
 const AgentManagement = () => {
   const [deleteTarget, setDeleteTarget] = useState<Agent | null>(null);
+  // Set when the database refused a delete because the agent has commission or lead history (ADM-103)
+  const [blockedDelete, setBlockedDelete] = useState<Agent | null>(null);
   const queryClient = useQueryClient();
 
   const [search, setSearch] = useState("");
@@ -208,6 +210,7 @@ const AgentManagement = () => {
       toast.success("Agen berhasil dihapus");
     },
     onError: (error) => {
+      if (/riwayat komisi atau lead|foreign key|violates/i.test(error.message)) return; // handled by the Nonaktifkan dialog
       toast.error("Gagal menghapus agen: " + error.message);
     },
   });
@@ -548,7 +551,7 @@ const AgentManagement = () => {
         title={`Hapus agen ${deleteTarget?.name ?? ""}?`}
         description={
           <>
-            Agen ini dihapus permanen dan tidak bisa dikembalikan. Data terkait (komisi, riwayat penjualan) ikut hilang.
+            Agen ini dihapus permanen dan tidak bisa dikembalikan. Hanya agen tanpa riwayat komisi atau lead yang bisa dihapus; selain itu, nonaktifkan saja.
             {deleteHasMoney && <> Agen ini sudah punya penjualan atau komisi, jadi ketik namanya untuk melanjutkan. Kalau hanya ingin menghentikan akses, pakai Tangguhkan.</>}
           </>
         }
@@ -558,7 +561,27 @@ const AgentManagement = () => {
         busy={deleteAgentMutation.isPending}
         onConfirm={() => {
           if (!deleteTarget) return;
-          deleteAgentMutation.mutate(deleteTarget.id, { onSettled: () => setDeleteTarget(null) });
+          const target = deleteTarget;
+          deleteAgentMutation.mutate(target.id, {
+            onError: (e) => {
+              if (/riwayat komisi atau lead|foreign key|violates/i.test(e.message)) setBlockedDelete(target);
+            },
+            onSettled: () => setDeleteTarget(null),
+          });
+        }}
+      />
+
+      <ConfirmDialog
+        open={!!blockedDelete}
+        onOpenChange={(o) => !o && setBlockedDelete(null)}
+        title={`${blockedDelete?.name ?? "Agen ini"} tidak bisa dihapus`}
+        description="Agen punya riwayat komisi atau lead, jadi tidak bisa dihapus. Nonaktifkan agen saja: akses ditutup, riwayat tetap tersimpan, dan agen bisa diaktifkan lagi."
+        confirmLabel="Nonaktifkan agen"
+        busy={updateStatusMutation.isPending}
+        onConfirm={() => {
+          if (!blockedDelete) return;
+          updateStatusMutation.mutate({ id: blockedDelete.id, status: 'suspended' });
+          setBlockedDelete(null);
         }}
       />
 

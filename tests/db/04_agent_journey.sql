@@ -219,9 +219,10 @@ BEGIN
    WHERE n.nspname = 'public' AND p.prosecdef AND has_function_privilege('authenticated', p.oid, 'EXECUTE')
      AND p.prosrc ~* 'jamaah_registrations|jamaah_payments|jamaah_intakes|jamaah_intake_people'
      AND p.proname NOT IN ('list_my_agent_jamaah', 'list_my_agent_intakes', 'list_my_agent_leads', 'admin_agent_leads',
-                        'list_my_commissions', 'admin_list_commissions', 'admin_list_lead_disputes', 'resolve_lead_dispute');  -- leads: 08_agent_leads.sql; commissions: 13_commission_lifecycle.sql proves list_my_commissions is caller-scoped and the other three staff-only
+                        'list_my_commissions', 'admin_list_commissions', 'admin_list_lead_disputes', 'resolve_lead_dispute',
+                        'admin_work_counts', 'mark_intake_info_sent');  -- admin_work_counts (counts, per-role keys) and mark_intake_info_sent (owner/cs_admin): refused to agents, tested in 14_admin_hardening.sql; leads: 08_agent_leads.sql; commissions: 13_commission_lifecycle.sql proves list_my_commissions is caller-scoped and the other three staff-only
   IF _t IS NULL THEN
-    _out := _out || E'PASS rpc privacy: the only SECURITY DEFINER functions callable by authenticated that read jamaah tables are list_my_agent_jamaah, list_my_agent_intakes, list_my_agent_leads (own leads only), admin_agent_leads (staff only), list_my_commissions (own rows) and admin_list_commissions / admin_list_lead_disputes / resolve_lead_dispute (staff only)\n';
+    _out := _out || E'PASS rpc privacy: the only SECURITY DEFINER functions callable by authenticated that read jamaah tables are list_my_agent_jamaah, list_my_agent_intakes, list_my_agent_leads (own leads only), admin_agent_leads (staff only), list_my_commissions (own rows) and admin_list_commissions / admin_list_lead_disputes / resolve_lead_dispute / admin_work_counts / mark_intake_info_sent (staff only)\n';
   ELSE
     _out := _out || format(E'FAIL rpc privacy: new SECURITY DEFINER function(s) callable by authenticated read jamaah tables: %s (check they are staff-only or scoped to the caller)\n', _t);
   END IF;
@@ -667,7 +668,8 @@ BEGIN
   END IF;
 
   -- The leaderboard page prints "Komisi: x% - y%" per level from agent_levels (AgentLeaderboard.tsx), but the commission is flat
-  SELECT count(*) INTO _n FROM public.agent_levels WHERE commission_rate_max > 0;
+  -- ADM-110: the percentage columns were dropped (20261009100000_admin_hardening.sql)
+  SELECT count(*) INTO _n FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'agent_levels' AND column_name IN ('commission_rate_min', 'commission_rate_max');
   IF _n = 0 THEN _out := _out || E'PASS levels: agent_levels no longer advertises percentage commissions\n';
   ELSE _out := _out || format(E'KNOWN levels: %s rows of agent_levels still advertise a percentage commission (4.5-6 percent) and benefits such as account manager and annual trip, shown to every agent, while the commission is a flat Rp 1.500.000 (AGT-003)\n', _n); END IF;
 

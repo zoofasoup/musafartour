@@ -31,7 +31,7 @@ export function PackageStickyMobileBar(props: PackagePricingBodyProps) {
     <>
       {mounted &&
         createPortal(
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30">
+          <div className="lg:hidden fixed bottom-[var(--consent-h,0px)] left-0 right-0 z-30">
             {!unavailable && (
               <div className="flex justify-center">
                 <div className="-mb-px rounded-t-2xl border border-b-0 border-border bg-card/95 backdrop-blur-sm px-4 py-1.5 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">

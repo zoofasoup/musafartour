@@ -1,4 +1,6 @@
 import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
+import { loginUrlFor } from "@/lib/adminNext";
+import { menuBadgeFor, useAdminWorkCounts } from "@/hooks/useAdminWorkCounts";
 import { ADMIN_MENU_SECTIONS } from "./adminMenu";
 import { useAuth } from "@/hooks/useAuth";
 import { markInternalBrowser } from "@/lib/tracking";
@@ -25,9 +27,18 @@ const ROLE_LABELS: Record<string, string> = {
   advertiser: "Advertiser",
 };
 
+const BADGE_LABEL: Record<string, string> = {
+  "/admin/jamaah": "pendaftaran baru menunggu",
+  "/admin/jamaah/pembayaran": "pembayaran menunggu verifikasi",
+  "/admin/pembayaran-komisi": "komisi menunggu persetujuan",
+  "/admin/agents": "agen menunggu persetujuan",
+};
+
 const AdminLayout = () => {
   const location = useLocation();
   const { user, loading, userRole, signOut } = useAuth();
+  // Work-queue counts for the menu badges: one light call every minute, only once a staff role is known
+  const { data: workCounts } = useAdminWorkCounts(!!user && !!userRole);
 
   if (loading) {
     return (
@@ -38,7 +49,7 @@ const AdminLayout = () => {
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to={loginUrlFor(location.pathname, location.search)} replace />;
   }
 
   // A browser that has opened the admin panel belongs to staff: exclude it from
@@ -102,6 +113,8 @@ const AdminLayout = () => {
       url: item.path,
       icon: item.icon,
       end: item.path === "/admin",
+      badge: menuBadgeFor(item.path, workCounts),
+      badgeLabel: BADGE_LABEL[item.path],
       alsoActive: item.path === "/admin/jamaah" ? ["/admin/jamaah/semua", "/admin/jamaah/masuk"] : undefined,
     })),
   }));

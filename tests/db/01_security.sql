@@ -114,7 +114,7 @@ BEGIN
     END;
   END IF;
 
-  -- Staff keep the ability to change those columns (admin tools depend on it)
+  -- Staff no longer write the money columns through the API (ADM-102); status and level changes stay allowed (tested in 14_admin_hardening.sql)
   IF _agent_uid IS NOT NULL AND _staff_uid IS NOT NULL THEN
     BEGIN
       PERFORM set_config('request.jwt.claims', json_build_object('sub', _staff_uid, 'role', 'authenticated')::text, true);
@@ -122,14 +122,13 @@ BEGIN
       UPDATE public.agents SET available_balance = coalesce(available_balance, 0) + 1 WHERE id = _agent_id;
       GET DIAGNOSTICS _rc = ROW_COUNT;
       RESET ROLE;
-      IF _rc = 1 THEN
-        _out := _out || E'PASS agents: staff (superadmin) can still change balance\n';
-      ELSE
-        _out := _out || format(E'FAIL agents: staff balance update affected %s rows\n', _rc);
-      END IF;
+      -- Changed on purpose (ADM-102, 20261009100000_admin_hardening.sql): nobody writes the money columns through the API, staff included
+      RESET ROLE;
+      _out := _out || format(E'FAIL agents: staff (superadmin) could still write the balance through the API (%s rows)\n', _rc);
     EXCEPTION WHEN OTHERS THEN
       RESET ROLE;
-      _out := _out || format(E'FAIL agents: staff balance update raised %s (%s)\n', SQLSTATE, SQLERRM);
+      IF SQLSTATE = '42501' THEN _out := _out || E'PASS agents: staff (superadmin) cannot write the balance through the API (ADM-102; only the commission functions move money)\n';
+      ELSE _out := _out || format(E'FAIL agents: staff balance update raised %s (%s)\n', SQLSTATE, SQLERRM); END IF;
     END;
   END IF;
 

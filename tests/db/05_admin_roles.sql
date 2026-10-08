@@ -124,7 +124,9 @@ BEGIN
     ('cogs: cs_admin cannot insert',       _cs,    format('INSERT INTO public.cogs_defaults (id, data) VALUES (%L, %L)', _cogs_id || 'e', '{}'), 'refused'),
     ('cogs: advertiser cannot update',     _adv,   format('UPDATE public.cogs_defaults SET data = %L WHERE id = %L', '{"a":1}', _cogs_id), 'norows'),
     ('cogs: user without role cannot insert', _none, format('INSERT INTO public.cogs_defaults (id, data) VALUES (%L, %L)', _cogs_id || 'f', '{}'), 'refused'),
-    ('cogs: staff (cs_admin) can still read',  _cs,    format('SELECT 1 FROM public.cogs_defaults WHERE id = %L', _cogs_id), 'rows'),
+    -- Changed on purpose (ADM-105, 20261009100000_admin_hardening.sql): only owner and product_admin read the cost basis
+    ('cogs: cs_admin can no longer read',  _cs,    format('SELECT 1 FROM public.cogs_defaults WHERE id = %L', _cogs_id), 'norows'),
+    ('cogs: product_admin can still read', _pa,    format('SELECT 1 FROM public.cogs_defaults WHERE id = %L', _cogs_id), 'rows'),
     ('cogs: user without role still cannot read', _none, format('SELECT 1 FROM public.cogs_defaults WHERE id = %L', _cogs_id), 'norows'),
 
     -- ADM-007 storage: content_admin uploads only the folders Hero / Gallery / Testimoni write to

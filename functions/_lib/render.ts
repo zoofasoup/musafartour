@@ -19,10 +19,18 @@ const PIXEL_ID = {
 /**
  * Staff browsers (flag set on admin login, see markInternalBrowser in
  * src/lib/tracking.ts) load no tracking tags at all.
+ *
+ * Consent: these server-rendered pages (/artikel, /artikel/<slug>) have no consent banner, so a tag only
+ * loads when the visitor already agreed on the main site (same origin, localStorage `musafar_consent`,
+ * written by src/lib/consent.ts). No stored decision, a different version, or blocked storage = nothing loads.
+ * Keep CONSENT_KEY and CONSENT_VERSION in sync with src/lib/consent.ts.
  */
 const INTERNAL_KEY = "musafar_internal";
-const unlessInternal = (code: string) =>
-  `<script>(function(){try{if(localStorage.getItem('${INTERNAL_KEY}')==='1')return;}catch(e){}${code}})();</script>`;
+const CONSENT_KEY = "musafar_consent";
+const CONSENT_VERSION = 1;
+const gated = (category: "analytics" | "marketing", code: string) =>
+  `<script>(function(){var c;try{if(localStorage.getItem('${INTERNAL_KEY}')==='1')return;c=JSON.parse(localStorage.getItem('${CONSENT_KEY}')||'null');}catch(e){return;}if(!c||c.v!==${CONSENT_VERSION}||c.${category}!==true)return;${code}})();</script>`;
+const unlessInternal = (code: string) => gated("marketing", code);
 
 function renderPixels(p: MarketingPixels | undefined): string {
   if (!p) return "";
@@ -38,7 +46,7 @@ function renderPixels(p: MarketingPixels | undefined): string {
   }
   const ga = p.ga4_enabled && p.ga4_id?.trim();
   if (ga && PIXEL_ID.ga4.test(ga)) {
-    out.push(`<script async src="https://www.googletagmanager.com/gtag/js?id=${ga}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${ga}');</script>`);
+    out.push(gated("analytics", `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}var m=c.marketing===true?'granted':'denied';gtag('consent','default',{analytics_storage:'granted',ad_storage:m,ad_user_data:m,ad_personalization:m});var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id=${ga}';document.head.appendChild(s);gtag('js',new Date());gtag('config','${ga}');`));
   }
   return out.join("\n");
 }

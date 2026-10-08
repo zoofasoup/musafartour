@@ -8,6 +8,10 @@ export interface ShellNavItem {
   alsoActive?: string[];
   /** Match the path exactly; a dashboard at the area root would otherwise match every page. */
   end?: boolean;
+  /** Open work waiting behind this page (a number badge; hidden when 0 or missing). */
+  badge?: number;
+  /** What the badge counts, read out by screen readers ("menunggu verifikasi"). */
+  badgeLabel?: string;
 }
 
 export interface ShellNavGroup {

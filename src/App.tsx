@@ -12,6 +12,12 @@ import FloatingWhatsApp from "./components/FloatingWhatsApp";
 import { useMarketingPixels } from "./hooks/useMarketingPixels";
 import { logPageView, isInternalBrowser } from "./lib/tracking";
 import { isPrivateRoute } from "./lib/privateRoutes";
+import { hasConsent } from "./lib/consent";
+import { initConsentMode } from "./lib/trackerLoaders";
+import ConsentBanner from "./components/ConsentBanner";
+
+// Google Consent Mode defaults ("denied") go into dataLayer before any tag can load.
+initConsentMode();
 import { useRedirects } from "./hooks/useRedirects";
 import { ErrorBoundary, CHUNK_RELOAD_FLAG } from "./components/ErrorBoundary";
 import { FavoritesProvider } from "./hooks/useFavorites";
@@ -132,7 +138,7 @@ const TikTokPixelTracker = () => {
 
   useEffect(() => {
     if (isPrivateRoute(location.pathname)) return;
-    if (window.ttq) {
+    if (window.ttq && hasConsent("marketing")) {
       window.ttq.page();
     }
   }, [location]);
@@ -332,6 +338,7 @@ const App = () => (
               <ScrollToTop />
               <BodyPointerEventsGuard />
               <ConditionalFloatingWhatsApp />
+              <ConsentBanner />
               <TikTokPixelTracker />
               <MarketingPixelsLoader />
               <RedirectsHandler />

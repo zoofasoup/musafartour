@@ -62,15 +62,13 @@ export default function AdSpend() {
     },
   });
 
+  // Closed calculator leads per campaign: counts only (no names or numbers), see ad_spend_closed_calculator_counts (ADM-033)
   const { data: calculatorLeads = [] } = useQuery({
     queryKey: ["ad-spend-calculator-leads"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("umroh_calculator_leads")
-        .select("id, utm_campaign, status")
-        .eq("status", "CLOSED");
+      const { data, error } = await supabase.rpc("ad_spend_closed_calculator_counts");
       if (error) throw error;
-      return data as { id: string; utm_campaign: string | null; status: string }[];
+      return (data ?? []) as { utm_campaign: string | null; closed_count: number }[];
     },
   });
 
@@ -124,7 +122,7 @@ export default function AdSpend() {
       if (campaign) ensure(campaign).waConversions += 1;
     }
     for (const l of calculatorLeads) {
-      if (l.utm_campaign) ensure(l.utm_campaign).leadConversions += 1;
+      if (l.utm_campaign) ensure(l.utm_campaign).leadConversions += Number(l.closed_count);
     }
 
     return Object.entries(byCampaign)

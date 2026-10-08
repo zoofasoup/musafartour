@@ -19,10 +19,19 @@
  * The pixel script is injected after the marketing settings load, so an event can
  * fire before fbq exists (e.g. a fast click right after landing). Those events are
  * queued and flushed by flushPendingPixelEvents() once the pixel is initialised.
+ *
+ * Consent (src/lib/consent.ts): nothing goes to a third party without it.
+ *   marketing  Meta Pixel + Conversions API (/meta-capi) and TikTok
+ *   analytics  GA4, and the persistent visitor id of our own site analytics
+ * An event fired before the visitor decided is dropped, never queued and replayed
+ * later. Only the current page's PageView is sent right after consent (see
+ * useMarketingPixels). First-party site_events are the owner's own data and are
+ * recorded either way, but before analytics consent with a random id that is not stored.
  */
 
 import { supabase } from "@/integrations/supabase/client";
 import { blocksTrackerEvents, safeTrackingPath } from "@/lib/privateRoutes";
+import { clearConsent, hasConsent, onConsentChange } from "@/lib/consent";
 
 type EventParams = Record<string, unknown>;
 type PendingEvent = { name: string; params: EventParams; eventID: string };
@@ -61,10 +70,15 @@ if (typeof window !== "undefined") {
     const px = new URLSearchParams(window.location.search).get("px");
     if (px === "on") {
       localStorage.removeItem(INTERNAL_KEY);
-      console.info("[tracking] Browser ini sekarang dihitung sebagai pengunjung biasa (px=on).");
+      console.info("[tracking] Browser ini sekarang dihitung sebagai pengunjung biasa (px=on). Persetujuan cookie tetap berlaku sendiri: tanpa persetujuan tidak ada pelacakan.");
     } else if (px === "off") {
       localStorage.setItem(INTERNAL_KEY, "1");
       console.info("[tracking] Browser ini ditandai sebagai staf: tidak ada pelacakan (px=off).");
+    }
+    // Testing switch: ?consent=reset forgets the stored cookie choice, so the banner asks again.
+    if (new URLSearchParams(window.location.search).get("consent") === "reset") {
+      clearConsent();
+      console.info("[tracking] Pilihan persetujuan cookie dihapus (consent=reset): banner akan muncul lagi.");
     }
   } catch {
     /* ignore */
@@ -113,17 +127,20 @@ const newEventId = () =>
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-let skipExplained = false;
+const skipExplained = new Set<string>();
 function explainSkip(reason: string) {
-  if (skipExplained) return;
-  skipExplained = true;
-  console.info(`[tracking] Event Meta tidak dikirim: ${reason}`);
+  if (skipExplained.has(reason)) return;
+  skipExplained.add(reason);
+  console.info(`[tracking] Event tidak dikirim: ${reason}`);
 }
+const NO_CONSENT = "belum ada persetujuan (no consent yet). Event sebelum keputusan dibuang, bukan ditunda.";
 
 function sendMeta(name: string, params: EventParams, dedupe: Dedupe | null, eventID = newEventId()) {
   if (typeof window === "undefined") return;
   if (isInternalBrowser()) return explainSkip("browser ini ditandai staf (musafar_internal). Buka ?px=on untuk mematikan penanda.");
   if (onPrivateRoute()) return explainSkip("halaman ini bertoken atau internal, sengaja tanpa pelacakan.");
+  // Before the visitor agreed to marketing: no pixel call, no /meta-capi call, no queue, no dedupe mark used up.
+  if (!hasConsent("marketing")) return explainSkip(NO_CONSENT);
   if (dedupe && !claim({ ...dedupe, key: `meta:${dedupe.key}` })) return;
   if (typeof window.fbq === "function") {
     window.fbq("track", name, params, { eventID });
@@ -144,10 +161,36 @@ const FBC_KEY = "musafar_fbc";
 
 // A visitor arriving from a Meta ad carries ?fbclid=. The pixel turns it into the
 // _fbc cookie, but if the pixel is blocked we keep our own copy in Meta's fbc format.
+// Only stored with marketing consent; before that it waits in memory for this page load.
+let landingFbc: string | undefined;
+function persistFbc() {
+  if (!landingFbc || !hasConsent("marketing")) return;
+  try {
+    localStorage.setItem(FBC_KEY, landingFbc);
+  } catch {
+    /* ignore */
+  }
+  landingFbc = undefined;
+}
 if (typeof window !== "undefined") {
   try {
     const fbclid = new URLSearchParams(window.location.search).get("fbclid");
-    if (fbclid) localStorage.setItem(FBC_KEY, `fb.1.${Date.now()}.${fbclid.slice(0, 400)}`);
+    if (fbclid) landingFbc = `fb.1.${Date.now()}.${fbclid.slice(0, 400)}`;
+  } catch {
+    /* ignore */
+  }
+  persistFbc();
+  onConsentChange(({ consent }) => {
+    if (consent?.marketing) persistFbc();
+    else clearMarketingState();
+  });
+}
+
+/** Marketing consent withdrawn: forget queued pixel events and the stored click id. */
+function clearMarketingState() {
+  pending.length = 0;
+  try {
+    localStorage.removeItem(FBC_KEY);
   } catch {
     /* ignore */
   }
@@ -157,6 +200,8 @@ const readCookie = (name: string) =>
   document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]+)`))?.[1];
 
 function sendCapi(name: string, params: EventParams, eventID: string) {
+  // Server-side copy carries IP, user agent, fbp/fbc and a visitor id to Meta: marketing consent only.
+  if (!hasConsent("marketing")) return;
   let storedFbc: string | undefined;
   try {
     storedFbc = localStorage.getItem(FBC_KEY) ?? undefined;
@@ -171,7 +216,7 @@ function sendCapi(name: string, params: EventParams, eventID: string) {
     custom_data: params,
     fbp: readCookie("_fbp"),
     fbc: readCookie("_fbc") ?? storedFbc,
-    external_id: storedId(window.localStorage, VISITOR_KEY, memVisitor),
+    external_id: visitorId("marketing"),
   };
   // Local development: the pixel already reports; don't send server events from localhost.
   if (import.meta.env.DEV) {
@@ -193,7 +238,7 @@ const pending: PendingEvent[] = [];
 
 /** Called right after the Meta Pixel is initialised; sends anything clicked before it loaded. */
 export function flushPendingPixelEvents() {
-  if (typeof window === "undefined" || typeof window.fbq !== "function") return;
+  if (typeof window === "undefined" || typeof window.fbq !== "function" || !hasConsent("marketing")) return;
   while (pending.length) {
     const e = pending.shift()!;
     window.fbq("track", e.name, e.params, { eventID: e.eventID });
@@ -202,7 +247,9 @@ export function flushPendingPixelEvents() {
 
 function sendTikTok(name: string, params: EventParams, dedupe: Dedupe | null) {
   // Only claim when TikTok is actually loaded, so a missing tag doesn't use up the dedupe mark.
-  if (typeof window === "undefined" || isInternalBrowser() || onPrivateRoute() || typeof window.ttq?.track !== "function") return;
+  if (typeof window === "undefined" || isInternalBrowser() || onPrivateRoute()) return;
+  if (!hasConsent("marketing")) return explainSkip(NO_CONSENT);
+  if (typeof window.ttq?.track !== "function") return;
   if (dedupe && !claim({ ...dedupe, key: `tiktok:${dedupe.key}` })) return;
   try {
     window.ttq.track(name, params);
@@ -213,7 +260,9 @@ function sendTikTok(name: string, params: EventParams, dedupe: Dedupe | null) {
 
 /** GA4 is analytics, not ad optimisation: every occurrence is sent and GA reports users itself. */
 function sendGa(name: string, params: EventParams) {
-  if (typeof window === "undefined" || isInternalBrowser() || onPrivateRoute() || typeof window.gtag !== "function") return;
+  if (typeof window === "undefined" || isInternalBrowser() || onPrivateRoute()) return;
+  if (!hasConsent("analytics")) return explainSkip(NO_CONSENT);
+  if (typeof window.gtag !== "function") return;
   window.gtag("event", name, params);
 }
 
@@ -246,7 +295,8 @@ function storedId(storage: Storage | undefined, key: string, fallback: { id?: st
     if (!storage) throw new Error("no storage");
     let id = storage.getItem(key);
     if (!id) {
-      id = randomId();
+      // First time we may store it: keep the id this page load already used, so the visit stays one visit.
+      id = fallback.id ?? randomId();
       storage.setItem(key, id);
     }
     return id;
@@ -254,16 +304,29 @@ function storedId(storage: Storage | undefined, key: string, fallback: { id?: st
     return (fallback.id ??= randomId());
   }
 }
+// Random for this page load only, never stored. Used until the visitor agrees to analytics.
 const memVisitor: { id?: string } = {};
 const memSession: { id?: string } = {};
+
+/** Persistent visitor id with analytics (or marketing, for Meta's external_id) consent; a per-page-load random id before. */
+function visitorId(requiredCategory: "analytics" | "marketing" = "analytics"): string {
+  if (!hasConsent(requiredCategory)) return (memVisitor.id ??= randomId());
+  return storedId(window.localStorage, VISITOR_KEY, memVisitor);
+}
+function sessionId(): string {
+  if (!hasConsent("analytics")) return (memSession.id ??= randomId());
+  return storedId(window.sessionStorage, SESSION_KEY, memSession);
+}
 
 type SessionAttr = { utm_source?: string; utm_medium?: string; utm_campaign?: string; referrer_host?: string };
 
 /** Where this visit came from, fixed on its first page so later pages keep the ad's UTM. */
+let memAttr: SessionAttr | undefined;
 function sessionAttribution(): SessionAttr {
+  if (memAttr) return memAttr;
   try {
-    const saved = sessionStorage.getItem(SESSION_ATTR_KEY);
-    if (saved) return JSON.parse(saved) as SessionAttr;
+    const saved = hasConsent("analytics") ? sessionStorage.getItem(SESSION_ATTR_KEY) : null;
+    if (saved) return (memAttr = JSON.parse(saved) as SessionAttr);
   } catch {
     /* fall through */
   }
@@ -282,8 +345,9 @@ function sessionAttribution(): SessionAttr {
     utm_campaign: cut(params.get("utm_campaign")),
     referrer_host: referrerHost?.slice(0, 150),
   };
+  memAttr = attr;
   try {
-    sessionStorage.setItem(SESSION_ATTR_KEY, JSON.stringify(attr));
+    if (hasConsent("analytics")) sessionStorage.setItem(SESSION_ATTR_KEY, JSON.stringify(attr));
   } catch {
     /* ignore */
   }
@@ -306,8 +370,8 @@ function logSiteEvent(event: SiteEvent, extra: { packageId?: string; leadSource?
   if (UNTRACKED_PATHS.test(path) || navigator.webdriver || isInternalBrowser()) return;
   const attr = sessionAttribution();
   const row = {
-    visitor_id: storedId(window.localStorage, VISITOR_KEY, memVisitor),
-    session_id: storedId(window.sessionStorage, SESSION_KEY, memSession),
+    visitor_id: visitorId(),
+    session_id: sessionId(),
     event,
     path: safeTrackingPath(path).slice(0, 300),
     package_id: extra.packageId && UUID_RE.test(extra.packageId) ? extra.packageId : null,
@@ -383,7 +447,7 @@ export function trackMetaPageView() {
 
 /** TikTok pixel just loaded on this page load. */
 export function trackTikTokPageView() {
-  if (typeof window === "undefined" || isInternalBrowser() || onPrivateRoute() || typeof window.ttq?.page !== "function") return;
+  if (typeof window === "undefined" || isInternalBrowser() || onPrivateRoute() || !hasConsent("marketing") || typeof window.ttq?.page !== "function") return;
   try {
     window.ttq.page();
   } catch {

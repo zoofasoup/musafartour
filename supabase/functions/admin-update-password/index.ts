@@ -25,17 +25,17 @@ serve(async (req) => {
       throw new Error('Unauthorized')
     }
 
-    // Verify caller is admin
-    const { data: roleData, error: roleError } = await supabaseClient
+    // Verify the caller: owner (admin, superadmin) may reset anyone; agent_admin may reset AGENT accounts only (ADM-116)
+    const { data: callerRoles, error: roleError } = await supabaseClient
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .in('role', ['admin', 'superadmin'])
-      .maybeSingle()
+      .in('role', ['admin', 'superadmin', 'agent_admin'])
 
-    if (roleError || !roleData) {
-      throw new Error('Forbidden: Requires admin role')
+    if (roleError || !callerRoles || callerRoles.length === 0) {
+      throw new Error('Forbidden: Requires admin or agent_admin role')
     }
+    const isOwner = callerRoles.some((r: { role: string }) => r.role === 'admin' || r.role === 'superadmin')
 
     const { userId, newPassword } = await req.json()
     if (!userId || !newPassword) {
@@ -47,6 +47,15 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
+
+    if (!isOwner) {
+      // agent_admin: the target must be an agent login and must not hold any staff role
+      const { data: agentRow } = await supabaseAdmin.from('agents').select('id').eq('user_id', userId).maybeSingle()
+      const { data: staffRow } = await supabaseAdmin.from('user_roles').select('role').eq('user_id', userId).limit(1)
+      if (!agentRow || (staffRow && staffRow.length > 0)) {
+        throw new Error('Forbidden: agent_admin can only reset passwords of agent accounts')
+      }
+    }
 
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       userId,

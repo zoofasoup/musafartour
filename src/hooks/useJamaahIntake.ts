@@ -31,6 +31,8 @@ export interface Intake {
   reject_reason: string | null;
   reviewed_at: string | null;
   created_at: string;
+  info_sent_at: string | null;
+  info_sent_by: string | null;
   jamaah_intake_people: IntakePerson[];
 }
 
@@ -38,7 +40,7 @@ export type IntakeStatus = Intake["status"];
 
 const COLUMNS =
   "id, code, package_id, status, contact_name, contact_phone, contact_city, contact_attending, pay_together, agent_id, ref_code, " +
-  "heard_from, notes, source, manifest_token, reject_reason, reviewed_at, created_at, " +
+  "heard_from, notes, source, manifest_token, reject_reason, reviewed_at, created_at, info_sent_at, info_sent_by, " +
   "jamaah_intake_people(id, position, full_name, gender, category, room_type, relation, registration_id)";
 
 /** Registrations sent through the public form or the agent portal, newest first. */

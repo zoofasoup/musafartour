@@ -7,28 +7,9 @@
       window.__musafarPrivate = /^\/(lengkapi|daftar|cek-status|set-password|admin|agent|flyer-print)(\/|$)/.test(location.pathname);
     </script>
 
-    <!-- Google Tag Manager -->
-    <script>
-      if (!window.__musafarPrivate) {
-        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-        })(window,document,'script','dataLayer','GTM-TGNZSHNW');
-      }
-    </script>
-    <!-- End Google Tag Manager -->
-
-    <!-- Microsoft Clarity Heatmap Tracking -->
-    <script type="text/javascript">
-      if (!window.__musafarPrivate) {
-        (function(c,l,a,r,i,t,y){
-            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-        })(window, document, "clarity", "script", "xku8bbmx8x");
-      }
-    </script>
+    <!-- No third-party tag (GTM, Clarity, Meta Pixel, TikTok, GA4) is loaded from this file.
+         They load only after the visitor agrees: src/lib/consent.ts (storage key musafar_consent),
+         src/lib/trackerLoaders.ts, src/components/ConsentBanner.tsx. -->
 
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -44,8 +25,6 @@
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap"></noscript>
     <link rel="preconnect" href="https://lcpjuaxiwbdzdozitwzi.supabase.co" crossorigin>
     <link rel="dns-prefetch" href="https://lcpjuaxiwbdzdozitwzi.supabase.co">
-    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-    <link rel="dns-prefetch" href="https://analytics.tiktok.com">
 
     <!-- Preload the homepage hero (the LCP image) only on the homepage; this shell serves every route. -->
     <script>
@@ -93,30 +72,6 @@
 </head>
 
   <body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TGNZSHNW"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
-    
-    <!-- TikTok Pixel - Deferred to not block rendering -->
-    <script>
-    // Defer TikTok pixel to improve initial load
-    window.addEventListener('load', function() {
-      if (window.__musafarPrivate) return;
-      // Staff browsers (px=off, localStorage musafar_internal) send no pixel events.
-      try { if (localStorage.getItem('INTERNALKEY') === '1') return; } catch (e) {}
-      setTimeout(function() {
-        // Already loaded (React hook from admin settings) or became a private route: never init twice.
-        if (window.__musafarPrivate || window.ttq) return;
-        !function (w, d, t) {
-          w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
-          ttq.load('D4JDUSRC77U7MI8IJGGG');
-          ttq.page();
-        }(window, document, 'ttq');
-      }, 2000);
-    });
-    </script>
-    
     <!-- Skip link + navbar are portaled here (src/components/Navbar.tsx) so they come first in the focus order. -->
     <div id="nav-root"></div>
     <div id="root"></div>

@@ -173,7 +173,7 @@ export function AgentDetailDialog({
       toast.success("Password agen berhasil diubah");
       setNewPassword("");
     } catch (error) {
-      toast.error("Gagal mengubah password. Pastikan fungsi admin-update-password sudah aktif (" + (error as Error).message + ")");
+      toast.error("Password belum bisa diubah: " + (error as Error).message);
     } finally {
       setChanging(false);
     }

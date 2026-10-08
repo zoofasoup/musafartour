@@ -1,3 +1,4 @@
+import { hasConsent } from "@/lib/consent";
 import { supabase } from '@/integrations/supabase/client';
 
 const ROTATION_KEY = 'musafar_cs_rotation';
@@ -138,7 +139,7 @@ export const logRedirect = (
   console.log(`[Musafar CS Redirect] ${csName} | ${log.timestamp}${message ? ` | Message: ${message}` : ''}${utmInfo}`);
   
   // Send to Google Analytics if available
-  if (typeof window !== 'undefined' && (window as any).gtag) {
+  if (typeof window !== 'undefined' && (window as any).gtag && hasConsent('analytics')) {
     (window as any).gtag('event', 'whatsapp_redirect', {
       cs_id: csId,
       cs_name: csName,

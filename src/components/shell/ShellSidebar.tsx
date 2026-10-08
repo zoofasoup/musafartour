@@ -27,7 +27,7 @@ import type { ShellNavGroup, ShellSidebarLink } from "./types";
  * accessible name stays.
  */
 const ITEM_BASE =
-  "h-10 gap-3 rounded-md px-3 text-sm [@media(pointer:coarse)]:h-11 group-data-[collapsible=icon]:!size-11 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center [&>svg]:size-[18px]";
+  "relative h-10 gap-3 rounded-md px-3 text-sm [@media(pointer:coarse)]:h-11 group-data-[collapsible=icon]:!size-11 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center [&>svg]:size-[18px]";
 const ITEM_ACTIVE = "bg-card font-semibold text-foreground shadow-sm hover:bg-card hover:text-foreground";
 const ITEM_IDLE = "font-medium text-muted-foreground hover:bg-field-hover hover:text-foreground";
 const LABEL_HIDE_IN_RAIL = "group-data-[collapsible=icon]:sr-only";
@@ -156,6 +156,17 @@ export const ShellSidebar = ({ nav, pathname, brandTo, brandBadge, links, extra,
                         <Link to={item.url} aria-current={isActive ? "page" : undefined} onClick={closeDrawer}>
                           <Icon aria-hidden />
                           <span className={LABEL_HIDE_IN_RAIL}>{item.title}</span>
+                          {!!item.badge && item.badge > 0 && (
+                            <>
+                              <span
+                                aria-hidden
+                                className="ml-auto min-w-5 rounded-[4px] bg-brand px-1.5 text-center text-xs font-semibold leading-5 text-brand-foreground group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:right-0.5 group-data-[collapsible=icon]:top-0.5 group-data-[collapsible=icon]:min-w-4 group-data-[collapsible=icon]:px-1 group-data-[collapsible=icon]:leading-4"
+                              >
+                                {item.badge > 99 ? "99+" : item.badge}
+                              </span>
+                              <span className="sr-only">, {item.badge} {item.badgeLabel ?? "perlu ditangani"}</span>
+                            </>
+                          )}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

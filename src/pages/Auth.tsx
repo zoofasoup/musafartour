@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { safeAdminNext } from "@/lib/adminNext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,9 @@ const passwordSchema = z.string()
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Where the admin was headed before the login screen (internal /admin paths only; anything else is ignored)
+  const nextPath = safeAdminNext(searchParams.get("next"));
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -122,7 +126,7 @@ const Auth = () => {
           title: "Login berhasil!",
           description: "Selamat datang kembali",
         });
-        navigate("/admin");
+        navigate(nextPath ?? "/admin");
       }
     } catch (error: any) {
       if (error instanceof z.ZodError) {

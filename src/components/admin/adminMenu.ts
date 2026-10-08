@@ -43,7 +43,8 @@ export const ADMIN_MENU_SECTIONS: AdminMenuSection[] = [
     label: "Penjualan & Operasional",
     items: [
       { icon: MessageCircleMore, label: "Kotak Masuk WhatsApp", path: "/admin/whatsapp-inbox", roles: ["admin", "superadmin", "sales"] },
-      { icon: Sparkles, label: "Prospek Kalkulator", path: "/admin/calculator-leads", roles: ["admin", "superadmin", "product_admin", "sales"] },
+      // product_admin has no access to calculator leads (names and WhatsApp numbers; ADM-031): RLS gives them nothing.
+      { icon: Sparkles, label: "Prospek Kalkulator", path: "/admin/calculator-leads", roles: ["admin", "superadmin", "sales"] },
     ]
   },
   {

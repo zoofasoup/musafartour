@@ -367,8 +367,6 @@ export type Database = {
       agent_levels: {
         Row: {
           benefits: string[] | null
-          commission_rate_max: number
-          commission_rate_min: number
           created_at: string
           level_name: string
           max_sales: number | null
@@ -376,8 +374,6 @@ export type Database = {
         }
         Insert: {
           benefits?: string[] | null
-          commission_rate_max?: number
-          commission_rate_min?: number
           created_at?: string
           level_name: string
           max_sales?: number | null
@@ -385,8 +381,6 @@ export type Database = {
         }
         Update: {
           benefits?: string[] | null
-          commission_rate_max?: number
-          commission_rate_min?: number
           created_at?: string
           level_name?: string
           max_sales?: number | null
@@ -1756,6 +1750,8 @@ export type Database = {
           contact_phone: string
           created_at: string
           heard_from: string | null
+          info_sent_at: string | null
+          info_sent_by: string | null
           id: string
           manifest_token: string
           notes: string | null
@@ -1779,6 +1775,8 @@ export type Database = {
           contact_phone: string
           created_at?: string
           heard_from?: string | null
+          info_sent_at?: string | null
+          info_sent_by?: string | null
           id?: string
           manifest_token?: string
           notes?: string | null
@@ -1802,6 +1800,8 @@ export type Database = {
           contact_phone?: string
           created_at?: string
           heard_from?: string | null
+          info_sent_at?: string | null
+          info_sent_by?: string | null
           id?: string
           manifest_token?: string
           notes?: string | null
@@ -3429,6 +3429,16 @@ export type Database = {
           _status?: string
         }
         Returns: string
+      }
+      admin_commission_rate_history: {
+        Args: { _package_id: string }
+        Returns: { changed_at: string; tier: string; level: string; old_amount: number | null; new_amount: number | null; changed_by_name: string }[]
+      }
+      admin_work_counts: { Args: never; Returns: Json }
+      mark_intake_info_sent: { Args: { _intake_id: string }; Returns: string }
+      ad_spend_closed_calculator_counts: {
+        Args: never
+        Returns: { closed_count: number; utm_campaign: string }[]
       }
       mark_refund_sent: { Args: { _booking_id: string }; Returns: undefined }
       process_agent_withdrawal: {

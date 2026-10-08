@@ -4,6 +4,7 @@ import { Instagram, Facebook, Youtube, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useHomepageData } from "@/hooks/useHomepageData";
 import { trackWhatsAppLead } from "@/lib/tracking";
+import { openConsentSettings } from "@/lib/consent";
 
 const FALLBACK_PHONE = "021-38312137";
 const FALLBACK_WHATSAPP = "6281917403797";
@@ -110,6 +111,7 @@ const Footer = () => {
                   <li><Link to="/cek-status" className="inline-block py-1.5 hover:text-white transition-colors">Cek Status Pendaftaran</Link></li>
                   <li><Link to="/kebijakan-privasi" className="inline-block py-1.5 hover:text-white transition-colors">Kebijakan Privasi</Link></li>
                   <li><Link to="/syarat-ketentuan" className="inline-block py-1.5 hover:text-white transition-colors">Syarat & Ketentuan</Link></li>
+                  <li><button type="button" onClick={openConsentSettings} className="inline-block py-1.5 text-left hover:text-white transition-colors">Pengaturan cookie</button></li>
                   <li><Link to="/kontak" className="inline-block py-1.5 hover:text-white transition-colors">Kontak</Link></li>
                 </ul>
               </div>

@@ -61,6 +61,41 @@ export function useSaveCommissionRate() {
       );
       // Agents' own view of the rates may now be stale.
       qc.invalidateQueries({ queryKey: ["my-commission-rates"] });
+      qc.invalidateQueries({ queryKey: ["admin-commission-rate-history", v.package_id] });
+    },
+  });
+}
+
+/** Thrown by a save that the person called off in the "paket belum punya tarif" dialog; the cell goes back quietly. */
+export class SaveCancelled extends Error {
+  constructor() {
+    super("Dibatalkan");
+    this.name = "SaveCancelled";
+  }
+}
+
+export interface RateHistoryRow {
+  changed_at: string;
+  tier: string;
+  level: string;
+  old_amount: number | null;
+  new_amount: number | null;
+  changed_by_name: string;
+}
+
+/** Who changed which rate of one package, newest first (admin_commission_rate_history). */
+export function useCommissionRateHistory(packageId: string | null) {
+  return useQuery({
+    queryKey: ["admin-commission-rate-history", packageId],
+    enabled: !!packageId,
+    queryFn: async (): Promise<RateHistoryRow[]> => {
+      const { data, error } = await supabase.rpc("admin_commission_rate_history", { _package_id: packageId! });
+      if (error) throw new Error(error.message);
+      return (data ?? []).map((r) => ({
+        ...r,
+        old_amount: r.old_amount == null ? null : Number(r.old_amount),
+        new_amount: r.new_amount == null ? null : Number(r.new_amount),
+      }));
     },
   });
 }

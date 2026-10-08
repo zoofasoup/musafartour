@@ -51,22 +51,30 @@ Kami mengumpulkan data dalam tiga tahap. Semua isian di bawah memang ada di form
 
 ### 3. Pelacak dan cookie (alat analitik dan iklan)
 
-Situs memakai alat pihak ketiga untuk mengukur kunjungan dan iklan:
+Situs memakai alat pihak ketiga untuk mengukur kunjungan dan iklan. Alat-alat ini dibagi dua kategori dan **tidak ada yang dimuat sebelum kamu memilih** (lihat "Persetujuan pelacak" di bawah):
 
-| Alat | Penyedia | Untuk apa | Cookie atau penyimpanan |
-|---|---|---|---|
-| Google Tag Manager dan Google Analytics 4 | Google | Statistik kunjungan | `_ga`, `_ga_*` |
-| Meta Pixel dan Meta Conversions API | Meta | Mengukur iklan, audiens iklan | `_fbp`, `_fbc` |
-| TikTok Pixel | TikTok | Mengukur iklan | `_ttp`, `_tt_enable_cookie` |
-| Microsoft Clarity | Microsoft | Rekaman layar dan peta panas | `_clck`, `_clsk` |
-| Cloudflare Web Analytics | Cloudflare | Statistik kunjungan | **[ISI: konfirmasi apakah aktif, dilihat di dasbor Cloudflare]** |
-| Google Fonts, YouTube (video beranda) | Google | Huruf dan video | cookie YouTube **[ISI: cek apakah video memakai mode tanpa cookie]** |
+| Kategori | Alat | Penyedia | Untuk apa | Cookie atau penyimpanan |
+|---|---|---|---|---|
+| Analitik | Google Tag Manager dan Google Analytics 4 | Google | Statistik kunjungan | `_ga`, `_ga_*` |
+| Pemasaran | Meta Pixel dan Meta Conversions API | Meta | Mengukur iklan, audiens iklan | `_fbp`, `_fbc` |
+| Pemasaran | TikTok Pixel | TikTok | Mengukur iklan | `_ttp`, `_tt_enable_cookie` |
+| Analitik | Microsoft Clarity | Microsoft | Rekaman layar dan peta panas | `_clck`, `_clsk` |
+| (belum jelas) | Cloudflare Web Analytics | Cloudflare | Statistik kunjungan | **[ISI: konfirmasi apakah aktif, dilihat di dasbor Cloudflare]** |
+| (konten) | Google Fonts, YouTube (video beranda) | Google | Huruf dan video | cookie YouTube **[ISI: cek apakah video memakai mode tanpa cookie]** |
 
 Aturan yang sudah berlaku di kode sejak 6 Oktober 2026: **tidak ada pelacak yang dimuat, dan tidak ada peristiwa yang dikirim, di halaman `/lengkapi/...`, `/cek-status`, `/set-password`, `/admin`, `/agent`, dan `/flyer-print`; di `/daftar/...` pelacak tidak dimuat pada kunjungan pertama.** Pelacak yang sudah terpasang dari halaman sebelumnya (mis. beranda) tetap aktif bila kamu berpindah ke `/daftar/...` lewat tautan di dalam situs.
 
 Cookie kami sendiri: `musafar_ref` (kode agen, 30 hari), pengenal acak pengunjung dan sesi, daftar favoritmu, dan penanda staf. Semua tidak berisi data pribadi.
 
-**Persetujuan pelacak:** saat ini situs **belum** memiliki banner persetujuan; pelacak aktif sejak halaman pertama. **[PERLU DITINJAU HUKUM: apakah pelacakan iklan tanpa persetujuan terlebih dahulu sah menurut UU PDP; apakah perlu banner dengan pilihan tolak. Keputusan banner ada di owner dan belum dibuat.]**
+**Persetujuan pelacak (banner "Cookie dan pelacakan"):**
+
+- Saat kamu pertama kali membuka halaman publik, muncul banner dengan tiga pilihan: **Setuju semua**, **Tolak semua**, dan **Atur pilihan**. Sebelum kamu memilih, tidak ada pelacak yang dimuat dan tidak ada data yang dikirim ke pihak ketiga, termasuk salinan peristiwa dari server kami ke Meta (Conversions API). Peristiwa yang terjadi sebelum kamu memilih dibuang, tidak ditunda dan dikirim belakangan.
+- Dua kategori: **Analitik** (Google Tag Manager, Google Analytics 4, Microsoft Clarity) dan **Pemasaran** (Meta Pixel dan Conversions API, TikTok Pixel). Keduanya mati secara bawaan; tidak ada kotak yang sudah tercentang.
+- **Yang kami simpan sebagai bukti:** pilihanmu disimpan di peramban kamu sendiri (`localStorage`, kunci `musafar_consent`) berisi nomor versi banner, nilai tiap kategori, dan waktu pilihan dibuat. Kami tidak menyimpan pilihan ini di server. Bila versi banner berubah, kami bertanya lagi.
+- **Tanpa persetujuan Analitik**, statistik kunjungan milik kami sendiri (jumlah halaman dilihat, paket yang dibuka, tap WhatsApp) tetap dihitung tetapi memakai pengenal acak yang hanya berlaku selama satu pemuatan halaman dan tidak disimpan di peramban, sehingga kami tidak dapat mengenali kamu pada kunjungan berikutnya. Dengan persetujuan Analitik, pengenal pengunjung dan sesi disimpan supaya kami dapat menghitung pengunjung unik. **[PERLU DITINJAU HUKUM: apakah statistik pihak pertama tanpa pengenal tetap ini dapat dijalankan tanpa persetujuan.]**
+- **Menarik atau mengubah persetujuan:** buka tautan **Pengaturan cookie** di bagian bawah setiap halaman (footer), ubah saklar, lalu **Simpan pilihan**. Begitu kamu menyimpan, peristiwa berhenti dikirim dan cookie pelacak milik situs ini (`_ga*`, `_gid`, `_fbp`, `_fbc`, `_clck`, `_clsk`, `_ttp`, `ttcsid*`) kami hapus. Pelacak yang sudah dimuat di halaman yang sedang terbuka baru berhenti sepenuhnya setelah halaman dimuat ulang, dan cookie yang disimpan di domain pihak ketiga hanya bisa dihapus lewat pengaturan peramban kamu. Menarik persetujuan tidak mengubah pemrosesan yang sudah sah dilakukan sebelumnya.
+- Halaman bertoken dan halaman internal (lihat aturan di atas) tidak menampilkan banner karena memang tanpa pelacak. Halaman artikel (`/artikel/...`) belum menampilkan banner: pelacak di sana hanya aktif bila kamu sudah menyetujuinya di halaman lain situs.
+- Pelacak yang tidak termasuk dua kategori ini (Cloudflare Turnstile di formulir, huruf Google Fonts) dibutuhkan agar fitur berjalan. **[PERLU DITINJAU HUKUM: apakah pemuatan Google Fonts dan YouTube tanpa persetujuan dapat dibenarkan; apakah pilihan menolak harus sama mudah dengan menyetujui di semua kasus.]**
 
 ### 4. Untuk apa kami memakai datamu
 
@@ -166,7 +174,7 @@ Kewajiban kami bila ada kebocoran data: memberi tahu orang yang terdampak dan le
 ### A. Yang harus diputuskan owner
 
 1. Angka masa simpan di bagian 7 (semua **[ISI]**).
-2. Banner persetujuan pelacak: ya atau tidak, dan apakah pelacak ditahan sampai setuju. Keputusan belum dibuat; sampai saat itu kebijakan ini harus jujur bahwa pelacak aktif.
+2. Banner persetujuan pelacak: sudah diputuskan ("Banner persetujuan") dan dipasang; pelacak ditahan sampai setuju. Yang tersisa: tinjauan hukum atas tanda **[PERLU DITINJAU HUKUM]** di bagian 3, dan teks yang sama di halaman Kebijakan Privasi yang tayang.
 3. Siapa pejabat atau petugas data pribadi, dan siapa yang membalas permintaan data.
 4. Daftar mitra di luar negeri yang menerima paspor dan NIK (maskapai, visa, hotel, asuransi).
 5. Wilayah proyek Supabase; apakah dokumen boleh disimpan di luar Indonesia.
@@ -181,7 +189,7 @@ Kewajiban kami bila ada kebocoran data: memberi tahu orang yang terdampak dan le
 - Transfer lintas negara (Pasal 56).
 - Kewajiban penyimpanan data oleh PPIU (aturan Kemenag atau Kementerian Haji, aturan pajak dan akuntansi) dan batas simpan maksimal.
 - Batas waktu menjawab permintaan hak subjek data dan pemberitahuan kebocoran.
-- Apakah pelacakan iklan dan rekaman layar tanpa persetujuan terlebih dahulu dapat dibenarkan.
+- Apakah tata cara persetujuan di banner (dua kategori, tombol Tolak semua setara Setuju semua, bukti pilihan di peramban) memenuhi UU PDP Pasal 20 sampai 22; dan apakah statistik pihak pertama tanpa pengenal tetap boleh berjalan sebelum persetujuan.
 - Kalimat persetujuan di form (`RegistrationForm.tsx`: "Saya setuju data saya dan peserta lain dipakai Musafar Tour untuk memproses pendaftaran umroh ini") apakah cukup sebagai persetujuan eksplisit yang spesifik atas tujuan; saat ini tidak ada persetujuan terpisah untuk data kesehatan di `/lengkapi`.
 - Apakah pemesan boleh memberi persetujuan atas nama peserta lain (anggota keluarga) dan bagaimana bukti persetujuannya.
 

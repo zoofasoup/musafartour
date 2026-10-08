@@ -2,20 +2,19 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, FileText, Plane, BarChart, RefreshCw, AlertTriangle, Users, Calendar, ArrowRight, Zap } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Package, FileText, Plane, BarChart, AlertTriangle, Users, Calendar, ArrowRight } from "lucide-react";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getSlotsTaken } from "@/lib/utils";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { getAdminHomePath } from "@/components/admin/adminMenu";
+import { WorkQueueCards } from "@/components/admin/WorkQueueCards";
 
 const OwnerDashboard = () => {
   const navigate = useNavigate();
   const { user, loading, isAdmin } = useAuth();
-  const [migrating, setMigrating] = useState(false);
 
   const { data: packagesCount } = useQuery({
     queryKey: ['packages-count'],
@@ -166,30 +165,17 @@ const OwnerDashboard = () => {
     name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
   const agentColors = ["bg-blue-100 text-blue-700", "bg-pink-100 text-pink-700", "bg-purple-100 text-purple-700"];
 
-  const handleMigrateSlugs = async () => {
-    setMigrating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('migrate-package-slugs');
-      if (error) throw error;
-      toast.success(`Berhasil! ${data.updated} paket diperbarui`, {
-        description: `Total: ${data.total}, Gagal: ${data.failed}`
-      });
-    } catch (error: any) {
-      console.error('Migration error:', error);
-      toast.error('Gagal migrasi slug: ' + (error.message || 'Galat tidak dikenal'));
-    } finally {
-      setMigrating(false);
-    }
-  };
-
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dasbor</h1>
-          <p className="text-muted-foreground mt-1">Pusat komando Admin Musafar Tour.</p>
+          <p className="text-muted-foreground mt-1">Yang perlu ditangani hari ini dan ringkasan situs.</p>
         </div>
       </div>
+
+      {/* Work queues: what needs a person today, each card opens the page where it is done */}
+      <WorkQueueCards />
 
       {/* Insights derived from real upcoming-departure data - only renders when there's something real to flag */}
       {insights.length > 0 && (
@@ -338,79 +324,6 @@ const OwnerDashboard = () => {
               Lihat Gamifikasi <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </CardFooter>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border-slate-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg text-slate-800 flex items-center gap-2">
-              <Zap className="w-5 h-5 text-amber-500" />
-              Quick Actions
-            </CardTitle>
-            <CardDescription>Akses cepat ke fitur & utilitas utama</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-colors group">
-                <h3 className="text-sm font-semibold text-slate-800">Perbarui slug paket</h3>
-                <p className="text-xs text-slate-500 mb-4 mt-1 line-clamp-2">
-                  Migrasi semua slug paket ke format baru secara massal.
-                </p>
-                <Button 
-                  onClick={handleMigrateSlugs} 
-                  disabled={migrating}
-                  variant="outline"
-                  className="w-full bg-white group-hover:bg-slate-800 group-hover:text-white transition-colors"
-                >
-                  <RefreshCw className={`mr-2 h-4 w-4 ${migrating ? 'animate-spin' : ''}`} />
-                  {migrating ? 'Memproses...' : 'Jalankan Migrasi'}
-                </Button>
-              </div>
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-colors group">
-                <h3 className="text-sm font-semibold text-slate-800">Sinkronisasi GA4</h3>
-                <p className="text-xs text-slate-500 mb-4 mt-1 line-clamp-2">
-                  Tarik data analitik terbaru dari Google Analytics.
-                </p>
-                <Button variant="outline" className="w-full bg-white group-hover:bg-primary group-hover:text-white transition-colors" disabled>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Segera Hadir
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg text-slate-800">Sistem & Notifikasi</CardTitle>
-            <CardDescription>Status layanan pihak ketiga</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-white">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                  <span className="text-sm font-medium text-slate-700">Database Supabase</span>
-                </div>
-                <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md font-medium">Connected</span>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-white">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                  <span className="text-sm font-medium text-slate-700">Google Sheets API</span>
-                </div>
-                <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md font-medium">Connected</span>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-white">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-slate-300"></div>
-                  <span className="text-sm font-medium text-slate-700">Meta Ads Integration</span>
-                </div>
-                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-md font-medium">Nonaktif</span>
-              </div>
-            </div>
-          </CardContent>
         </Card>
       </div>
     </div>

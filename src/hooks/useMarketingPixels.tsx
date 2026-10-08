@@ -1,10 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { flushPendingPixelEvents, trackMetaPageView, trackTikTokPageView } from "@/lib/tracking";
+import { getConsent, onConsentChange } from "@/lib/consent";
+import { loadClarity, loadGa4, loadGtm, loadMeta, loadTikTok } from "@/lib/trackerLoaders";
 
 // Module-level: the load's PageView must be sent once even if the hook re-runs.
 let metaPageViewSent = false;
+const TIKTOK_FALLBACK_ID = 'D4JDUSRC77U7MI8IJGGG';
 // GA4 gtag.js is added once per page load (see the GA effect).
 let ga4Injected = false;
 
@@ -63,24 +66,32 @@ export const useMarketingPixels = (enabled: boolean = true) => {
     enabled,
   });
 
-  // Inject Meta Pixel
+  // Consent decides what may load. Re-render on every decision (also a later one on the same page, no reload).
+  const [consent, setConsentState] = useState(getConsent);
+  useEffect(() => onConsentChange(({ consent: c }) => setConsentState(c)), []);
+  const marketingOk = consent?.marketing === true;
+  const analyticsOk = consent?.analytics === true;
+
+  useEffect(() => {
+    if (enabled && !consent) {
+      console.info("[tracking] Pixel dan tag belum dimuat: belum ada persetujuan (no consent yet).");
+    }
+  }, [enabled, consent]);
+
+  // GTM + Clarity (analytics). No admin switch exists for these two.
+  useEffect(() => {
+    if (!enabled || !analyticsOk) return;
+    loadGtm();
+    loadClarity();
+  }, [enabled, analyticsOk]);
+
+  // Inject Meta Pixel (marketing)
   useEffect(() => {
     const safeMetaPixelId = validatePixelId(settings?.meta_pixel_id, 'meta');
 
-    if (enabled && settings?.meta_pixel_enabled && safeMetaPixelId) {
-      const script = document.createElement("script");
-      script.innerHTML = `
-        !function(f,b,e,v,n,t,s)
-        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-        n.queue=[];t=b.createElement(e);t.async=!0;
-        t.src=v;s=b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t,s)}(window, document,'script',
-        'https://connect.facebook.net/en_US/fbevents.js');
-        fbq('init', '${safeMetaPixelId}');
-      `;
-      document.head.appendChild(script);
+    if (enabled && marketingOk && settings?.meta_pixel_enabled && safeMetaPixelId) {
+      // Idempotent: the script is added once per page load.
+      loadMeta(safeMetaPixelId);
       // The inline script runs synchronously on append, so fbq exists now.
       // One PageView per page load; after that the pixel's own History listener
       // sends a PageView on each SPA route change (Meta's recommended setup).
@@ -96,62 +107,39 @@ export const useMarketingPixels = (enabled: boolean = true) => {
       // loads immediately, so it sent a second PageView on every page load.)
 
       return () => {
-        document.head.removeChild(script);
         // Entering an internal page (admin/agent): stop route-change PageViews.
         if (window.fbq) window.fbq.disablePushState = true;
       };
     }
-  }, [enabled, settings?.meta_pixel_enabled, settings?.meta_pixel_id]);
+  }, [enabled, marketingOk, settings?.meta_pixel_enabled, settings?.meta_pixel_id]);
 
-  // Inject TikTok Pixel
+  // Inject TikTok Pixel (marketing)
   useEffect(() => {
-    const safeTiktokPixelId = validatePixelId(settings?.tiktok_pixel_id, 'tiktok');
+    // The admin settings had no TikTok pixel when the loader was removed from index.html (id empty, switch off),
+    // and the pixel then ran only from that hard-coded snippet. Keep that ID as the fallback while the
+    // settings have none, so TikTok keeps working (now only after marketing consent). An ID saved in the admin wins,
+    // and with an ID saved the admin switch applies.
+    const settingsTiktokId = validatePixelId(settings?.tiktok_pixel_id, 'tiktok');
+    const useFallback = !!settings && !settings.tiktok_pixel_id?.trim();
+    const safeTiktokPixelId = settingsTiktokId || (useFallback ? TIKTOK_FALLBACK_ID : null);
+    const tiktokOn = useFallback ? true : !!settings?.tiktok_pixel_enabled;
 
-    if (enabled && settings?.tiktok_pixel_enabled && safeTiktokPixelId) {
-      // Only inject if not already loaded via hardcoded script
-      if (!window.ttq) {
-        const script = document.createElement("script");
-        script.innerHTML = `
-          !function (w, d, t) {
-            w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
-            ttq.load('${safeTiktokPixelId}');
-          }(window, document, 'ttq');
-        `;
-        document.head.appendChild(script);
-        // Once per person, like the Meta PageView.
-        trackTikTokPageView();
-
-        return () => {
-          document.head.removeChild(script);
-        };
-      }
+    if (enabled && marketingOk && tiktokOn && safeTiktokPixelId) {
+      // Loaded once per page load; its first page() is the current page's PageView.
+      if (loadTikTok(safeTiktokPixelId)) trackTikTokPageView();
     }
-  }, [enabled, settings?.tiktok_pixel_enabled, settings?.tiktok_pixel_id]);
+  }, [enabled, marketingOk, settings]);
 
-  // Inject Google Analytics - deferred after page load
+  // Inject Google Analytics (analytics) - deferred after page load
   useEffect(() => {
     const safeGa4Id = validatePixelId(settings?.ga4_id, 'ga4');
 
     // Once per page load: `enabled` flips whenever the visitor leaves a private route, and the
     // script + gtag('config') must not be added again (duplicate page_view).
-    if (enabled && settings?.ga4_enabled && safeGa4Id && !ga4Injected) {
+    if (enabled && analyticsOk && settings?.ga4_enabled && safeGa4Id && !ga4Injected) {
       ga4Injected = true;
       // Use requestIdleCallback to defer GA loading
-      const loadGA = () => {
-        const script1 = document.createElement("script");
-        script1.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(safeGa4Id)}`;
-        script1.async = true;
-        document.head.appendChild(script1);
-
-        const script2 = document.createElement("script");
-        script2.innerHTML = `
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '${safeGa4Id}');
-        `;
-        document.head.appendChild(script2);
-      };
+      const loadGA = () => loadGa4(safeGa4Id);
 
       // Defer loading to not block main thread
       if ('requestIdleCallback' in window) {
@@ -160,7 +148,7 @@ export const useMarketingPixels = (enabled: boolean = true) => {
         setTimeout(loadGA, 2000);
       }
     }
-  }, [enabled, settings?.ga4_enabled, settings?.ga4_id]);
+  }, [enabled, analyticsOk, settings?.ga4_enabled, settings?.ga4_id]);
 
   return settings;
 };

@@ -1,7 +1,9 @@
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { format, parseISO } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { Coins, Info, Search } from "lucide-react";
+import { Coins, History, Info, Loader2, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -11,7 +13,8 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
 import { CommissionCell } from "@/components/admin/commission/CommissionCell";
-import { useCommissionRates, useSaveCommissionRate, type CommissionRateRow } from "@/hooks/useCommissionRates";
+import { RateHistoryDrawer } from "@/components/admin/commission/RateHistoryDrawer";
+import { SaveCancelled, useCommissionRates, useSaveCommissionRate, type CommissionRateRow } from "@/hooks/useCommissionRates";
 import { COMMISSION_LEVELS, COMMISSION_LEVEL_LABEL, STANDARD_COMMISSION, rupiah, tierLabel, tierRank, type CommissionLevel } from "@/lib/commission";
 import { todayJakarta } from "@/lib/utils";
 
@@ -110,11 +113,47 @@ const AgentCommissions = () => {
   const totalCells = visible.length * COMMISSION_LEVELS.length;
   const filledCells = visible.reduce((n, r) => n + COMMISSION_LEVELS.filter((l) => r.amounts[l] != null).length, 0);
 
+  // First number on a row that has no rate at all: the other two levels would silently become Rp 0 (ADM-106). Ask first.
+  const [firstRate, setFirstRate] = useState<{ row: GridRow; level: CommissionLevel; amount: number } | null>(null);
+  const [fillingAll, setFillingAll] = useState(false);
+  const decision = useRef<{ resolve: () => void; reject: (e: Error) => void } | null>(null);
+  const [historyFor, setHistoryFor] = useState<{ id: string; name: string } | null>(null);
+
   const saveCell = useCallback(
-    (row: GridRow, level: CommissionLevel) => (amount: number | null) =>
-      save.mutateAsync({ package_id: row.package_id, tier: row.tier, level, amount }),
+    (row: GridRow, level: CommissionLevel) => (amount: number | null) => {
+      const unconfigured = COMMISSION_LEVELS.every((l) => row.amounts[l] == null);
+      if (amount != null && unconfigured) {
+        return new Promise<void>((resolve, reject) => {
+          decision.current = { resolve, reject };
+          setFirstRate({ row, level, amount });
+        });
+      }
+      return save.mutateAsync({ package_id: row.package_id, tier: row.tier, level, amount });
+    },
     [save],
   );
+
+  const settleFirstRate = async (mode: "one" | "all" | "cancel") => {
+    const d = decision.current;
+    const pending = firstRate;
+    if (!d || !pending) return;
+    if (mode === "cancel") {
+      d.reject(new SaveCancelled());
+    } else {
+      try {
+        const levels = mode === "all" ? COMMISSION_LEVELS : [pending.level];
+        setFillingAll(true);
+        for (const l of levels) await save.mutateAsync({ package_id: pending.row.package_id, tier: pending.row.tier, level: l, amount: pending.amount });
+        d.resolve();
+      } catch (e) {
+        d.reject(e instanceof Error ? e : new Error("Komisi belum tersimpan"));
+      } finally {
+        setFillingAll(false);
+      }
+    }
+    decision.current = null;
+    setFirstRate(null);
+  };
 
   const toggleIncomplete = (on: boolean) => setIncompleteKeys(on ? new Set(all.filter(isIncomplete).map((r) => r.key)) : null);
 
@@ -219,6 +258,7 @@ const AgentCommissions = () => {
                     <p className="font-semibold leading-tight">{r.package_name}</p>
                     <p className="text-[13px] text-muted-foreground">{rowSubtitle(r)}</p>
                     <RowStatus status={r.status} />
+                    <HistoryButton name={r.package_name} onClick={() => setHistoryFor({ id: r.package_id, name: `${r.package_name} · ${shortDate(r.departure_date)}` })} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {COMMISSION_LEVELS.map((l) => (
@@ -265,6 +305,7 @@ const AgentCommissions = () => {
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                         <span className="font-semibold">{r.package_name}</span>
                         <RowStatus status={r.status} />
+                        <HistoryButton name={r.package_name} onClick={() => setHistoryFor({ id: r.package_id, name: `${r.package_name} · ${shortDate(r.departure_date)}` })} />
                       </div>
                       <div className="text-[13px] text-muted-foreground">{rowSubtitle(r)}</div>
                     </th>
@@ -284,9 +325,53 @@ const AgentCommissions = () => {
           </table>
         </div>
       )}
+
+      <Dialog open={!!firstRate} onOpenChange={(o) => !o && !fillingAll && void settleFirstRate("cancel")}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Paket ini belum punya tarif</DialogTitle>
+            <DialogDescription>
+              Setelah kamu mengisi satu tingkat, tingkat lain yang kosong dihitung Rp 0 (tidak lagi {rupiah(STANDARD_COMMISSION)}). Isi ketiga tingkat?
+            </DialogDescription>
+          </DialogHeader>
+          {firstRate && (
+            <p className="rounded-lg bg-field p-3 text-sm">
+              {firstRate.row.package_name} · {tierLabel(firstRate.row.tier)}: {COMMISSION_LEVEL_LABEL[firstRate.level]} {rupiah(firstRate.amount)}
+            </p>
+          )}
+          <DialogFooter className="gap-2 sm:flex-col sm:space-x-0">
+            <Button type="button" className="min-h-11" onClick={() => void settleFirstRate("all")} disabled={fillingAll}>
+              {fillingAll && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
+              Isi ketiga tingkat dengan angka ini
+            </Button>
+            <Button type="button" variant="outline" className="min-h-11" onClick={() => void settleFirstRate("one")} disabled={fillingAll}>
+              Isi satu tingkat saja
+            </Button>
+            <Button type="button" variant="ghost" className="min-h-11" onClick={() => void settleFirstRate("cancel")} disabled={fillingAll}>
+              Batal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <RateHistoryDrawer packageId={historyFor?.id ?? null} packageName={historyFor?.name ?? ""} onClose={() => setHistoryFor(null)} />
     </div>
   );
 };
+
+function HistoryButton({ name, onClick }: { name: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`Riwayat tarif ${name}`}
+      className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-[13px] font-medium text-muted-foreground outline-none hover:bg-field-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring [@media(pointer:coarse)]:h-11"
+    >
+      <History className="h-3.5 w-3.5" aria-hidden />
+      Riwayat
+    </button>
+  );
+}
 
 function RowStatus({ status }: { status: string }) {
   if (status === "published") return <StatusBadge kind="ok">Terbit</StatusBadge>;

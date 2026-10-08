@@ -49,16 +49,75 @@ function flagsFor(intake: Intake, pkg: JamaahPackage | undefined, known: KnownJa
 /** The private stage-2 link of an accepted registration. Anyone holding it can fill in that registration's data. */
 const manifestLink = (intake: Intake) => `${window.location.origin}/lengkapi/${intake.manifest_token}`;
 
-function whatsappUrl(intake: Intake, pkg: JamaahPackage | undefined, accepted: boolean) {
+/** The DP + manifest message sent right after a registration is accepted (DP per person, PT accounts, private link). */
+function acceptedMessage(intake: Intake, pkg: JamaahPackage | undefined) {
   const accounts = PT_ACCOUNTS.map((a) => `${a.code} ${a.number}`).join(" / ");
+  return (
+    `Assalamu'alaikum ${intake.contact_name},\n\nPendaftaran ${intake.code} untuk paket *${pkg?.package_name ?? ""}* sudah kami terima. ` +
+    `Untuk mengamankan seat, mohon transfer DP minimal *${rupiah(DP_MIN_PER_PAX)} per orang* ke rekening ${PT_ACCOUNT_HOLDER}: ${accounts}.\n` +
+    `Setelah transfer, kirim bukti transfer ke nomor ini.\n\n` +
+    `Mohon lengkapi data paspor dan dokumen tiap peserta lewat link pribadi ini: ${manifestLink(intake)}\n` +
+    `Jazakumullah khairan.`
+  );
+}
+
+const waUrl = (phone: string, text: string) => `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+
+function whatsappUrl(intake: Intake, pkg: JamaahPackage | undefined, accepted: boolean) {
   const text = accepted
-    ? `Assalamu'alaikum ${intake.contact_name},\n\nPendaftaran ${intake.code} untuk paket *${pkg?.package_name ?? ""}* sudah kami terima. ` +
-      `Untuk mengamankan seat, mohon transfer DP minimal *${rupiah(DP_MIN_PER_PAX)} per orang* ke rekening ${PT_ACCOUNT_HOLDER}: ${accounts}.\n` +
-      `Setelah transfer, kirim bukti transfer ke nomor ini.\n\n` +
-      `Mohon lengkapi data paspor dan dokumen tiap peserta lewat link pribadi ini: ${manifestLink(intake)}\n` +
-      `Jazakumullah khairan.`
+    ? acceptedMessage(intake, pkg)
     : `Assalamu'alaikum ${intake.contact_name},\n\nKami dari Musafar Tour, terkait pendaftaran ${intake.code}. `;
-  return `https://wa.me/${intake.contact_phone}?text=${encodeURIComponent(text)}`;
+  return waUrl(intake.contact_phone, text);
+}
+
+/** Shown right after "Terima" (and from the Diterima tab): the message, open WhatsApp, then record that it was sent. */
+function SendInfoDialog({ intake, pkg, onClose, onDone }: { intake: Intake | null; pkg?: JamaahPackage; onClose: () => void; onDone: () => void }) {
+  const [text, setText] = useState("");
+  const [openFor, setOpenFor] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [opened, setOpened] = useState(false);
+  if (intake && openFor !== intake.id) {
+    setOpenFor(intake.id);
+    setText(acceptedMessage(intake, pkg));
+    setOpened(false);
+  }
+  if (!intake && openFor) setOpenFor(null);
+
+  const markSent = async () => {
+    if (!intake) return;
+    setSaving(true);
+    const { error } = await supabase.rpc("mark_intake_info_sent", { _intake_id: intake.id });
+    setSaving(false);
+    if (error) return toast.error("Catatan terkirim belum tersimpan. Coba lagi.");
+    toast.success("Dicatat: info DP dan link lengkapi data sudah dikirim.");
+    onDone();
+  };
+
+  return (
+    <Dialog open={!!intake} onOpenChange={(o) => !o && !saving && onClose()}>
+      <DialogContent className="max-h-[92vh] max-w-xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Kirim info DP ke {intake?.contact_name}</DialogTitle>
+          <DialogDescription>
+            {intake?.info_sent_at ? `Sudah pernah dikirim ${stamp(intake.info_sent_at)}. Kirim ulang bila perlu.` : "Pendaftaran sudah diterima. Kirim DP dan link lengkapi data ke pendaftar, lalu catat di sini."}
+          </DialogDescription>
+        </DialogHeader>
+        <Textarea value={text} onChange={(e) => setText(e.target.value)} rows={10} aria-label="Isi pesan WhatsApp" className="text-sm" />
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button type="button" variant="outline" className={TOUCH_H} onClick={onClose} disabled={saving}>Nanti saja</Button>
+          <Button type="button" variant="outline" className={`${TOUCH_H} gap-2`} asChild>
+            <a href={intake ? waUrl(intake.contact_phone, text) : "#"} target="_blank" rel="noopener noreferrer" onClick={() => setOpened(true)}>
+              <MessageCircle className="h-4 w-4" aria-hidden />Buka WhatsApp
+            </a>
+          </Button>
+          <Button type="button" className={TOUCH_H} onClick={markSent} disabled={saving}>
+            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {opened ? "Sudah dikirim" : "Tandai sudah dikirim"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 interface DraftPerson extends IntakePerson {
@@ -213,6 +272,7 @@ export default function JamaahIntake() {
   const { data: known = [] } = useKnownJamaah(packageIds);
   const [accepting, setAccepting] = useState<Intake | null>(null);
   const [rejecting, setRejecting] = useState<Intake | null>(null);
+  const [sendInfo, setSendInfo] = useState<Intake | null>(null);
 
   // Find the registration: it is in "Menunggu" unless someone already accepted or rejected it, so look through the
   // other tabs, then bring it into view.
@@ -303,6 +363,11 @@ export default function JamaahIntake() {
                   {flags.seat === "full" && <Badge variant="outline" className={STATUS_BADGE.bad}>Daftar tunggu</Badge>}
                   {flags.seat === "short" && <Badge variant="outline" className={STATUS_BADGE.warn}>Seat kurang (sisa {flags.left})</Badge>}
                   {intake.pay_together && intake.jamaah_intake_people.length > 1 && <Badge variant="outline" className={STATUS_BADGE.info}>Bayar bersama</Badge>}
+                  {intake.status === "accepted" && (
+                    intake.info_sent_at
+                      ? <Badge variant="outline" className={STATUS_BADGE.ok} title={stamp(intake.info_sent_at)}>Terkirim · {stamp(intake.info_sent_at)}</Badge>
+                      : <Badge variant="outline" className={STATUS_BADGE.warn}>Info DP belum dikirim</Badge>
+                  )}
                 </div>
               </div>
 
@@ -347,12 +412,19 @@ export default function JamaahIntake() {
                     <Button type="button" variant="outline" className={TOUCH_H} onClick={() => setRejecting(intake)}>Tolak</Button>
                   </>
                 )}
-                <Button type="button" variant="outline" className={`${TOUCH_H} gap-2`} asChild>
-                  <a href={whatsappUrl(intake, pkg, status === "accepted")} target="_blank" rel="noopener noreferrer">
+                {status === "accepted" ? (
+                  <Button type="button" variant={intake.info_sent_at ? "outline" : "default"} className={`${TOUCH_H} gap-2`} onClick={() => setSendInfo(intake)}>
                     <MessageCircle className="h-4 w-4" aria-hidden />
-                    {status === "accepted" ? "Kirim info DP" : "WhatsApp"}
-                  </a>
-                </Button>
+                    {intake.info_sent_at ? "Kirim ulang info DP" : "Kirim info DP"}
+                  </Button>
+                ) : (
+                  <Button type="button" variant="outline" className={`${TOUCH_H} gap-2`} asChild>
+                    <a href={whatsappUrl(intake, pkg, false)} target="_blank" rel="noopener noreferrer">
+                      <MessageCircle className="h-4 w-4" aria-hidden />
+                      WhatsApp
+                    </a>
+                  </Button>
+                )}
               </div>
             </li>
           );
@@ -364,7 +436,18 @@ export default function JamaahIntake() {
         pkg={accepting ? pkgOf(accepting.package_id) : undefined}
         onClose={() => setAccepting(null)}
         onDone={() => {
+          // Straight to "send the DP message": the accepted intake is kept in memory (token and contact are on it already)
+          setSendInfo(accepting);
           setAccepting(null);
+          refresh();
+        }}
+      />
+      <SendInfoDialog
+        intake={sendInfo}
+        pkg={sendInfo ? pkgOf(sendInfo.package_id) : undefined}
+        onClose={() => setSendInfo(null)}
+        onDone={() => {
+          setSendInfo(null);
           refresh();
         }}
       />
