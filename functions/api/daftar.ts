@@ -39,8 +39,13 @@ async function turnstileOk(token: unknown, secret: string, ip: string | null): P
   }
 }
 
-/** The active agent behind a login token, or null. Anything else (bad token, not an agent, suspended) is refused by the caller. */
-async function agentFromLogin(authorization: string, url: string, anonKey: string, serviceHeaders: Record<string, string>): Promise<{ referral_code: string } | null> {
+type LoginAgent = { referral_code: string; registration_fee_status?: string };
+
+/**
+ * The active agent behind a login token, or null. Anything else (bad token, not an agent, suspended) is refused by the
+ * caller. registration_fee_status is returned so the caller can refuse an approved agent whose fee is not received yet.
+ */
+async function agentFromLogin(authorization: string, url: string, anonKey: string, serviceHeaders: Record<string, string>): Promise<LoginAgent | null> {
   const token = authorization.replace(/^Bearer\s+/i, "").trim();
   if (!token || token.length > 4096) return null;
   try {
@@ -48,8 +53,8 @@ async function agentFromLogin(authorization: string, url: string, anonKey: strin
     if (!who.ok) return null;
     const userId = ((await who.json()) as { id?: string }).id;
     if (!userId || !/^[0-9a-f-]{36}$/i.test(userId)) return null;
-    const res = await fetch(`${url}/rest/v1/agents?select=referral_code&user_id=eq.${userId}&status=eq.active&limit=1`, { headers: serviceHeaders });
-    return res.ok ? (((await res.json()) as { referral_code: string }[])[0] ?? null) : null;
+    const res = await fetch(`${url}/rest/v1/agents?select=referral_code,registration_fee_status&user_id=eq.${userId}&status=eq.active&limit=1`, { headers: serviceHeaders });
+    return res.ok ? (((await res.json()) as LoginAgent[])[0] ?? null) : null;
   } catch {
     return null;
   }
@@ -78,10 +83,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const headers = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" };
 
   const authorization = request.headers.get("authorization");
-  let agent: { referral_code: string } | null = null;
+  let agent: LoginAgent | null = null;
   if (authorization) {
     agent = await agentFromLogin(authorization, url, anonKey, headers);
     if (!agent) return json({ ok: false, error: "Sesi agen tidak berlaku. Silakan masuk lagi ke portal agen." }, 401);
+    if (agent.registration_fee_status !== "paid" && agent.registration_fee_status !== "waived") {
+      return json({ ok: false, error: "Biaya registrasi belum diterima. Selesaikan pembayaran dulu." }, 403);
+    }
   } else if (!(await turnstileOk(body.turnstile_token, secret, request.headers.get("cf-connecting-ip")))) {
     return json({ ok: false, error: "Verifikasi keamanan gagal. Muat ulang halaman lalu coba lagi." }, 400);
   }
@@ -101,6 +109,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   if (!rpc.ok) {
     const detail = ((await rpc.json().catch(() => ({}))) as { message?: string }).message ?? "";
     if (detail.includes("rate_limited")) return json({ ok: false, error: "Terlalu banyak pendaftaran dari nomor ini hari ini. Silakan hubungi CS lewat WhatsApp." }, 429);
+    if (detail.includes("Biaya registrasi belum diterima")) return json({ ok: false, error: "Biaya registrasi belum diterima. Selesaikan pembayaran dulu." }, 403);
     if (detail.includes("package_unavailable")) return json({ ok: false, error: "Paket ini sudah tidak tersedia. Silakan pilih paket lain." }, 410);
     console.error("create_jamaah_intake failed", rpc.status, detail.slice(0, 200));
     return json({ ok: false, error: "Pendaftaran belum bisa dikirim. Coba lagi sebentar lagi atau hubungi CS lewat WhatsApp." }, 502);

@@ -243,7 +243,7 @@ export function AgentDetailDialog({
                 <h3 className={SECTION}>Biaya registrasi dan SOP</h3>
                 <div className="divide-y rounded-lg border bg-card">
                   <Row label={`Biaya registrasi ${rupiah(AGENT_REGISTRATION_FEE)}`}>
-                    <StatusBadge kind={fee === "unpaid" ? "warn" : fee === "paid" ? "ok" : "info"}>{REGISTRATION_FEE_LABELS[fee]}</StatusBadge>
+                    <StatusBadge kind={fee === "unpaid" ? "warn" : fee === "paid" ? "ok" : "info"}>{fee === "unpaid" && agent.status === "active" ? "Menunggu pembayaran biaya" : REGISTRATION_FEE_LABELS[fee]}</StatusBadge>
                   </Row>
                   {agent.registration_fee_paid_at && (
                     <Row label="Diterima pada">{format(new Date(agent.registration_fee_paid_at), "d MMM yyyy, HH:mm", { locale: idLocale })}</Row>
@@ -254,6 +254,9 @@ export function AgentDetailDialog({
                       : <span className="font-normal text-muted-foreground">Belum disetujui</span>}
                   </Row>
                 </div>
+                {fee === "unpaid" && agent.status === "pending" && (
+                  <p className="text-sm text-muted-foreground">Biaya registrasi dibayar setelah agen disetujui. Tandai diterima setelah bukti transfer masuk.</p>
+                )}
                 {fee === "unpaid" && (
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <Button type="button" className="gap-2" onClick={() => onFeeChange(agent, "paid")}>

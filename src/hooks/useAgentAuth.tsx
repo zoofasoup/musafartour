@@ -12,7 +12,7 @@ interface Agent {
   phone: string;
   wa_number: string | null;
   name: string;
-  level: 'duta' | 'silver' | 'gold' | 'platinum';
+  level: 'silver' | 'gold' | 'platinum';
   total_sales: number;
   total_commission: number;
   available_balance: number;

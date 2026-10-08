@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { Loader2 } from "lucide-react";
 import AgentLayout from "./AgentLayout";
@@ -64,7 +64,7 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
           <h1 className="mb-2 text-2xl font-bold">{pending ? "Menunggu Persetujuan" : "Akun Dinonaktifkan"}</h1>
           <p className="mb-6 text-sm text-muted-foreground">
             {pending
-              ? "Data kamu sudah kami terima dan sedang diperiksa admin, biasanya 1-2 hari kerja. Selesaikan dua langkah di bawah supaya verifikasi tidak tertunda. Kami kabari lewat WhatsApp begitu akun aktif."
+              ? "Data kamu sudah kami terima dan sedang diperiksa admin, biasanya 1-2 hari kerja. Pastikan dua langkah di bawah selesai supaya verifikasi tidak tertunda. Setelah disetujui, kamu tinggal membayar biaya registrasi dan kami kabari lewat WhatsApp."
               : "Akun agen kamu sedang dinonaktifkan. Hubungi PIC Agen untuk informasi lebih lanjut."}
           </p>
           <div className="flex flex-col gap-2">
@@ -89,7 +89,30 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
     return <>{children}</>;
   }
 
-  return <AgentLayout>{children}</AgentLayout>;
+  // Approved but the registration fee is not received yet: the portal opens read-only (the database refuses leads,
+  // jamaah and promo-link registrations), with the payment step on the dashboard and a reminder everywhere else.
+  const feeGate = agent.status === 'active' && (agent.registration_fee_status ?? 'unpaid') === 'unpaid';
+  const onDashboard = location.pathname === '/agent/dashboard';
+
+  return (
+    <AgentLayout>
+      {feeGate && (
+        <div className="mx-auto mb-4 w-full max-w-6xl">
+          {onDashboard ? (
+            <AgentSetupChecklist />
+          ) : (
+            <div role="status" className="flex flex-col gap-2 rounded-xl border border-status-warn-border bg-status-warn-bg p-4 text-sm text-status-warn-text sm:flex-row sm:items-center sm:justify-between">
+              <p>Akunmu sudah disetujui. Bayar biaya registrasi dulu supaya bisa mencatat lead dan mendaftarkan jamaah.</p>
+              <Button asChild size="sm" className="h-10 shrink-0">
+                <Link to="/agent/dashboard">Bayar biaya registrasi</Link>
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+      {children}
+    </AgentLayout>
+  );
 };
 
 export default AgentProtectedRoute;

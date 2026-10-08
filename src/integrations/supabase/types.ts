@@ -492,6 +492,22 @@ export type Database = {
           sale_amount: number
           source: string
           status: string
+          commission_state: string
+          hold_reason: string | null
+          counted: boolean
+          eligible_at: string | null
+          approved_mgmt_by: string | null
+          approved_mgmt_at: string | null
+          approved_fin_by: string | null
+          approved_fin_at: string | null
+          approved_at: string | null
+          paid_at: string | null
+          paid_by: string | null
+          tax_amount: number | null
+          net_amount: number | null
+          payout_id: string | null
+          parent_sale_id: string | null
+          reprice_diff: number | null
         }
         Insert: {
           agent_id: string
@@ -512,6 +528,22 @@ export type Database = {
           sale_amount?: number
           source?: string
           status?: string
+          commission_state?: string
+          hold_reason?: string | null
+          counted?: boolean
+          eligible_at?: string | null
+          approved_mgmt_by?: string | null
+          approved_mgmt_at?: string | null
+          approved_fin_by?: string | null
+          approved_fin_at?: string | null
+          approved_at?: string | null
+          paid_at?: string | null
+          paid_by?: string | null
+          tax_amount?: number | null
+          net_amount?: number | null
+          payout_id?: string | null
+          parent_sale_id?: string | null
+          reprice_diff?: number | null
         }
         Update: {
           agent_id?: string
@@ -532,6 +564,22 @@ export type Database = {
           sale_amount?: number
           source?: string
           status?: string
+          commission_state?: string
+          hold_reason?: string | null
+          counted?: boolean
+          eligible_at?: string | null
+          approved_mgmt_by?: string | null
+          approved_mgmt_at?: string | null
+          approved_fin_by?: string | null
+          approved_fin_at?: string | null
+          approved_at?: string | null
+          paid_at?: string | null
+          paid_by?: string | null
+          tax_amount?: number | null
+          net_amount?: number | null
+          payout_id?: string | null
+          parent_sale_id?: string | null
+          reprice_diff?: number | null
         }
         Relationships: [
           {
@@ -3051,6 +3099,139 @@ export type Database = {
           amount: number
         }[]
       }
+      list_my_commissions: {
+        Args: never
+        Returns: {
+          sale_id: string
+          registration_id: string | null
+          customer_name: string
+          package_name: string
+          departure_date: string | null
+          role: string
+          share_percent: number | null
+          state: string
+          hold_reason: string | null
+          gross_amount: number
+          tax_amount: number
+          net_amount: number
+          eligible_at: string | null
+          approved_at: string | null
+          paid_at: string | null
+          transfer_date: string | null
+          transfer_reference: string | null
+          proof_path: string | null
+          created_at: string
+        }[]
+      }
+      list_my_commission_adjustments: {
+        Args: never
+        Returns: {
+          id: string
+          customer_name: string | null
+          amount: number
+          settled_amount: number
+          remaining: number
+          reason: string
+          status: string
+          created_at: string
+        }[]
+      }
+      admin_list_commissions: {
+        Args: never
+        Returns: {
+          sale_id: string
+          registration_id: string | null
+          agent_id: string
+          agent_name: string
+          agent_code: string
+          agent_level: string
+          agent_status: string
+          bank_name: string | null
+          bank_account: string | null
+          account_name: string | null
+          agent_nik: string | null
+          nik_ok: boolean
+          customer_name: string
+          package_id: string | null
+          package_name: string
+          departure_date: string | null
+          role: string
+          share_percent: number | null
+          state: string
+          hold_reason: string | null
+          gross_amount: number
+          tax_amount: number
+          net_amount: number
+          eligible_at: string | null
+          approved_mgmt_by: string | null
+          approved_mgmt_at: string | null
+          approved_fin_by: string | null
+          approved_fin_at: string | null
+          approved_at: string | null
+          paid_at: string | null
+          payout_id: string | null
+          transfer_date: string | null
+          transfer_reference: string | null
+          proof_path: string | null
+          reprice_diff: number | null
+          open_clawback: number
+          created_at: string
+        }[]
+      }
+      admin_list_commission_adjustments: {
+        Args: never
+        Returns: {
+          id: string
+          agent_id: string
+          agent_name: string
+          agent_code: string
+          customer_name: string | null
+          amount: number
+          settled_amount: number
+          remaining: number
+          reason: string
+          status: string
+          created_at: string
+        }[]
+      }
+      admin_list_lead_disputes: {
+        Args: never
+        Returns: {
+          id: string
+          intake_id: string
+          contact_name: string | null
+          status: string
+          created_at: string
+          lead_agent_id: string | null
+          lead_agent_name: string | null
+          lead_agent_code: string | null
+          intake_agent_id: string | null
+          intake_agent_name: string | null
+          intake_agent_code: string | null
+          winner_agent_id: string | null
+          helper_percent: number | null
+          resolved_at: string | null
+        }[]
+      }
+      approve_commissions: {
+        Args: { _as: string; _sale_ids: string[] }
+        Returns: Json
+      }
+      mark_agent_commissions_paid: {
+        Args: {
+          _agent_id: string
+          _batch_id?: string
+          _proof_path?: string
+          _reference: string
+          _sale_ids: string[]
+          _transfer_date: string
+        }
+        Returns: Json
+      }
+      resolve_lead_dispute: {
+        Args: { _helper_percent?: number; _intake_id: string; _note?: string; _winner_agent_id: string }
+        Returns: Json
+      }
       set_agent_referrer: { Args: { _code: string }; Returns: undefined }
       create_agent_lead: {
         Args: { _name: string; _note?: string; _package_id?: string; _whatsapp: string }
@@ -3287,6 +3468,7 @@ export type Database = {
         | "sales"
         | "product_contributor"
         | "cs_admin"
+        | "finance"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3428,6 +3610,7 @@ export const Constants = {
         "sales",
         "product_contributor",
         "cs_admin",
+        "finance",
       ],
     },
   },

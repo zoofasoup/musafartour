@@ -33,6 +33,18 @@ export const NOTIFICATION_TYPES: Record<string, TypeMeta> = {
     label: "Penarikan agen",
     groupTitle: n => `${n} permintaan penarikan`,
   },
+  commission_eligible: {
+    icon: Banknote,
+    tone: "info",
+    label: "Komisi layak dibayar",
+    groupTitle: n => `${n} keberangkatan dengan komisi layak dibayar`,
+  },
+  commission_clawback: {
+    icon: Banknote,
+    tone: "over",
+    label: "Komisi dikembalikan",
+    groupTitle: n => `${n} komisi perlu dikembalikan agen`,
+  },
 };
 
 export const FALLBACK_TYPE: TypeMeta = {

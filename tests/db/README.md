@@ -6,6 +6,10 @@ pendaftaran jamaah beserta komisi agen (`03_registration.sql`), dan fungsi Cek s
 
 **Komisi per level** (`09_commission_rates.sql`) menguji migrasi `20261007100000_commission_rates.sql`: tarif per keberangkatan, kelas dan level agen, fallback ke komisi flat, dan alur lunas sampai komisi tercatat.
 
+**Level dan gerbang biaya** (`12_levels_fee_gate.sql`) menguji migrasi `20261008100000_levels_silver_start.sql`: level hanya Silver/Gold/Platinum (agen baru mulai Silver, tanpa 'duta'), dan agen aktif dengan biaya registrasi belum diterima tidak bisa mencatat lead atau mendaftarkan jamaah.
+
+**Siklus komisi** (`13_commission_lifecycle.sql`) menguji migrasi `20261008105000_role_finance.sql`, `20261008110000_commission_lifecycle.sql` dan `20261008111000_commission_proofs_storage.sql`: PENDING, ELIGIBLE, APPROVED, PAID, dua persetujuan dari dua pengguna berbeda, PPh 5%, NIK, bukti transfer, clawback, hitung ulang saat pindah paket, penahanan sengketa lead dan agen suspended. Peran `finance` tidak bisa dipakai di transaksi yang sama dengan `ALTER TYPE ... ADD VALUE`, jadi file ini mengganti SATU fungsi pembantu (`commission_is_finance`) dengan stub yang menganggap `agent_admin` sebagai finance, dan menandainya `KNOWN`. Setelah migrasi di-push, jalankan ulang: bagian pertama menguji peran `finance` yang asli.
+
 **Menjalankan** (dari folder mana pun): `./scripts/run-db-tests.sh`, atau satu file: `./scripts/run-db-tests.sh tests/db/03_registration.sql`
 
 **Aman.** Tes berjalan di database live yang di-link, tetapi di dalam transaksi yang selalu dibatalkan di akhir

@@ -18,7 +18,7 @@
 --   5. Withdrawal lifecycle as the portal drives it (pending does not move the balance, paid does) and its DB-level gaps.
 --   6. Suspended agent: the Function login check refuses, the intake is not attributed; gaps that remain.
 --   7. Pending agent: cannot approve self, cannot withdraw, sees nothing of other agents; admin awareness gap.
---   8. register_agent_profile(): idempotent, pending/duta/0, referral resolved among active agents, placeholder phone.
+--   8. register_agent_profile(): idempotent, pending/silver/0, referral resolved among active agents, placeholder phone.
 --   9. Outsiders (signed in, no agent row) and the data an agent can read that contradicts the product rules.
 
 BEGIN;
@@ -218,9 +218,10 @@ BEGIN
     FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
    WHERE n.nspname = 'public' AND p.prosecdef AND has_function_privilege('authenticated', p.oid, 'EXECUTE')
      AND p.prosrc ~* 'jamaah_registrations|jamaah_payments|jamaah_intakes|jamaah_intake_people'
-     AND p.proname NOT IN ('list_my_agent_jamaah', 'list_my_agent_intakes', 'list_my_agent_leads', 'admin_agent_leads');  -- the last two: 08_agent_leads.sql proves caller-scoped / staff-only
+     AND p.proname NOT IN ('list_my_agent_jamaah', 'list_my_agent_intakes', 'list_my_agent_leads', 'admin_agent_leads',
+                        'list_my_commissions', 'admin_list_commissions', 'admin_list_lead_disputes', 'resolve_lead_dispute');  -- leads: 08_agent_leads.sql; commissions: 13_commission_lifecycle.sql proves list_my_commissions is caller-scoped and the other three staff-only
   IF _t IS NULL THEN
-    _out := _out || E'PASS rpc privacy: the only SECURITY DEFINER functions callable by authenticated that read jamaah tables are list_my_agent_jamaah, list_my_agent_intakes, list_my_agent_leads (own leads only) and admin_agent_leads (staff only)\n';
+    _out := _out || E'PASS rpc privacy: the only SECURITY DEFINER functions callable by authenticated that read jamaah tables are list_my_agent_jamaah, list_my_agent_intakes, list_my_agent_leads (own leads only), admin_agent_leads (staff only), list_my_commissions (own rows) and admin_list_commissions / admin_list_lead_disputes / resolve_lead_dispute (staff only)\n';
   ELSE
     _out := _out || format(E'FAIL rpc privacy: new SECURITY DEFINER function(s) callable by authenticated read jamaah tables: %s (check they are staff-only or scoped to the caller)\n', _t);
   END IF;
@@ -321,11 +322,10 @@ BEGIN
     -- =============================================================================================
     BEGIN
       SELECT available_balance INTO _bal0 FROM public.agents WHERE id = _a.id;   -- now holds the 1,500,000 just credited
-      PERFORM set_config('request.jwt.claims', json_build_object('sub', _a.user_id, 'role', 'authenticated')::text, true);
-      SET LOCAL ROLE authenticated;
+      -- Agents can no longer create requests (commission lifecycle, 20261008110000). A legacy pending row is planted by the
+      -- database owner so that process_agent_withdrawal (kept, unused) and the agent's read access stay covered.
       INSERT INTO public.agent_withdrawals (agent_id, amount, bank_name, bank_account, account_name, status)
       VALUES (_a.id, 1000000, 'Bank BCA', '1234567890', 'Journey Test', 'pending') RETURNING id INTO _w;
-      RESET ROLE;
       SELECT available_balance INTO _bal1 FROM public.agents WHERE id = _a.id;
       IF _bal1 = _bal0 THEN
         _out := _out || E'PASS withdrawal: a pending request does not move agents.available_balance (the portal must subtract pending itself, see AGT-012)\n';
@@ -342,8 +342,8 @@ BEGIN
         RAISE EXCEPTION 'applied' USING ERRCODE = 'XX001';
       EXCEPTION WHEN OTHERS THEN
         RESET ROLE;
-        IF SQLSTATE = '22023' THEN _out := _out || E'PASS withdrawal: a second request above balance minus pending is refused (22023), and the portal shows the available amount minus pending requests and a readable message (AGT-012)\n';
-        ELSE _out := _out || format(E'FAIL withdrawal: second request gave SQLSTATE %s (%s), expected 22023\n', SQLSTATE, SQLERRM); END IF;
+        IF SQLSTATE IN ('42501', '22023') THEN _out := _out || format(E'PASS withdrawal: an agent cannot create a (second) request any more (%s: the guard trigger still answers first when the amount exceeds the balance, otherwise RLS refuses)\n', SQLSTATE);
+        ELSE _out := _out || format(E'FAIL withdrawal: agent request gave SQLSTATE %s (%s), expected 42501 or 22023\n', SQLSTATE, SQLERRM); END IF;
       END;
 
       -- staff rejects with a reason: balance stays, the agent can read the reason
@@ -363,11 +363,8 @@ BEGIN
       END IF;
 
       -- paid deducts the balance
-      PERFORM set_config('request.jwt.claims', json_build_object('sub', _a.user_id, 'role', 'authenticated')::text, true);
-      SET LOCAL ROLE authenticated;
       INSERT INTO public.agent_withdrawals (agent_id, amount, bank_name, bank_account, account_name, status)
       VALUES (_a.id, 500000, 'Bank BCA', '1234567890', 'Journey Test', 'pending') RETURNING id INTO _w;
-      RESET ROLE;
       PERFORM set_config('request.jwt.claims', json_build_object('sub', _staff, 'role', 'authenticated')::text, true);
       SET LOCAL ROLE authenticated;
       PERFORM public.process_agent_withdrawal(_w, 'paid', NULL);
@@ -392,7 +389,7 @@ BEGIN
     _out := _out || E'KNOWN withdrawal: the Rp 100.000 minimum is enforced only in the browser; a request for Rp 1.000 is accepted by the database (AGT-024)\n';
   EXCEPTION WHEN OTHERS THEN
     RESET ROLE;
-    IF SQLSTATE IN ('22023', '23514') THEN _out := _out || E'PASS withdrawal: the database enforces the Rp 100.000 minimum\n';
+    IF SQLSTATE IN ('22023', '23514', '42501') THEN _out := _out || E'PASS withdrawal: AGT-024 is moot, an agent cannot insert a withdrawal at all (self-service closed)\n';
     ELSE _out := _out || format(E'FAIL withdrawal: minimum check raised %s (%s)\n', SQLSTATE, SQLERRM); END IF;
   END;
 
@@ -562,9 +559,9 @@ BEGIN
       SELECT * INTO _s FROM public.register_agent_profile();
       RESET ROLE;
       SELECT count(*) INTO _n FROM public.agents WHERE user_id = _uid_new;
-      IF _s.status = 'pending' AND _s.level = 'duta' AND _s.total_sales = 0 AND _s.available_balance = 0 AND _s.approved_at IS NULL
+      IF _s.status = 'pending' AND _s.level = 'silver' AND _s.total_sales = 0 AND _s.available_balance = 0 AND _s.approved_at IS NULL
          AND _s.referred_by_id = _a.id AND _s.name = 'Journey Daftar' AND _s.referral_code IS NOT NULL AND _n = 1 THEN
-        _out := _out || E'PASS register_agent_profile: new row is pending / duta / 0 sales / balance 0, name and referrer (lower-case code of an active agent) taken from the signup metadata\n';
+        _out := _out || E'PASS register_agent_profile: new row is pending / silver / 0 sales / balance 0, name and referrer (lower-case code of an active agent) taken from the signup metadata\n';
       ELSE
         _out := _out || format(E'FAIL register_agent_profile: status=%s level=%s sales=%s balance=%s referred_by=%s (expected %s) name=%s rows=%s\n',
                                _s.status, _s.level, _s.total_sales, _s.available_balance, _s.referred_by_id, _a.id, _s.name, _n);

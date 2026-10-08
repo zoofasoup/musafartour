@@ -78,7 +78,7 @@ ${formData.message}`;
     <div className="min-h-screen bg-background">
       <SEO 
         title="Kontak Kami - Musafar Tour | Hubungi Tim Musamin"
-        description="Hubungi Musafar Tour untuk konsultasi gratis tentang paket umroh, haji khusus, dan wisata halal. WhatsApp: 0819-1740-3797. Kantor di Bekasi, buka Senin-Sabtu."
+        description="Hubungi Musafar Tour untuk konsultasi gratis tentang paket umroh dan wisata halal. WhatsApp: 0819-1740-3797. Kantor di Bekasi, buka Senin-Sabtu."
         keywords="kontak musafar tour, telepon musafar tour, alamat kantor umroh bekasi"
         canonicalUrl="https://musafartour.com/kontak"
         structuredData={{
@@ -98,7 +98,7 @@ ${formData.message}`;
         }}
       />
       <Navbar />
-      
+      <main id="main">
       {/* Header */}
       <section className="py-16 bg-card border-b">
         <div className="container mx-auto px-6 md:px-8 text-center">
@@ -249,6 +249,8 @@ ${formData.message}`;
           </div>
         </div>
       </section>
+
+      </main>
 
       <Footer />
     </div>

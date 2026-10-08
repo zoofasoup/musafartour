@@ -153,7 +153,7 @@ const PackageShareModal = ({
             <Label>Link Paket</Label>
             <div className="flex gap-2">
               <Input value={shareUrl} readOnly className="text-sm" />
-              <Button size="icon" variant="outline" onClick={copyLink}>
+              <Button size="icon" variant="outline" onClick={copyLink} aria-label={copied ? "Link tersalin" : "Salin link"}>
                 {copied ? (
                   <Check className="h-4 w-4 text-status-ok-fg" />
                 ) : (
@@ -173,7 +173,7 @@ const PackageShareModal = ({
             <Label>Share ke Platform</Label>
             <div className="grid grid-cols-2 gap-2">
               <Button variant="brand"
-                className="bg-[#25D366] hover:bg-[#128C7E] text-white"
+                className="bg-[#0B7A6C] hover:bg-[#096558] text-white"
                 onClick={shareToWhatsApp}
               >
                 <svg

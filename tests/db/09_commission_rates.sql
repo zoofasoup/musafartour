@@ -13,7 +13,7 @@
 --   3. get_my_commission_rates: only the caller's own level, never other levels or other agents.
 --   4. agent_commission_for / registration_commission_tier (internal): fallback, configured, missing level.
 --   5. End to end: intake -> accept -> DP -> lunas credits the rate of the agent's level; level change before lunas;
---      level change after lunas changes nothing; duta earns 0; reject / cancel reverse; list_my_agent_jamaah agrees.
+--      level change after lunas changes nothing; a level without a rate row earns 0; reject / cancel reverse; list_my_agent_jamaah agrees.
 --   6. The letter seed.
 
 BEGIN;
@@ -82,6 +82,7 @@ DECLARE
   _lvl_b text;
   _s record;
   _bal0 numeric; _bal1 numeric;
+  _rr public.agent_commission_rates%ROWTYPE;   -- a rate row taken out for a moment, put back afterwards
   _reg uuid; _reg2 uuid; _reg3 uuid; _pay uuid;
   c_silver constant numeric := 1500000;
   c_gold constant numeric := 2200000;
@@ -247,7 +248,7 @@ BEGIN
     INSERT INTO public.user_roles (user_id, role) VALUES (_aa, 'agent_admin'::public.app_role), (_cs, 'cs_admin'::public.app_role);
     BEGIN
       PERFORM pg_temp.act_as(_aa);
-      _r := public.set_commission_rate(_pkg, _pkg_tier, 'duta', 100000, 'agent_admin test');
+      _r := public.set_commission_rate(_pkg, 'zz-d', 'silver', 100000, 'agent_admin test');
       RESET ROLE;
       _out := _out || E'PASS permissions: agent_admin can call set_commission_rate\n';
     EXCEPTION WHEN OTHERS THEN
@@ -256,7 +257,7 @@ BEGIN
     END;
     BEGIN
       PERFORM pg_temp.act_as(_cs);
-      PERFORM public.set_commission_rate(_pkg, _pkg_tier, 'duta', 1);
+      PERFORM public.set_commission_rate(_pkg, 'zz-d', 'silver', 1);
       RAISE EXCEPTION 'cs_admin set succeeded' USING ERRCODE = 'XX001';
     EXCEPTION WHEN OTHERS THEN
       RESET ROLE;
@@ -274,7 +275,7 @@ BEGIN
       _out := _out || format(E'FAIL permissions: cs_admin admin_list_commission_rates raised %s (%s)\n', SQLSTATE, SQLERRM);
     END;
     DELETE FROM public.user_roles WHERE user_id IN (_aa, _cs) AND role IN ('agent_admin'::public.app_role, 'cs_admin'::public.app_role);
-    DELETE FROM public.agent_commission_rates WHERE package_id = _pkg AND level = 'duta';
+    DELETE FROM public.agent_commission_rates WHERE package_id = _pkg AND tier = 'zz-d';
   EXCEPTION WHEN OTHERS THEN
     RESET ROLE;
     _out := _out || format(E'SKIP permissions: could not plant agent_admin / cs_admin roles (%s)\n', SQLERRM);
@@ -317,26 +318,26 @@ BEGIN
   -- 2d. staff: create, update (upsert keeps one row), note, updated_by, clear (twice)
   BEGIN
     PERFORM pg_temp.act_as(_staff);
-    _r := public.set_commission_rate(_pkg, _pkg_tier, 'duta', 500000, 'duta awal');
-    _r := public.set_commission_rate(_pkg, _pkg_tier, 'duta', 750000, 'duta naik');
+    _r := public.set_commission_rate(_pkg, 'zz-d', 'silver', 500000, 'silver awal');
+    _r := public.set_commission_rate(_pkg, 'zz-d', 'silver', 750000, 'silver naik');
     RESET ROLE;
   EXCEPTION WHEN OTHERS THEN
     RESET ROLE;
     _out := _out || format(E'FAIL staff: set_commission_rate raised %s (%s)\n', SQLSTATE, SQLERRM);
   END;
   SELECT count(*), max(amount), max(note), max(updated_by::text) INTO _n, _num, _txt, _lvl_a
-    FROM public.agent_commission_rates WHERE package_id = _pkg AND tier = _pkg_tier AND level = 'duta';
-  IF _n = 1 AND _num = 750000 AND _txt = 'duta naik' AND _lvl_a = _staff::text THEN
+    FROM public.agent_commission_rates WHERE package_id = _pkg AND tier = 'zz-d' AND level = 'silver';
+  IF _n = 1 AND _num = 750000 AND _txt = 'silver naik' AND _lvl_a = _staff::text THEN
     _out := _out || E'PASS staff: set creates, a second set updates the same row (amount, note) and records updated_by = the caller\n';
   ELSE
-    _out := _out || format(E'FAIL staff: after create + update rows=%s amount=%s note=%s updated_by=%s (expected 1 / 750000 / duta naik / %s)\n', _n, _num, _txt, _lvl_a, _staff);
+    _out := _out || format(E'FAIL staff: after create + update rows=%s amount=%s note=%s updated_by=%s (expected 1 / 750000 / silver naik / %s)\n', _n, _num, _txt, _lvl_a, _staff);
   END IF;
 
   BEGIN
     PERFORM pg_temp.act_as(_staff);
-    _r := public.set_commission_rate(_pkg, _pkg_tier, 'duta', 0);
+    _r := public.set_commission_rate(_pkg, 'zz-d', 'silver', 0);
     RESET ROLE;
-    SELECT amount INTO _num FROM public.agent_commission_rates WHERE package_id = _pkg AND tier = _pkg_tier AND level = 'duta';
+    SELECT amount INTO _num FROM public.agent_commission_rates WHERE package_id = _pkg AND tier = 'zz-d' AND level = 'silver';
     IF _num = 0 THEN _out := _out || E'PASS staff: an explicit amount of 0 is accepted and stored as 0 (not as unset)\n';
     ELSE _out := _out || format(E'FAIL staff: amount 0 stored as %s\n', _num); END IF;
   EXCEPTION WHEN OTHERS THEN
@@ -346,11 +347,11 @@ BEGIN
 
   BEGIN
     PERFORM pg_temp.act_as(_staff);
-    _r := public.clear_commission_rate(_pkg, _pkg_tier, 'duta');
+    _r := public.clear_commission_rate(_pkg, 'zz-d', 'silver');
     _num := (_r ->> 'deleted')::numeric;
-    _r := public.clear_commission_rate(_pkg, _pkg_tier, 'duta');
+    _r := public.clear_commission_rate(_pkg, 'zz-d', 'silver');
     RESET ROLE;
-    SELECT count(*) INTO _n FROM public.agent_commission_rates WHERE package_id = _pkg AND tier = _pkg_tier AND level = 'duta';
+    SELECT count(*) INTO _n FROM public.agent_commission_rates WHERE package_id = _pkg AND tier = 'zz-d' AND level = 'silver';
     IF _num = 1 AND (_r ->> 'deleted')::int = 0 AND _n = 0 THEN
       _out := _out || E'PASS staff: clear_commission_rate deletes the row (deleted=1), clearing again is a harmless deleted=0\n';
     ELSE
@@ -365,15 +366,15 @@ BEGIN
   BEGIN
     PERFORM pg_temp.act_as(_staff);
     SELECT count(*) INTO _n FROM public.admin_list_commission_rates() WHERE package_id = _pkg AND tier = _pkg_tier;
-    SELECT count(*) INTO _m FROM public.admin_list_commission_rates() WHERE package_id = _pkg AND tier = _pkg_tier AND amount IS NULL AND level = 'duta';
+    SELECT count(*) INTO _m FROM public.admin_list_commission_rates() WHERE package_id = _pkg AND tier = _pkg_tier AND level = 'duta';
     SELECT count(*) INTO _rc_dummy FROM public.admin_list_commission_rates() WHERE package_id = _pkg AND amount IN (c_silver, c_gold, c_plat);
     SELECT count(DISTINCT package_id) INTO _num FROM public.admin_list_commission_rates();
     RESET ROLE;
     SELECT count(*) INTO _bal0 FROM public.packages WHERE status IN ('published', 'draft') AND departure_date >= current_date - 30;
-    IF _n = 4 AND _m = 1 AND _rc_dummy = 3 AND _num = _bal0 THEN
-      _out := _out || format(E'PASS admin_list: package %s has 4 level rows (duta blank, silver/gold/platinum set), and %s packages (published + draft, from 30 days ago) are listed\n', _pkg, _num);
+    IF _n = 3 AND _m = 0 AND _rc_dummy = 3 AND _num = _bal0 THEN
+      _out := _out || format(E'PASS admin_list: package %s has 3 level rows (silver/gold/platinum set, no duta), and %s packages (published + draft, from 30 days ago) are listed\n', _pkg, _num);
     ELSE
-      _out := _out || format(E'FAIL admin_list: level rows=%s duta blank=%s set rows=%s, listed packages=%s expected %s\n', _n, _m, _rc_dummy, _num, _bal0);
+      _out := _out || format(E'FAIL admin_list: level rows=%s duta rows=%s set rows=%s, listed packages=%s expected %s\n', _n, _m, _rc_dummy, _num, _bal0);
     END IF;
   EXCEPTION WHEN OTHERS THEN
     RESET ROLE;
@@ -436,12 +437,16 @@ BEGIN
     RESET ROLE;
     IF _n = 1 AND _m = 0 THEN _out := _out || E'PASS my rates: after promotion to platinum the agent gets the platinum amount only\n';
     ELSE _out := _out || format(E'FAIL my rates: platinum agent platinum rows=%s other rows=%s\n', _n, _m); END IF;
-    UPDATE public.agents SET level = 'duta' WHERE id = _a.id;
+    -- a level without a rate row (the silver row is taken out for a moment): no row, and none of the other levels
+    SELECT * INTO _rr FROM public.agent_commission_rates WHERE package_id = _pkg AND tier = _pkg_tier AND level = 'silver';
+    DELETE FROM public.agent_commission_rates WHERE package_id = _pkg AND tier = _pkg_tier AND level = 'silver';
+    UPDATE public.agents SET level = 'silver' WHERE id = _a.id;
     PERFORM pg_temp.act_as(_a.user_id);
-    SELECT count(*) INTO _n FROM public.get_my_commission_rates() WHERE package_id = _pkg;
+    SELECT count(*) INTO _n FROM public.get_my_commission_rates() WHERE package_id = _pkg AND tier = _pkg_tier;
     RESET ROLE;
-    IF _n = 0 THEN _out := _out || E'PASS my rates: a duta agent gets no row for a package that has no duta rate (and none of the other levels)\n';
-    ELSE _out := _out || format(E'FAIL my rates: duta agent sees %s rows for the package\n', _n); END IF;
+    INSERT INTO public.agent_commission_rates SELECT (_rr).*;
+    IF _n = 0 THEN _out := _out || E'PASS my rates: an agent whose level has no rate row for a class gets no row for it (and none of the other levels)\n';
+    ELSE _out := _out || format(E'FAIL my rates: agent without a rate row sees %s rows for the class\n', _n); END IF;
   EXCEPTION WHEN OTHERS THEN
     RESET ROLE;
     _out := _out || format(E'FAIL my rates: level change check raised %s (%s)\n', SQLSTATE, SQLERRM);
@@ -530,31 +535,39 @@ BEGIN
   IF _other_pkg IS NULL THEN
     _out := _out || E'SKIP fallback: no second published package without rates\n';
   ELSE
-    UPDATE public.agents SET level = 'duta' WHERE id = _a.id;
+    UPDATE public.agents SET level = 'silver' WHERE id = _a.id;
     _bal0 := public.agent_commission_for(_other_pkg, 'nyaman', _a.id);
     UPDATE public.agents SET level = 'platinum' WHERE id = _a.id;
     _bal1 := public.agent_commission_for(_other_pkg, 'nyaman', _a.id);
     UPDATE public.agents SET level = 'silver' WHERE id = _a.id;
     IF _num > 0 AND _bal0 = _num AND _bal1 = _num THEN
-      _out := _out || format(E'PASS fallback: a package with no rate rows pays packages.agent_commission_amount (%s) to a duta and to a platinum agent\n', _num);
+      _out := _out || format(E'PASS fallback: a package with no rate rows pays packages.agent_commission_amount (%s) to a silver and to a platinum agent\n', _num);
     ELSE
-      _out := _out || format(E'FAIL fallback: flat amount=%s, duta agent gets %s, platinum agent gets %s\n', _num, _bal0, _bal1);
+      _out := _out || format(E'FAIL fallback: flat amount=%s, silver agent gets %s, platinum agent gets %s\n', _num, _bal0, _bal1);
     END IF;
     IF _num = 1500000 THEN _out := _out || E'PASS fallback: the live flat amount is still 1,500,000 (unconfigured packages keep working as before)\n';
     ELSE _out := _out || format(E'KNOWN fallback: the flat amount on %s is %s, not the 1,500,000 documented on 2026-10-06\n', _other_pkg, _num); END IF;
   END IF;
 
   -- configured package: the amount for the agent's CURRENT level; a missing level is 0, never the flat amount
-  FOR _c IN SELECT * FROM (VALUES ('silver', c_silver), ('gold', c_gold), ('platinum', c_plat), ('duta', 0::numeric)) AS t(lvl, expected) LOOP
+  FOR _c IN SELECT * FROM (VALUES ('silver', c_silver), ('gold', c_gold), ('platinum', c_plat)) AS t(lvl, expected) LOOP
     UPDATE public.agents SET level = _c.lvl WHERE id = _a.id;
     _num := public.agent_commission_for(_pkg, _pkg_tier, _a.id);
     IF _num = _c.expected THEN
       _out := _out || format(E'PASS configured: a %s agent earns %s on the configured package%s\n', _c.lvl, _num,
-        CASE WHEN _c.lvl = 'duta' THEN ' (no duta row = 0, not the flat amount)' ELSE '' END);
+        '');
     ELSE
       _out := _out || format(E'FAIL configured: a %s agent gets %s, expected %s\n', _c.lvl, _num, _c.expected);
     END IF;
   END LOOP;
+  -- a level without a rate row on a configured package earns 0, not the flat amount (the silver row is taken out for a moment)
+  SELECT * INTO _rr FROM public.agent_commission_rates WHERE package_id = _pkg AND tier = _pkg_tier AND level = 'silver';
+  DELETE FROM public.agent_commission_rates WHERE package_id = _pkg AND tier = _pkg_tier AND level = 'silver';
+  UPDATE public.agents SET level = 'silver' WHERE id = _a.id;
+  _num := public.agent_commission_for(_pkg, _pkg_tier, _a.id);
+  INSERT INTO public.agent_commission_rates SELECT (_rr).*;
+  IF _num = 0 THEN _out := _out || E'PASS configured: a level without a rate row earns 0 on a configured package, not the flat amount\n';
+  ELSE _out := _out || format(E'FAIL configured: a level without a rate row gets %s, expected 0\n', _num); END IF;
   UPDATE public.agents SET level = 'silver' WHERE id = _a.id;
 
   _num := public.agent_commission_for(_pkg, 'zz-unknown-tier', _a.id);
@@ -600,7 +613,7 @@ BEGIN
   -- =============================================================================================
   -- 5. End to end through the real path (intake with the agent's code -> CS accepts -> DP -> lunas)
   -- =============================================================================================
-  -- Rates on the test package: silver 1,500,000 / gold 2,200,000 / platinum 3,300,000, no duta row.
+  -- Rates on the test package: silver 1,500,000 / gold 2,200,000 / platinum 3,300,000.
   DECLARE
     _bal2 numeric; _sales0 bigint; _sales1 bigint; _tot0 numeric; _tot1 numeric;
     _last uuid;
@@ -674,12 +687,12 @@ BEGIN
       END IF;
 
       -- 5c. level changes AFTER lunas: nothing is re-priced or reversed by itself
-      UPDATE public.agents SET level = 'duta' WHERE id = _a.id;
+      UPDATE public.agents SET level = 'silver' WHERE id = _a.id;
       PERFORM public.sync_registration_commission(_reg2);
       SELECT * INTO _s FROM public.agent_sales WHERE registration_id = _reg2;
       SELECT available_balance INTO _bal2 FROM public.agents WHERE id = _a.id;
       IF _s.status = 'confirmed' AND _s.commission_amount = c_gold AND _bal2 = _bal1 THEN
-        _out := _out || E'PASS e2e: demoting the agent to duta after lunas keeps the credited gold amount (no automatic reversal or re-pricing)\n';
+        _out := _out || E'PASS e2e: demoting the agent to silver after lunas keeps the credited gold amount (no automatic reversal or re-pricing)\n';
       ELSE
         _out := _out || format(E'FAIL e2e: after demotion sale status=%s commission=%s, balance %s -> %s\n', _s.status, _s.commission_amount, _bal1, _bal2);
       END IF;
@@ -721,9 +734,11 @@ BEGIN
       _out := _out || format(E'FAIL e2e: level-change / reversal scenario raised %s (%s)\n', SQLSTATE, SQLERRM);
     END;
 
-    -- 5f. duta agent on a configured package: fully paid, nothing credited, the agent sees 0 / none
+    -- 5f. level without a rate row on a configured package: fully paid, nothing credited, the agent sees 0 / none
     BEGIN
-      UPDATE public.agents SET level = 'duta' WHERE id = _a.id;
+      SELECT * INTO _rr FROM public.agent_commission_rates WHERE package_id = _pkg AND tier = _pkg_tier AND level = 'silver';
+      DELETE FROM public.agent_commission_rates WHERE package_id = _pkg AND tier = _pkg_tier AND level = 'silver';
+      UPDATE public.agents SET level = 'silver' WHERE id = _a.id;
       SELECT available_balance, total_sales INTO _bal0, _sales0 FROM public.agents WHERE id = _a.id;
       _reg3 := pg_temp.plant_reg(_a.referral_code, _pkg, _staff, 30000000, 'Komisi Test Tiga');
       _pay := pg_temp.pay(_reg3, _staff, 30000000, 'verified');
@@ -733,26 +748,28 @@ BEGIN
       SELECT commission_amount, commission_status, pay_state INTO _s FROM public.list_my_agent_jamaah() WHERE registration_id = _reg3;
       RESET ROLE;
       IF _n = 0 AND _bal1 = _bal0 AND _sales1 = _sales0 AND _s.pay_state = 'lunas' AND _s.commission_amount = 0 AND _s.commission_status = 'none' THEN
-        _out := _out || E'PASS e2e: a duta agent (no duta rate yet) credits nothing on lunas and sees commission 0 / none\n';
+        _out := _out || E'PASS e2e: an agent whose level has no rate row yet credits nothing on lunas and sees commission 0 / none\n';
       ELSE
-        _out := _out || format(E'FAIL e2e: duta sale rows=%s, balance %s -> %s, list shows %s / %s / %s\n', _n, _bal0, _bal1, _s.pay_state, _s.commission_amount, _s.commission_status);
+        _out := _out || format(E'FAIL e2e: no-rate sale rows=%s, balance %s -> %s, list shows %s / %s / %s\n', _n, _bal0, _bal1, _s.pay_state, _s.commission_amount, _s.commission_status);
       END IF;
 
-      -- once the owner fills in a duta amount, the next sync credits it (set by staff through the RPC)
+      -- once the owner fills in the missing amount, the next sync credits it (set by staff through the RPC)
       PERFORM pg_temp.act_as(_staff);
-      PERFORM public.set_commission_rate(_pkg, _pkg_tier, 'duta', 900000, 'duta test');
+      PERFORM public.set_commission_rate(_pkg, _pkg_tier, 'silver', 900000, 'silver test');
       RESET ROLE;
       PERFORM public.sync_registration_commission(_reg3);
       SELECT * INTO _s FROM public.agent_sales WHERE registration_id = _reg3;
       SELECT available_balance INTO _bal2 FROM public.agents WHERE id = _a.id;
       IF _s.status = 'confirmed' AND _s.commission_amount = 900000 AND _bal2 = _bal1 + 900000 THEN
-        _out := _out || E'PASS e2e: after staff sets a duta rate of 900,000 the next sync credits it\n';
+        _out := _out || E'PASS e2e: after staff sets the missing silver rate of 900,000 the next sync credits it\n';
       ELSE
-        _out := _out || format(E'FAIL e2e: after the duta rate sale status=%s commission=%s, balance %s -> %s\n', _s.status, _s.commission_amount, _bal1, _bal2);
+        _out := _out || format(E'FAIL e2e: after the silver rate sale status=%s commission=%s, balance %s -> %s\n', _s.status, _s.commission_amount, _bal1, _bal2);
       END IF;
+      DELETE FROM public.agent_commission_rates WHERE package_id = _pkg AND tier = _pkg_tier AND level = 'silver';
+      INSERT INTO public.agent_commission_rates SELECT (_rr).*;
     EXCEPTION WHEN OTHERS THEN
       RESET ROLE;
-      _out := _out || format(E'FAIL e2e: duta scenario raised %s (%s)\n', SQLSTATE, SQLERRM);
+      _out := _out || format(E'FAIL e2e: no-rate scenario raised %s (%s)\n', SQLSTATE, SQLERRM);
     END;
 
     -- 5g. unconfigured package keeps the flat amount end to end

@@ -12,7 +12,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const bodyContent = `
 <div class="breadcrumb"><a href="/">Beranda</a> / Artikel</div>
 <h1>Artikel &amp; Tips Umroh</h1>
-<p class="excerpt" style="border-bottom:none;padding-bottom:0">Panduan, tips, dan informasi praktis seputar perjalanan umroh dan haji.</p>
+<p class="excerpt" style="border-bottom:none;padding-bottom:0">Panduan, tips, dan informasi praktis seputar perjalanan umroh.</p>
 <div class="card-list" style="margin-top:24px">
 ${articles
   .map(
@@ -28,7 +28,7 @@ ${articles.length === 0 ? "<p>Belum ada artikel tersedia.</p>" : ""}`;
 
   const html = renderShell({
     title: "Artikel & Tips Umroh - Musafar Tour",
-    description: "Panduan, tips, dan informasi bermanfaat seputar perjalanan umroh dan haji dari tim Musafar Tour.",
+    description: "Panduan, tips, dan informasi bermanfaat seputar perjalanan umroh dari tim Musafar Tour.",
     canonical: "https://musafartour.com/artikel",
     ogImage: "https://musafartour.com/og-default.jpg",
     bodyContent,

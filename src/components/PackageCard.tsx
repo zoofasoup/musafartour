@@ -278,14 +278,14 @@ export const PackageCard = ({
               {hotelMakkah && (
                 <div className="flex items-center gap-1.5" title={`Makkah: ${hotelMakkah}`}>
                   <span className="truncate max-w-[130px]">{hotelMakkah}</span>
-                  <span className="flex items-center text-amber-500/90"><Star className="w-3 h-3 fill-current mr-0.5" />{hotelMakkahRating}</span>
+                  <span className="flex items-center text-amber-text"><Star className="w-3 h-3 fill-current mr-0.5" />{hotelMakkahRating}</span>
                 </div>
               )}
 
               {hotelMadinah && (
                 <div className="flex items-center gap-1.5" title={`Madinah: ${hotelMadinah}`}>
                   <span className="truncate max-w-[130px]">{hotelMadinah}</span>
-                  <span className="flex items-center text-amber-500/90"><Star className="w-3 h-3 fill-current mr-0.5" />{hotelMadinahRating}</span>
+                  <span className="flex items-center text-amber-text"><Star className="w-3 h-3 fill-current mr-0.5" />{hotelMadinahRating}</span>
                 </div>
               )}
             </div>

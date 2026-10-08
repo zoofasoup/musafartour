@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Award, BadgeCheck, Banknote, CalendarClock, CheckCircle2, ClipboardCheck, FileText, Gift, IdCard, MessageCircle, UserPlus, Wallet } from "lucide-react";
+import { Award, Banknote, CalendarClock, CheckCircle2, ClipboardCheck, Gift, IdCard, Mail, MessageCircle, Rocket, UserPlus, Wallet } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ const BENEFITS = [
   {
     icon: CheckCircle2,
     title: "Dibayar H sampai H+2 landing",
-    text: "Komisi dibayarkan hari H sampai H+2 setelah jamaah landing di negara tujuan, bila semua syarat terpenuhi.",
+    text: "Komisi dibayarkan hari H sampai H+2 setelah jamaah landing di negara tujuan, bila semua syarat terpenuhi. Ketentuan tanggal dapat berubah dan diinformasikan kepada agen.",
   },
   {
     icon: Award,
@@ -38,24 +38,25 @@ const BENEFITS = [
 
 const STEPS = [
   { icon: UserPlus, title: "Daftar", text: "Isi nama, email, nomor WhatsApp, dan password." },
-  { icon: IdCard, title: "Verifikasi data", text: "Lengkapi KTP dan alamat, bayar biaya registrasi, lalu setujui SOP." },
-  { icon: ClipboardCheck, title: "Disetujui", text: "Admin memeriksa datamu, biasanya 1-2 hari kerja." },
-  { icon: BadgeCheck, title: "Dapat Agent ID", text: "Agent ID (format MUS-XXXXXX) mencatat jamaah yang kamu ajak." },
-  { icon: FileText, title: "Onboarding", text: "Ikuti pembinaan dan pelatihan, lalu mulai menawarkan paket." },
+  { icon: Mail, title: "Konfirmasi email", text: "Buka email dari Musafar Tour, klik tautan konfirmasi, lalu masuk ke portal agen." },
+  { icon: IdCard, title: "Lengkapi data dan setujui SOP", text: "Isi KTP, NIK, alamat, dan nomor WhatsApp, lalu setujui SOP Program Agen." },
+  { icon: ClipboardCheck, title: "Disetujui", text: "Tim Musafar memeriksa datamu. Setelah disetujui kamu mendapat Agent ID (format MUS-XXXXXX)." },
+  { icon: Wallet, title: "Bayar biaya registrasi", text: `Setelah disetujui, bayar biaya registrasi ${rupiah(AGENT_REGISTRATION_FEE)} ke rekening PT Musa Amanah Wisata, lalu kirim bukti transfer ke PIC Agen.` },
+  { icon: Rocket, title: "Mulai jualan", text: "Setelah pembayaran diterima, kamu bisa mencatat lead, mendaftarkan jamaah, dan membagikan tautan promo." },
 ] as const;
 
 const FAQS = [
   {
     q: "Apakah ada biaya untuk jadi agen?",
-    a: `Ada, biaya registrasi ${rupiah(AGENT_REGISTRATION_FEE)} dibayar satu kali seumur hidup. Biaya ini mencakup welcome kit, perlengkapan, marketing kit, grup WhatsApp, pelatihan sales gratis, dan sertifikat Agen Resmi. Pembayaran hanya ke rekening PT Musa Amanah Wisata, lalu bukti transfer dikirim ke PIC Agen.`,
+    a: `Ada, biaya registrasi ${rupiah(AGENT_REGISTRATION_FEE)} dibayar satu kali seumur hidup. Biaya ini mencakup welcome kit, perlengkapan, marketing kit, grup WhatsApp, pelatihan sales gratis, dan sertifikat Agen Resmi. Biaya dibayar setelah pendaftaranmu disetujui, hanya ke rekening PT Musa Amanah Wisata, lalu bukti transfer dikirim ke PIC Agen. Pembayaran dianjurkan sekaligus. Jika agen mundur, biaya registrasi hangus karena ditukar dengan perlengkapan dan welcome kit.`,
   },
   {
     q: "Berapa komisi saya?",
-    a: `${COMMISSION_PER_LEVEL_TEXT} Tingkatnya naik mengikuti jumlah jamaah per tahun: Silver 1 sampai 15, Gold 15 sampai 30, Platinum di atas 30.`,
+    a: `${COMMISSION_PER_LEVEL_TEXT} Tingkatnya naik mengikuti jumlah jamaah per tahun: Silver 1 sampai 15, Gold 15 sampai 30, Platinum minimal 30.`,
   },
   {
     q: "Kapan komisi dibayar?",
-    a: `${COMMISSION_PAYOUT_TEXT} Ketentuan tanggal dapat berubah dan akan diinformasikan.`,
+    a: `${COMMISSION_PAYOUT_TEXT} Ketentuan tanggal dapat berubah dan diinformasikan kepada agen.`,
   },
   {
     q: "Bagaimana kalau jamaah batal atau refund?",
@@ -67,7 +68,7 @@ const FAQS = [
   },
   {
     q: "Berapa lama persetujuan akun?",
-    a: "Biasanya 1-2 hari kerja setelah data, biaya registrasi, dan persetujuan SOP lengkap. Kalau lebih lama, hubungi PIC Agen lewat WhatsApp.",
+    a: "Tim Musafar menyetujui akunmu setelah data dan persetujuan SOP lengkap. Setelah itu kamu membayar biaya registrasi, dan baru bisa mulai jualan begitu pembayaran diterima. Kalau menunggu terasa lama, hubungi PIC Agen lewat WhatsApp.",
   },
 ] as const;
 
@@ -77,12 +78,12 @@ export default function JadiAgen() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6">
+      <main id="main" className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6">
         {/* Dark block with the one crimson action (DESIGN.md public hero) */}
         <section className="rounded-3xl bg-primary px-6 py-10 text-primary-foreground sm:px-10 sm:py-14" aria-labelledby="judul">
           <p className="text-sm font-semibold uppercase tracking-wider text-primary-foreground/70">Program agen Musafar Tour</p>
           <h1 id="judul" className="mt-3 max-w-2xl text-4xl font-extrabold leading-tight tracking-tight [text-wrap:balance] sm:text-5xl">
-            Jadi agen resmi umroh Musafar Tour
+            Jadi Duta Musafar, agen resmi umroh
           </h1>
           <p className="mt-4 max-w-2xl text-lg text-primary-foreground/85">
             Ajak keluarga, teman, atau jamaah pengajianmu berangkat umroh. Komisi sesuai tingkat dan paket. Registrasi sekali seumur hidup.
@@ -132,15 +133,15 @@ export default function JadiAgen() {
           </ul>
           <p className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
             <Wallet className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-            <span>Dibayar ke rekening PT Musa Amanah Wisata, lalu bukti transfer dikirim ke PIC Agen.</span>
+            <span>Dibayar setelah pendaftaranmu disetujui, ke rekening PT Musa Amanah Wisata, lalu bukti transfer dikirim ke PIC Agen. Pembayaran dianjurkan sekaligus. Jika agen mundur, biaya registrasi hangus karena ditukar dengan perlengkapan dan welcome kit.</span>
           </p>
         </section>
 
         <section className="mt-12" aria-labelledby="tingkat">
-          <h2 id="tingkat" className="text-2xl font-bold text-foreground sm:text-3xl">Empat tingkat agen</h2>
-          <p className="mt-2 text-foreground/80">Tingkat dihitung dari jumlah jamaah per tahun. {COMMISSION_PER_LEVEL_TEXT}</p>
-          <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {AGENT_LEVEL_RULES.map((l) => (
+          <h2 id="tingkat" className="text-2xl font-bold text-foreground sm:text-3xl">Tiga tingkat agen</h2>
+          <p className="mt-2 text-foreground/80">Duta Musafar adalah nama komunitas agen kami, bukan tingkat. Semua agen baru mulai dari Silver. Tingkat dihitung dari jumlah jamaah per tahun. {COMMISSION_PER_LEVEL_TEXT}</p>
+          <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {AGENT_LEVEL_RULES.filter((l) => l.key !== "duta").map((l) => (
               <li key={l.key} className="rounded-2xl border bg-card p-5 shadow-sm">
                 <h3 className="text-lg font-bold text-foreground">{l.label}</h3>
                 <p className="mt-1 text-foreground/80">{l.range}</p>
@@ -155,7 +156,7 @@ export default function JadiAgen() {
         </section>
 
         <section className="mt-12" aria-labelledby="cara">
-          <h2 id="cara" className="text-2xl font-bold text-foreground sm:text-3xl">Cara bergabung, 5 langkah</h2>
+          <h2 id="cara" className="text-2xl font-bold text-foreground sm:text-3xl">Cara bergabung, 6 langkah</h2>
           <ol className="mt-5 grid gap-4 sm:grid-cols-2">
             {STEPS.map(({ icon: Icon, title, text }, i) => (
               <li key={title} className="flex items-start gap-4 rounded-2xl border bg-card p-5 shadow-sm">

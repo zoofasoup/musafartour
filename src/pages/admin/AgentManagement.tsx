@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,13 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
 import { AgentDetailDialog } from "@/components/admin/agents/AgentDetailDialog";
-import { WithdrawalsPanel } from "@/components/admin/agents/WithdrawalsPanel";
 import {
   LEVEL_LABEL,
   agentWaNumber,
@@ -27,7 +25,6 @@ import {
   approvalWarnings,
   waLink,
   type Agent,
-  type Withdrawal,
 } from "@/components/admin/agents/agentData";
 import { toast } from "sonner";
 import {
@@ -59,9 +56,6 @@ type SortMode = "pending_first" | "newest";
 const AgentManagement = () => {
   const [deleteTarget, setDeleteTarget] = useState<Agent | null>(null);
   const queryClient = useQueryClient();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const tab = searchParams.get("tab") === "penarikan" ? "penarikan" : "agen";
-  const setTab = (value: string) => setSearchParams(value === "penarikan" ? { tab: "penarikan" } : {}, { replace: true });
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -116,25 +110,6 @@ const AgentManagement = () => {
       return data as Agent[];
     },
   });
-
-  // Fetch withdrawals (agent names are joined in memory from the agents list)
-  const {
-    data: withdrawals = [],
-    isLoading: withdrawalsLoading,
-    error: withdrawalsError,
-    refetch: refetchWithdrawals,
-  } = useQuery({
-    queryKey: ['admin-agent-withdrawals'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('agent_withdrawals')
-        .select('*')
-        .order('requested_at', { ascending: false });
-      if (error) throw error;
-      return data as Withdrawal[];
-    },
-  });
-  const pendingWithdrawals = withdrawals.filter((w) => w.status === 'pending').length;
 
   const selectedAgent = agents.find((a) => a.id === selectedId) ?? null;
 
@@ -331,23 +306,11 @@ const AgentManagement = () => {
           Kelola Agent
         </h1>
         <p className="text-muted-foreground mt-1">
-          Kelola pendaftaran, status, dan penarikan komisi agent Musafar Tour
+          Kelola pendaftaran, status, dan level agent Musafar Tour. Persetujuan dan pembayaran komisi ada di Pembayaran Komisi.
         </p>
       </div>
 
-      <Tabs value={tab} onValueChange={setTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="agen">Agen</TabsTrigger>
-          <TabsTrigger value="penarikan" className="gap-2">
-            Penarikan
-            {pendingWithdrawals > 0 && (
-              <Badge variant="brand" className="h-5 min-w-5 justify-center px-1.5 text-xs" aria-label={`${pendingWithdrawals} menunggu`}>
-                {pendingWithdrawals}
-              </Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
-
+      <Tabs value="agen" className="space-y-4">
         <TabsContent value="agen" className="mt-0 space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -462,6 +425,7 @@ const AgentManagement = () => {
                             <p className="font-semibold">{agent.name}</p>
                             <p className="text-sm text-muted-foreground">{agent.email}</p>
                             {incomplete && <StatusBadge kind="warn">Data belum lengkap</StatusBadge>}
+                            {agent.status === 'active' && (agent.registration_fee_status ?? 'unpaid') === 'unpaid' && <StatusBadge kind="warn">Menunggu pembayaran biaya</StatusBadge>}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -547,16 +511,6 @@ const AgentManagement = () => {
           )}
         </CardContent>
       </Card>
-        </TabsContent>
-
-        <TabsContent value="penarikan" className="mt-0">
-          <WithdrawalsPanel
-            withdrawals={withdrawals}
-            agents={agents}
-            loading={withdrawalsLoading}
-            error={withdrawalsError}
-            onRetry={() => refetchWithdrawals()}
-          />
         </TabsContent>
       </Tabs>
 

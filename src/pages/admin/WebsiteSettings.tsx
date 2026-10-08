@@ -161,7 +161,7 @@ const WebsiteSettings = () => {
                 id="site_tagline"
                 value={settings.site_tagline || ""}
                 onChange={(e) => setSettings({ ...settings, site_tagline: e.target.value })}
-                placeholder="Contoh: Travel Umroh & Haji Terpercaya"
+                placeholder="Contoh: Paket Umroh Terpercaya"
               />
             </div>
           </div>

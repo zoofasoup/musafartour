@@ -60,7 +60,7 @@ const CLAUSES: Clause[] = [
   { text: "Biaya kelebihan bagasi menjadi tanggung jawab jamaah." },
   { text: "Pembongkaran koper/tas bukan menjadi tanggung jawab travel." },
   {
-    text: "Pembatalan dapat di kembalikan maksimal 90 Hari kerja, dengan ketentuan sebagai berikut:",
+    text: "Jika pembatalan disetujui, pengembalian dana diproses paling lama 90 hari kerja, dengan besar pengembalian sebagai berikut (dari harga paket):",
     items: ["6 Minggu Sebelum keberangkatan 50 % dari harga paket", "3 Minggu sebelum keberangkatan 25 % dari harga paket", "2 Minggu sebelum keberangkatan 0 % dari harga paket"],
   },
   {

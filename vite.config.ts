@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "android-chrome-192x192.png", "android-chrome-512x512.png"],
       manifest: {
-        name: "Musafar Tour - Paket Umroh & Haji",
+        name: "Musafar Tour - Paket Umroh Terpercaya",
         short_name: "Musafar Tour",
         description: "Paket umroh hemat hingga five star dengan pelayanan terbaik.",
         theme_color: "#c22543",

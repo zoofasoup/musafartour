@@ -34,6 +34,7 @@ import { id } from "date-fns/locale";
 import { formatCurrency, getSlotsTaken, todayJakarta } from "@/lib/utils";
 import { AGENT_PACKAGE_COLUMNS } from "@/hooks/usePackages";
 import PackageShareModal from "@/components/package-detail/PackageShareModal";
+import { LoadError } from "@/components/admin/jamaah/LoadError";
 
 interface PackagePrice {
   quad: number;
@@ -89,7 +90,7 @@ const AgentPackages = () => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
 
-  const { data: packages, isLoading } = useQuery({
+  const { data: packages, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["agent-packages"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -122,12 +123,12 @@ const AgentPackages = () => {
     const remaining = total - filled;
 
     if (remaining <= 0) {
-      return { status: "full", label: "Full Booked", color: "destructive" };
+      return { status: "full", label: "Penuh", color: "destructive" };
     }
     if (remaining <= 5) {
-      return { status: "almost", label: `Almost Full (${remaining} slot)`, color: "warning" };
+      return { status: "almost", label: `Hampir penuh (${remaining} kursi)`, color: "warning" };
     }
-    return { status: "open", label: `Tersedia (${remaining} slot)`, color: "success" };
+    return { status: "open", label: `Tersedia (${remaining} kursi)`, color: "success" };
   };
 
   const getCategory = (pkg: Package) => {
@@ -184,6 +185,14 @@ const AgentPackages = () => {
     ));
   };
 
+  if (error) {
+    return (
+      <div className="mx-auto w-full max-w-6xl">
+        <LoadError what="Daftar paket" error={error} onRetry={() => refetch()} retrying={isFetching} />
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-6 max-w-7xl mx-auto w-full pb-20 md:pb-6">
@@ -215,7 +224,7 @@ const AgentPackages = () => {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-4">
               <Filter className="h-5 w-5 text-muted-foreground" />
-              <span className="font-medium">Filter & Sort</span>
+              <span className="font-medium">Filter dan urutan</span>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -225,7 +234,7 @@ const AgentPackages = () => {
                 <SelectContent>
                   <SelectItem value="all">Semua Kategori</SelectItem>
                   <SelectItem value="ekonomis">Ekonomis</SelectItem>
-                  <SelectItem value="standard">Standard</SelectItem>
+                  <SelectItem value="standard">Standar</SelectItem>
                   <SelectItem value="premium">Premium</SelectItem>
                 </SelectContent>
               </Select>
@@ -236,9 +245,9 @@ const AgentPackages = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="almost">Almost Full</SelectItem>
-                  <SelectItem value="full">Full Booked</SelectItem>
+                  <SelectItem value="open">Tersedia</SelectItem>
+                  <SelectItem value="almost">Hampir penuh</SelectItem>
+                  <SelectItem value="full">Penuh</SelectItem>
                 </SelectContent>
               </Select>
 

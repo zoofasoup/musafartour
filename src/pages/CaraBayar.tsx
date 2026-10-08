@@ -71,7 +71,7 @@ export default function CaraBayar() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="mx-auto max-w-3xl px-4 pb-16 pt-28 sm:px-6">
+      <main id="main" className="mx-auto max-w-3xl px-4 pb-16 pt-28 sm:px-6">
         <header className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Cara bayar</h1>
           <p className="mt-2 text-muted-foreground">

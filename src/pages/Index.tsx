@@ -57,7 +57,7 @@ const Index = () => {
     logo: "https://musafartour.com/logo.webp",
     description:
       websiteSettings?.site_tagline ||
-      "Travel umroh dan haji terpercaya dengan pelayanan terbaik sejak 2015",
+      "Travel umroh terpercaya dengan pelayanan terbaik sejak 2015",
     address: {
       "@type": "PostalAddress",
       addressCountry: "ID",
@@ -81,15 +81,15 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <SEO
-        title={pageSEO?.meta_title || "Musafar Tour - Paket Umroh & Haji Terpercaya 2026"}
+        title={pageSEO?.meta_title || "Musafar Tour - Paket Umroh Terpercaya 2026"}
         description={pageSEO?.meta_description || "Paket umroh dari PT Musa Amanah Wisata, berizin resmi PPIU Kemenag. Lihat jadwal, harga, dan hotel tiap paket. DP Rp 5 juta, cicilan bebas, lunas H-30."}
-        keywords={pageSEO?.focus_keyword || "paket umroh, travel umroh terpercaya, umroh 2026, haji khusus, wisata halal"}
+        keywords={pageSEO?.focus_keyword || "paket umroh, travel umroh terpercaya, umroh 2026, wisata halal"}
         canonicalUrl={pageSEO?.canonical_url || "https://musafartour.com/"}
         ogImage={pageSEO?.og_image}
         structuredData={structuredData}
       />
       <Navbar />
-
+      <main id="main">
       {/* Cinematic page intro curtain */}
       <div
         aria-hidden="true"
@@ -113,6 +113,8 @@ const Index = () => {
       <FAQSection faqItems={faqItems} />
 
       <CTASection websiteSettings={websiteSettings} />
+
+      </main>
 
       <Footer />
     </div>

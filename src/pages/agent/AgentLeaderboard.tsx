@@ -21,6 +21,9 @@ import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
 import { AGENT_LEVEL_COLORS as levelColors, AGENT_LEVEL_ICONS as levelIcons, agentLevelLabel } from "@/lib/agentLevels";
 
 // Icon mapping
+/** The Rewards Store has no way to redeem and no points are awarded yet. Flip to true when both exist. */
+const SHOW_REWARDS_STORE = false;
+
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   'trophy': Trophy,
   'medal': Medal,
@@ -175,7 +178,7 @@ export default function AgentLeaderboard() {
     <div className="space-y-6 max-w-7xl mx-auto w-full pb-20 md:pb-6">
       <AgentPageHeader
         title="Peringkat Agen"
-        description="Raih prestasi, kumpulkan badge, dan tukar rewards!"
+        description="Raih prestasi dan kumpulkan badge!"
         icon={Trophy}
       />
 
@@ -267,7 +270,7 @@ export default function AgentLeaderboard() {
                       <p className="font-medium truncate">{item.name}</p>
                       <Badge variant="outline" className="shrink-0 text-xs">
                         {levelIcons[item.level]}
-                        <span className="ml-1 capitalize">{item.level}</span>
+                        <span className="ml-1">{agentLevelLabel(item.level)}</span>
                       </Badge>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -292,7 +295,7 @@ export default function AgentLeaderboard() {
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[80vh]">
               <DialogHeader>
-                <DialogTitle>Full Leaderboard - Top 100</DialogTitle>
+                <DialogTitle>Peringkat lengkap, 100 teratas</DialogTitle>
               </DialogHeader>
               <ScrollArea className="h-[60vh]">
                 <div className="space-y-2 pr-4">
@@ -310,7 +313,7 @@ export default function AgentLeaderboard() {
                         <p className="font-medium">{item.name}</p>
                         <p className="text-sm text-muted-foreground">{item.total_sales} penjualan</p>
                       </div>
-                      <Badge variant="outline" className="capitalize">{item.level}</Badge>
+                      <Badge variant="outline">{agentLevelLabel(item.level)}</Badge>
                     </div>
                   ))}
                 </div>
@@ -355,7 +358,7 @@ export default function AgentLeaderboard() {
                         challenge.reward_type === 'points' ? 'secondary' : 'outline'
                       }>
                         {challenge.reward_type === 'cash' && formatCurrency(Number(challenge.reward_value))}
-                        {challenge.reward_type === 'points' && `${challenge.reward_value} pts`}
+                        {challenge.reward_type === 'points' && `${challenge.reward_value} poin`}
                         {challenge.reward_type === 'badge' && challenge.reward_value}
                       </Badge>
                     </div>
@@ -418,7 +421,7 @@ export default function AgentLeaderboard() {
                     )}
                   </div>
                   <p className="mt-2 text-xs font-medium text-center line-clamp-2">{badge.name}</p>
-                  <p className="text-xs text-muted-foreground">+{badge.points_reward} pts</p>
+                  <p className="text-xs text-muted-foreground">+{badge.points_reward} poin</p>
                 </div>
               );
             })}
@@ -463,7 +466,7 @@ export default function AgentLeaderboard() {
                         <div className="min-w-0">
                           <p className="font-medium text-sm">{badge.name}</p>
                           <p className="text-xs text-muted-foreground line-clamp-2">{badge.description}</p>
-                          <p className="text-xs text-primary mt-1">+{badge.points_reward} pts</p>
+                          <p className="text-xs text-primary mt-1">+{badge.points_reward} poin</p>
                         </div>
                       </div>
                     );
@@ -480,16 +483,16 @@ export default function AgentLeaderboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Star className="h-5 w-5 text-status-warn-fg" />
-            Agent Levels
+            Tingkat Agen
           </CardTitle>
-          <CardDescription>Tingkatkan level untuk unlock benefit lebih besar</CardDescription>
+          <CardDescription>Naikkan tingkatmu untuk benefit yang lebih besar</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Current Level Card */}
-          <div className={`p-4 rounded-lg ${levelColors[agent?.level || 'duta']} text-white`}>
+          <div className={`p-4 rounded-lg ${levelColors[agent?.level || 'silver']} text-white`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm opacity-90">Level Saat Ini</p>
+                <p className="text-sm opacity-90">Tingkat saat ini</p>
                 <p className="text-2xl font-bold">{agentLevelLabel(agent?.level)}</p>
               </div>
               <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
@@ -552,7 +555,7 @@ export default function AgentLeaderboard() {
                   {levelIcons[level.level_name]}
                   <span className="font-semibold">{agentLevelLabel(level.level_name)}</span>
                   {level.level_name === agent?.level && (
-                    <Badge variant="default" className="ml-auto text-xs">Level kamu</Badge>
+                    <Badge variant="default" className="ml-auto text-xs">Tingkatmu</Badge>
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">
@@ -572,7 +575,8 @@ export default function AgentLeaderboard() {
         </CardContent>
       </Card>
 
-      {/* Rewards Store Section */}
+      {/* Rewards Store Section: hidden until redeeming and awarding points are built (AGT-114) */}
+      {SHOW_REWARDS_STORE && (
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -633,6 +637,7 @@ export default function AgentLeaderboard() {
           )}
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }

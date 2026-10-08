@@ -29,6 +29,7 @@ export const ImageLightbox = ({
             size="icon"
             className="absolute top-4 right-4 text-white hover:bg-white/20 z-50"
             onClick={onClose}
+            aria-label="Tutup"
           >
             <X className="h-6 w-6" />
           </Button>
@@ -39,6 +40,7 @@ export const ImageLightbox = ({
               size="icon"
               className="absolute left-4 text-white hover:bg-white/20"
               onClick={onPrevious}
+              aria-label="Foto sebelumnya"
             >
               <ChevronLeft className="h-8 w-8" />
             </Button>
@@ -46,7 +48,7 @@ export const ImageLightbox = ({
 
           <img
             src={images[currentIndex]}
-            alt={`Gallery image ${currentIndex + 1}`}
+            alt={`Foto galeri ${currentIndex + 1} dari ${images.length}`}
             className="max-h-full max-w-full object-contain"
           />
 
@@ -56,6 +58,7 @@ export const ImageLightbox = ({
               size="icon"
               className="absolute right-4 text-white hover:bg-white/20"
               onClick={onNext}
+              aria-label="Foto berikutnya"
             >
               <ChevronRight className="h-8 w-8" />
             </Button>

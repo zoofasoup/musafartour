@@ -5,6 +5,8 @@ import { flushPendingPixelEvents, trackMetaPageView, trackTikTokPageView } from 
 
 // Module-level: the load's PageView must be sent once even if the hook re-runs.
 let metaPageViewSent = false;
+// GA4 gtag.js is added once per page load (see the GA effect).
+let ga4Injected = false;
 
 // Validate pixel IDs to prevent XSS injection
 function validatePixelId(id: string | null | undefined, type: 'meta' | 'tiktok' | 'ga4'): string | null {
@@ -130,7 +132,10 @@ export const useMarketingPixels = (enabled: boolean = true) => {
   useEffect(() => {
     const safeGa4Id = validatePixelId(settings?.ga4_id, 'ga4');
 
-    if (enabled && settings?.ga4_enabled && safeGa4Id) {
+    // Once per page load: `enabled` flips whenever the visitor leaves a private route, and the
+    // script + gtag('config') must not be added again (duplicate page_view).
+    if (enabled && settings?.ga4_enabled && safeGa4Id && !ga4Injected) {
+      ga4Injected = true;
       // Use requestIdleCallback to defer GA loading
       const loadGA = () => {
         const script1 = document.createElement("script");

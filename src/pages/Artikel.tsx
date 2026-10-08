@@ -88,14 +88,14 @@ const Artikel = () => {
     <div className="min-h-screen bg-background">
       <SEO 
         title="Artikel & Tips Umroh - Musafar Tour"
-        description="Baca artikel dan tips lengkap seputar umroh, haji, persiapan ibadah, dan wisata religi. Panduan praktis untuk jamaah pemula hingga berpengalaman."
-        keywords="artikel umroh, tips umroh, panduan haji, persiapan umroh, tips ibadah"
+        description="Baca artikel dan tips lengkap seputar umroh, persiapan ibadah, dan wisata religi. Panduan praktis untuk jamaah pemula hingga berpengalaman."
+        keywords="artikel umroh, tips umroh, panduan umroh, persiapan umroh, tips ibadah"
         canonicalUrl="https://musafartour.com/artikel"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "Blog",
           "name": "Artikel & Tips Umroh - Musafar Tour",
-          "description": "Panduan, tips, dan informasi bermanfaat seputar perjalanan Umroh dan Haji",
+          "description": "Panduan, tips, dan informasi bermanfaat seputar perjalanan Umroh",
           "publisher": {
             "@type": "Organization",
             "name": "Musafar Tour"
@@ -103,14 +103,14 @@ const Artikel = () => {
         }}
       />
       <Navbar />
-      
+      <main id="main">
       {/* Header */}
       <section className="py-16 bg-card border-b">
         <div className="container mx-auto px-6 md:px-8 text-center">
           <BookOpen className="h-16 w-16 mx-auto mb-4 text-primary" />
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Artikel & Tips Umroh</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Panduan, tips, dan informasi bermanfaat seputar perjalanan Umroh dan Haji
+            Panduan, tips, dan informasi bermanfaat seputar perjalanan Umroh
           </p>
         </div>
       </section>
@@ -229,6 +229,8 @@ const Artikel = () => {
           </div>
         </div>
       </section>
+
+      </main>
 
       <Footer />
     </div>

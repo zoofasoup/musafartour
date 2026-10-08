@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard, Image, Target, MessageSquare,
   Images, Package, Hotel, Calendar, FileText, HelpCircle,
-  Settings, Users, TrendingUp, Search, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles, Backpack, Wallet, Download, CalendarCheck, PenTool, BarChart3, Coins,
+  Settings, Users, TrendingUp, Search, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles, Backpack, Wallet, Download, CalendarCheck, PenTool, BarChart3, Coins, Banknote,
 } from "lucide-react";
 
 /**
@@ -33,8 +33,10 @@ export const ADMIN_MENU_SECTIONS: AdminMenuSection[] = [
     label: "Jamaah & Keuangan",
     items: [
       { icon: CalendarCheck, label: "Data Jamaah", path: "/admin/jamaah", roles: ["admin", "superadmin", "cs_admin"] },
-      { icon: Wallet, label: "Verifikasi Pembayaran", path: "/admin/jamaah/pembayaran", roles: ["admin", "superadmin", "cs_admin"] },
-      { icon: BarChart3, label: "Laporan Keuangan", path: "/admin/jamaah/keuangan", roles: ["admin", "superadmin"] },
+      { icon: Wallet, label: "Verifikasi Pembayaran", path: "/admin/jamaah/pembayaran", roles: ["admin", "superadmin", "cs_admin", "finance"] },
+      { icon: BarChart3, label: "Laporan Keuangan", path: "/admin/jamaah/keuangan", roles: ["admin", "superadmin", "finance"] },
+      // Commission lifecycle: approve (management = superadmin, finance = finance, two different users), then pay in batches.
+      { icon: Banknote, label: "Pembayaran Komisi", path: "/admin/pembayaran-komisi", roles: ["admin", "superadmin", "finance", "agent_admin"] },
     ]
   },
   {
@@ -116,6 +118,7 @@ export const getMenuSectionsForRole = (role: string | null | undefined): AdminMe
 const HOME_OVERRIDE: Record<string, string> = {
   product_admin: "/admin/packages",
   product_contributor: "/admin/packages",
+  finance: "/admin/pembayaran-komisi",
 };
 
 /**

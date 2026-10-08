@@ -52,7 +52,7 @@ const TentangKami = () => {
     <div className="min-h-screen bg-background">
       <SEO
         title="Tentang Kami - Musafar Tour | Travel Umroh Ramah Keluarga"
-        description="Musafar Tour adalah travel umroh dan haji terpercaya, berizin resmi PPIU Kemenag, yang dirancang khusus untuk keluarga - ramah lansia dan ramah anak."
+        description="Musafar Tour adalah travel umroh terpercaya, berizin resmi PPIU Kemenag, yang dirancang khusus untuk keluarga - ramah lansia dan ramah anak."
         keywords="tentang musafar tour, travel umroh ramah keluarga, umroh bersama orang tua, umroh bersama anak"
         canonicalUrl="https://musafartour.com/tentang-kami"
         structuredData={{
@@ -61,12 +61,12 @@ const TentangKami = () => {
           mainEntity: {
             "@type": "TravelAgency",
             name: "Musafar Tour",
-            description: "Travel umroh dan haji terpercaya, ramah keluarga",
+            description: "Travel umroh terpercaya, ramah keluarga",
           },
         }}
       />
       <Navbar />
-
+      <main id="main">
       {/* ══════════════════════════════════════════════════════════
           SECTION 1: HERO
       ══════════════════════════════════════════════════════════ */}
@@ -389,7 +389,7 @@ const TentangKami = () => {
             Masih ada pertanyaan tentang jadwal atau fasilitas?
           </p>
           <Button variant="brand"
-            className="bg-[#25D366] hover:bg-[#22c55e] text-white font-semibold px-6 shrink-0"
+            className="bg-[#25D366] hover:bg-[#22c55e] text-foreground font-semibold px-6 shrink-0"
             onClick={handleWhatsApp}
           >
             <MessageCircle className="mr-2 h-4 w-4" />
@@ -400,6 +400,8 @@ const TentangKami = () => {
 
       {/* Spacer for sticky bar */}
       <div className="h-16" />
+
+      </main>
 
       <Footer />
     </div>

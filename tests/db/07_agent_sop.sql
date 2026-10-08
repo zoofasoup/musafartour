@@ -1,6 +1,6 @@
 -- Tests for supabase/migrations/20261006190000_agent_sop_fee.sql (SOP/AGEN/001):
 --   registration fee tracking + SOP acceptance on public.agents, the protect_agent_columns() guard,
---   accept_agent_sop(version), and the levels Duta / Silver / Gold / Platinum (no Bronze).
+--   accept_agent_sop(version), and the levels Silver / Gold / Platinum (no Bronze, no Duta level).
 --
 -- Runs against the live linked project, but only inside a transaction that always aborts (the final
 -- RAISE EXCEPTION), so nothing is stored. Run with: ./scripts/run-db-tests.sh tests/db/07_agent_sop.sql
@@ -43,12 +43,12 @@ BEGIN
   ELSE
     _out := _out || format(E'FAIL sop: new agent has fee=%s paid_at=%s sop_at=%s sop_version=%s\n', _r.registration_fee_status, _r.registration_fee_paid_at, _r.sop_accepted_at, _r.sop_version);
   END IF;
-  IF _r.level = 'duta' THEN _out := _out || E'PASS levels: a new agent starts at duta\n';
+  IF _r.level = 'silver' THEN _out := _out || E'PASS levels: a new agent starts at silver\n';
   ELSE _out := _out || format(E'FAIL levels: a new agent started at %s\n', _r.level); END IF;
 
   -- column default for level
   SELECT column_default INTO _def FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'agents' AND column_name = 'level';
-  IF _def LIKE '%duta%' THEN _out := _out || E'PASS levels: agents.level default is duta\n';
+  IF _def LIKE '%silver%' THEN _out := _out || E'PASS levels: agents.level default is silver\n';
   ELSE _out := _out || format(E'FAIL levels: agents.level default is %s\n', _def); END IF;
 
   -- ============================ forced values on a direct INSERT ============================
@@ -62,8 +62,8 @@ BEGIN
     VALUES (_y, 'sop-insert@example.invalid', '0800000099', 'SOP Insert', 'SOP' || substr(md5(random()::text), 1, 6), 'platinum', 'paid', now(), now(), 'forged')
     RETURNING level, registration_fee_status, registration_fee_paid_at, sop_accepted_at, sop_version INTO _r;
     RESET ROLE;
-    IF _r.registration_fee_status = 'unpaid' AND _r.registration_fee_paid_at IS NULL AND _r.sop_accepted_at IS NULL AND _r.sop_version IS NULL AND _r.level = 'duta' THEN
-      _out := _out || E'PASS sop: a direct client INSERT with forged paid/SOP/platinum values is forced to unpaid / no stamps / duta\n';
+    IF _r.registration_fee_status = 'unpaid' AND _r.registration_fee_paid_at IS NULL AND _r.sop_accepted_at IS NULL AND _r.sop_version IS NULL AND _r.level = 'silver' THEN
+      _out := _out || E'PASS sop: a direct client INSERT with forged paid/SOP/platinum values is forced to unpaid / no stamps / silver\n';
     ELSE
       _out := _out || format(E'FAIL sop: direct INSERT kept fee=%s paid_at=%s sop_at=%s version=%s level=%s\n', _r.registration_fee_status, _r.registration_fee_paid_at, _r.sop_accepted_at, _r.sop_version, _r.level);
     END IF;
@@ -249,7 +249,7 @@ BEGIN
   END;
 
   SELECT string_agg(level_name || ':' || min_sales || '-' || coalesce(max_sales::text, ''), ' ' ORDER BY min_sales) INTO _def FROM public.agent_levels;
-  IF _def = 'duta:0-0 silver:1-14 gold:15-29 platinum:30-' THEN _out := _out || E'PASS levels: agent_levels is duta 0 / silver 1 / gold 15 / platinum 30 (no bronze)\n';
+  IF _def = 'silver:0-14 gold:15-29 platinum:30-' THEN _out := _out || E'PASS levels: agent_levels is silver 0 / gold 15 / platinum 30 (no bronze, no duta)\n';
   ELSE _out := _out || format(E'FAIL levels: agent_levels reads "%s"\n', _def); END IF;
 
   SELECT count(*) INTO _n FROM public.agent_levels WHERE benefits IS DISTINCT FROM ARRAY['Komisi sesuai tingkat dan paket', 'Akses marketing kit', 'Dukungan PIC Agen via WhatsApp'];

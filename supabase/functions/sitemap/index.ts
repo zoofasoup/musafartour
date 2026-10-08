@@ -22,7 +22,6 @@ Deno.serve(async (req) => {
       { url: '/', priority: '1.0', changefreq: 'daily' },
       { url: '/paket-umroh', priority: '0.9', changefreq: 'daily' },
       { url: '/wisata-halal', priority: '0.8', changefreq: 'weekly' },
-      { url: '/haji-khusus', priority: '0.8', changefreq: 'weekly' },
       { url: '/jadwal-umroh', priority: '0.9', changefreq: 'daily' },
       { url: '/tentang-kami', priority: '0.7', changefreq: 'monthly' },
       { url: '/galeri', priority: '0.6', changefreq: 'weekly' },

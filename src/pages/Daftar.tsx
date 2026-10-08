@@ -41,7 +41,7 @@ export default function Daftar() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="mx-auto max-w-2xl px-4 pb-16 pt-28 sm:px-6">
+      <main id="main" className="mx-auto max-w-2xl px-4 pb-16 pt-28 sm:px-6">
         {isLoading ? (
           <div className="space-y-4" aria-busy="true">
             <Skeleton className="h-24 w-full rounded-2xl" />

@@ -20,6 +20,7 @@ const ROLE_LABELS: Record<string, string> = {
   content_admin: "Admin Konten",
   agent_admin: "Admin Agen",
   cs_admin: "CS Administrasi",
+  finance: "Finance",
   sales: "Sales",
   advertiser: "Advertiser",
 };

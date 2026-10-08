@@ -85,6 +85,7 @@ const ArtikelDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
+        <main id="main">
         <div className="container mx-auto px-6 md:px-8 py-12">
           <div className="max-w-3xl mx-auto">
             <Skeleton className="h-8 w-24 mb-6" />
@@ -108,6 +109,7 @@ const ArtikelDetail = () => {
             </div>
           </div>
         </div>
+        </main>
         <Footer />
       </div>
     );
@@ -117,6 +119,7 @@ const ArtikelDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
+        <main id="main">
         <div className="container mx-auto px-6 md:px-8 py-16">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-3xl font-bold mb-4">Artikel tidak ditemukan</h1>
@@ -126,6 +129,7 @@ const ArtikelDetail = () => {
             </Button>
           </div>
         </div>
+        </main>
         <Footer />
       </div>
     );
@@ -161,7 +165,7 @@ const ArtikelDetail = () => {
         }}
       />
       <Navbar />
-
+      <main id="main">
       <article className="container mx-auto px-6 md:px-8 py-12">
         <div className="max-w-3xl mx-auto">
           {/* Back Button */}
@@ -283,6 +287,8 @@ const ArtikelDetail = () => {
           </div>
         </section>
       )}
+
+      </main>
 
       <Footer />
     </div>

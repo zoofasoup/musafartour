@@ -9,7 +9,7 @@ const NotFound = () => (
   <div className="min-h-screen bg-background flex flex-col">
     <SEO title="Halaman Tidak Ditemukan - Musafar Tour" noindex useDefaults={false} />
     <Navbar />
-    <main className="flex-1 container mx-auto px-6 md:px-8 py-24 text-center">
+    <main id="main" className="flex-1 container mx-auto px-6 md:px-8 py-24 text-center">
       <Compass className="h-16 w-16 mx-auto mb-6 text-muted-foreground" aria-hidden />
       <p className="text-sm font-semibold tracking-widest text-muted-foreground mb-2">404</p>
       <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">Halaman tidak ditemukan</h1>

@@ -57,17 +57,17 @@ export function PackageStickyMobileBar(props: PackagePricingBodyProps) {
                     aria-label="Lihat rincian harga"
                   >
                     <span className="block text-xs uppercase text-muted-foreground">
-                      {grandTotal > 0 ? `Total (${paxCount} orang)` : "Mulai dari"}
+                      {grandTotal > 0 ? `Total (${paxCount} orang)` : "Mulai dari, per orang"}
                     </span>
                     <span className="flex items-center gap-1 text-base font-bold text-primary">
-                      <span className="truncate">
-                        {grandTotal > 0 ? formatCurrency(grandTotal) : `${formatCurrency(props.price?.quad ?? 0)} / orang`}
+                      <span className="whitespace-nowrap">
+                        {formatCurrency(grandTotal > 0 ? grandTotal : props.price?.quad ?? 0)}
                       </span>
                       <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
                     </span>
                   </button>
                   {packageData.slug ? (
-                    <Button variant="brand" asChild className="h-12 shrink-0 gap-2 px-6 text-base font-bold">
+                    <Button variant="brand" asChild className="h-12 shrink-0 gap-1.5 px-4 text-sm font-bold sm:px-6 sm:text-base">
                       <Link to={`/daftar/${packageData.slug}`}>
                         <ClipboardList className="h-4 w-4" aria-hidden /> Daftar Sekarang
                       </Link>

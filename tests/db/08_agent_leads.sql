@@ -99,7 +99,7 @@ BEGIN
     PERFORM public.register_agent_profile();
     RESET ROLE;
   END LOOP;
-  UPDATE public.agents SET status = 'active', approved_at = now() WHERE user_id IN (_a, _b);
+  UPDATE public.agents SET status = 'active', approved_at = now(), registration_fee_status = 'paid' WHERE user_id IN (_a, _b);
   SELECT * INTO _arow FROM public.agents WHERE user_id = _a;
   SELECT * INTO _brow FROM public.agents WHERE user_id = _b;
   INSERT INTO public.user_roles (user_id, role) VALUES (_cs, 'cs_admin'), (_sales, 'sales');

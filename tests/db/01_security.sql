@@ -134,7 +134,7 @@ BEGIN
   END IF;
 
   -- =============================================================================================
-  -- 1a. agents: a self-registered row is forced to pending / 0 / duta
+  -- 1a. agents: a self-registered row is forced to pending / 0 / silver
   -- =============================================================================================
   _new_uid := gen_random_uuid();
   INSERT INTO auth.users (id, email, instance_id, aud, role)
@@ -147,9 +147,9 @@ BEGIN
             'active', 'gold', 50, 9999999, 9999999, now())
     RETURNING status, level, total_sales, total_commission, available_balance, approved_at INTO _r;
     RESET ROLE;
-    IF _r.status = 'pending' AND _r.level = 'duta' AND _r.total_sales = 0 AND _r.total_commission = 0
+    IF _r.status = 'pending' AND _r.level = 'silver' AND _r.total_sales = 0 AND _r.total_commission = 0
        AND _r.available_balance = 0 AND _r.approved_at IS NULL THEN
-      _out := _out || E'PASS agents: new row by non-staff forced to pending / duta / balance 0 / no approved_at\n';
+      _out := _out || E'PASS agents: new row by non-staff forced to pending / silver / balance 0 / no approved_at\n';
     ELSE
       _out := _out || format(E'FAIL agents: new row kept status=%s level=%s sales=%s commission=%s balance=%s approved_at=%s\n',
                              _r.status, _r.level, _r.total_sales, _r.total_commission, _r.available_balance, _r.approved_at);
@@ -167,28 +167,28 @@ BEGIN
     -- Give the agent a known spendable balance of exactly 1,000,000 (rolled back at the end).
     UPDATE public.agents SET available_balance = _pend + 1000000 WHERE id = _agent_id;
 
-    -- Request with forged status / processed_at / admin_notes: stored as a clean pending request
+    -- Self-service withdrawals are CLOSED (commission lifecycle, 20261008110000): the agent insert policy is gone, so even a
+    -- valid request with enough balance, and a forged-status one, are refused by RLS. Old rows stay readable (13, section 11).
     BEGIN
       PERFORM set_config('request.jwt.claims', json_build_object('sub', _agent_uid, 'role', 'authenticated')::text, true);
       SET LOCAL ROLE authenticated;
       INSERT INTO public.agent_withdrawals (agent_id, amount, bank_name, bank_account, account_name, status, processed_at, admin_notes)
       VALUES (_agent_id, 100000, 'BCA', '1234567890', 'Test Owner', 'approved', now(), 'approved by me')
       RETURNING status, processed_at, admin_notes INTO _r;
-      RESET ROLE;
-      IF _r.status = 'pending' AND _r.processed_at IS NULL AND _r.admin_notes IS NULL THEN
-        _out := _out || E'PASS withdrawals: forged status/processed_at/admin_notes forced to pending and empty\n';
-      ELSE
-        _out := _out || format(E'FAIL withdrawals: stored status=%s processed_at=%s admin_notes=%s\n', _r.status, _r.processed_at, _r.admin_notes);
-      END IF;
+      RAISE EXCEPTION 'insert applied' USING ERRCODE = 'XX001';
     EXCEPTION WHEN OTHERS THEN
       RESET ROLE;
-      _out := _out || format(E'FAIL withdrawals: valid request raised %s (%s)\n', SQLSTATE, SQLERRM);
+      IF SQLSTATE = '42501' THEN
+        _out := _out || E'PASS withdrawals: an agent can no longer create a withdrawal request, valid or forged (42501, self-service closed)\n';
+      ELSE
+        _out := _out || format(E'FAIL withdrawals: agent request gave SQLSTATE %s (%s), expected 42501\n', SQLSTATE, SQLERRM);
+      END IF;
     END;
 
-    -- Refused amounts: zero, negative, null, over balance minus pending (900,000 left now)
+    -- Invalid amounts: the guard trigger (kept for old rows and as a second layer) still answers 22023 before RLS does
     FOR _c IN SELECT * FROM (VALUES
       ('amount 0', '0'), ('negative amount', '-5000'), ('null amount', 'NULL'),
-      ('amount above balance minus pending by 1', '900001'), ('amount far above balance', '99999999')
+      ('amount far above balance', '99999999')
     ) AS t(label, amt)
     LOOP
       BEGIN
@@ -206,17 +206,20 @@ BEGIN
       END;
     END LOOP;
 
-    -- Exactly the remaining spendable amount is accepted
+    -- An amount within the balance is refused too now (RLS, 42501)
     BEGIN
       PERFORM set_config('request.jwt.claims', json_build_object('sub', _agent_uid, 'role', 'authenticated')::text, true);
       SET LOCAL ROLE authenticated;
       INSERT INTO public.agent_withdrawals (agent_id, amount, bank_name, bank_account, account_name)
       VALUES (_agent_id, 900000, 'BCA', '1234567890', 'Test Owner');
-      RESET ROLE;
-      _out := _out || E'PASS withdrawals: amount equal to balance minus pending is accepted\n';
+      RAISE EXCEPTION 'insert applied' USING ERRCODE = 'XX001';
     EXCEPTION WHEN OTHERS THEN
       RESET ROLE;
-      _out := _out || format(E'FAIL withdrawals: exact remaining balance raised %s (%s)\n', SQLSTATE, SQLERRM);
+      IF SQLSTATE = '42501' THEN
+        _out := _out || E'PASS withdrawals: even an amount within the balance is refused (42501)\n';
+      ELSE
+        _out := _out || format(E'FAIL withdrawals: in-balance request gave SQLSTATE %s (%s), expected 42501\n', SQLSTATE, SQLERRM);
+      END IF;
     END;
 
     -- Cannot request money on behalf of another agent

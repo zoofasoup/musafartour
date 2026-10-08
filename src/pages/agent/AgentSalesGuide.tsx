@@ -76,7 +76,7 @@ const EXTRA_SCRIPTS = [
   {
     title: "Bagaimana kalau saya ingin membatalkan/reschedule?",
     content:
-      "Terima kasih sudah bertanya, Bapak/Ibu 🙏\n\nUntuk pembatalan dan reschedule, kebijakannya kami tangani case-by-case supaya adil untuk semua pihak - saya akan koordinasikan langsung dengan tim kami dan kabari Bapak/Ibu secepatnya.\n\nBoleh saya tahu dulu situasi/alasannya apa? Supaya saya bisa bantu carikan solusi terbaik.",
+      "Terima kasih sudah bertanya, Bapak/Ibu 🙏\n\nUntuk pembatalan, DP Rp 5.000.000 tidak dapat dikembalikan, dan pendaftaran tidak bisa dibatalkan atau digantikan setelah 5 hari kerja. Pembatalan dapat dikembalikan maksimal 90 hari kerja: 6 minggu sebelum keberangkatan 50 % dari harga paket, 3 minggu sebelum 25 %, 2 minggu sebelum 0 %. Untuk reschedule, saya koordinasikan langsung dengan tim kami dan kabari Bapak/Ibu secepatnya.\n\nBoleh saya tahu dulu situasi/alasannya apa? Supaya saya bisa bantu carikan solusi terbaik.",
   },
   {
     title: "Kompetitor menawarkan harga lebih murah",
@@ -185,7 +185,7 @@ const AgentSalesGuide = () => {
             <li>Kalau jamaah tidak punya teman sekamar sesuai tipe yang dipilih (quad/triple/double), ada penyesuaian biaya lewat musyawarah - bukan biaya sepihak dari kami.</li>
           </ul>
           <TbdCallout>
-            Kebijakan refund setelah DP (di luar DP yang memang non-refundable) dan reschedule belum didokumentasikan lengkap. Jangan janjikan persentase atau nominal apa pun ke jamaah - selalu eskalasi ke supervisor dulu.
+            Kebijakan pembatalan mengikuti halaman Syarat Umroh (/syarat-umroh): DP non-refundable, tidak bisa dibatalkan atau digantikan setelah 5 hari kerja, pengembalian 50 % / 25 % / 0 % dari harga paket menurut waktu sebelum keberangkatan. Kebijakan reschedule belum didokumentasikan: jangan janjikan apa pun, eskalasi ke supervisor dulu.
           </TbdCallout>
         </CardContent>
       </Card>

@@ -412,28 +412,35 @@ export function trackViewContent(pkg: TrackedPackage) {
 }
 
 /**
- * A lead: a WhatsApp tap or the savings-calculator form. One Lead per person per
- * 7 days, whichever button they use. `source` says which one.
+ * A lead from a WhatsApp tap or from a form (registration, savings calculator).
+ * Each channel has its own dedupe key, 7 days per person: a WhatsApp tap the day
+ * before must not swallow the registration Lead (the strongest signal, and the
+ * only one carrying the package value). `source` says which button.
  */
-export function trackLead(source: string, pkg?: TrackedPackage, eventID?: string) {
+function sendLead(channel: "whatsapp" | "form", source: string, pkg?: TrackedPackage, eventID?: string) {
   logSiteEvent("lead", { packageId: pkg?.id, leadSource: source });
   const params: EventParams = {
     content_name: pkg?.name ?? source,
-    content_category: source === "umroh_calculator" ? "calculator" : "whatsapp",
+    content_category: source === "umroh_calculator" ? "calculator" : channel === "form" ? "registration" : "whatsapp",
     lead_source: source,
     page_path: typeof window !== "undefined" ? safeTrackingPath(window.location.pathname) : undefined,
     ...(pkg ? { content_ids: [pkg.id], content_type: "product" } : {}),
     ...(pkg?.value ? { value: pkg.value, currency: "IDR" } : {}),
   };
-  const dedupe: Dedupe = { key: "Lead", scope: "person", ttlMs: SEVEN_DAYS };
+  const dedupe: Dedupe = { key: `Lead:${channel}`, scope: "person", ttlMs: SEVEN_DAYS };
   sendMeta("Lead", params, dedupe, eventID);
   sendTikTok("Contact", { content_name: pkg?.name ?? source }, dedupe);
   sendGa("generate_lead", { lead_source: source, currency: "IDR", value: pkg?.value || undefined });
 }
 
-/** A visitor tapped a WhatsApp button: for Musafar this is the lead. */
+/** Registration form or calculator submitted. Own 7-day dedupe ("Lead:form"), separate from WhatsApp taps. */
+export function trackLead(source: string, pkg?: TrackedPackage, eventID?: string) {
+  sendLead("form", source, pkg, eventID);
+}
+
+/** A visitor tapped a WhatsApp button: for Musafar this is the lead. One Lead per person per 7 days ("Lead:whatsapp"). */
 export function trackWhatsAppLead(source: string, pkg?: TrackedPackage) {
-  trackLead(source, pkg);
+  sendLead("whatsapp", source, pkg);
   trackMetaContact(source, pkg);
 }
 

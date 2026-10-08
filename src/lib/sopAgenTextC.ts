@@ -1,0 +1,188 @@
+import { SOP_FEE_LETTER_NOTICE, type SopSection } from "@/lib/sopAgenTypes";
+
+/** SOP/AGEN/001 v01, sections 9 to 17 (wording kept as in the signed document). */
+export const SOP_SECTIONS_C: readonly SopSection[] = [
+  {
+    id: "kapan-komisi",
+    num: 9,
+    title: "Kapan Agen Mendapatkan Komisi?",
+    blocks: [
+      { t: "p", text: "Agen mendapatkan komisi apabila transaksi jamaah telah memenuhi **SELURUH** persyaratan berikut:" },
+      { t: "h", text: "CHECKLIST KOMISI" },
+      {
+        t: "check",
+        items: [
+          "Agen berstatus aktif.",
+          "Jamaah merupakan lead agen yang terdaftar.",
+          "Agent ID tercatat pada transaksi.",
+          "Jamaah melakukan pembayaran sesuai ketentuan.",
+          "Pembayaran telah diterima dan diverifikasi Musafar.",
+          "Data jamaah telah lengkap.",
+          "Transaksi telah terverifikasi.",
+          "Tidak terdapat pembatalan transaksi.",
+          "Tidak terdapat proses refund.",
+          "Tidak terdapat sengketa lead.",
+          "Tidak terdapat pelanggaran oleh agen.",
+          "Transaksi memenuhi ketentuan minimum komisi.",
+        ],
+      },
+      { t: "p", text: "**Jika salah satu persyaratan belum terpenuhi, komisi berstatus PENDING dan belum dapat dicairkan.**" },
+    ],
+  },
+  {
+    id: "skema-komisi",
+    num: 10,
+    title: "Skema Komisi",
+    blocks: [
+      { t: "notice", text: SOP_FEE_LETTER_NOTICE },
+      { t: "p", text: "Besaran komisi ditentukan berdasarkan produk/paket yang dijual." },
+      { t: "p", text: "Contoh:" },
+      {
+        t: "table",
+        head: ["Produk", "Komisi Agen"],
+        rows: [
+          ["Paket Umroh A", "Rp________/jamaah"],
+          ["Paket Umroh B", "Rp________/jamaah"],
+          ["Paket Umroh C", "Rp________/jamaah"],
+          ["Paket Haji", "Rp________/jamaah"],
+          ["Program Khusus", "Sesuai campaign"],
+        ],
+      },
+      { t: "p", text: "Besaran komisi dapat berbeda berdasarkan:" },
+      { t: "ul", items: ["Paket.", "Periode keberangkatan.", "Campaign.", "Promo.", "Kebijakan perusahaan."] },
+      { t: "p", text: "Perubahan komisi akan diinformasikan kepada agen melalui channel resmi Musafar." },
+    ],
+  },
+  {
+    id: "status-komisi",
+    num: 11,
+    title: "Status Komisi",
+    blocks: [
+      { t: "p", text: "Untuk mempermudah monitoring, komisi menggunakan 4 status:" },
+      { t: "h", text: "1. PENDING" },
+      { t: "p", text: "Transaksi sudah tercatat tetapi belum memenuhi seluruh syarat komisi." },
+      { t: "h", text: "2. ELIGIBLE" },
+      { t: "p", text: "Seluruh syarat komisi telah terpenuhi dan transaksi dapat diajukan untuk pembayaran." },
+      { t: "h", text: "3. APPROVED" },
+      { t: "p", text: "Komisi telah diverifikasi dan disetujui oleh pihak berwenang." },
+      { t: "h", text: "4. PAID" },
+      { t: "p", text: "Komisi telah dibayarkan kepada agen." },
+    ],
+  },
+  {
+    id: "kapan-komisi-dibayarkan",
+    num: 12,
+    title: "Kapan Komisi Dibayarkan?",
+    blocks: [
+      { t: "p", text: "Komisi dibayarkan pada hari h s/d h+2 Jamaah landing ke negara yang dituju." },
+      { t: "p", text: "Ketentuan tanggal dapat berubah berdasarkan kebijakan perusahaan dan akan diinformasikan kepada agen." },
+    ],
+  },
+  {
+    id: "komisi-tidak-berlaku",
+    num: 13,
+    title: "Komisi Tidak Berlaku Apabila...",
+    blocks: [
+      { t: "p", text: "Agen tidak mendapatkan komisi apabila:" },
+      {
+        t: "ol",
+        items: [
+          "Lead tidak terdaftar.",
+          "Transaksi bukan berasal dari agen.",
+          "Agent ID tidak tercatat dan tidak dapat dibuktikan.",
+          "Jamaah membatalkan transaksi.",
+          "Jamaah melakukan refund.",
+          "Pembayaran jamaah belum memenuhi ketentuan.",
+          "Transaksi terbukti fiktif.",
+          "Agen melakukan manipulasi data.",
+          "Agen melakukan pelanggaran harga.",
+          "Agen memberikan informasi palsu.",
+          "Terjadi sengketa lead dan agen tidak dapat membuktikan kepemilikannya.",
+          "Transaksi dilakukan di luar prosedur resmi.",
+          "Agen melakukan pelanggaran terhadap SOP.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "refund-setelah-komisi",
+    num: 14,
+    title: "Jika Jamaah Refund Setelah Komisi Dibayarkan",
+    blocks: [
+      { t: "p", text: "Apabila komisi telah dibayarkan tetapi kemudian terjadi pembatalan/refund jamaah, maka komisi tersebut dapat:" },
+      {
+        t: "p",
+        text: "**a. Dipotong dari komisi agen berikutnya; atau**",
+      },
+      { t: "p", text: "**b. Dikembalikan oleh agen kepada perusahaan; atau**" },
+      { t: "p", text: "**c. Diselesaikan melalui mekanisme lain yang disepakati perusahaan.**" },
+    ],
+  },
+  {
+    id: "bonus-agen",
+    num: 15,
+    title: "Bonus Agen",
+    blocks: [
+      { t: "p", text: "Selain komisi reguler, Musafar dapat memberikan bonus berdasarkan pencapaian." },
+      {
+        t: "table",
+        head: ["Pencapaian", "Bonus"],
+        rows: [
+          ["5 Jamaah", "Rp 500.000"],
+          ["10 Jamaah", "Rp 1.500.000"],
+          ["40 Jamaah", "Motor Listrik/Cash"],
+          ["Reward tahunan", "Grand Prize"],
+        ],
+      },
+      { t: "p", text: "Bonus hanya berlaku apabila agen membawa jamaah secara langsung, bukan dalam periode (dalam 1 invoice). Dan nominal tagihan jamaah mengikuti harga resmi musafar (bukan promo)." },
+    ],
+  },
+  {
+    id: "hak-agen",
+    num: 16,
+    title: "Hak Agen",
+    blocks: [
+      { t: "p", text: "Agen berhak mendapatkan:" },
+      {
+        t: "ol",
+        items: [
+          "Agent ID.",
+          "Informasi produk resmi.",
+          "Pricelist resmi.",
+          "Materi promosi.",
+          "Training/onboarding.",
+          "Pendampingan dari tim Musafar.",
+          "Perlindungan lead sesuai ketentuan.",
+          "Informasi status transaksi.",
+          "Komisi sesuai ketentuan.",
+          "Bonus apabila memenuhi target campaign.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "kewajiban-agen",
+    num: 17,
+    title: "Kewajiban Agen",
+    blocks: [
+      { t: "p", text: "Agen wajib:" },
+      {
+        t: "ol",
+        items: [
+          "Menjaga nama baik Musafar.",
+          "Menyampaikan informasi yang benar.",
+          "Menggunakan materi resmi.",
+          "Menggunakan harga resmi.",
+          "Mendaftarkan lead.",
+          "Melakukan follow-up.",
+          "Menjaga data jamaah.",
+          "Mengikuti SOP.",
+          "Mengikuti training apabila diwajibkan.",
+          "Melaporkan kendala/komplain kepada PIC.",
+          "Menggunakan rekening pembayaran resmi perusahaan.",
+          "Menjaga komunikasi yang profesional.",
+        ],
+      },
+    ],
+  },
+];

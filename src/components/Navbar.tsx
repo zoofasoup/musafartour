@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -89,13 +89,13 @@ const Navbar = () => {
       <div className="container mx-auto px-6 md:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center">
-            {/* Dynamic color logo using CSS mask */}
+          <Link to="/" className="flex items-center" aria-label="Musafar Tour, ke beranda">
+            {/* Dynamic color logo using CSS mask (decorative: the link carries the name) */}
             <div 
+              aria-hidden="true"
               className={`h-8 w-32 md:h-10 md:w-40 bg-current transition-colors duration-300 [mask-image:url('/logo.webp')] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:left] [-webkit-mask-image:url('/logo.webp')] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:left] ${
                 isTransparent ? "text-white" : (isDarkMode ? "text-white" : "text-foreground")
               }`}
-              aria-label="Musafar Tour"
             />
           </Link>
 
@@ -211,11 +211,31 @@ const Navbar = () => {
     </nav>
   );
 
+  // Skip link + nav go into #nav-root (index.html, before #root) so they are first in DOM and focus order,
+  // while staying outside #root (its `contain: layout` would break position: fixed).
+  const skipToMain = (e: MouseEvent<HTMLAnchorElement>) => {
+    const main = document.getElementById("main") ?? document.querySelector("main");
+    if (!main) return;
+    e.preventDefault();
+    if (!main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1");
+    (main as HTMLElement).focus({ preventScroll: true });
+    main.scrollIntoView();
+  };
+
   return (
     <>
       {/* Spacer to prevent layout shifting since navbar is now fixed */}
       {!isHome && <div className="h-16 w-full bg-transparent" />}
-      {mounted && createPortal(navbarContent, document.body)}
+      {mounted &&
+        createPortal(
+          <>
+            <a href="#main" onClick={skipToMain} className="skip-link">
+              Lewati ke konten utama
+            </a>
+            {navbarContent}
+          </>,
+          document.getElementById("nav-root") ?? document.body
+        )}
     </>
   );
 };

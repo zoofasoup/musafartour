@@ -169,7 +169,7 @@ const AgentOnboarding = () => {
     setLoading(false);
     
     if (result.success) {
-      toast.success("Data terkirim! Selesaikan biaya registrasi dan persetujuan SOP supaya akunmu bisa diverifikasi.");
+      toast.success("Data terkirim! Setujui SOP supaya akunmu bisa diperiksa admin. Biaya registrasi dibayar setelah akunmu disetujui.");
       navigate("/agent/dashboard");
     } else {
       const reason = result.error || "";
@@ -194,13 +194,13 @@ const AgentOnboarding = () => {
           <div className="text-center sm:text-left">
             <h1 className="text-3xl font-bold text-foreground">Lengkapi Profil Agent</h1>
             <p className="text-muted-foreground mt-2">
-              Langkah terakhir sebelum kamu bisa mulai berjualan paket umroh
+              Isi data dirimu, lalu setujui SOP. Setelah disetujui dan biaya registrasi diterima, kamu bisa mulai berjualan paket umroh
             </p>
             {agent?.status === "pending" && (
               <div className="mt-3 flex flex-col items-center gap-2 sm:items-start">
                 <StatusBadge kind="warn" icon={Clock}>Menunggu verifikasi admin</StatusBadge>
                 <p className="text-sm text-muted-foreground">
-                  Akun kamu aktif setelah data, biaya registrasi, dan persetujuan SOP selesai dan disetujui admin.
+                  Admin menyetujui akunmu setelah data dan persetujuan SOP selesai. Biaya registrasi dibayar setelah disetujui.
                 </p>
               </div>
             )}
@@ -213,7 +213,7 @@ const AgentOnboarding = () => {
               navigate("/agent/login");
             }}
           >
-            Keluar (Logout)
+            Keluar
           </Button>
         </div>
         

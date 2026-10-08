@@ -1,10 +1,9 @@
 /** Per-departure, per-tier, per-level agent commission: shared labels and helpers. */
 
-export const COMMISSION_LEVELS = ["duta", "silver", "gold", "platinum"] as const;
+export const COMMISSION_LEVELS = ["silver", "gold", "platinum"] as const;
 export type CommissionLevel = (typeof COMMISSION_LEVELS)[number];
 
 export const COMMISSION_LEVEL_LABEL: Record<CommissionLevel, string> = {
-  duta: "Duta",
   silver: "Silver",
   gold: "Gold",
   platinum: "Platinum",

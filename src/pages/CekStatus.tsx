@@ -129,6 +129,8 @@ export default function CekStatus() {
   };
 
   const stage = result ? STAGE[result.stage] : null;
+  // Link pribadi baru ada setelah DP; sebelum itu jangan suruh buka link.
+  const dataPending = !!result?.data_pending && (result.stage === "dp_received" || result.stage === "lunas");
   const waMessage = result
     ? `Halo Musafar Tour, saya mau tanya soal pendaftaran umroh.\nKode: ${result.code}`
     : "Halo Musafar Tour, saya mau tanya soal pendaftaran umroh saya.";
@@ -136,7 +138,7 @@ export default function CekStatus() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="mx-auto max-w-xl px-4 pb-16 pt-28 sm:px-6">
+      <main id="main" className="mx-auto max-w-xl px-4 pb-16 pt-28 sm:px-6">
         <header className="mb-6">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Cek status pendaftaran</h1>
           <p className="mt-2 text-muted-foreground">
@@ -195,12 +197,12 @@ export default function CekStatus() {
             <h2 id="cek-hasil" className="mt-1 text-2xl font-bold text-foreground">{result.package_name}</h2>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <StatusBadge kind={stage.kind}>{stage.title}</StatusBadge>
-              {result.data_pending && <StatusBadge kind="warn">Data belum lengkap</StatusBadge>}
+              {dataPending && <StatusBadge kind="warn">Data belum lengkap</StatusBadge>}
               {result.payment_checking && <StatusBadge kind="info">Pembayaran sedang diperiksa</StatusBadge>}
             </div>
             <p className="mt-4 text-foreground">{stage.text(result)}</p>
 
-            {result.data_pending && (
+            {dataPending && (
               <div className="mt-4 rounded-xl bg-status-warn-bg p-4 text-status-warn-fg">
                 <p className="font-bold">Data paspor dan dokumen belum lengkap</p>
                 <p className="mt-1 text-sm">

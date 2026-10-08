@@ -60,7 +60,7 @@ const JadwalUmroh = () => {
         canonicalUrl="https://musafartour.com/jadwal-umroh"
       />
       <Navbar />
-      
+      <main id="main">
       {/* Header */}
       <section className="py-16 bg-card border-b">
         <div className="container mx-auto px-6 md:px-8 text-center">
@@ -224,6 +224,8 @@ const JadwalUmroh = () => {
           </div>
         )}
       </section>
+
+      </main>
 
       <Footer />
     </div>

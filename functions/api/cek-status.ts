@@ -80,7 +80,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       package_name: s.package_name,
       departure_date: s.departure_date,
       people_count: s.people_count,
-      data_pending: s.data_pending === true,
+      // Link pribadi baru dikirim setelah DP: sebelum itu (accepted) jangan minta orang membukanya.
+      data_pending: s.data_pending === true && (s.stage === "dp_received" || s.stage === "lunas"),
       payment_checking: s.payment_checking === true,
     },
   });

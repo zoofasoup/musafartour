@@ -1,4 +1,6 @@
 /** Shared types and small pure helpers for the admin agent screens. */
+import { PT_ACCOUNTS, PT_ACCOUNT_HOLDER, rupiah } from "@/lib/jamaah";
+import { AGENT_REGISTRATION_FEE } from "@/lib/sopAgen";
 
 export interface Agent {
   id: string;
@@ -7,7 +9,7 @@ export interface Agent {
   phone: string;
   wa_number: string | null;
   name: string;
-  level: "duta" | "silver" | "gold" | "platinum";
+  level: "silver" | "gold" | "platinum";
   total_sales: number;
   total_commission: number;
   available_balance: number;
@@ -66,12 +68,18 @@ export function agentWaNumber(agent: Pick<Agent, "wa_number" | "phone">): string
 
 export const waLink = (number: string, text: string) => `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
 
-export function approvedMessage(agent: Pick<Agent, "name" | "email" | "referral_code">): string {
+export function approvedMessage(agent: Pick<Agent, "name" | "email" | "referral_code"> & { registration_fee_status?: Agent["registration_fee_status"] }): string {
+  const feeDone = (agent.registration_fee_status ?? "unpaid") !== "unpaid";
+  const accounts = PT_ACCOUNTS.map((a) => `${a.code} ${a.number}`).join(" / ");
   return (
     `Assalamu'alaikum ${agent.name},\n\n` +
-    `Akun agen Musafar Tour kamu sudah aktif. Silakan masuk di ${AGENT_LOGIN_URL} dengan email ${agent.email}.\n` +
+    `Pendaftaran agen Musafar Tour kamu sudah disetujui. Silakan masuk di ${AGENT_LOGIN_URL} dengan email ${agent.email}.\n` +
     `Agent ID kamu: ${agent.referral_code}.\n\n` +
-    `Kalau ada kendala saat masuk, balas pesan ini ya. Jazakumullah khairan.`
+    (feeDone
+      ? `Kamu sudah bisa mulai mencatat lead dan mendaftarkan jamaah.\n\n`
+      : `Silakan bayar biaya registrasi ${rupiah(AGENT_REGISTRATION_FEE)} ke rekening ${PT_ACCOUNT_HOLDER}: ${accounts}. ` +
+        `Pembayaran dianjurkan sekaligus. Setelah transfer, kirim bukti transfer ke chat ini. Kamu bisa mulai jualan setelah pembayaran kami terima.\n\n`) +
+    `Kalau ada kendala, balas pesan ini ya. Jazakumullah khairan.`
   );
 }
 
@@ -102,14 +110,13 @@ export function missingFields(agent: Pick<Agent, "ktp_number" | "ktp_image_url" 
 }
 
 /**
- * Everything worth a second look before approving: missing identity data, the registration fee not received,
- * the SOP not accepted. Approving anyway stays possible; this only feeds the warning.
+ * Everything worth a second look before approving: missing identity data and the SOP not accepted. The registration
+ * fee is NOT checked here: it is paid after approval (owner decision, Virna). Approving anyway stays possible.
  */
 export function approvalWarnings(
   agent: Pick<Agent, "ktp_number" | "ktp_image_url" | "address" | "phone" | "wa_number" | "registration_fee_status" | "sop_accepted_at">
 ): string[] {
   const out = missingFields(agent).map((k) => MISSING_LABEL[k]);
-  if ((agent.registration_fee_status ?? "unpaid") === "unpaid") out.push("Biaya registrasi belum diterima");
   if (!agent.sop_accepted_at) out.push("SOP belum disetujui");
   return out;
 }
@@ -132,4 +139,4 @@ export function ktpStoragePath(url: string | null | undefined): string | null {
 
 export const isPaidStatus = (s: string) => s === "paid" || s === "completed";
 
-export const LEVEL_LABEL: Record<Agent["level"], string> = { duta: "Duta Musafar", silver: "Silver", gold: "Gold", platinum: "Platinum" };
+export const LEVEL_LABEL: Record<Agent["level"], string> = { silver: "Silver", gold: "Gold", platinum: "Platinum" };

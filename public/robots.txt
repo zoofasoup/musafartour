@@ -1,32 +1,27 @@
 User-agent: *
-# Block unwanted URL patterns
-Disallow: /apotek
-Disallow: /kauman
-Disallow: /author/
-Disallow: /admin
-Disallow: /dashboard
-Disallow: /login
-Disallow: /auth
-Disallow: /kemitraan
-Disallow: /kantor
 
-# Private flows and internal tools
-Disallow: /jamaah/
-Disallow: /booking/
+# Work areas and private flows (no value in search; some URLs carry personal links)
+Disallow: /admin
+Disallow: /agent
+Disallow: /auth
+Disallow: /lengkapi
+Disallow: /cek-status
 Disallow: /set-password
-Disallow: /booth
 Disallow: /flyer-print
-Disallow: /packages
-Disallow: /kalkulator/hasil/
 Disallow: /chat
+Disallow: /api
+Disallow: /booth
+Disallow: /styleguide
+
+# Short links and result pages (duplicates / personal results)
 Disallow: /s/
 Disallow: /l/
 Disallow: /r/
-Allow: /agent/register
-Disallow: /agent/
+Disallow: /kalkulator/hasil/
+Disallow: /packages
 
-# Allow all other pages
+# Everything else (home, paket-umroh, jadwal, artikel, galeri, kontak, tentang-kami, cara-bayar,
+# jadi-agen, sop-agen, syarat-umroh, legal pages, daftar) stays crawlable.
 Allow: /
 
-# Sitemap
 Sitemap: https://musafartour.com/sitemap.xml

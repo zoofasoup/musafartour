@@ -33,7 +33,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- title/description/keywords/OG/Twitter/canonical are set dynamically per-route by src/components/SEO.tsx (react-helmet-async) -->
-    <title>Musafar Tour - Paket Umroh & Haji Terpercaya 2026</title>
+    <title>Musafar Tour - Paket Umroh Terpercaya 2026</title>
     <meta name="author" content="Musafar Tour" />
     
     <!-- Critical resource hints - establish early connections -->
@@ -103,7 +103,11 @@
     // Defer TikTok pixel to improve initial load
     window.addEventListener('load', function() {
       if (window.__musafarPrivate) return;
+      // Staff browsers (px=off, localStorage musafar_internal) send no pixel events.
+      try { if (localStorage.getItem('INTERNALKEY') === '1') return; } catch (e) {}
       setTimeout(function() {
+        // Already loaded (React hook from admin settings) or became a private route: never init twice.
+        if (window.__musafarPrivate || window.ttq) return;
         !function (w, d, t) {
           w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
           ttq.load('D4JDUSRC77U7MI8IJGGG');
@@ -113,6 +117,8 @@
     });
     </script>
     
+    <!-- Skip link + navbar are portaled here (src/components/Navbar.tsx) so they come first in the focus order. -->
+    <div id="nav-root"></div>
     <div id="root"></div>
     <!-- Load main script as module (defer is default for type="module") -->
     <script type="module" src="/src/main.tsx"></script>

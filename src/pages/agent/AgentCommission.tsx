@@ -1,82 +1,85 @@
 import { useEffect, useState } from "react";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { 
-  Wallet, 
-  TrendingUp, 
-  Clock, 
-  CheckCircle, 
+import {
+  Wallet,
+  Clock,
+  CheckCircle2,
   Loader2,
   AlertCircle,
   CreditCard,
   User,
-  Search,
-  ArrowUpDown,
-  ChevronLeft,
-  ChevronRight
+  FileText,
+  Hourglass,
+  BadgeCheck,
+  Banknote,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { StatusBadge, type StatusKind } from "@/components/ui/status-badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "sonner";
 import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
 import { AgentStatCard } from "@/components/agent/AgentStatCard";
-import { agentCsWhatsAppUrl, AGENT_MIN_WITHDRAWAL as MIN_WITHDRAWAL } from "@/lib/agentSupport";
-import { COMMISSION_ESTIMATE_NOTE, COMMISSION_PAYOUT_TEXT, WITHDRAWAL_SOP_NOTE } from "@/lib/sopAgen";
+import { formatCurrency } from "@/lib/utils";
 
-/** What the database says when a withdrawal is refused, in words an agent can act on. */
-const withdrawalErrorMessage = (error: unknown): string => {
-  const raw = (error as { message?: string } | null)?.message ?? "";
-  if (raw.includes("Saldo tidak cukup")) {
-    return "Saldo yang bisa ditarik tidak cukup untuk jumlah ini. Kalau kamu masih punya permintaan penarikan yang belum diproses, jumlahnya sudah dikurangkan dari saldo.";
-  }
-  if (raw.includes("Akun agen tidak aktif")) {
-    return "Akun agen kamu belum aktif, jadi penarikan belum bisa diajukan. Hubungi PIC Agen untuk bantuan.";
-  }
-  if (raw.includes("Jumlah penarikan tidak valid")) {
-    return "Jumlah penarikan tidak valid. Isi dengan angka lebih dari nol.";
-  }
-  return "Penarikan belum berhasil diajukan. Coba lagi sebentar lagi, atau hubungi PIC Agen kalau masalahnya berulang.";
-};
-
-interface Sale {
-  id: string;
+/** The statement shown to the agent: one row per jamaah, from list_my_commissions() (own rows only). */
+interface MyCommission {
+  sale_id: string;
+  registration_id: string | null;
   customer_name: string;
-  customer_phone: string;
   package_name: string;
-  sale_amount: number;
-  commission_amount: number;
-  commission_rate: number;
-  status: string;
-  booking_date: string;
   departure_date: string | null;
+  role: string;
+  share_percent: number | null;
+  state: string;
+  hold_reason: string | null;
+  gross_amount: number;
+  tax_amount: number;
+  net_amount: number;
+  eligible_at: string | null;
+  approved_at: string | null;
+  paid_at: string | null;
+  transfer_date: string | null;
+  transfer_reference: string | null;
+  proof_path: string | null;
+  created_at: string;
 }
 
+interface Adjustment {
+  id: string;
+  customer_name: string | null;
+  amount: number;
+  settled_amount: number;
+  remaining: number;
+  reason: string;
+  status: string;
+  created_at: string;
+}
+
+/** Old self-service requests: read only history. */
 interface Withdrawal {
   id: string;
   amount: number;
   bank_name: string;
   bank_account: string;
-  account_name: string;
   status: string;
   requested_at: string;
-  processed_at: string | null;
   admin_notes: string | null;
 }
 
 const BANK_LIST = [
   "Bank BCA",
-  "Bank Mandiri", 
+  "Bank Mandiri",
   "Bank BNI",
   "Bank BRI",
   "Bank CIMB Niaga",
@@ -92,32 +95,58 @@ const BANK_LIST = [
   "Bank Jenius (BTPN)",
   "SeaBank",
   "Bank Neo Commerce",
-  "Bank Digital BCA"
+  "Bank Digital BCA",
 ];
 
-import { formatCurrency } from "@/lib/utils";
+const COMMISSION_STATEMENT_NOTE =
+  "Pencairan dilakukan admin setelah jamaah berangkat dan disetujui manajemen dan finance. Dipotong PPh 5%.";
+const COMMISSION_WINDOW_NOTE = "Dibayarkan paling lambat H+2 setelah jamaah landing.";
+
+type StateKey = "pending" | "held" | "eligible" | "approved" | "paid";
+
+/** A held row (suspended agent, open lead dispute) is still PENDING in the database but shown as "Ditahan". */
+const commissionStateKey = (c: Pick<MyCommission, "state" | "hold_reason">): StateKey =>
+  c.state === "pending" && c.hold_reason ? "held" : (c.state as StateKey);
+
+const STATE_LABEL: Record<StateKey, { kind: StatusKind; label: string }> = {
+  pending: { kind: "warn", label: "Menunggu" },
+  held: { kind: "mute", label: "Ditahan" },
+  eligible: { kind: "info", label: "Layak dibayar" },
+  approved: { kind: "info", label: "Disetujui" },
+  paid: { kind: "ok", label: "Dibayar" },
+};
+
+const HOLD_TEXT: Record<string, string> = {
+  suspended: "Ditahan sampai akun agenmu aktif kembali.",
+  dispute: "Ditahan sampai manajemen memutuskan sengketa lead.",
+};
+
+const fmtDate = (d: string | null | undefined) =>
+  d ? format(new Date(d.length === 10 ? `${d}T00:00:00` : d), "dd MMM yyyy", { locale: localeId }) : "-";
+
+const sum = (rows: MyCommission[], pick: (c: MyCommission) => number) => rows.reduce((t, c) => t + Number(pick(c)), 0);
+
+const CommissionStatusChip = ({ c }: { c: MyCommission }) => {
+  const key = commissionStateKey(c);
+  const s = STATE_LABEL[key] ?? { kind: "mute" as StatusKind, label: c.state };
+  return <StatusBadge kind={s.kind} icon={key === "approved" ? CheckCircle2 : undefined}>{s.label}</StatusBadge>;
+};
+
+/** What the agent should read next to a row, by state. */
+const rowInfo = (c: MyCommission): string => {
+  const key = commissionStateKey(c);
+  if (key === "held") return `${HOLD_TEXT[c.hold_reason ?? ""] ?? "Ditahan."}`;
+  if (key === "paid") return `Dibayar ${fmtDate(c.transfer_date ?? c.paid_at)}${c.transfer_reference ? `, ref ${c.transfer_reference}` : ""}`;
+  if (key === "approved") return `Disetujui ${fmtDate(c.approved_at)}. ${COMMISSION_WINDOW_NOTE}`;
+  if (key === "eligible") return `Jamaah sudah berangkat. Menunggu persetujuan. ${COMMISSION_WINDOW_NOTE}`;
+  return `Menunggu jamaah berangkat ${fmtDate(c.departure_date)}. ${COMMISSION_WINDOW_NOTE}`;
+};
 
 const AgentCommission = () => {
   const { agent, refreshAgent } = useAgentAuth();
-  const queryClient = useQueryClient();
+  const [tab, setTab] = useState("all");
 
-  // The profile is cached for minutes, but the balance moves when CS verifies a payment or the owner pays a withdrawal.
-  useEffect(() => {
-    refreshAgent();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState<string>("booking_date");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  
-  // Withdrawal form
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [withdrawError, setWithdrawError] = useState<string | null>(null);
-  
-  // Bank setup modal
+  // Bank setup modal (the payout goes to this account)
   const [showBankModal, setShowBankModal] = useState(false);
   const [bankForm, setBankForm] = useState({
     bank_name: agent?.bank_name || "",
@@ -125,53 +154,52 @@ const AgentCommission = () => {
     account_name: agent?.account_name || "",
   });
 
-  // Fetch sales data
-  const { data: sales = [], isLoading: salesLoading } = useQuery({
-    queryKey: ['agent-sales', agent?.id],
+  useEffect(() => {
+    refreshAgent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const { data: commissionRows, isLoading, isError, refetch } = useQuery({
+    queryKey: ["agent-commissions", agent?.id],
     queryFn: async () => {
-      if (!agent?.id) return [];
-      const { data, error } = await supabase
-        .from('agent_sales')
-        .select('*')
-        .eq('agent_id', agent.id)
-        .order('booking_date', { ascending: false });
-      
+      const { data, error } = await supabase.rpc("list_my_commissions");
       if (error) throw error;
-      return data as Sale[];
+      return (data ?? []) as MyCommission[];
     },
     enabled: !!agent?.id,
   });
 
-  // Fetch withdrawals
-  const { data: withdrawals = [], isLoading: withdrawalsLoading } = useQuery({
-    queryKey: ['agent-withdrawals', agent?.id, 'all'],
+  const { data: adjustments = [] } = useQuery({
+    queryKey: ["agent-commission-adjustments", agent?.id],
     queryFn: async () => {
-      if (!agent?.id) return [];
-      const { data, error } = await supabase
-        .from('agent_withdrawals')
-        .select('*')
-        .eq('agent_id', agent.id)
-        .order('requested_at', { ascending: false });
-      
+      const { data, error } = await supabase.rpc("list_my_commission_adjustments");
       if (error) throw error;
-      return data as Withdrawal[];
+      return (data ?? []) as Adjustment[];
     },
     enabled: !!agent?.id,
   });
 
-  // Update bank info mutation
+  const { data: withdrawals = [] } = useQuery({
+    queryKey: ["agent-withdrawals", agent?.id, "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agent_withdrawals")
+        .select("id, amount, bank_name, bank_account, status, requested_at, admin_notes")
+        .eq("agent_id", agent!.id)
+        .order("requested_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Withdrawal[];
+    },
+    enabled: !!agent?.id,
+  });
+
   const updateBankMutation = useMutation({
     mutationFn: async (data: typeof bankForm) => {
       if (!agent?.id) throw new Error("Agent not found");
       const { error } = await supabase
-        .from('agents')
-        .update({
-          bank_name: data.bank_name,
-          bank_account: data.bank_account,
-          account_name: data.account_name,
-        })
-        .eq('id', agent.id);
-      
+        .from("agents")
+        .update({ bank_name: data.bank_name, bank_account: data.bank_account, account_name: data.account_name })
+        .eq("id", agent.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -185,121 +213,13 @@ const AgentCommission = () => {
     },
   });
 
-  // Request withdrawal mutation
-  const withdrawMutation = useMutation({
-    mutationFn: async (amount: number) => {
-      if (!agent?.id) throw new Error("Agent not found");
-      
-      const { error } = await supabase
-        .from('agent_withdrawals')
-        .insert({
-          agent_id: agent.id,
-          amount,
-          bank_name: agent.bank_name!,
-          bank_account: agent.bank_account!,
-          account_name: agent.account_name!,
-          status: 'pending',
-        });
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Permintaan penarikan sudah diajukan. Kami proses secepatnya.");
-      setShowWithdrawModal(false);
-      setWithdrawAmount("");
-      setWithdrawError(null);
-      queryClient.invalidateQueries({ queryKey: ['agent-withdrawals'] });
-      // The pending request now counts against the balance; do not wait for the 5 minute cache.
-      refreshAgent();
-    },
-    onError: (error) => {
-      console.error("Withdrawal request failed:", error);
-      setWithdrawError(withdrawalErrorMessage(error));
-      // The balance or the account status may have changed since the page loaded.
-      refreshAgent();
-      queryClient.invalidateQueries({ queryKey: ['agent-withdrawals'] });
-    },
-  });
-
-  // Commissions are credited as 'confirmed' (booking lunas / admin log); 'paid' is legacy.
-  const isEarned = (s: Sale) => s.status === 'confirmed' || s.status === 'paid';
-
-  // Calculate stats
-  const totalEarned = sales
-    .filter(isEarned)
-    .reduce((sum, s) => sum + Number(s.commission_amount), 0);
-  
-  const pendingCommission = sales
-    .filter(s => s.status === 'pending')
-    .reduce((sum, s) => sum + Number(s.commission_amount), 0);
-  
-  const totalWithdrawn = withdrawals
-    .filter(w => w.status === 'completed' || w.status === 'paid')
-    .reduce((sum, w) => sum + Number(w.amount), 0);
-  
-  const accountBalance = Number(agent?.available_balance || 0);
-  // The database subtracts requests that are still pending (guard_agent_withdrawal), so the page must too.
-  const pendingWithdrawals = withdrawals
-    .filter(w => w.status === 'pending')
-    .reduce((sum, w) => sum + Number(w.amount), 0);
-  const availableBalance = Math.max(0, accountBalance - pendingWithdrawals);
-
-  // Filter sales by month
-  const monthStart = startOfMonth(selectedMonth);
-  const monthEnd = endOfMonth(selectedMonth);
-  
-  const monthSales = sales.filter(s => {
-    const date = new Date(s.booking_date);
-    return date >= monthStart && date <= monthEnd;
-  });
-
-  const monthEarned = monthSales
-    .filter(isEarned)
-    .reduce((sum, s) => sum + Number(s.commission_amount), 0);
-
-  // Filter and sort sales for table
-  const filteredSales = sales.filter(s => 
-    s.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.package_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const sortedSales = [...filteredSales].sort((a, b) => {
-    let aVal: any = a[sortField as keyof Sale];
-    let bVal: any = b[sortField as keyof Sale];
-    
-    if (sortField === 'booking_date') {
-      aVal = new Date(aVal).getTime();
-      bVal = new Date(bVal).getTime();
-    }
-    
-    if (sortOrder === 'asc') {
-      return aVal > bVal ? 1 : -1;
-    }
-    return aVal < bVal ? 1 : -1;
-  });
-
-  const handleSort = (field: string) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortOrder('desc');
-    }
-  };
-
-  const handleWithdraw = () => {
-    setWithdrawError(null);
-    withdrawMutation.reset();
-    const amount = parseFloat(withdrawAmount);
-    if (isNaN(amount) || amount < MIN_WITHDRAWAL) {
-      setWithdrawError(`Penarikan minimal ${formatCurrency(MIN_WITHDRAWAL)}.`);
+  const openProof = async (path: string) => {
+    const { data, error } = await supabase.storage.from("commission-proofs").createSignedUrl(path, 120);
+    if (error || !data?.signedUrl) {
+      toast.error("Bukti transfer belum bisa dibuka. Coba lagi sebentar lagi.");
       return;
     }
-    if (amount > availableBalance) {
-      setWithdrawError(`Jumlah melebihi saldo yang bisa ditarik (${formatCurrency(availableBalance)}).`);
-      return;
-    }
-    withdrawMutation.mutate(amount);
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleSaveBank = () => {
@@ -310,48 +230,6 @@ const AgentCommission = () => {
     updateBankMutation.mutate(bankForm);
   };
 
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    setSelectedMonth(prev => {
-      const newDate = new Date(prev);
-      if (direction === 'prev') {
-        newDate.setMonth(newDate.getMonth() - 1);
-      } else {
-        newDate.setMonth(newDate.getMonth() + 1);
-      }
-      return newDate;
-    });
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'paid':
-      case 'completed':
-        return <Badge variant="outline" className="bg-status-ok-bg text-status-ok-fg border-status-ok-border">Dibayar</Badge>;
-      case 'confirmed':
-        return <Badge variant="outline" className="bg-status-ok-bg text-status-ok-fg border-status-ok-border">Terkonfirmasi</Badge>;
-      case 'pending':
-        return <Badge variant="outline" className="bg-status-warn-bg text-status-warn-fg border-status-warn-border">Menunggu</Badge>;
-      case 'processing':
-        return <Badge variant="outline" className="bg-status-info-bg text-status-info-fg border-status-info-border">Diproses</Badge>;
-      case 'rejected':
-        return <Badge variant="outline" className="bg-status-bad-bg text-status-bad-fg border-status-bad-border">Ditolak</Badge>;
-      case 'cancelled':
-        return <Badge variant="outline" className="bg-status-bad-bg text-status-bad-fg border-status-bad-border">Dibatalkan</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
-
-  const hasBankInfo = agent?.bank_name && agent?.bank_account && agent?.account_name;
-  const belowMinimum = availableBalance < MIN_WITHDRAWAL;
-  const canWithdraw = !!hasBankInfo && !belowMinimum;
-  const withdrawHint = !hasBankInfo
-    ? "Atur rekening bank dulu supaya komisi bisa dikirim ke kamu."
-    : belowMinimum
-      ? `Penarikan minimal ${formatCurrency(MIN_WITHDRAWAL)}. Yang bisa kamu tarik sekarang ${formatCurrency(availableBalance)}${pendingWithdrawals > 0 ? `, setelah dikurangi permintaan ${formatCurrency(pendingWithdrawals)} yang masih diproses` : ""}.`
-      : pendingWithdrawals > 0
-        ? `Sudah dikurangi permintaan ${formatCurrency(pendingWithdrawals)} yang masih diproses.`
-        : null;
   const openBankModal = () => {
     setBankForm({
       bank_name: agent?.bank_name || "",
@@ -361,403 +239,266 @@ const AgentCommission = () => {
     setShowBankModal(true);
   };
 
-  if (salesLoading || withdrawalsLoading) {
+  // A failed background refresh must not hide rows that were already loaded.
+  const commissions = commissionRows ?? [];
+  const hasBankInfo = agent?.bank_name && agent?.bank_account && agent?.account_name;
+
+  const by = (k: StateKey) => commissions.filter((c) => commissionStateKey(c) === k);
+  const waiting = [...by("pending"), ...by("held")];
+  const eligible = by("eligible");
+  const approved = by("approved");
+  const paid = by("paid");
+  const openClawback = adjustments.filter((a) => a.status === "open").reduce((t, a) => t + Number(a.remaining), 0);
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-label="Memuat" />
       </div>
     );
   }
 
-  return (
-    <div className="space-y-6 max-w-7xl mx-auto w-full">
-        <AgentPageHeader
-          title="Komisi & Penarikan"
-          description="Kelola komisi dan penarikan saldo kamu"
-          icon={Wallet}
-        />
+  if (isError && commissionRows === undefined) {
+    return (
+      <div className="mx-auto w-full max-w-7xl space-y-4">
+        <AgentPageHeader title="Komisi" description="Status komisi tiap jamaah kamu" icon={Wallet} />
+        <EmptyState
+          icon={AlertCircle}
+          title="Komisi belum bisa dimuat"
+          action={<Button variant="outline" onClick={() => refetch()}>Coba lagi</Button>}
+        >
+          Periksa koneksi kamu, lalu coba lagi.
+        </EmptyState>
+      </div>
+    );
+  }
 
-        <p className="flex items-start gap-2 rounded-lg border bg-card p-3 text-sm text-muted-foreground">
-          <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-          <span>{COMMISSION_PAYOUT_TEXT} Angka di halaman ini adalah perkiraan. {COMMISSION_ESTIMATE_NOTE}</span>
-        </p>
-
-        {/* Overview Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <AgentStatCard
-            icon={TrendingUp}
-            label="Total komisi (perkiraan)"
-            value={formatCurrency(totalEarned)}
-            helper={<span className="text-muted-foreground">Sepanjang waktu</span>}
-          />
-          <AgentStatCard
-            icon={Clock}
-            label="Komisi menunggu (perkiraan)"
-            value={formatCurrency(pendingCommission)}
-            helper={<span className="text-muted-foreground">Belum tercatat di saldo</span>}
-          />
-          <AgentStatCard
-            icon={Wallet}
-            label="Saldo (perkiraan)"
-            value={formatCurrency(availableBalance)}
-            helper={
-              <span className="text-muted-foreground">
-                {pendingWithdrawals > 0 ? `Saldo ${formatCurrency(accountBalance)}, ${formatCurrency(pendingWithdrawals)} sedang diproses` : "Saldo tersedia"}
-              </span>
-            }
-            className="border-border bg-muted/50"
-          />
-          <AgentStatCard
-            icon={CheckCircle}
-            label="Sudah ditarik"
-            value={formatCurrency(totalWithdrawn)}
-            helper={<span className="text-muted-foreground">Total penarikan</span>}
-          />
+  const list = (rows: MyCommission[], empty: string) =>
+    rows.length === 0 ? (
+      <EmptyState icon={Wallet} title={empty}>Komisi muncul di sini setelah jamaah kamu lunas.</EmptyState>
+    ) : (
+      <>
+        {/* Table from 640px */}
+        <div className="hidden sm:block rounded-lg border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Jamaah</TableHead>
+                <TableHead className="text-right">Komisi</TableHead>
+                <TableHead className="text-right">PPh 5%</TableHead>
+                <TableHead className="text-right">Diterima</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Keterangan</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((c) => {
+                const final = c.state === "approved" || c.state === "paid";
+                return (
+                  <TableRow key={c.sale_id}>
+                    <TableCell>
+                      <p className="font-semibold">{c.customer_name}</p>
+                      <p className="text-[13px] text-muted-foreground">
+                        {c.package_name} · berangkat {fmtDate(c.departure_date)}
+                      </p>
+                      {c.share_percent != null && (
+                        <p className="text-[13px] text-muted-foreground">
+                          {c.role === "bantuan" ? "Bagian agen pembantu" : "Bagian agen utama"} {c.share_percent}%
+                        </p>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(c.gross_amount)}</TableCell>
+                    <TableCell className="text-right">{final ? formatCurrency(c.tax_amount) : "-"}</TableCell>
+                    <TableCell className="text-right font-medium">{final ? formatCurrency(c.net_amount) : "-"}</TableCell>
+                    <TableCell><CommissionStatusChip c={c} /></TableCell>
+                    <TableCell className="max-w-[280px] whitespace-normal text-[13px] text-muted-foreground">
+                      {rowInfo(c)}
+                      {c.proof_path && (
+                        <Button variant="link" size="sm" className="h-auto p-0 pl-1" onClick={() => openProof(c.proof_path!)}>
+                          <FileText className="mr-1 h-3.5 w-3.5" aria-hidden />
+                          Bukti transfer
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </div>
 
-        {/* Withdrawal Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Penarikan Saldo</CardTitle>
-            <CardDescription>{WITHDRAWAL_SOP_NOTE}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-              <div className="flex-1 w-full sm:w-auto min-w-0">
-                <Label className="text-sm text-muted-foreground">Rekening tujuan</Label>
-                {hasBankInfo ? (
-                  <>
-                    <p className="font-medium">{agent?.bank_name} - {agent?.bank_account}</p>
-                    <p className="text-sm text-muted-foreground">a.n. {agent?.account_name}</p>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Belum diatur</p>
-                )}
-              </div>
-              {hasBankInfo ? (
-                <Button variant="outline" onClick={openBankModal}>
-                  Ubah rekening
-                </Button>
-              ) : (
-                <Button onClick={openBankModal}>Atur rekening</Button>
-              )}
-              <Button
-                onClick={() => {
-                  setWithdrawError(null);
-                  setShowWithdrawModal(true);
-                }}
-                disabled={!canWithdraw}
-                aria-describedby={withdrawHint ? "withdraw-hint" : undefined}
-              >
-                <Wallet className="mr-2 h-4 w-4" aria-hidden />
-                Tarik saldo
-              </Button>
-            </div>
-            {withdrawHint && (
-              <p id="withdraw-hint" className="flex items-start gap-2 text-sm text-muted-foreground">
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                <span>{withdrawHint}</span>
-              </p>
+        {/* Cards under 640px */}
+        <div className="space-y-3 sm:hidden">
+          {rows.map((c) => {
+            const final = c.state === "approved" || c.state === "paid";
+            return (
+              <Card key={c.sale_id}>
+                <CardContent className="space-y-2 p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-semibold">{c.customer_name}</p>
+                      <p className="text-[13px] text-muted-foreground">
+                        {c.package_name} · berangkat {fmtDate(c.departure_date)}
+                      </p>
+                    </div>
+                    <CommissionStatusChip c={c} />
+                  </div>
+                  <dl className="grid grid-cols-3 gap-2 text-sm">
+                    <div>
+                      <dt className="text-[12.5px] text-muted-foreground">Komisi</dt>
+                      <dd className="font-medium">{formatCurrency(c.gross_amount)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[12.5px] text-muted-foreground">PPh 5%</dt>
+                      <dd>{final ? formatCurrency(c.tax_amount) : "-"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[12.5px] text-muted-foreground">Diterima</dt>
+                      <dd className="font-medium">{final ? formatCurrency(c.net_amount) : "-"}</dd>
+                    </div>
+                  </dl>
+                  {c.share_percent != null && (
+                    <p className="text-[13px] text-muted-foreground">
+                      {c.role === "bantuan" ? "Bagian agen pembantu" : "Bagian agen utama"} {c.share_percent}%
+                    </p>
+                  )}
+                  <p className="text-[13px] text-muted-foreground">{rowInfo(c)}</p>
+                  {c.proof_path && (
+                    <Button variant="outline" size="sm" onClick={() => openProof(c.proof_path!)}>
+                      <FileText className="mr-2 h-4 w-4" aria-hidden />
+                      Bukti transfer
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </>
+    );
+
+  return (
+    <div className="mx-auto w-full max-w-7xl space-y-6">
+      <AgentPageHeader title="Komisi" description="Status komisi tiap jamaah kamu" icon={Wallet} />
+
+      <p className="flex items-start gap-2 rounded-lg border bg-card p-3 text-sm text-muted-foreground">
+        <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+        <span>
+          {COMMISSION_STATEMENT_NOTE} {COMMISSION_WINDOW_NOTE} Biaya transfer ditanggung Musafar.
+        </span>
+      </p>
+
+      {openClawback > 0 && (
+        <div role="status" className="flex items-start gap-2 rounded-lg border border-status-warn-border bg-status-warn-bg p-3 text-sm text-status-warn-fg">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <span>
+            Ada potongan {formatCurrency(openClawback)} dari komisi yang sudah dibayar untuk jamaah yang kemudian batal atau refund.
+            Jumlah ini dipotong dari pembayaran komisi kamu berikutnya.
+          </span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <AgentStatCard
+          icon={Hourglass}
+          label="Menunggu"
+          value={formatCurrency(sum(waiting, (c) => c.gross_amount))}
+          helper={<span className="text-muted-foreground">{waiting.length} jamaah, sebelum berangkat</span>}
+        />
+        <AgentStatCard
+          icon={Clock}
+          label="Layak dibayar"
+          value={formatCurrency(sum(eligible, (c) => c.gross_amount))}
+          helper={<span className="text-muted-foreground">{eligible.length} jamaah, menunggu persetujuan</span>}
+        />
+        <AgentStatCard
+          icon={BadgeCheck}
+          label="Disetujui"
+          value={formatCurrency(sum(approved, (c) => c.net_amount))}
+          helper={<span className="text-muted-foreground">{approved.length} jamaah, setelah PPh 5%</span>}
+        />
+        <AgentStatCard
+          icon={Banknote}
+          label="Dibayar"
+          value={formatCurrency(sum(paid, (c) => c.net_amount))}
+          helper={<span className="text-muted-foreground">{paid.length} jamaah, setelah PPh 5%</span>}
+        />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Rekening tujuan</CardTitle>
+          <CardDescription>Komisi yang sudah disetujui ditransfer admin ke rekening ini.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            {hasBankInfo ? (
+              <>
+                <p className="font-medium">{agent?.bank_name} - {agent?.bank_account}</p>
+                <p className="text-sm text-muted-foreground">a.n. {agent?.account_name}</p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Belum diatur. Atur rekening dulu supaya komisi bisa dikirim ke kamu.</p>
             )}
-          </CardContent>
-        </Card>
+          </div>
+          <Button variant={hasBankInfo ? "outline" : "default"} onClick={openBankModal}>
+            {hasBankInfo ? "Ubah rekening" : "Atur rekening"}
+          </Button>
+        </CardContent>
+      </Card>
 
-        {/* Tabs: Monthly / All Time */}
-        <Tabs defaultValue="monthly" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="monthly">Bulanan</TabsTrigger>
-            <TabsTrigger value="all">Semua Waktu</TabsTrigger>
-            <TabsTrigger value="withdrawals">Riwayat Penarikan</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="monthly" className="space-y-4">
-            {/* Month Selector */}
-            <div className="flex items-center justify-between">
-              <Button variant="outline" size="icon" onClick={() => navigateMonth('prev')} aria-label="Bulan sebelumnya">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <h3 className="font-semibold">
-                {format(selectedMonth, 'MMMM yyyy', { locale: localeId })}
-              </h3>
-              <Button variant="outline" size="icon" onClick={() => navigateMonth('next')} aria-label="Bulan berikutnya">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Monthly Stats */}
-            <div className="grid grid-cols-3 gap-4">
-              <AgentStatCard icon={TrendingUp} label="Komisi masuk" value={formatCurrency(monthEarned)} />
-              <AgentStatCard icon={CheckCircle} label="Jumlah penjualan" value={monthSales.length} />
-              <AgentStatCard
-                icon={Wallet}
-                label="Rata-rata komisi"
-                value={monthSales.length > 0 ? formatCurrency(monthEarned / monthSales.length) : 'Rp 0'}
-              />
-            </div>
-
-            {/* Monthly Sales Table */}
-            <Card>
-              <CardContent className="pt-6">
-                {monthSales.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Wallet className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>Belum ada penjualan di bulan ini</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Tanggal</TableHead>
-                          <TableHead>Jamaah</TableHead>
-                          <TableHead>Paket</TableHead>
-                          <TableHead className="text-right">Penjualan</TableHead>
-                          <TableHead className="text-right">Komisi</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {monthSales.map((sale) => (
-                          <TableRow key={sale.id}>
-                            <TableCell className="whitespace-nowrap">
-                              {format(new Date(sale.booking_date), 'dd MMM yyyy', { locale: localeId })}
-                            </TableCell>
-                            <TableCell>{sale.customer_name}</TableCell>
-                            <TableCell className="max-w-[150px] truncate">{sale.package_name}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(sale.sale_amount)}</TableCell>
-                            <TableCell className="text-right font-medium text-foreground">
-                              {formatCurrency(sale.commission_amount)}
-                            </TableCell>
-                            <TableCell>{getStatusBadge(sale.status)}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="all" className="space-y-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Cari nama jamaah atau paket..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            {/* All Sales Table */}
-            <Card>
-              <CardContent className="pt-6">
-                {sortedSales.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Wallet className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>Belum ada riwayat penjualan</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>
-                            <Button variant="ghost" size="sm" onClick={() => handleSort('booking_date')}>
-                              Tanggal
-                              <ArrowUpDown className="ml-1 h-3 w-3" />
-                            </Button>
-                          </TableHead>
-                          <TableHead>Jamaah</TableHead>
-                          <TableHead>Paket</TableHead>
-                          <TableHead className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => handleSort('sale_amount')}>
-                              Penjualan
-                              <ArrowUpDown className="ml-1 h-3 w-3" />
-                            </Button>
-                          </TableHead>
-                          <TableHead className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => handleSort('commission_amount')}>
-                              Komisi
-                              <ArrowUpDown className="ml-1 h-3 w-3" />
-                            </Button>
-                          </TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {sortedSales.map((sale) => (
-                          <TableRow key={sale.id}>
-                            <TableCell className="whitespace-nowrap">
-                              {format(new Date(sale.booking_date), 'dd MMM yyyy', { locale: localeId })}
-                            </TableCell>
-                            <TableCell>{sale.customer_name}</TableCell>
-                            <TableCell className="max-w-[150px] truncate">{sale.package_name}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(sale.sale_amount)}</TableCell>
-                            <TableCell className="text-right font-medium text-foreground">
-                              {formatCurrency(sale.commission_amount)}
-                            </TableCell>
-                            <TableCell>{getStatusBadge(sale.status)}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="withdrawals" className="space-y-4">
+      <Tabs value={tab} onValueChange={setTab} className="space-y-4">
+        <TabsList className="h-auto flex-wrap justify-start">
+          <TabsTrigger value="all">Semua ({commissions.length})</TabsTrigger>
+          <TabsTrigger value="waiting">Menunggu ({waiting.length})</TabsTrigger>
+          <TabsTrigger value="eligible">Layak dibayar ({eligible.length})</TabsTrigger>
+          <TabsTrigger value="approved">Disetujui ({approved.length})</TabsTrigger>
+          <TabsTrigger value="paid">Dibayar ({paid.length})</TabsTrigger>
+          {withdrawals.length > 0 && <TabsTrigger value="old">Riwayat penarikan lama</TabsTrigger>}
+        </TabsList>
+        <TabsContent value="all">{list(commissions, "Belum ada komisi")}</TabsContent>
+        <TabsContent value="waiting">{list(waiting, "Tidak ada komisi yang menunggu")}</TabsContent>
+        <TabsContent value="eligible">{list(eligible, "Belum ada komisi yang layak dibayar")}</TabsContent>
+        <TabsContent value="approved">{list(approved, "Belum ada komisi yang disetujui")}</TabsContent>
+        <TabsContent value="paid">{list(paid, "Belum ada komisi yang dibayar")}</TabsContent>
+        {withdrawals.length > 0 && (
+          <TabsContent value="old">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Riwayat Penarikan</CardTitle>
+                <CardTitle className="text-lg">Riwayat penarikan lama</CardTitle>
+                <CardDescription>Permintaan penarikan sebelum pencairan dipegang admin. Hanya untuk dibaca.</CardDescription>
               </CardHeader>
-              <CardContent>
-                {withdrawals.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <CreditCard className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>Belum ada riwayat penarikan</p>
+              <CardContent className="space-y-3">
+                {withdrawals.map((w) => (
+                  <div key={w.id} className="flex flex-wrap items-start justify-between gap-2 rounded-lg border p-3 text-sm">
+                    <div>
+                      <p className="font-medium">{formatCurrency(w.amount)} · {w.bank_name} {w.bank_account}</p>
+                      <p className="text-[13px] text-muted-foreground">{fmtDate(w.requested_at)}{w.admin_notes ? ` · ${w.admin_notes}` : ""}</p>
+                    </div>
+                    <StatusBadge kind={w.status === "paid" || w.status === "completed" ? "ok" : w.status === "rejected" ? "bad" : "warn"}>
+                      {w.status === "paid" || w.status === "completed" ? "Dibayar" : w.status === "rejected" ? "Ditolak" : "Diproses"}
+                    </StatusBadge>
                   </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Tanggal</TableHead>
-                          <TableHead className="text-right">Jumlah</TableHead>
-                          <TableHead>Bank</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Catatan Admin</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {withdrawals.map((w) => (
-                          <TableRow key={w.id}>
-                            <TableCell className="whitespace-nowrap">
-                              {format(new Date(w.requested_at), 'dd MMM yyyy HH:mm', { locale: localeId })}
-                            </TableCell>
-                            <TableCell className="text-right font-medium">
-                              {formatCurrency(w.amount)}
-                            </TableCell>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium">{w.bank_name}</p>
-                                <p className="text-xs text-muted-foreground">{w.bank_account}</p>
-                              </div>
-                            </TableCell>
-                            <TableCell>{getStatusBadge(w.status)}</TableCell>
-                            <TableCell className="max-w-[260px] whitespace-normal">
-                              {w.admin_notes || '-'}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
+                ))}
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
-      {/* Withdrawal Modal */}
-      <Dialog open={showWithdrawModal} onOpenChange={setShowWithdrawModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Tarik Saldo</DialogTitle>
-            <DialogDescription>
-              Masukkan jumlah yang ingin ditarik. Minimal {formatCurrency(MIN_WITHDRAWAL)}.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <Label>Bisa ditarik</Label>
-              <p className="text-2xl font-bold text-foreground">{formatCurrency(availableBalance)}</p>
-            </div>
-
-            <div>
-              <Label htmlFor="amount">Jumlah penarikan (Rp)</Label>
-              <Input
-                id="amount"
-                type="number"
-                inputMode="numeric"
-                placeholder="100000"
-                value={withdrawAmount || ""}
-                onChange={(e) => setWithdrawAmount(e.target.value)}
-                min={MIN_WITHDRAWAL}
-                max={availableBalance}
-                aria-invalid={withdrawError ? true : undefined}
-                aria-describedby={withdrawError ? "withdraw-error" : undefined}
-              />
-            </div>
-            {withdrawError && (
-              <div id="withdraw-error" role="alert" className="rounded-md border border-status-bad-border bg-status-bad-bg p-3 text-sm text-status-bad-fg">
-                <p className="flex items-start gap-2">
-                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                  <span>{withdrawError}</span>
-                </p>
-                {agent && withdrawMutation.isError && (
-                  <a
-                    href={agentCsWhatsAppUrl(agent.name, agent.referral_code, "Saya mau tarik saldo komisi tapi belum berhasil.")}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-6 mt-1 inline-block font-semibold underline"
-                  >
-                    Hubungi PIC Agen
-                  </a>
-                )}
-              </div>
-            )}
-
-            <div className="bg-muted/50 p-3 rounded-lg">
-              <Label className="text-sm text-muted-foreground">Rekening Tujuan</Label>
-              <p className="font-medium">{agent?.bank_name} - {agent?.bank_account}</p>
-              <p className="text-sm text-muted-foreground">a.n. {agent?.account_name}</p>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowWithdrawModal(false)}>
-              Batal
-            </Button>
-            <Button 
-              onClick={handleWithdraw}
-              disabled={withdrawMutation.isPending}
-            >
-              {withdrawMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Memproses...
-                </>
-              ) : (
-                'Ajukan Penarikan'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        )}
+      </Tabs>
 
       {/* Bank Setup Modal */}
       <Dialog open={showBankModal} onOpenChange={setShowBankModal}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Atur Rekening Bank</DialogTitle>
-            <DialogDescription>
-              Masukkan informasi rekening untuk pencairan komisi
-            </DialogDescription>
+            <DialogDescription>Masukkan informasi rekening untuk pencairan komisi</DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="bank_name">Nama Bank</Label>
-              <Select
-                value={bankForm.bank_name}
-                onValueChange={(value) => setBankForm(prev => ({ ...prev, bank_name: value }))}
-              >
-                <SelectTrigger>
+              <Select value={bankForm.bank_name} onValueChange={(value) => setBankForm((prev) => ({ ...prev, bank_name: value }))}>
+                <SelectTrigger id="bank_name">
                   <SelectValue placeholder="Pilih bank" />
                 </SelectTrigger>
                 <SelectContent>
@@ -771,12 +512,12 @@ const AgentCommission = () => {
             <div className="space-y-2">
               <Label htmlFor="bank_account">Nomor Rekening</Label>
               <div className="relative">
-                <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <CreditCard className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
                 <Input
                   id="bank_account"
                   placeholder="1234567890"
                   value={bankForm.bank_account}
-                  onChange={(e) => setBankForm(prev => ({ ...prev, bank_account: e.target.value }))}
+                  onChange={(e) => setBankForm((prev) => ({ ...prev, bank_account: e.target.value }))}
                   className="pl-10"
                 />
               </div>
@@ -785,36 +526,29 @@ const AgentCommission = () => {
             <div className="space-y-2">
               <Label htmlFor="account_name">Nama Pemilik Rekening</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
                 <Input
                   id="account_name"
                   placeholder="Nama sesuai rekening/KTP"
                   value={bankForm.account_name}
-                  onChange={(e) => setBankForm(prev => ({ ...prev, account_name: e.target.value }))}
+                  onChange={(e) => setBankForm((prev) => ({ ...prev, account_name: e.target.value }))}
                   className="pl-10"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Pastikan nama sesuai dengan yang tertera di buku rekening/KTP
-              </p>
+              <p className="text-[13px] text-muted-foreground">Pastikan nama sesuai dengan yang tertera di buku rekening/KTP</p>
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowBankModal(false)}>
-              Batal
-            </Button>
-            <Button 
-              onClick={handleSaveBank}
-              disabled={updateBankMutation.isPending}
-            >
+            <Button variant="outline" onClick={() => setShowBankModal(false)}>Batal</Button>
+            <Button onClick={handleSaveBank} disabled={updateBankMutation.isPending}>
               {updateBankMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
                   Menyimpan...
                 </>
               ) : (
-                'Simpan'
+                "Simpan"
               )}
             </Button>
           </DialogFooter>

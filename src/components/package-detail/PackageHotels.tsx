@@ -13,7 +13,7 @@ import type { PackageHotels as PackageHotelsType } from "@/lib/packageSchema";
 const StarRating = ({ rating }: { rating: number }) => (
   <div className="flex gap-0.5">
     {[...Array(rating)].map((_, i) => (
-      <Star key={i} className="h-3 w-3 fill-amber text-amber" />
+      <Star key={i} className="h-3 w-3 fill-amber-text text-amber-text" />
     ))}
   </div>
 );

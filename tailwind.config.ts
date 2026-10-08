@@ -61,10 +61,12 @@ export default {
         amber: {
           DEFAULT: "hsl(var(--amber))",
           soft: "hsl(var(--amber-soft))",
+          text: "hsl(var(--amber-text))",
         },
         field: {
           DEFAULT: "hsl(var(--field))",
           hover: "hsl(var(--field-hover))",
+          border: "hsl(var(--field-border))",
         },
         "status-ok": {
           bg: "hsl(var(--status-ok-bg))",

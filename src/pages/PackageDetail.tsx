@@ -313,7 +313,7 @@ const PackageDetailPage = () => {
       </div>
 
       <div className="flex flex-col lg:flex-row container mx-auto px-6 md:px-8 min-h-[calc(100vh-4rem)] gap-6 mt-4 pb-24 lg:pb-8">
-        <main className="flex-1 min-w-0 lg:pr-2 space-y-6">
+        <main id="main" className="flex-1 min-w-0 lg:pr-2 space-y-6">
           {/* Gallery shows here on mobile only - on desktop it moves into the
               sidebar, stacked above the calculator, so this column is a
               single full-width block instead of splitting into two narrower

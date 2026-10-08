@@ -72,11 +72,11 @@ const Galeri = () => {
       <SEO 
         title="Galeri Jamaah - Dokumentasi Perjalanan Spiritual | Musafar Tour"
         description="Lihat dokumentasi perjalanan spiritual dan momen berharga jamaah Musafar Tour di Tanah Suci dan destinasi wisata halal lainnya."
-        keywords="galeri umroh, foto jamaah, dokumentasi haji, galeri wisata halal"
+        keywords="galeri umroh, foto jamaah, dokumentasi umroh, galeri wisata halal"
         canonicalUrl="https://musafartour.com/galeri"
       />
       <Navbar />
-      
+      <main id="main">
       {/* Header */}
       <section className="py-16 bg-card border-b">
         <div className="container mx-auto px-6 md:px-8 text-center">
@@ -161,6 +161,8 @@ const Galeri = () => {
         onPrevious={handlePrevious}
         onNext={handleNext}
       />
+
+      </main>
 
       <Footer />
     </div>

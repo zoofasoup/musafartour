@@ -164,9 +164,14 @@ export const SyaratKetentuan = () => (
         title: "Pembatalan dan Pengembalian Dana",
         body: [
           [
-            "Jika jamaah membatalkan keikutsertaan, Uang Muka (DP) tidak dapat dikembalikan.",
-            "Seluruh pembayaran di atas DP dikembalikan penuh, tanpa biaya pembatalan tambahan.",
-            "Pembayaran yang diterima setelah pendaftaran dibatalkan akan dikembalikan penuh.",
+            "Uang Muka (DP) sebesar Rp 5.000.000 tidak dapat dikembalikan (non refundable).",
+            "Pendaftaran tidak bisa dibatalkan atau digantikan setelah 5 hari kerja.",
+          ],
+          "Jika pembatalan disetujui, pengembalian dana diproses paling lama 90 hari kerja, dengan besar pengembalian sebagai berikut (dari harga paket):",
+          [
+            "6 Minggu sebelum keberangkatan 50 % dari harga paket",
+            "3 Minggu sebelum keberangkatan 25 % dari harga paket",
+            "2 Minggu sebelum keberangkatan 0 % dari harga paket",
           ],
         ],
       },

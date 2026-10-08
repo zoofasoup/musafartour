@@ -96,6 +96,7 @@ const PackageBrochure = lazy(() => import("./pages/admin/PackageBrochure"));
 const AgentProtectedRoute = lazy(() => import("./components/agent/AgentProtectedRoute"));
 const AgentManagement = lazy(() => import("./pages/admin/AgentManagement"));
 const AgentCommissions = lazy(() => import("./pages/admin/AgentCommissions"));
+const CommissionPayouts = lazy(() => import("./pages/admin/CommissionPayouts"));
 const Gamification = lazy(() => import("./pages/admin/Gamification"));
 const PackageItems = lazy(() => import("./pages/admin/PackageItems"));
 const Equipment = lazy(() => import("./pages/admin/Equipment"));
@@ -170,7 +171,7 @@ const RedirectsHandler = () => {
 // Title (+ noindex for private flows) for routes whose page doesn't render its own <SEO>.
 // Without this, SPA navigation left the previous page's title in the tab. Pages that do
 // render <SEO> mount deeper in the tree, so their tags take precedence.
-const ROUTE_META: { match: (p: string) => boolean; title: string; description?: string; noindex?: boolean }[] = [
+const ROUTE_META: { match: (p: string) => boolean; title: string; description?: string; noindex?: boolean; canonical?: string }[] = [
   { match: (p) => p === "/auth", title: "Login Admin - Musafar Tour", noindex: true },
   { match: (p) => p === "/admin/setup", title: "Setup Admin - Musafar Tour", noindex: true },
   { match: (p) => p.startsWith("/admin"), title: "Admin - Musafar Tour", noindex: true },
@@ -178,13 +179,15 @@ const ROUTE_META: { match: (p: string) => boolean; title: string; description?: 
   { match: (p) => p === "/agent/forgot-password", title: "Lupa Password Agen - Musafar Tour", noindex: true },
   {
     match: (p) => p === "/jadi-agen",
+    canonical: "https://musafartour.com/jadi-agen",
     title: "Jadi Agen Umroh Musafar Tour: Komisi Sesuai Tingkat dan Paket",
     description: "Jadi agen resmi umroh Musafar Tour. Biaya registrasi Rp 1.500.000 sekali seumur hidup, empat tingkat agen, komisi sesuai tingkat dan paket, pelatihan dan sertifikat.",
   },
   {
     match: (p) => p === "/sop-agen",
+    canonical: "https://musafartour.com/sop-agen",
     title: "SOP Program Agen Musafar Tour",
-    description: "SOP/AGEN/001: syarat, tingkat, biaya registrasi, komisi, larangan, dan sanksi untuk agen resmi PT Musa Amanah Wisata (Musafar Tour).",
+    description: "SOP/AGEN/001 versi 01, teks lengkap 25 bagian: syarat, jenjang, biaya registrasi, komisi, lead protection, larangan, dan sanksi agen resmi PT Musa Amanah Wisata (Musafar Tour).",
   },
   {
     match: (p) => p === "/agent/register",
@@ -196,9 +199,16 @@ const ROUTE_META: { match: (p: string) => boolean; title: string; description?: 
   { match: (p) => p.startsWith("/daftar/"), title: "Daftar Umroh - Musafar Tour", noindex: true },
   { match: (p) => p.startsWith("/lengkapi/"), title: "Lengkapi Data Jamaah - Musafar Tour", noindex: true },
   { match: (p) => p === "/styleguide", title: "Styleguide - Musafar Tour", noindex: true },
-  { match: (p) => p === "/cek-status", title: "Cek Status Pendaftaran - Musafar Tour", noindex: true },
+  {
+    match: (p) => p === "/cek-status",
+    title: "Cek Status Pendaftaran - Musafar Tour",
+    description: "Cek status pendaftaran umrohmu dengan kode pendaftaran: menunggu CS, diterima, DP, atau lunas.",
+    canonical: "https://musafartour.com/cek-status",
+    noindex: true,
+  },
   {
     match: (p) => p === "/cara-bayar",
+    canonical: "https://musafartour.com/cara-bayar",
     title: "Cara Bayar Umroh - Musafar Tour",
     description: "DP Rp 5 juta per orang, cicilan bebas kapan saja, lunas paling lambat 30 hari sebelum berangkat. Pembayaran hanya ke rekening PT Musa Amanah Wisata.",
   },
@@ -216,7 +226,7 @@ const RouteMeta = () => {
   const { pathname } = useLocation();
   const meta = ROUTE_META.find((m) => m.match(pathname));
   if (!meta) return null;
-  return <SeoTags title={meta.title} description={meta.description} noindex={meta.noindex} useDefaults={false} />;
+  return <SeoTags title={meta.title} description={meta.description} canonicalUrl={meta.canonical} noindex={meta.noindex} useDefaults={false} />;
 };
 
 // ?ref={agentCode} can land on any page (home, articles, calculator), not just package detail.
@@ -551,6 +561,7 @@ const App = () => (
                     <Route path="url-shortener" element={<URLShortener />} />
                     <Route path="agents" element={<AgentManagement />} />
                     <Route path="komisi-agen" element={<AgentCommissions />} />
+                    <Route path="pembayaran-komisi" element={<CommissionPayouts />} />
                     <Route path="agent-leads" element={<AdminAgentLeads />} />
                     <Route path="jamaah" element={<Jamaah />} />
                     <Route path="jamaah/semua" element={<JamaahAll />} />

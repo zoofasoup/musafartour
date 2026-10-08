@@ -121,7 +121,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-white/10 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center text-sm font-medium text-white">
           <p>{new Date().getFullYear()} © Musafar Tour</p>
-          <p className="mt-4 md:mt-0 text-white/40">Made by Musawara Creative</p>
+          <p className="mt-4 md:mt-0 text-white/60">Made by Musawara Creative</p>
         </div>
       </div>
     </footer>

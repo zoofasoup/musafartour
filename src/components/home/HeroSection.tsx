@@ -54,7 +54,7 @@ export const HeroSection = (_props: HeroSectionProps) => {
             className="mb-3 text-[2rem] font-extrabold leading-[1.05] tracking-[-0.035em] text-balance animate-fade-in opacity-0 sm:text-5xl lg:text-6xl"
             style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}
           >
-            Umroh &amp; Haji Nyaman, Bukan Sekadar Safar Biasa.
+            Umroh Nyaman, Bukan Sekadar Safar Biasa.
           </h1>
 
           <p

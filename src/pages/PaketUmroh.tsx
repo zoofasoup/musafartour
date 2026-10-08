@@ -151,7 +151,7 @@ const PaketUmroh = () => {
         canonicalUrl="https://musafartour.com/paket-umroh"
       />
       <Navbar />
-      
+      <main id="main">
       {/* Header */}
       <section className="py-16 bg-card border-b">
         <div className="container mx-auto px-6 md:px-8 text-center">
@@ -274,8 +274,9 @@ const PaketUmroh = () => {
         )}
       </section>
 
-      <Footer />
+      </main>
 
+      <Footer />
       <ProductTour steps={tourSteps} active={tour.active} onFinish={tour.finish} />
     </div>
   );

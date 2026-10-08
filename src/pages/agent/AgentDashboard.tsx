@@ -52,7 +52,7 @@ const AgentDashboard = () => {
   const waitingCs = (intakes.data ?? []).filter((i) => i.status === "new").length;
 
   // Unknown/legacy level values fall back to the starting level instead of crashing the page.
-  const level = (agent.level in AGENT_LEVEL_PROGRESSION ? agent.level : "duta") as AgentLevel;
+  const level = (agent.level in AGENT_LEVEL_PROGRESSION ? agent.level : "silver") as AgentLevel;
   const levelInfo = AGENT_LEVEL_PROGRESSION[level];
   const salesLeft = Math.max(0, levelInfo.salesNeeded - agent.total_sales);
 
@@ -60,6 +60,8 @@ const AgentDashboard = () => {
     navigator.clipboard.writeText(text).then(() => toast.success(done), () => toast.error("Belum bisa menyalin. Coba lagi."));
   };
   const firstName = agent.name.split(" ")[0];
+  // Approved but the registration fee is not received yet: the database refuses leads, jamaah and promo-link attribution.
+  const canSell = agent.status === "active" && (agent.registration_fee_status ?? "unpaid") !== "unpaid";
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
@@ -81,10 +83,14 @@ const AgentDashboard = () => {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button asChild className={`h-11 gap-2 bg-white font-semibold text-foreground hover:bg-muted`}>
-              <Link to="/agent/daftar-jamaah"><UserPlus className="h-4 w-4" aria-hidden /> Daftarkan jamaah</Link>
-            </Button>
-            <Button type="button" variant="outline" className="h-11 gap-2 border-white/40 bg-transparent text-white hover:bg-white/15 hover:text-white" onClick={() => copy(`${window.location.origin}/r/${agent.referral_code}`, "Link disalin. Kirim ke calon jamaah, pendaftarannya tercatat atas namamu.")}>
+            {canSell ? (
+              <Button asChild className={`h-11 gap-2 bg-white font-semibold text-foreground hover:bg-muted`}>
+                <Link to="/agent/daftar-jamaah"><UserPlus className="h-4 w-4" aria-hidden /> Daftarkan jamaah</Link>
+              </Button>
+            ) : (
+              <Button type="button" disabled title="Bayar biaya registrasi dulu" className="h-11 gap-2 bg-white font-semibold text-foreground"><UserPlus className="h-4 w-4" aria-hidden /> Daftarkan jamaah</Button>
+            )}
+            <Button type="button" variant="outline" disabled={!canSell} title={canSell ? undefined : "Bayar biaya registrasi dulu"} className="h-11 gap-2 border-white/40 bg-transparent text-white hover:bg-white/15 hover:text-white" onClick={() => copy(`${window.location.origin}/r/${agent.referral_code}`, "Link disalin. Kirim ke calon jamaah, pendaftarannya tercatat atas namamu.")}>
               <Share2 className="h-4 w-4" aria-hidden /> Salin link untuk calon jamaah
             </Button>
           </div>

@@ -53,7 +53,7 @@ function toGridRows(rows: CommissionRateRow[]): GridRow[] {
         flight: r.flight,
         status: r.status,
         tier: r.tier,
-        amounts: { duta: null, silver: null, gold: null, platinum: null },
+        amounts: { silver: null, gold: null, platinum: null },
       };
       map.set(key, g);
     }

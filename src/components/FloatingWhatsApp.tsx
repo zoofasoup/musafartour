@@ -37,7 +37,7 @@ const FloatingWhatsApp = () => {
   return createPortal(
     <button
       onClick={handleClick}
-      className="fixed bottom-6 right-6 z-40 flex items-center justify-center w-14 h-14 bg-[#25D366] hover:bg-[#22c55e] text-white rounded-full shadow-[0_4px_14px_0_rgba(37,211,102,0.39)] hover:shadow-[0_6px_20px_rgba(37,211,102,0.23)] transition-colors cursor-pointer"
+      className="fixed bottom-6 right-6 z-40 flex items-center justify-center w-14 h-14 bg-[#25D366] hover:bg-[#22c55e] text-foreground rounded-full shadow-[0_4px_14px_0_rgba(37,211,102,0.39)] hover:shadow-[0_6px_20px_rgba(37,211,102,0.23)] transition-colors cursor-pointer"
       aria-label="Hubungi via WhatsApp"
     >
       <WhatsAppIcon className="w-7 h-7" />

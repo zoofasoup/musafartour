@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { Check, CheckCircle2, Copy, ExternalLink, MessageCircle } from "lucide-react";
@@ -24,12 +24,15 @@ import {
 const FEE_KIND = { unpaid: "warn", paid: "ok", waived: "info" } as const;
 
 /**
- * "Selesaikan pendaftaran": the two things a new agent still has to do besides KTP and address, as a 2-step checklist.
- * 1) registration fee (transfer to the PT accounts, proof to the PIC), 2) accept the agent SOP.
- * Used on the onboarding page and on the "Menunggu Persetujuan" screen. Approval stays with admin.
+ * Onboarding order (owner decision, Virna): data + SOP first, admin approves, THEN the registration fee.
+ * - status 'pending': "Selesaikan pendaftaran" with 2 steps, 1) data diri (KTP, NIK, alamat) and 2) accept the agent SOP.
+ * - status 'active' and fee 'unpaid': "Bayar biaya registrasi" (transfer to the PT accounts, proof to the PIC). Until staff
+ *   mark it paid or waived the agent can open the portal read-only but cannot sell (enforced in the database).
+ * - anything else: nothing to show.
  */
 export function AgentSetupChecklist() {
   const { agent, refreshAgent } = useAgentAuth();
+  const onOnboarding = useLocation().pathname === "/agent/onboarding";
   const [copied, setCopied] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -38,6 +41,10 @@ export function AgentSetupChecklist() {
   const fee = (agent.registration_fee_status ?? "unpaid") as RegistrationFeeStatus;
   const feeDone = fee !== "unpaid";
   const sopDone = !!agent.sop_accepted_at;
+  const dataDone = !!(agent.ktp_number && agent.ktp_image_url && agent.address);
+  if (agent.status === "active" && feeDone) return null;
+  if (agent.status !== "pending" && agent.status !== "active") return null;
+  const payStage = agent.status === "active";
 
   const copy = (text: string, key: string) => {
     navigator.clipboard.writeText(text).then(
@@ -66,14 +73,18 @@ export function AgentSetupChecklist() {
 
   return (
     <section className="rounded-xl border bg-card p-4 sm:p-6" aria-labelledby="selesaikan-pendaftaran">
-      <h2 id="selesaikan-pendaftaran" className="text-lg font-bold text-foreground">Selesaikan pendaftaran</h2>
-      <p className="mt-1 text-sm text-muted-foreground">Dua hal ini dicek admin sebelum akun agenmu diaktifkan.</p>
+      <h2 id="selesaikan-pendaftaran" className="text-lg font-bold text-foreground">{payStage ? "Bayar biaya registrasi" : "Selesaikan pendaftaran"}</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {payStage
+          ? "Pendaftaranmu sudah disetujui. Selesaikan pembayaran ini supaya kamu bisa mulai jualan. Sampai pembayaran diterima, portal hanya bisa dilihat."
+          : "Dua langkah ini dicek admin sebelum akunmu disetujui. Biaya registrasi dibayar setelah akunmu disetujui."}
+      </p>
 
       <ol className="mt-4 space-y-4">
-        {/* 1. Registration fee */}
+        {payStage ? (
         <li className="rounded-lg border p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-semibold text-foreground">1. Biaya registrasi {rupiah(AGENT_REGISTRATION_FEE)}</h3>
+            <h3 className="font-semibold text-foreground">Biaya registrasi {rupiah(AGENT_REGISTRATION_FEE)}</h3>
             <StatusBadge kind={FEE_KIND[fee]} icon={feeDone ? CheckCircle2 : undefined}>{REGISTRATION_FEE_LABELS[fee]}</StatusBadge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">Dibayar satu kali seumur hidup. Sudah termasuk:</p>
@@ -99,9 +110,24 @@ export function AgentSetupChecklist() {
                   <MessageCircle className="h-4 w-4" aria-hidden /> Kirim bukti transfer ke PIC Agen via WhatsApp
                 </a>
               </Button>
-              <p className="mt-2 text-[13px] text-muted-foreground">PIC: {AGENT_PIC_NAME}, {AGENT_PIC_ROLE}. Status berubah menjadi "Sudah dibayar" setelah admin memeriksa buktimu.</p>
+              <p className="mt-2 text-[13px] text-muted-foreground">Pembayaran dianjurkan sekaligus. Jika agen mundur, biaya registrasi hangus karena ditukar dengan perlengkapan dan welcome kit.</p>
+              <p className="mt-2 text-[13px] text-muted-foreground">PIC: {AGENT_PIC_NAME}, {AGENT_PIC_ROLE}. Setelah admin memeriksa buktimu, status berubah menjadi "Sudah dibayar" dan kamu bisa mulai mencatat lead dan mendaftarkan jamaah.</p>
             </>
           )}
+        </li>
+
+        ) : (
+          <>
+        {/* 1. Data diri */}
+        <li className="rounded-lg border p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="font-semibold text-foreground">1. Data diri</h3>
+            <StatusBadge kind={dataDone ? "ok" : "warn"} icon={dataDone ? CheckCircle2 : undefined}>{dataDone ? "Sudah dikirim" : "Belum lengkap"}</StatusBadge>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {dataDone ? "KTP, NIK, dan alamatmu sudah kami terima." : "Lengkapi foto KTP, NIK, alamat, dan nomor WhatsApp."}
+            {!dataDone && !onOnboarding && <> <Link to="/agent/onboarding" className="font-semibold text-foreground underline underline-offset-4">Lengkapi sekarang</Link></>}
+          </p>
         </li>
 
         {/* 2. SOP */}
@@ -131,6 +157,8 @@ export function AgentSetupChecklist() {
             </>
           )}
         </li>
+          </>
+        )}
       </ol>
     </section>
   );

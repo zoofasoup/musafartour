@@ -27,9 +27,11 @@ import { AGENT_PACKAGE_COLUMNS } from "@/hooks/usePackages";
 import PackageShareModal from "@/components/package-detail/PackageShareModal";
 import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
 import { MyCommission } from "@/components/agent/MyCommission";
+import { LoadError } from "@/components/admin/jamaah/LoadError";
 
 interface Package {
   id: string;
+  slug?: string | null;
   package_name: string;
   departure_date: string;
   duration_days: number;
@@ -45,6 +47,9 @@ interface Package {
   flight: string;
   makkah_hotel_star: number | null;
   madinah_hotel_star: number | null;
+  flight_type?: string | null;
+  makkah_hotel_name?: string | null;
+  madinah_hotel_name?: string | null;
 }
 
 // formatCurrency imported from utils
@@ -86,7 +91,7 @@ const AgentSchedule = () => {
   const [budgetFilters, setBudgetFilters] = useState<string[]>([]);
 
   // Fetch packages
-  const { data: packages = [], isLoading } = useQuery({
+  const { data: packages = [], isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['agent-schedule-packages'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -241,19 +246,19 @@ const AgentSchedule = () => {
       case 'open':
         return (
           <Badge variant="outline" className="bg-status-ok-bg text-status-ok-fg border-status-ok-border">
-            Open ({remaining} seats)
+            Tersedia ({remaining} kursi)
           </Badge>
         );
       case 'almost-full':
         return (
           <Badge variant="outline" className="bg-status-warn-bg text-status-warn-fg border-status-warn-border">
-            Almost Full ({remaining} seats)
+            Hampir penuh ({remaining} kursi)
           </Badge>
         );
       case 'full':
         return (
           <Badge variant="outline" className="bg-status-bad-bg text-status-bad-fg border-status-bad-border">
-            Full Booked
+            Penuh
           </Badge>
         );
     }
@@ -334,13 +339,21 @@ const AgentSchedule = () => {
               onClick={() => setSharePackage(pkg)}
             >
               <Share2 className="h-4 w-4 mr-2" />
-              Share
+              Bagikan
             </Button>
           </div>
         </CardContent>
       </Card>
     );
   };
+
+  if (error) {
+    return (
+      <div className="mx-auto w-full max-w-6xl">
+        <LoadError what="Jadwal keberangkatan" error={error} onRetry={() => refetch()} retrying={isFetching} />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -457,14 +470,15 @@ const AgentSchedule = () => {
           onOpenChange={(open) => !open && setSharePackage(null)}
           package={{
             id: sharePackage.id,
+            slug: sharePackage.slug,
             package_name: sharePackage.package_name,
             departure_date: sharePackage.departure_date,
             duration_days: sharePackage.duration_days,
             flight: sharePackage.flight,
-            flight_type: 'Direct',
-            madinah_hotel_name: null,
+            flight_type: sharePackage.flight_type || 'Direct',
+            madinah_hotel_name: sharePackage.madinah_hotel_name ?? null,
             madinah_hotel_star: sharePackage.madinah_hotel_star,
-            makkah_hotel_name: null,
+            makkah_hotel_name: sharePackage.makkah_hotel_name ?? null,
             makkah_hotel_star: sharePackage.makkah_hotel_star,
             package_price: sharePackage.package_price as { quad: number; double: number; triple: number },
             hemat_package_price: sharePackage.hemat_package_price,
@@ -509,7 +523,7 @@ const AgentSchedule = () => {
             {[
               { value: 'all', label: 'Semua Paket' },
               { value: 'ekonomis', label: 'Ekonomis' },
-              { value: 'standard', label: 'Standard' },
+              { value: 'standard', label: 'Standar' },
               { value: 'premium', label: 'Premium' },
             ].map(item => (
               <div key={item.value} className="flex items-center gap-2">
@@ -531,9 +545,9 @@ const AgentSchedule = () => {
           <Label className="text-sm font-medium mb-3 block">Status</Label>
           <div className="space-y-2">
             {[
-              { value: 'open', label: 'Open' },
-              { value: 'almost-full', label: 'Almost Full' },
-              { value: 'full', label: 'Full Booked' },
+              { value: 'open', label: 'Tersedia' },
+              { value: 'almost-full', label: 'Hampir penuh' },
+              { value: 'full', label: 'Penuh' },
             ].map(item => (
               <div key={item.value} className="flex items-center gap-2">
                 <Checkbox
@@ -726,15 +740,15 @@ const AgentSchedule = () => {
           <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary" />
-              <span className="text-xs text-muted-foreground">Open</span>
+              <span className="text-xs text-muted-foreground">Tersedia</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-amber" />
-              <span className="text-xs text-muted-foreground">Almost Full</span>
+              <span className="text-xs text-muted-foreground">Hampir penuh</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-destructive" />
-              <span className="text-xs text-muted-foreground">Full</span>
+              <span className="text-xs text-muted-foreground">Penuh</span>
             </div>
           </div>
         </CardContent>

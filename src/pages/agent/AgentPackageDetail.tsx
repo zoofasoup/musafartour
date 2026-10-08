@@ -32,6 +32,7 @@ import { formatCurrency, getTierPrice, getSlotsTaken } from "@/lib/utils";
 import { AGENT_PACKAGE_COLUMNS } from "@/hooks/usePackages";
 import { useToast } from "@/hooks/use-toast";
 import PackageShareModal from "@/components/package-detail/PackageShareModal";
+import { LoadError } from "@/components/admin/jamaah/LoadError";
 
 interface PackagePrice {
   quad: number;
@@ -81,7 +82,7 @@ const AgentPackageDetail = () => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [copiedScript, setCopiedScript] = useState(false);
 
-  const { data: pkg, isLoading } = useQuery({
+  const { data: pkg, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["agent-package", packageId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -105,12 +106,12 @@ const AgentPackageDetail = () => {
     const remaining = total - filled;
 
     if (remaining <= 0) {
-      return { status: "full", label: "Full Booked", color: "destructive" };
+      return { status: "full", label: "Penuh", color: "destructive" };
     }
     if (remaining <= 5) {
-      return { status: "almost", label: `Almost Full (${remaining} slot)`, color: "warning" };
+      return { status: "almost", label: `Hampir penuh (${remaining} kursi)`, color: "warning" };
     }
-    return { status: "open", label: `Tersedia (${remaining} slot)`, color: "success" };
+    return { status: "open", label: `Tersedia (${remaining} kursi)`, color: "success" };
   };
 
   const renderStars = (count: number | null) => {
@@ -164,6 +165,14 @@ ${agent?.referral_code ? `Agent ID: ${agent.referral_code}` : ""}`;
     const encoded = encodeURIComponent(script);
     window.open(`https://wa.me/?text=${encoded}`, "_blank");
   };
+
+  if (error) {
+    return (
+      <div className="mx-auto w-full max-w-6xl">
+        <LoadError what="Detail paket" error={error} onRetry={() => refetch()} retrying={isFetching} />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

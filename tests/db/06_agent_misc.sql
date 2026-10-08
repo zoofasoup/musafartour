@@ -156,7 +156,7 @@ BEGIN
 
   -- it touches nothing but referred_by_id (status stays pending, balances 0)
   SELECT status, level, available_balance, total_commission INTO _xrow FROM public.agents WHERE user_id = _x;
-  IF _xrow.status = 'pending' AND _xrow.level = 'duta' AND _xrow.available_balance = 0 AND _xrow.total_commission = 0 THEN
+  IF _xrow.status = 'pending' AND _xrow.level = 'silver' AND _xrow.available_balance = 0 AND _xrow.total_commission = 0 THEN
     _out := _out || E'PASS set_agent_referrer: status, level and balances are untouched\n';
   ELSE _out := _out || E'FAIL set_agent_referrer: it changed more than the referrer\n'; END IF;
 

@@ -66,8 +66,12 @@ const CSV_HEADER = ["id", "title", "description", "availability", "condition", "
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { url, anonKey } = getSupabaseConfig(context.env);
 
+  // Departed packages (before today, Asia/Jakarta) are not offers any more: keep them out of the catalog.
+  // Same cut-off as the sitemap (a package leaving today is still listed).
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+
   const res = await fetch(
-    `${url}/rest/v1/packages?select=${PACKAGE_COLUMNS}&status=eq.published&order=departure_date.asc`,
+    `${url}/rest/v1/packages?select=${PACKAGE_COLUMNS}&status=eq.published&departure_date=gte.${today}&order=departure_date.asc`,
     { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } }
   );
 
@@ -81,7 +85,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     // A package with no slug has no landing page to link to, and one with
     // no banner image or no resolvable price isn't a usable catalog listing
     // - skip rather than publish a broken product.
-    .filter((pkg) => pkg.slug && pkg.banner_image && getQuadPrice(pkg) > 0)
+    .filter((pkg) => pkg.slug && pkg.banner_image && getQuadPrice(pkg) > 0 && pkg.departure_date.slice(0, 10) >= today)
     .map((pkg) => {
       // package_name alone isn't unique across departures (e.g. multiple
       // "Umroh Nyaman" entries on different dates) - the date makes each
