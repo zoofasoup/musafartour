@@ -108,12 +108,12 @@ export const ResendConfirmation = ({ email: knownEmail, className }: ResendConfi
       <p className="mt-3 text-sm text-muted-foreground">
         Tautan konfirmasi hanya berlaku sebentar. Kalau tautannya sudah kedaluwarsa atau tidak bisa dibuka, kirim ulang di sini lalu pakai tautan di email terbaru; tautan lama tidak berlaku lagi. Sudah dicoba tapi email tidak datang?{" "}
         <a
-          href={`https://wa.me/${AGENT_CS_WHATSAPP}?text=${encodeURIComponent("Halo CS Musafar, email konfirmasi akun agen saya belum masuk. Mohon dibantu.")}`}
+          href={`https://wa.me/${AGENT_CS_WHATSAPP}?text=${encodeURIComponent("Halo PIC Agen Musafar, email konfirmasi akun agen saya belum masuk. Mohon dibantu.")}`}
           target="_blank"
           rel="noopener noreferrer"
           className="font-semibold text-foreground underline underline-offset-2"
         >
-          Hubungi CS lewat WhatsApp
+          Hubungi PIC Agen lewat WhatsApp
         </a>
         .
       </p>

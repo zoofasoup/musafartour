@@ -4,8 +4,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { useHomepageData } from "@/hooks/useHomepageData";
 import { rupiah } from "@/lib/jamaah";
+import { AGENT_CS_WHATSAPP } from "@/lib/agentSupport";
 import { formatWhatsAppUrl } from "@/lib/utils";
 import {
   AGENT_FEE_INCLUDES,
@@ -17,7 +17,6 @@ import {
   COMMISSION_PER_LEVEL_TEXT,
 } from "@/lib/sopAgen";
 
-const FALLBACK_WHATSAPP = "6281917403797";
 
 const BENEFITS = [
   {
@@ -68,14 +67,12 @@ const FAQS = [
   },
   {
     q: "Berapa lama persetujuan akun?",
-    a: "Biasanya 1-2 hari kerja setelah data, biaya registrasi, dan persetujuan SOP lengkap. Kalau lebih lama, hubungi CS lewat WhatsApp.",
+    a: "Biasanya 1-2 hari kerja setelah data, biaya registrasi, dan persetujuan SOP lengkap. Kalau lebih lama, hubungi PIC Agen lewat WhatsApp.",
   },
 ] as const;
 
 export default function JadiAgen() {
-  const { websiteSettings } = useHomepageData();
-  const whatsapp = websiteSettings?.whatsapp_number || FALLBACK_WHATSAPP;
-  const csUrl = formatWhatsAppUrl(whatsapp, "Halo Musafar Tour, saya tertarik jadi agen. Boleh tanya-tanya dulu?");
+  const csUrl = formatWhatsAppUrl(AGENT_CS_WHATSAPP, "Halo Musafar Tour, saya tertarik jadi agen. Boleh tanya-tanya dulu?");
 
   return (
     <div className="min-h-screen bg-background">
@@ -216,7 +213,7 @@ export default function JadiAgen() {
             </Button>
             <Button asChild variant="outline" className="h-12 gap-2 border-primary-foreground/30 bg-transparent px-6 text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
               <a href={csUrl} target="_blank" rel="noopener noreferrer">
-                <MessageCircle className="h-5 w-5" aria-hidden /> Hubungi CS lewat WhatsApp
+                <MessageCircle className="h-5 w-5" aria-hidden /> Hubungi PIC Agen lewat WhatsApp
               </a>
             </Button>
           </div>

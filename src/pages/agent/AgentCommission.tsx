@@ -41,12 +41,12 @@ const withdrawalErrorMessage = (error: unknown): string => {
     return "Saldo yang bisa ditarik tidak cukup untuk jumlah ini. Kalau kamu masih punya permintaan penarikan yang belum diproses, jumlahnya sudah dikurangkan dari saldo.";
   }
   if (raw.includes("Akun agen tidak aktif")) {
-    return "Akun agen kamu belum aktif, jadi penarikan belum bisa diajukan. Hubungi CS untuk bantuan.";
+    return "Akun agen kamu belum aktif, jadi penarikan belum bisa diajukan. Hubungi PIC Agen untuk bantuan.";
   }
   if (raw.includes("Jumlah penarikan tidak valid")) {
     return "Jumlah penarikan tidak valid. Isi dengan angka lebih dari nol.";
   }
-  return "Penarikan belum berhasil diajukan. Coba lagi sebentar lagi, atau hubungi CS kalau masalahnya berulang.";
+  return "Penarikan belum berhasil diajukan. Coba lagi sebentar lagi, atau hubungi PIC Agen kalau masalahnya berulang.";
 };
 
 interface Sale {
@@ -706,7 +706,7 @@ const AgentCommission = () => {
                     rel="noopener noreferrer"
                     className="ml-6 mt-1 inline-block font-semibold underline"
                   >
-                    Hubungi CS
+                    Hubungi PIC Agen
                   </a>
                 )}
               </div>

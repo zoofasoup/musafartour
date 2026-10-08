@@ -65,7 +65,7 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
       }
       sidebarLinks={[
         {
-          title: "Butuh bantuan? Hubungi CS",
+          title: "Butuh bantuan? Hubungi PIC Agen",
           icon: LifeBuoy,
           href: agentCsWhatsAppUrl(agent.name, agent.referral_code),
         },

@@ -51,8 +51,8 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
     const pending = agent.status === 'pending';
     const waText = encodeURIComponent(
       pending
-        ? `Halo CS Musafar, saya ${agent.name} (Agent ID ${agent.referral_code}). Mohon dicek persetujuan akun agen saya.`
-        : `Halo CS Musafar, saya ${agent.name} (Agent ID ${agent.referral_code}). Akun agen saya dinonaktifkan, mohon info lebih lanjut.`
+        ? `Halo PIC Agen Musafar, saya ${agent.name} (Agent ID ${agent.referral_code}). Mohon dicek persetujuan akun agen saya.`
+        : `Halo PIC Agen Musafar, saya ${agent.name} (Agent ID ${agent.referral_code}). Akun agen saya dinonaktifkan, mohon info lebih lanjut.`
     );
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -65,12 +65,12 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
           <p className="mb-6 text-sm text-muted-foreground">
             {pending
               ? "Data kamu sudah kami terima dan sedang diperiksa admin, biasanya 1-2 hari kerja. Selesaikan dua langkah di bawah supaya verifikasi tidak tertunda. Kami kabari lewat WhatsApp begitu akun aktif."
-              : "Akun agen kamu sedang dinonaktifkan. Hubungi CS untuk informasi lebih lanjut."}
+              : "Akun agen kamu sedang dinonaktifkan. Hubungi PIC Agen untuk informasi lebih lanjut."}
           </p>
           <div className="flex flex-col gap-2">
             <Button asChild variant="brand" className="w-full">
               <a href={`https://wa.me/${AGENT_CS_WHATSAPP}?text=${waText}`} target="_blank" rel="noopener noreferrer">
-                Hubungi CS via WhatsApp
+                Hubungi PIC Agen via WhatsApp
               </a>
             </Button>
             <Button variant="outline" className="w-full" onClick={() => signOut()}>
