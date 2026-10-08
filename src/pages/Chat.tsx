@@ -8,6 +8,7 @@ import {
   type CSNumber 
 } from '@/lib/whatsappRotation';
 import { saveClickToDatabase } from '@/lib/chatRedirect';
+import { trackWhatsAppLead } from '@/lib/tracking';
 
 const Chat = () => {
   const [searchParams] = useSearchParams();
@@ -40,6 +41,7 @@ const Chat = () => {
       logRedirect(cs.id, cs.name, message, utmParams);
       
       // Redirect immediately
+      trackWhatsAppLead("chat_page");
       window.location.href = buildWhatsAppUrl(cs.phone_number, message);
     };
 
@@ -64,6 +66,7 @@ const Chat = () => {
     saveClickToDatabase(cs, message, utmParams);
     logRedirect(cs.id, cs.name, message, utmParams);
     
+    trackWhatsAppLead("chat_page");
     window.location.href = buildWhatsAppUrl(cs.phone_number, message);
   };
 

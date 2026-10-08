@@ -14,7 +14,7 @@ import { fetchMarketingPixels } from "./_lib/data";
  */
 
 const GRAPH_VERSION = "v25.0";
-const ALLOWED_EVENTS = new Set(["Lead", "AddToCart", "ViewContent"]);
+const ALLOWED_EVENTS = new Set(["Lead", "AddToCart", "ViewContent", "Contact"]);
 // Our own site and its Cloudflare preview/production hosts only.
 const ALLOWED_HOST = /(^|\.)musafartour\.com$|(^|\.)musafartour\.pages\.dev$/;
 const PIXEL_ID = /^\d{15,16}$/;

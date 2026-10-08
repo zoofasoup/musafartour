@@ -113,7 +113,7 @@ function sendMeta(name: string, params: EventParams, dedupe: Dedupe | null, even
 // Meta Conversions API (functions/meta-capi.ts relays these to Meta).
 // ---------------------------------------------------------------------------
 
-const CAPI_EVENTS = new Set(["Lead", "AddToCart", "ViewContent"]);
+const CAPI_EVENTS = new Set(["Lead", "AddToCart", "ViewContent", "Contact"]);
 const FBC_KEY = "musafar_fbc";
 
 // A visitor arriving from a Meta ad carries ?fbclid=. The pixel turns it into the
@@ -408,4 +408,42 @@ export function trackLead(source: string, pkg?: TrackedPackage, eventID?: string
 /** A visitor tapped a WhatsApp button: for Musafar this is the lead. */
 export function trackWhatsAppLead(source: string, pkg?: TrackedPackage) {
   trackLead(source, pkg);
+  trackMetaContact(source, pkg);
+}
+
+/**
+ * Meta "Contact": the visitor started a conversation with us. Fired on EVERY WhatsApp tap (unlike Lead, which is once
+ * per person per 7 days). Taps within 4 s count once, so a button that is both a link and has a click handler cannot
+ * double-fire. Sent to the pixel and to the Conversions API with the same eventID.
+ */
+export function trackMetaContact(source: string, pkg?: TrackedPackage) {
+  const params: EventParams = {
+    content_name: pkg?.name ?? source,
+    content_category: "whatsapp",
+    lead_source: source,
+    page_path: typeof window !== "undefined" ? safeTrackingPath(window.location.pathname) : undefined,
+    ...(pkg ? { content_ids: [pkg.id], content_type: "product" } : {}),
+    ...(pkg?.value ? { value: pkg.value, currency: "IDR" } : {}),
+  };
+  sendMeta("Contact", params, { key: "Contact", scope: "person", ttlMs: 4000 });
+}
+
+// Plain <a href="https://wa.me/<number>"> buttons (footer, landing pages, ...) never go through redirectToWhatsApp, so one
+// delegated listener covers them all, including ones added later. Share links (wa.me/?text=..., no number) are not a contact.
+const WHATSAPP_CONTACT_HREF = /^https?:\/\/(?:wa\.me\/\+?\d{6,}|api\.whatsapp\.com\/send\/?\?(?:[^#]*&)?phone=\d{6,}|(?:www\.)?whatsapp\.com\/send\/?\?(?:[^#]*&)?phone=\d{6,})/i;
+
+export function isWhatsAppContactHref(href: string | null | undefined): boolean {
+  return !!href && WHATSAPP_CONTACT_HREF.test(href);
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener(
+    "click",
+    (event) => {
+      const target = event.target as Element | null;
+      const anchor = target?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (anchor && isWhatsAppContactHref(anchor.href)) trackMetaContact("whatsapp_link");
+    },
+    true,
+  );
 }

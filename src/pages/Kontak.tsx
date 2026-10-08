@@ -10,6 +10,7 @@ import { Phone, Mail, MapPin, Clock, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatWhatsAppUrl } from "@/lib/utils";
 import { useHomepageData } from "@/hooks/useHomepageData";
+import { trackWhatsAppLead } from "@/lib/tracking";
 
 const FALLBACK_WHATSAPP = "6281917403797";
 const FALLBACK_ADDRESS = "Commercial Park Harapan Indah Ruko Emerald Blok EB1 No. 28, Medan Satria, Kota Bekasi, Jawa Barat 17131";
@@ -35,6 +36,7 @@ const Kontak = () => {
   const handleWhatsAppClick = () => {
     const message = "Halo Musafar Tour, saya ingin bertanya tentang paket umroh.";
     const whatsappUrl = formatWhatsAppUrl(whatsapp, message);
+    trackWhatsAppLead("kontak_page");
     window.open(whatsappUrl, "_blank");
   };
 
@@ -61,6 +63,7 @@ Pesan:
 ${formData.message}`;
 
     const whatsappUrl = formatWhatsAppUrl(whatsapp, message);
+    trackWhatsAppLead("kontak_form");
     window.open(whatsappUrl, "_blank");
 
     // Nothing is sent until the user taps send in WhatsApp, so don't claim it was,
