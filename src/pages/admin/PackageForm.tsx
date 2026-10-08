@@ -30,6 +30,7 @@ import html2canvas from "html2canvas";
 import { Download } from "lucide-react";
 import { SinglePackageFlyer } from "@/components/admin/flyer/SinglePackageFlyer";
 import { CogsCalculator } from "@/components/admin/cogs/CogsCalculator";
+import { FlyerVariants } from "@/components/admin/package-form/FlyerVariants";
 import { PricingTab } from "@/components/admin/package-form/PricingTab";
 import { MediaContentTab } from "@/components/admin/package-form/MediaContentTab";
 import { FasilitasTab } from "@/components/admin/package-form/FasilitasTab";
@@ -135,6 +136,7 @@ const packageSchema = z.object({
   slots_total: z.number().min(1, "Wajib diisi"),
   agent_commission_amount: z.number().min(0, "Wajib diisi"),
   cogs_data: z.any().optional(),
+  flyer_variants: z.array(z.any()).optional(),
 
   // Hemat Tier
   hemat_makkah_hotel_name: z.string().optional(),
@@ -420,6 +422,7 @@ const PackageForm = () => {
   ];
   const [loading, setLoading] = useState(false);
   const [savedPackageTitle, setSavedPackageTitle] = useState("");
+  const [savedCodename, setSavedCodename] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(!!id);
   const [bannerPreview, setBannerPreview] = useState<string>("");
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -585,6 +588,7 @@ const PackageForm = () => {
       if (error) throw error;
 
       if (data) {
+        setSavedCodename((data as any).codename ?? null);
         if (data.banner_image) setBannerPreview(data.banner_image);
         if (data.catalog_link) setKatalogPreview(data.catalog_link);
         if ((data as any).itinerary_link) setItineraryPreview((data as any).itinerary_link);
@@ -686,6 +690,7 @@ const PackageForm = () => {
           status: data.status,
           // Without this the COGS sheet never reached the form, so the next Simpan wrote the template over it.
           cogs_data: (data as any).cogs_data ?? undefined,
+          flyer_variants: Array.isArray((data as any).flyer_variants) ? (data as any).flyer_variants : [],
           is_sold_out: data.is_sold_out || false,
           waitlist_count: data.waitlist_count || 0,
         });
@@ -862,6 +867,11 @@ const PackageForm = () => {
     setLoading(true);
     setUploadingImages(true);
     try {
+      if (values.status === "published" && !bannerFile && !(values.banner_link || bannerPreview)) {
+        toast.error("Paket belum bisa Tayang: unggah flyer dulu di langkah 3.");
+        setCurrentStep(3);
+        return;
+      }
       let bannerUrl: string | null;
       if (bannerFile) {
         bannerUrl = await uploadBannerImage();
@@ -942,6 +952,7 @@ const PackageForm = () => {
         slots_total: values.slots_total || null,
         agent_commission_amount: values.agent_commission_amount || 0,
         cogs_data: values.cogs_data ?? null,
+        flyer_variants: values.flyer_variants ?? [],
 
         hemat_makkah_hotel_name: values.hemat_makkah_hotel_name,
         hemat_makkah_hotel_star: values.hemat_makkah_hotel_star,
@@ -1568,6 +1579,12 @@ const PackageForm = () => {
                   itineraryPreview={itineraryPreview} setItineraryFile={setItineraryFile} setItineraryPreview={setItineraryPreview}
                   galleryPreviews={galleryPreviews} handleGalleryFiles={handleGalleryFiles} removeGalleryImage={removeGalleryImage}
                   ImageDropZone={ImageDropZone} DocDropZone={DocDropZone}
+                />
+                <FlyerVariants
+                  value={form.watch("flyer_variants") ?? []}
+                  onChange={(v) => form.setValue("flyer_variants", v, { shouldDirty: true })}
+                  packageCode={savedCodename}
+                  disabled={!canEdit || loading}
                 />
               </div>
               </fieldset>
