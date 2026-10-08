@@ -329,7 +329,7 @@ const TentangKami = () => {
               <ul className="space-y-3 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <ChevronRight className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
-                  Paspor (Min. 8 bulan berlaku)
+                  Paspor (berlaku min. 12 bulan setelah tanggal berangkat)
                 </li>
                 <li className="flex items-start gap-2">
                   <ChevronRight className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
