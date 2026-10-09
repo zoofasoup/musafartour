@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.get-marketing-pixels]
 verify_jwt = false
+
+[functions.whatsapp-bot]
+verify_jwt = false
