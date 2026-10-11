@@ -32,7 +32,8 @@ import { PackagePricing } from "@/components/package-detail/PackagePricing";
 import { PackagePaymentTerms } from "@/components/package-detail/PackagePaymentTerms";
 import { PackageCtaButtons } from "@/components/package-detail/PackageCtaButtons";
 import { PackageTestimonials } from "@/components/package-detail/PackageTestimonials";
-import { PackageStickyMobileBar } from "@/components/package-detail/PackageStickyMobileBar";
+import { PackageMobileView } from "@/components/package-detail/PackageMobileView";
+import type { PackagePricingBodyProps } from "@/components/package-detail/PackagePricing";
 import { RelatedPackages } from "@/components/package-detail/RelatedPackages";
 import { useProductTour } from "@/hooks/useProductTour";
 import { ProductTour } from "@/components/tour/ProductTour";
@@ -55,8 +56,23 @@ const fmtDate = (d: string) => {
 
 const SITE_URL = "https://musafartour.com";
 
+/** Phone layout below the lg breakpoint. Read synchronously so the wrong layout never flashes (and tour ids exist once). */
+function useIsDesktop() {
+  const query = "(min-width: 1024px)";
+  const [isDesktop, setIsDesktop] = useState(() => (typeof window === "undefined" ? true : window.matchMedia(query).matches));
+  useEffect(() => {
+    const mql = window.matchMedia(query);
+    const on = () => setIsDesktop(mql.matches);
+    mql.addEventListener("change", on);
+    on();
+    return () => mql.removeEventListener("change", on);
+  }, []);
+  return isDesktop;
+}
+
 const PackageDetailPage = () => {
   const { id: slug } = useParams();
+  const isDesktop = useIsDesktop();
 
   const { data: packageData, isLoading: loading } = usePackageBySlug(slug);
 
@@ -236,6 +252,32 @@ const PackageDetailPage = () => {
   const transport = resolveTierTransport(packageData, effectiveTier);
   const hasImages = !!(packageData.banner_image || packageData.gallery_images?.length);
 
+  const pricingProps: PackagePricingBodyProps = {
+    packageData,
+    price,
+    adults,
+    setAdults,
+    children,
+    setChildren,
+    infants,
+    setInfants,
+    discount,
+    setDiscount,
+    combos,
+    safeComboIdx,
+    setSelectedComboIdx,
+    childTotal,
+    infantTotal,
+    selectedCombo,
+    grandTotal,
+    totalSavings,
+    customerName,
+    setCustomerName,
+    handleWhatsApp,
+    handleNotifyMe,
+    maxPax: seatsLeft,
+  };
+
   const pageUrl = packageData.canonical_url || `${SITE_URL}/paket-umroh/${packageData.slug}`;
   // Package names already start with "Umroh" ("Umroh Hemat"), which rendered as "Paket Umroh Umroh Hemat".
   const displayName = /^umroh\b/i.test(packageData.package_name)
@@ -281,6 +323,8 @@ const PackageDetailPage = () => {
       />
       <Navbar />
 
+      {isDesktop && (
+        <>
       <TierSelector
         availableTiers={availableTiers}
         effectiveTier={effectiveTier}
@@ -387,32 +431,34 @@ const PackageDetailPage = () => {
           </div>
         </div>
       </div>
+        </>
+      )}
 
-      <PackageStickyMobileBar
-        packageData={packageData}
-        price={price}
-        adults={adults}
-        setAdults={setAdults}
-        children={children}
-        setChildren={setChildren}
-        infants={infants}
-        setInfants={setInfants}
-        discount={discount}
-        setDiscount={setDiscount}
-        combos={combos}
-        safeComboIdx={safeComboIdx}
-        setSelectedComboIdx={setSelectedComboIdx}
-        childTotal={childTotal}
-        infantTotal={infantTotal}
-        selectedCombo={selectedCombo}
-        grandTotal={grandTotal}
-        totalSavings={totalSavings}
-        customerName={customerName}
-        setCustomerName={setCustomerName}
-        handleWhatsApp={handleWhatsApp}
-        handleNotifyMe={handleNotifyMe}
-        maxPax={seatsLeft}
-      />
+      {!isDesktop && (
+        <>
+          <PackageMobileView
+            packageData={packageData}
+            price={price}
+            transport={transport}
+            onSoloWhatsApp={handleSoloWhatsApp}
+            handleNotifyMe={handleNotifyMe}
+            pricing={pricingProps}
+            availableTiers={availableTiers}
+            effectiveTier={effectiveTier}
+            onSelectTier={(t) => {
+              setSelectedTier(t);
+              setSelectedComboIdx(0);
+            }}
+          />
+          <main id="main" className="space-y-6 px-6 pb-28 pt-4">
+            <PackageHotels packageData={packageData} hotels={hotels} />
+            <PackageFeatures includedItems={includedItems} excludedItems={excludedItems} />
+            <PackagePaymentTerms />
+            <PackageTestimonials />
+            <RelatedPackages currentPackageId={packageData.id} currentTier={effectiveTier} />
+          </main>
+        </>
+      )}
 
       <Footer />
 

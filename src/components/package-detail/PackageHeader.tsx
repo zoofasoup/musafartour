@@ -8,7 +8,7 @@ import type { PackagePrice } from "@/lib/packageSchema";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 
-const AIRPORT_CITY: Record<string, string> = {
+export const AIRPORT_CITY: Record<string, string> = {
   CGK: "Jakarta",
   JED: "Jeddah",
   MED: "Madinah",
@@ -29,7 +29,7 @@ const AIRPORT_CITY: Record<string, string> = {
  * CGK-JED direct so they intentionally have no entry - we only show a transit
  * airport when we're confident which one it actually is.
  */
-const AIRLINE_TRANSIT_HUB: Record<string, string> = {
+export const AIRLINE_TRANSIT_HUB: Record<string, string> = {
   "Oman Air": "MCT",
   "Qatar Airways": "DOH",
   "Emirates": "DXB",
