@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { ArrowRight, Bell, ClipboardList, Heart, Share2, User, Users } from "lucide-react";
+import { ArrowRight, Bell, ClipboardList, Heart, Share2, User, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ImageLightbox } from "@/components/ImageLightbox";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { useFavorites } from "@/hooks/useFavorites";
 import { airlineLogos } from "@/lib/airlineLogos";
@@ -45,6 +44,71 @@ const fmtDate = (d: string) => {
 const rupiah = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
 
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/**
+ * Full-screen image viewer: only the image on a dimmed page (no boxed black dialog around it).
+ * Swipe sideways between images; tap anywhere, the close button, or Esc to close.
+ */
+function ImageViewer({ images, index, alt, onClose }: { images: string[]; index: number; alt: string; onClose: () => void }) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [current, setCurrent] = useState(index);
+
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    const el = scrollerRef.current;
+    if (el) el.scrollLeft = el.clientWidth * index;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
+      opener?.focus?.();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return createPortal(
+    <div role="dialog" aria-modal="true" aria-label={`Gambar ${alt}`} className="fixed inset-0 z-[70] bg-black/75">
+      <div
+        ref={scrollerRef}
+        onScroll={() => {
+          const el = scrollerRef.current;
+          if (el) setCurrent(Math.round(el.scrollLeft / el.clientWidth));
+        }}
+        className="flex h-full snap-x snap-mandatory overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+      >
+        {images.map((src, i) => (
+          <div key={src} onClick={onClose} className="flex h-full w-full shrink-0 snap-center items-center justify-center">
+            <img
+              src={getOptimizedImageUrl(src, 1600)}
+              alt={i === 0 ? alt : `${alt} ${i + 1}`}
+              className="max-h-[calc(100svh-24px)] max-w-full rounded-2xl object-contain shadow-[0_16px_40px_rgb(0_0_0/0.4)]"
+            />
+          </div>
+        ))}
+      </div>
+      <button
+        ref={closeRef}
+        type="button"
+        onClick={onClose}
+        aria-label="Tutup gambar"
+        className="absolute right-4 top-[max(16px,env(safe-area-inset-top))] flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+      >
+        <X className="h-5 w-5" aria-hidden />
+      </button>
+      {images.length > 1 && (
+        <p className="pointer-events-none absolute inset-x-0 bottom-[max(16px,env(safe-area-inset-bottom))] text-center text-sm font-semibold text-white">
+          {current + 1} / {images.length}
+        </p>
+      )}
+    </div>,
+    document.body
+  );
+}
 
 interface PackageMobileViewProps {
   packageData: PublishedPackage;
@@ -488,16 +552,7 @@ export function PackageMobileView({ packageData, price, transport, onSoloWhatsAp
         agentCode=""
       />
 
-      {lightbox !== null && (
-        <ImageLightbox
-          images={images.map((img) => getOptimizedImageUrl(img, 1600))}
-          currentIndex={lightbox}
-          isOpen
-          onClose={() => setLightbox(null)}
-          onPrevious={() => setLightbox((i) => Math.max(0, (i ?? 0) - 1))}
-          onNext={() => setLightbox((i) => Math.min(images.length - 1, (i ?? 0) + 1))}
-        />
-      )}
+      {lightbox !== null && <ImageViewer images={images} index={lightbox} alt={packageData.package_name} onClose={() => setLightbox(null)} />}
     </div>
   );
 }
