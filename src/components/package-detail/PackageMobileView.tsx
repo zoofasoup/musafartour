@@ -134,12 +134,14 @@ export function PackageMobileView({ packageData, price, transport, onSoloWhatsAp
   const [lightbox, setLightbox] = useState<number | null>(null);
   const [slide, setSlide] = useState(0);
   const [ctaInView, setCtaInView] = useState(true);
+  const [pricePassed, setPricePassed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const flyerRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const priceRef = useRef<HTMLDivElement>(null);
   const slidesRef = useRef<HTMLDivElement>(null);
 
   const unavailable = isPackageUnavailable(packageData);
@@ -195,9 +197,18 @@ export function PackageMobileView({ packageData, price, transport, onSoloWhatsAp
   useEffect(() => {
     const el = ctaRef.current;
     if (!el) return;
-    const io = new IntersectionObserver(([entry]) => setCtaInView(entry.isIntersecting));
+    // Fully visible only: a half-cut button must not count as reachable (short phones, browser toolbars).
+    const io = new IntersectionObserver(([entry]) => setCtaInView(entry.intersectionRatio >= 0.98), { threshold: [0, 0.98, 1] });
     io.observe(el);
-    return () => io.disconnect();
+    const priceEl = priceRef.current;
+    const io2 = priceEl
+      ? new IntersectionObserver(([entry]) => setPricePassed(!entry.isIntersecting && entry.boundingClientRect.top < 64), { rootMargin: "-64px 0px 0px 0px" })
+      : null;
+    if (priceEl && io2) io2.observe(priceEl);
+    return () => {
+      io.disconnect();
+      io2?.disconnect();
+    };
   }, [unavailable, departed]);
 
   const expandSheet = () => {
@@ -343,7 +354,7 @@ export function PackageMobileView({ packageData, price, transport, onSoloWhatsAp
           </div>
         )}
 
-        <div className="mt-5">
+        <div ref={priceRef} className="mt-5">
           <p className="text-sm font-medium text-muted-foreground">
             {activeRoom ? `Harga per orang, kamar ${activeRoom.label}` : "Harga"}
           </p>
@@ -499,14 +510,16 @@ export function PackageMobileView({ packageData, price, transport, onSoloWhatsAp
               </Button>
             ) : (
               <div className="flex items-center gap-3">
-                <div className="min-w-0 flex-1">
-                  <span className="block text-sm text-muted-foreground">Per orang{activeRoom ? `, ${activeRoom.label}` : ""}</span>
-                  <span className="block whitespace-nowrap text-[22px] font-extrabold leading-tight tracking-[-0.03em] text-foreground">
-                    {activePrice ? rupiah(activePrice) : "Harga belum tersedia"}
-                  </span>
-                </div>
+                {pricePassed && (
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-sm text-muted-foreground">Per orang{activeRoom ? `, ${activeRoom.label}` : ""}</span>
+                    <span className="block whitespace-nowrap text-[22px] font-extrabold leading-tight tracking-[-0.03em] text-foreground">
+                      {activePrice ? rupiah(activePrice) : "Harga belum tersedia"}
+                    </span>
+                  </div>
+                )}
                 {packageData.slug && (
-                  <Button variant="brand" asChild className="h-14 shrink-0 px-6 text-base font-bold" tabIndex={ctaInView ? -1 : 0}>
+                  <Button variant="brand" asChild className={cn("h-14 text-base font-bold", pricePassed ? "shrink-0 px-6" : "w-full")} tabIndex={ctaInView ? -1 : 0}>
                     <Link to={`/daftar/${packageData.slug}`}>Daftar Sekarang</Link>
                   </Button>
                 )}
