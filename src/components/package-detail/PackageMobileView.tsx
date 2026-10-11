@@ -189,10 +189,10 @@ export function PackageMobileView({ packageData, price, transport, onSoloWhatsAp
       {/* Flyer: full width, pinned under the navbar while the sheet scrolls over it. */}
       <div
         ref={stageRef}
-        className="sticky top-16 z-0 bg-background"
-        style={{ height: "max(280px, min(125vw, calc(100svh - 408px)))" }}
+        className="sticky top-16 z-0 bg-primary"
+        style={{ height: "max(300px, min(125vw, calc(100svh - 330px)))" }}
       >
-        <div ref={flyerRef} className="absolute inset-x-0 top-0 bottom-6 will-change-transform">
+        <div ref={flyerRef} className="absolute inset-0 will-change-transform">
           {images.length > 0 ? (
             <div
               ref={slidesRef}
@@ -210,7 +210,7 @@ export function PackageMobileView({ packageData, price, transport, onSoloWhatsAp
                   <LazyImage
                     src={getOptimizedImageUrl(src, 900)}
                     alt={i === 0 ? packageData.package_name : `${packageData.package_name} ${i + 1}`}
-                    className="h-full w-full object-contain"
+                    className="h-full w-full object-cover object-top"
                     loading={i === 0 ? "eager" : "lazy"}
                     fetchPriority={i === 0 ? "high" : "auto"}
                   />
@@ -229,7 +229,7 @@ export function PackageMobileView({ packageData, price, transport, onSoloWhatsAp
           </span>
         )}
         {images.length > 1 && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-8 flex justify-center gap-1.5" aria-hidden>
+          <div className="pointer-events-none absolute inset-x-0 bottom-7 flex justify-center gap-1.5" aria-hidden>
             {images.map((_, i) => (
               <span key={i} className={cn("h-1.5 rounded-full motion-safe:transition-[width,background-color]", i === slide ? "w-5 bg-foreground" : "w-1.5 bg-foreground/30")} />
             ))}
