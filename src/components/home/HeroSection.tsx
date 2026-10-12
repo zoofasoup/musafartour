@@ -1,4 +1,4 @@
-import { ShieldCheck, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import type { HeroData, WebsiteSettings } from "@/hooks/useHomepageData";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
@@ -46,35 +46,9 @@ export const HeroSection = (_props: HeroSectionProps) => {
         </span>
       </div>
 
-      <PkgPanel tone="cream" first className="!pb-12">
+      <PkgPanel tone="cream" first className="!pb-20">
         <div className="mx-auto max-w-[1100px]">
-          <p className="pkg-glass pkg-label inline-flex h-9 items-center gap-2 rounded-full px-3.5">
-            <ShieldCheck className="h-4 w-4 text-pkg-ok" aria-hidden />
-            Berizin resmi Kemenag PPIU
-          </p>
-
-          <h1 className="pkg-title mt-5 whitespace-nowrap !text-[clamp(28px,9.4vw,72px)]">Umroh Nyaman,<br />Bukan Safar Biasa.</h1>
-          <p className="pkg-label mt-4 max-w-md text-pkg-fg-2">Teman perjalanan keluarga membangun memori di Tanah Suci.</p>
-
-          <div className="mt-6 flex gap-3 sm:max-w-md">
-            <button
-              type="button"
-              onClick={handleWhatsAppClick}
-              className="pkg-press pkg-glass inline-flex h-14 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-3 text-[14px] font-medium whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
-            >
-              <WhatsAppIcon className="h-5 w-5 shrink-0 text-pkg-ok" />
-              Umroh Consultant
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/paket-umroh")}
-              className="pkg-press pkg-glass-red inline-flex h-14 min-w-0 flex-1 items-center justify-center rounded-full px-3 text-[14px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
-            >
-              Lihat Paket
-            </button>
-          </div>
-
-          <div className="mt-6 flex items-center gap-4">
+          <div className="flex items-center gap-4">
             <div className="flex -space-x-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-10 w-10 overflow-hidden rounded-full bg-pkg-cream-2 ring-2 ring-pkg-cream">
@@ -90,6 +64,27 @@ export const HeroSection = (_props: HeroSectionProps) => {
               </div>
               <p className="pkg-label mt-0.5 text-pkg-fg-2">3000+ jamaah puas</p>
             </div>
+          </div>
+
+          <h1 className="pkg-title mt-5 whitespace-nowrap !leading-[1.12] !text-[clamp(28px,9.4vw,72px)]">Umroh Nyaman,<br />Bukan Safar Biasa.</h1>
+          <p className="pkg-label mt-4 max-w-md text-pkg-fg-2">Teman perjalanan keluarga membangun memori di Tanah Suci.</p>
+
+          <div className="mt-6 flex gap-3 sm:max-w-md">
+            <button
+              type="button"
+              onClick={handleWhatsAppClick}
+              className="pkg-press pkg-glass inline-flex h-14 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-3 text-[14px] font-medium whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
+            >
+              <WhatsAppIcon className="h-5 w-5 shrink-0 text-pkg-ok" />
+              Konsultasi
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/paket-umroh")}
+              className="pkg-press pkg-glass-red inline-flex h-14 min-w-0 flex-1 items-center justify-center rounded-full px-3 text-[14px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
+            >
+              Lihat Paket
+            </button>
           </div>
         </div>
       </PkgPanel>

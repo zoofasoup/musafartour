@@ -87,7 +87,7 @@
   position: relative;
   z-index: 1;
   margin-top: -32px;
-  padding: 44px 24px 60px;
+  padding: 56px 24px 76px;
   border-radius: var(--pkg-r-panel) var(--pkg-r-panel) 0 0;
   box-shadow: var(--pkg-shadow-lift), inset 0 1px 0 var(--g-rim-top);
   background: var(--g-light), var(--pkg-cream);
@@ -157,7 +157,7 @@
 .pkg-v2 .pkg-slide-blur > span:nth-child(2) img { filter: blur(14px); }
 
 /* First panel sits right on the flyer: less air above the title. */
-.pkg-v2 .pkg-panel-first { padding-top: 40px; }
+.pkg-v2 .pkg-panel-first { padding-top: 48px; }
 
 /* Seats: urgent state pulses a ring (transform and opacity only). */
 .pkg-v2 .pkg-seat-ring { position: absolute; inset: 0; border-radius: 999px; background: var(--pkg-red); pointer-events: none; }

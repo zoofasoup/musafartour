@@ -35,13 +35,13 @@ export const WhyChooseSection = ({ sellingPoints }: WhyChooseSectionProps) => {
           <p className="mt-4 text-[17px] leading-[1.55] text-pkg-fg-2">
             Kami mendampingi ibadahmu dengan sepenuh hati: tenang, nyaman, dan tak terlupakan.
           </p>
-          <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-[24px] bg-pkg-ink">
+          <div className="relative -mx-6 mt-8 aspect-video overflow-hidden bg-pkg-ink lg:mx-0 lg:rounded-[24px]">
             <iframe
               src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
               title="Musafar Tour Video"
               className="pointer-events-none absolute inset-[-20%] h-[140%] w-[140%]"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              loading="lazy"
+              loading="eager"
             />
             <div className="absolute inset-0 z-10" />
           </div>

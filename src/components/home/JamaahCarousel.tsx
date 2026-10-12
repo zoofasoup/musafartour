@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useAutoScroll } from "@/hooks/useAutoScroll";
 import { motion, useMotionValue, useTransform, animate, useInView } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +18,8 @@ const TILT = ["-rotate-3 translate-y-2", "rotate-2 -translate-y-3", "-rotate-1 t
 
 export const JamaahCarousel = () => {
   const countRef = useRef(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+  useAutoScroll(rowRef, 11, 3);
   const isInView = useInView(countRef, { once: true, margin: "-50px" });
   const count = useMotionValue(0);
   const rounded = useTransform(count, (latest) => Math.round(latest).toLocaleString("id-ID"));
@@ -54,11 +57,11 @@ export const JamaahCarousel = () => {
         </h2>
         <p className="pkg-label mt-3 text-center text-pkg-fg-2">Jamaah sudah menjadi keluarga Musafar</p>
       </div>
-      {/* Photos drift left in a loop. Two identical groups, track as wide as its content, so the -50% shift never cuts. */}
-      <div className="-mx-6 mt-10 overflow-hidden py-6 [mask-image:linear-gradient(to_right,transparent,#000_8%,#000_92%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,#000_8%,#000_92%,transparent)]">
-        <div className="flex w-max items-center animate-scroll-photos" style={{ animationDuration: "170s" }}>
-          {[0, 1].map((g) => (
-            <div key={g} className="flex shrink-0 items-center" aria-hidden={g === 1}>
+      {/* Photos drift left and can be swiped. Three identical groups; useAutoScroll wraps by exactly one group, so there is no seam. */}
+      <div className="-mx-6 mt-4 [mask-image:linear-gradient(to_right,transparent,#000_8%,#000_92%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,#000_8%,#000_92%,transparent)]">
+        <div ref={rowRef} className="flex items-center overflow-x-auto py-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {[0, 1, 2].map((g) => (
+            <div key={g} className="flex shrink-0 items-center" aria-hidden={g > 0}>
               {group.map((photo, i) => (
                 <div
                   key={`${g}-${i}`}

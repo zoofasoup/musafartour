@@ -1,3 +1,5 @@
+import { useRef } from "react";
+import { useAutoScroll } from "@/hooks/useAutoScroll";
 import { PkgPanel } from "@/components/package-detail/PkgPanel";
 import garudaLogo from "@/assets/airlines/garuda-indonesia.svg";
 import saudiaLogo from "@/assets/airlines/saudia.svg";
@@ -18,13 +20,15 @@ const airlines = [
 ];
 
 export const AirlinesCarousel = () => {
-  // Three identical sets; the track is as wide as its content (w-max), so the -1/3 shift is exactly one set and the loop never cuts.
+  // Three identical sets in a swipeable row; useAutoScroll drifts it and wraps by exactly one set, so the loop never cuts.
   const items = [...airlines, ...airlines, ...airlines];
+  const rowRef = useRef<HTMLDivElement>(null);
+  useAutoScroll(rowRef, 14, 3);
 
   return (
     <PkgPanel tone="cream-2" className="!px-0 !pt-7 !pb-12">
-      <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,#000_12%,#000_88%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,#000_12%,#000_88%,transparent)]">
-        <div className="flex w-max items-center animate-scroll-logos" style={{ animationDuration: "100s" }}>
+      <div className="relative w-full [mask-image:linear-gradient(to_right,transparent,#000_12%,#000_88%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,#000_12%,#000_88%,transparent)]">
+        <div ref={rowRef} className="flex items-center overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {items.map((airline, index) => (
             <div key={`${airline.name}-${index}`} className="flex min-w-[140px] flex-shrink-0 items-center justify-center px-8 md:min-w-[180px] md:px-12">
               <img src={airline.logo} alt={airline.name} className={`${airline.className} w-auto max-w-[140px] object-contain`} loading="lazy" />
