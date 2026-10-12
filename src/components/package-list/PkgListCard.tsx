@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Armchair, Bell, ShoppingCart, Star } from "lucide-react";
+import { Armchair, Bell, Star } from "lucide-react";
+import { PkgCartButton } from "@/components/package-list/PkgCartButton";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toRupiah } from "@/lib/tracking";
@@ -131,19 +132,7 @@ export function PkgListCard({
             <span />
           )}
           {!isSoldOut && (
-            <button
-              id={cartButtonTourId}
-              type="button"
-              onClick={onCart}
-              aria-pressed={isFav}
-              aria-label={isFav ? "Keluarkan dari keranjang" : "Masukkan ke keranjang"}
-              className={cn(
-                "pkg-card-cart pkg-press pointer-events-auto relative z-20 flex h-11 w-11 shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream",
-                isFav ? "pkg-glass-red" : "pkg-glass-deep"
-              )}
-            >
-              <ShoppingCart className={cn("h-5 w-5", isFav && "fill-current")} aria-hidden />
-            </button>
+            <PkgCartButton id={cartButtonTourId} isFav={isFav} onClick={onCart} size="sm" look="deep" className="pkg-card-cart pointer-events-auto relative z-20 focus-visible:ring-pkg-cream" />
           )}
         </div>
       </div>

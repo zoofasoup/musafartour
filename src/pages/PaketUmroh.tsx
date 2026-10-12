@@ -12,7 +12,8 @@ import "@/styles/pkg-v2.css";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useSwipeDownClose } from "@/hooks/useSwipeDownClose";
 import { X, MessageCircle, SlidersHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -30,6 +31,8 @@ const PaketUmroh = () => {
   const [flightType, setFlightType] = useState<string>("all");
   const [duration, setDuration] = useState<string>("all");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [filterPanel, setFilterPanel] = useState<HTMLDivElement | null>(null);
+  useSwipeDownClose(filterPanel, () => setMobileFilterOpen(false));
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -231,32 +234,54 @@ const PaketUmroh = () => {
           document.body
         )}
         <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
-          <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-2xl">
-            <SheetHeader>
-              <SheetTitle>Filter Paket</SheetTitle>
+          <SheetContent side="bottom" overlayClassName="pkg-overlay" className="pkg-v2 pkg-float border-0 bg-transparent p-0 shadow-none [&>button]:hidden">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Filter paket</SheetTitle>
             </SheetHeader>
-            <div className="space-y-3 py-4">
-              {filterConfigs.map((f) => (
-                <Select key={f.key} value={f.value} onValueChange={f.onChange}>
-                  <SelectTrigger className="h-11 w-full rounded-xl text-sm"><SelectValue placeholder={f.placeholder} /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{f.allLabel}</SelectItem>
-                    {f.options.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ))}
-            </div>
-            <div className="flex gap-2 border-t pt-4">
-              {isFiltered && (
-                <Button variant="outline" className="flex-1" onClick={resetFilters}>
-                  <X className="h-3.5 w-3.5" /> Reset
-                </Button>
-              )}
-              <Button variant="brand" className="flex-1" onClick={() => setMobileFilterOpen(false)}>
-                Terapkan Filter
-              </Button>
+            <div ref={setFilterPanel} data-pkg-tone="cream" className="pkg-panel pkg-panel-sheet max-h-[88svh] overflow-y-auto">
+              <span className="mx-auto mb-4 block h-1 w-10 rounded-full bg-pkg-hair" aria-hidden />
+              <SheetClose asChild>
+                <button type="button" aria-label="Tutup" className="pkg-press pkg-glass absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink">
+                  <X className="h-5 w-5" aria-hidden />
+                </button>
+              </SheetClose>
+              <h2 className="pkg-h2 pr-14">Filter</h2>
+              <div className="mt-6 space-y-6">
+                {filterConfigs.map((f) => (
+                  <fieldset key={f.key}>
+                    <legend className="pkg-label mb-3 text-pkg-fg-2">{f.placeholder}</legend>
+                    <div className="flex flex-wrap gap-2">
+                      {[{ value: "all", label: "Semua" }, ...f.options].map((o) => {
+                        const on = f.value === o.value;
+                        return (
+                          <button
+                            key={o.value}
+                            type="button"
+                            aria-pressed={on}
+                            onClick={() => f.onChange(o.value)}
+                            className={cn(
+                              "pkg-press pkg-label h-11 rounded-full px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2",
+                              on ? "bg-pkg-ink text-pkg-cream" : "bg-pkg-cream-2 text-pkg-fg-2"
+                            )}
+                          >
+                            {o.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </fieldset>
+                ))}
+              </div>
+              <div className="sticky -bottom-px -mx-6 mt-6 flex gap-3 bg-pkg-cream px-6 pb-2 pt-4">
+                {isFiltered && (
+                  <button type="button" onClick={resetFilters} className="pkg-press pkg-glass pkg-label inline-flex h-14 items-center justify-center rounded-full px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2">
+                    Reset
+                  </button>
+                )}
+                <button type="button" onClick={() => setMobileFilterOpen(false)} className="pkg-press pkg-glass-red pkg-label inline-flex h-14 min-w-0 flex-1 items-center justify-center rounded-full px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2">
+                  Lihat {transformedPackages.length} paket
+                </button>
+              </div>
             </div>
           </SheetContent>
         </Sheet>

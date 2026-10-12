@@ -38,6 +38,8 @@
   --pkg-fg-3: var(--pkg-ink-3);
   --pkg-hair: rgb(26 21 18 / 0.12);
   --pkg-scrim: rgb(26 21 18 / 0.28);
+  --pkg-dim: rgb(26 21 18 / 0.72);
+  --pkg-art: #efe8da; /* the backdrop colour of the illustration set, so the pictures melt into their panel */
 
   /* Glass, per panel tone (re-set in the tone blocks below): fill, light rim, shade, drop shadow, and a strong variant. */
   --g-fg: var(--pkg-ink);
@@ -87,7 +89,7 @@
   position: relative;
   z-index: 1;
   margin-top: -32px;
-  padding: 56px 24px 76px;
+  padding: 64px 24px 88px;
   border-radius: var(--pkg-r-panel) var(--pkg-r-panel) 0 0;
   box-shadow: var(--pkg-shadow-lift), inset 0 1px 0 var(--g-rim-top);
   background: var(--g-light), var(--pkg-cream);
@@ -157,7 +159,7 @@
 .pkg-v2 .pkg-slide-blur > span:nth-child(2) img { filter: blur(14px); }
 
 /* First panel sits right on the flyer: less air above the title. */
-.pkg-v2 .pkg-panel-first { padding-top: 48px; }
+.pkg-v2 .pkg-panel-first { padding-top: 56px; }
 
 /* Seats: urgent state pulses a ring (transform and opacity only). */
 .pkg-v2 .pkg-seat-ring { position: absolute; inset: 0; border-radius: 999px; background: var(--pkg-red); pointer-events: none; }
@@ -391,3 +393,5 @@ body[data-pkg-nav] #nav-root > nav { box-shadow: inset 0 -1px 0 color-mix(in srg
 .pkg-v2 .pkg-auth a { color: var(--pkg-red-deep); }
 .pkg-v2 .pkg-auth a:focus-visible { outline: 2px solid var(--pkg-ink); outline-offset: 2px; border-radius: 4px; }
 .pkg-v2 .pkg-auth form span[class*="bg-card"] { background: var(--pkg-cream); }
+
+.pkg-v2 .pkg-panel.pkg-panel-art { background: var(--pkg-art); }

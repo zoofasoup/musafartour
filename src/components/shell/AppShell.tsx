@@ -3,6 +3,8 @@ import { useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import "@/styles/pkg-v2.css";
+import "@/styles/pkg-app.css";
 import { ShellSidebar } from "./ShellSidebar";
 import { ShellHeader } from "./ShellHeader";
 import { ShellBottomNav } from "./ShellBottomNav";
@@ -67,6 +69,11 @@ export const AppShell = ({
   children,
 }: AppShellProps) => {
   const { pathname } = useLocation();
+  // The work-area theme lives on <html> so portals (dialogs, menus, sheets) inherit it too.
+  useEffect(() => {
+    document.documentElement.classList.add("pkg-app");
+    return () => document.documentElement.classList.remove("pkg-app");
+  }, []);
   const [searchOpen, setSearchOpen] = useState(false);
   const title = resolvePageTitle(nav, pathname, extraTitles, titleFallback);
 

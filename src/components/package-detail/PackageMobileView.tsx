@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { ArrowRight, Bell, Bus, CalendarCheck, CalendarDays, Calculator, ChevronDown, ChevronRight, Clock, MessageCircle, Plane, PlaneLanding, PlaneTakeoff, Share2, ShoppingCart, Users, X } from "lucide-react";
+import { ArrowRight, Bell, Bus, CalendarCheck, CalendarDays, Calculator, ChevronDown, ChevronRight, Clock, Plane, PlaneLanding, PlaneTakeoff, Share2, Users, X } from "lucide-react";
+import { PkgCartButton } from "@/components/package-list/PkgCartButton";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { PkgPanel } from "./PkgPanel";
 import { usePkgNav } from "@/hooks/usePkgNav";
-import { useScrollLock } from "@/hooks/useScrollLock";
 import { useSwipeDownClose } from "@/hooks/useSwipeDownClose";
 import "@/styles/pkg-v2.css";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -210,17 +211,14 @@ export function PackageMobileView({ packageData, price, transport, onBookWhatsAp
   const [slide, setSlide] = useState(0);
   const [ctaInView, setCtaInView] = useState(true);
   const [mounted, setMounted] = useState(false);
-  // First visit in this tab session: the page is held at the top with a hint button until it is tapped (?intro=1 forces it).
-  const [onboarding, setOnboarding] = useState(() => {
-    if (typeof window === "undefined" || window.scrollY > 24) return false;
-    try {
-      if (new URLSearchParams(window.location.search).has("intro")) return true;
-      return !window.sessionStorage.getItem("pkg-onboarded");
-    } catch {
-      return false;
-    }
-  });
-  useScrollLock(onboarding);
+  // The scroll-down hint over the flyer shows while the page is at the top. The walkthrough (ProductTour) has its own lock.
+  const [onboarding, setOnboarding] = useState(true);
+  useEffect(() => {
+    const onScroll = () => setOnboarding(window.scrollY < 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const sheetRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
@@ -271,12 +269,6 @@ export function PackageMobileView({ packageData, price, transport, onBookWhatsAp
   };
 
   const scrollToInfo = () => {
-    try {
-      window.sessionStorage.setItem("pkg-onboarded", "1");
-    } catch {
-      /* private mode: the hint just shows again next time */
-    }
-    setOnboarding(false);
     // Two frames: let the lock release (effect cleanup) before the scroll starts.
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
@@ -471,7 +463,7 @@ export function PackageMobileView({ packageData, price, transport, onBookWhatsAp
       {/* 2. Price and the one action */}
       <PkgPanel tone="red">
         {availableRooms.length > 1 && (
-          <div role="group" aria-label="Pilih tipe kamar" className="flex gap-2">
+          <div id="tour-rooms" role="group" aria-label="Pilih tipe kamar" className="flex gap-2">
             {availableRooms.map((r) => (
               <button
                 key={r.key}
@@ -517,18 +509,10 @@ export function PackageMobileView({ packageData, price, transport, onBookWhatsAp
             </>
           ) : (
             <div className="flex gap-2">
-              <button type="button" onClick={bookWhatsApp} className={cn(BTN, "pkg-glass-deep h-14 min-w-0 flex-1 text-[17px] focus-visible:ring-pkg-on-red focus-visible:ring-offset-pkg-red")}>
-                <MessageCircle className="h-5 w-5" aria-hidden /> Book Now
+              <button type="button" onClick={bookWhatsApp} className={cn(BTN, "pkg-glass-deep h-14 min-w-0 flex-1 text-[15px] focus-visible:ring-pkg-on-red focus-visible:ring-offset-pkg-red")}>
+                <WhatsAppIcon className="h-5 w-5 shrink-0" /> Tanya / Daftar
               </button>
-              <button
-                type="button"
-                onClick={handleWishlist}
-                aria-pressed={isFav}
-                aria-label={isFav ? "Keluarkan dari keranjang" : "Tambah ke keranjang"}
-                className={cn(BTN, "h-14 w-14 shrink-0 focus-visible:ring-pkg-on-red focus-visible:ring-offset-pkg-red", isFav ? "pkg-glass-lit" : "pkg-glass")}
-              >
-                <ShoppingCart className={cn("h-5 w-5", isFav && "fill-current")} aria-hidden />
-              </button>
+              <PkgCartButton id="tour-cart" isFav={isFav} onClick={handleWishlist} onRed className="focus-visible:ring-pkg-on-red focus-visible:ring-offset-pkg-red" />
             </div>
           )}
           <div className="flex gap-2">
@@ -661,18 +645,9 @@ export function PackageMobileView({ packageData, price, transport, onBookWhatsAp
                     {activePrice ? `Rp ${jt(activePrice)} jt` : "Harga belum tersedia"}
                   </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleWishlist}
-                  aria-pressed={isFav}
-                  aria-label={isFav ? "Keluarkan dari keranjang" : "Tambah ke keranjang"}
-                  tabIndex={ctaInView ? -1 : 0}
-                  className={cn(BTN, "h-14 w-14 shrink-0 focus-visible:ring-pkg-ink", isFav ? "pkg-glass-lit" : "pkg-glass")}
-                >
-                  <ShoppingCart className={cn("h-5 w-5", isFav && "fill-current")} aria-hidden />
-                </button>
-                <button type="button" onClick={bookWhatsApp} className={cn(BTN, "pkg-glass-red h-14 shrink-0 px-6 text-[17px] focus-visible:ring-pkg-ink [@media(hover:hover)_and_(pointer:fine)]:hover:bg-pkg-red-press")} tabIndex={ctaInView ? -1 : 0}>
-                  <MessageCircle className="h-5 w-5" aria-hidden /> Book Now
+                <PkgCartButton isFav={isFav} onClick={handleWishlist} tabIndex={ctaInView ? -1 : 0} />
+                <button type="button" onClick={bookWhatsApp} className={cn(BTN, "pkg-glass-red h-14 shrink-0 px-5 text-[15px] focus-visible:ring-pkg-ink [@media(hover:hover)_and_(pointer:fine)]:hover:bg-pkg-red-press")} tabIndex={ctaInView ? -1 : 0}>
+                  <WhatsAppIcon className="h-5 w-5 shrink-0" /> Tanya / Daftar
                 </button>
               </div>
             )}

@@ -25,7 +25,7 @@ export const AuthLayout = ({
 }: AuthLayoutProps) => {
   return (
     <div className="pkg-v2 flex min-h-screen flex-col md:flex-row">
-      <header data-pkg-tone="ink" className="relative flex items-center justify-between overflow-hidden px-6 pb-14 pt-6 md:w-1/2 md:flex-col md:items-start md:justify-between md:p-12 lg:w-[55%] lg:p-20">
+      <header data-pkg-tone="ink" className="relative flex text-pkg-fg items-center justify-between overflow-hidden px-6 pb-14 pt-6 md:w-1/2 md:flex-col md:items-start md:justify-between md:p-12 lg:w-[55%] lg:p-20">
         <div aria-hidden className="absolute inset-0 hidden bg-cover bg-center md:block" style={{ backgroundImage: `url(${illustration})` }} />
         <div aria-hidden className="absolute inset-0 hidden bg-gradient-to-t from-black/70 via-black/30 to-black/40 md:block" />
         <Link to="/" className="relative z-10 inline-block" aria-label="Musafar Tour, ke beranda">

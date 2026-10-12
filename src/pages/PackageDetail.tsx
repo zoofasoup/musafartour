@@ -92,8 +92,24 @@ const PackageDetailPage = () => {
   const [selectedComboIdx, setSelectedComboIdx] = useState(0);
   const [calculatorExpanded, setCalculatorExpanded] = useState(false);
 
-  const tour = useProductTour("package-detail", !loading && !!packageData);
+  // On the phone the walkthrough starts only once the visitor has scrolled past the flyer into the price panel.
+  const [scrolledIn, setScrolledIn] = useState(false);
+  useEffect(() => {
+    if (isDesktop || scrolledIn) return;
+    const check = () => {
+      if (window.scrollY > window.innerHeight * 0.5) setScrolledIn(true);
+    };
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    return () => window.removeEventListener("scroll", check);
+  }, [isDesktop, scrolledIn]);
+  const tour = useProductTour("package-detail", !loading && !!packageData && (isDesktop || scrolledIn), isDesktop ? 900 : 500);
   const tourSteps = [
+    {
+      targets: ["#tour-rooms"],
+      title: "Pilih Tipe Kamar",
+      body: "Quad, Triple, atau Double. Harga ikut berubah sesuai pilihanmu.",
+    },
     {
       targets: ["#tour-cta-solo"],
       title: "Berangkat Sendiri?",
@@ -102,7 +118,12 @@ const PackageDetailPage = () => {
     {
       targets: ["#tour-cta-calculator"],
       title: "Hitung Biaya Rombongan",
-      body: "Berangkat rame-rame? Klik di sini untuk membuka kalkulator dan menghitung total biaya sesuai jumlah peserta.",
+      body: "Berangkat rame-rame? Buka kalkulator untuk menghitung total biaya sesuai jumlah peserta.",
+    },
+    {
+      targets: ["#tour-cart"],
+      title: "Simpan ke Keranjang",
+      body: "Belum yakin? Simpan paket ini dan bandingkan nanti.",
     },
   ];
 
