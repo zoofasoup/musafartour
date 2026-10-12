@@ -276,13 +276,12 @@ const BodyPointerEventsGuard = () => {
   return null;
 };
 
-// Clears the chunk-reload guard once the app has actually rendered
-// successfully, so a future deploy's stale-chunk error can still trigger
-// the one-time auto-reload in ErrorBoundary instead of being permanently
-// blocked for the rest of this tab's session.
+// Clears the chunk-reload guard only after the app has stayed up for a while. Clearing it on first mount (as before)
+// reset it before the lazy page chunk had even failed, so a broken chunk reloaded the tab forever.
 const ChunkReloadFlagCleaner = () => {
   useEffect(() => {
-    sessionStorage.removeItem(CHUNK_RELOAD_FLAG);
+    const t = window.setTimeout(() => sessionStorage.removeItem(CHUNK_RELOAD_FLAG), 90_000);
+    return () => window.clearTimeout(t);
   }, []);
   return null;
 };

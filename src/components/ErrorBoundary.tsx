@@ -38,9 +38,26 @@ export class ErrorBoundary extends Component<Props, State> {
     // which fetches the fresh HTML/asset manifest. Guard with a flag so a
     // genuinely broken deploy still falls through to the visible error UI
     // instead of reload-looping forever.
-    if (isChunkLoadError(error) && !sessionStorage.getItem(CHUNK_RELOAD_FLAG)) {
-      sessionStorage.setItem(CHUNK_RELOAD_FLAG, "1");
-      window.location.reload();
+    // The flag holds the time of the last auto-reload: one reload per minute at most, so a chunk that stays
+    // broken ends on the error screen instead of looping. Before reloading we drop the service worker and its
+    // caches, because a stale cached index.html (pointing at chunk files that no longer exist) is what makes the
+    // same chunk fail again after a plain reload.
+    if (isChunkLoadError(error)) {
+      const last = Number(sessionStorage.getItem(CHUNK_RELOAD_FLAG) || 0);
+      if (!last || Date.now() - last > 60_000) {
+        sessionStorage.setItem(CHUNK_RELOAD_FLAG, String(Date.now()));
+        const purge = async () => {
+          try {
+            const regs = (await navigator.serviceWorker?.getRegistrations?.()) ?? [];
+            await Promise.all(regs.map((r) => r.unregister()));
+            const keys = (await window.caches?.keys?.()) ?? [];
+            await Promise.all(keys.map((k) => window.caches.delete(k)));
+          } catch {
+            /* best effort */
+          }
+        };
+        void purge().finally(() => window.location.reload());
+      }
     }
   }
 
