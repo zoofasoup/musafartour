@@ -33,7 +33,9 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         // /artikel is server-rendered by functions/artikel for SEO; serving the cached SPA
         // shell there gave returning visitors (and crawlers with a SW) a page with no meta tags.
-        navigateFallbackDenylist: [/^\/~oauth/, /^\/artikel/, /^\/sitemap\.xml/, /^\/robots\.txt/],
+        // /admin, /agent and /auth always get a fresh index.html from the network, never the cached shell: after a deploy a
+        // cached shell points at chunk files that no longer exist, which sent the admin dashboard into a reload loop.
+        navigateFallbackDenylist: [/^\/~oauth/, /^\/artikel/, /^\/sitemap\.xml/, /^\/robots\.txt/, /^\/admin/, /^\/agent/, /^\/auth/],
         // Admin-only screens are large and most visitors never open them; they still load
         // on demand, they just aren't pre-downloaded for every visitor.
         globIgnores: [
