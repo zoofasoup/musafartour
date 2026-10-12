@@ -1,9 +1,7 @@
-import { useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import type { Testimonial, WebsiteSettings } from "@/hooks/useHomepageData";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
+import { PkgTestimonialCard } from "@/components/package-list/PkgTestimonialCard";
 
 interface TestimonialsSectionProps {
   testimonials: Testimonial[];
@@ -19,175 +17,48 @@ const GoogleLogo = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const Stars = ({ className }: { className?: string }) => (
-  <div className="flex gap-0.5">
-    {[...Array(5)].map((_, i) => (
-      <svg key={i} className={className} fill="#FBBC05" viewBox="0 0 24 24">
-        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-      </svg>
-    ))}
-  </div>
-);
-
-const ReviewCard = ({ testimonial, onOpen }: { testimonial: Testimonial; onOpen: () => void }) => (
-  <button
-    type="button"
-    onClick={onOpen}
-    className="group relative shrink-0 snap-start w-[78vw] max-w-[300px] sm:w-[300px] h-[420px] rounded-3xl overflow-hidden bg-white shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-shadow text-left"
-  >
-    {/* Photo owns the top ~60%; only its bottom edge fades, so the people (usually in the
-        lower half of these shots) stay clear. Crop biased low for the same reason. */}
-    <div className="absolute inset-x-0 top-0 h-[60%] overflow-hidden">
-      {testimonial.image_url && (
-        <img
-          src={testimonial.image_url}
-          alt={`Jamaah Musafar Tour - ${testimonial.name}`}
-          loading="lazy"
-          className="w-full h-full object-cover [object-position:50%_72%] transition-transform duration-700 group-hover:scale-105"
-        />
-      )}
-      <div className="absolute inset-x-0 bottom-0 h-[28%] backdrop-blur-[5px] [mask-image:linear-gradient(to_bottom,transparent,black)] [-webkit-mask-image:linear-gradient(to_bottom,transparent,black)]" />
-      <div
-        className="absolute inset-x-0 bottom-0 h-[34%]"
-        style={{
-          background:
-            "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 25%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.85) 75%, #fff 100%)",
-        }}
-      />
-    </div>
-
-    <div className="absolute inset-x-0 bottom-0 p-6">
-      <span className="block font-serif text-4xl leading-none text-foreground/80 -mb-1" aria-hidden>“</span>
-      <p className="text-[15px] text-foreground leading-relaxed line-clamp-3">
-        {testimonial.content}
-      </p>
-      <div className="mt-4 flex items-center justify-between">
-        <Stars className="w-3.5 h-3.5" />
-        <p className="text-xs text-muted-foreground">— {testimonial.name}</p>
-      </div>
-    </div>
-  </button>
-);
-
-export const TestimonialsSection = ({
-  testimonials,
-  websiteSettings
-}: TestimonialsSectionProps) => {
-  const testimonialsAnimation = useScrollAnimation();
+export const TestimonialsSection = ({ testimonials, websiteSettings }: TestimonialsSectionProps) => {
   const googleReviewUrl = websiteSettings?.google_review_url || "https://share.google/IEeiBZM6iD11Byerq";
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const [selected, setSelected] = useState<Testimonial | null>(null);
 
   // No reviews in the database: show nothing rather than an empty promise.
   if (testimonials.length === 0) return null;
 
-  const scrollBy = (dir: 1 | -1) => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const card = el.querySelector<HTMLElement>("button");
-    const step = (card?.offsetWidth ?? 300) + 24;
-    el.scrollBy({ left: dir * step, behavior: "smooth" });
-  };
-
   return (
-    <section className="py-16 md:py-24 bg-muted/50 overflow-hidden relative">
-      <div className="container mx-auto px-6 md:px-8">
-        <div className="text-center mb-10 md:mb-12">
-          <span className="text-foreground uppercase tracking-[0.2em] text-xs font-bold mb-3 block">
-            Testimoni
-          </span>
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-center mb-8 text-foreground tracking-tight">
-            Apa Kata Musafriends di Google
-          </h2>
-
-          <a
-            href={googleReviewUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-4 bg-white rounded-2xl px-6 py-4 shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.1)] transition-shadow"
-          >
-            <GoogleLogo className="h-10 w-10 shrink-0" />
-            <div className="text-left">
-              <div className="flex items-center gap-2.5">
-                <span className="text-4xl font-bold text-foreground leading-none tracking-tight">5.0</span>
-                <Stars className="w-6 h-6" />
-              </div>
-              <p className="text-sm text-muted-foreground mt-1.5">
-                <span className="font-bold text-foreground">290+ ulasan</span> di Google Maps
-              </p>
-            </div>
-          </a>
-        </div>
-      </div>
-
-      <div ref={testimonialsAnimation.ref} className={`transition-all duration-700 ${testimonialsAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
-        {testimonials.length > 0 ? (
-          <div className="relative">
-            {/* Full-bleed row: runs to both screen edges (faded there), but at rest the first
-                card lines up with the 1400px container the heading sits in. --edge keeps the
-                first card clear of the edge fade on screens narrower than the container. */}
-            <div
-              ref={scrollerRef}
-              style={{
-                paddingInline: "max(var(--edge), calc((100% - 1400px) / 2 + 2rem))",
-                scrollPaddingInline: "max(var(--edge), calc((100% - 1400px) / 2 + 2rem))",
-              }}
-              className="[--edge:2rem] md:[--edge:6rem] flex gap-6 overflow-x-auto snap-x snap-mandatory pt-8 pb-14 -mt-4 -mb-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_right,transparent,black_32px,black_calc(100%_-_32px),transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_32px,black_calc(100%_-_32px),transparent)] md:[mask-image:linear-gradient(to_right,transparent,black_96px,black_calc(100%_-_96px),transparent)] md:[-webkit-mask-image:linear-gradient(to_right,transparent,black_96px,black_calc(100%_-_96px),transparent)]"
-            >
-              {testimonials.map((testimonial) => (
-                <ReviewCard key={testimonial.id} testimonial={testimonial} onOpen={() => setSelected(testimonial)} />
-              ))}
-            </div>
-
-            <div className="hidden md:flex justify-center gap-3 mt-4">
-              <Button variant="outline" size="icon" aria-label="Sebelumnya" className="rounded-full bg-white shadow-sm h-11 w-11" onClick={() => scrollBy(-1)}>
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              <Button variant="outline" size="icon" aria-label="Berikutnya" className="rounded-full bg-white shadow-sm h-11 w-11" onClick={() => scrollBy(1)}>
-                <ChevronRight className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center text-muted-foreground mb-12">
-            Belum ada testimonial yang ditambahkan
-          </div>
-        )}
-      </div>
-
-      <div className="text-center mt-10">
-        <Button variant="brand"
-          size="lg"
-          onClick={() => window.open(googleReviewUrl, "_blank")}
-          className="gap-2 bg-white text-foreground hover:bg-white/90 shadow-md border border-border/30 font-semibold"
+    <PkgPanel tone="cream">
+      <div className="mx-auto max-w-6xl">
+        <h2 className="pkg-h2 text-balance">Kata Musafriends di Google</h2>
+        <a
+          href={googleReviewUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="pkg-card pkg-press mt-6 inline-flex items-center gap-3 rounded-full py-2.5 pl-3 pr-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
         >
-          Lihat Semua Review di Google
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
-        </Button>
+          <GoogleLogo className="h-8 w-8 shrink-0" />
+          <span className="text-[28px] font-normal leading-none tracking-[-0.03em]">5.0</span>
+          <span className="pkg-label text-pkg-fg-2">290+ ulasan</span>
+        </a>
       </div>
-
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden rounded-3xl">
-          {selected && (
-            <>
-              {selected.image_url && (
-                <img src={selected.image_url} alt={`Jamaah Musafar Tour - ${selected.name}`} className="w-full max-h-[45vh] object-cover" />
-              )}
-              <div className="p-6 max-h-[45vh] overflow-y-auto">
-                <div className="flex items-center justify-between mb-3">
-                  <Stars className="w-4 h-4" />
-                  <GoogleLogo className="h-4 w-4" />
-                </div>
-                <DialogTitle className="sr-only">Ulasan dari {selected.name}</DialogTitle>
-                <p className="text-foreground leading-relaxed whitespace-pre-line">{selected.content}</p>
-                <p className="mt-4 text-right text-sm text-muted-foreground">— {selected.name}</p>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-    </section>
+      <div className="-mx-6 mt-8 flex snap-x snap-mandatory scroll-px-6 gap-4 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {testimonials.map((t) => (
+          <div key={t.id} className="w-[300px] shrink-0 snap-start">
+            <PkgTestimonialCard
+              name={t.name}
+              text={t.content}
+              location={t.location || ""}
+              gender={(t.gender as "male" | "female") || "male"}
+              imageUrl={t.image_url}
+            />
+          </div>
+        ))}
+      </div>
+      <a
+        href={googleReviewUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="pkg-label mt-6 inline-flex min-h-11 items-center gap-1.5 text-pkg-red-deep underline underline-offset-4"
+      >
+        Semua review di Google <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+      </a>
+    </PkgPanel>
   );
 };

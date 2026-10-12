@@ -1,3 +1,6 @@
+import { useRef } from "react";
+import { usePkgNav } from "@/hooks/usePkgNav";
+import "@/styles/pkg-v2.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
@@ -5,7 +8,7 @@ import { useHomepageData } from "@/hooks/useHomepageData";
 import { HeroSection } from "@/components/home/HeroSection";
 import { AirlinesCarousel } from "@/components/home/AirlinesCarousel";
 import { JamaahCarousel } from "@/components/home/JamaahCarousel";
-import { PackageRadialCarousel } from "@/components/home/PackageRadialCarousel";
+import { PackageQuiz } from "@/components/home/PackageQuiz";
 import { WhyChooseSection } from "@/components/home/WhyChooseSection";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { FAQSection } from "@/components/home/FAQSection";
@@ -15,6 +18,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { getTierPrice } from "@/lib/utils";
 
 const Index = () => {
+  const rootRef = useRef<HTMLDivElement>(null);
+  usePkgNav(rootRef, "/hero-800.webp");
   const {
     packages,
     packagesLoading,
@@ -79,7 +84,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div ref={rootRef} className="pkg-v2 min-h-screen overflow-x-clip">
       <SEO
         title={pageSEO?.meta_title || "Musafar Tour - Paket Umroh Terpercaya 2026"}
         description={pageSEO?.meta_description || "Paket umroh dari PT Musa Amanah Wisata, berizin resmi PPIU Kemenag. Lihat jadwal, harga, dan hotel tiap paket. DP Rp 5 juta, cicilan bebas, lunas H-30."}
@@ -101,7 +106,7 @@ const Index = () => {
       <AirlinesCarousel />
       <JamaahCarousel />
 
-      <PackageRadialCarousel packages={packages} loading={packagesLoading} />
+      <PackageQuiz packages={packages} loading={packagesLoading} />
 
       <WhyChooseSection sellingPoints={sellingPoints} />
 
@@ -116,7 +121,7 @@ const Index = () => {
 
       </main>
 
-      <Footer />
+      <Footer variant="pkg" />
     </div>
   );
 };

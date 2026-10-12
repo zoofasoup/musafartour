@@ -1,6 +1,4 @@
-import { useState } from "react";
-
-// Import airline logos (SVG)
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
 import garudaLogo from "@/assets/airlines/garuda-indonesia.svg";
 import saudiaLogo from "@/assets/airlines/saudia.svg";
 import qatarLogo from "@/assets/airlines/qatar-airways.svg";
@@ -20,43 +18,20 @@ const airlines = [
 ];
 
 export const AirlinesCarousel = () => {
-  const [isPaused, setIsPaused] = useState(false);
-
-  // Clone items for seamless loop
+  // Three identical sets; the track is as wide as its content (w-max), so the -1/3 shift is exactly one set and the loop never cuts.
   const items = [...airlines, ...airlines, ...airlines];
 
   return (
-    <section className="py-8 bg-muted/20 overflow-hidden">
-      <div
-        className="relative w-full overflow-hidden"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-      >
-        <div
-          className="flex items-center animate-scroll-logos"
-          style={{
-            animationPlayState: isPaused ? "paused" : "running",
-          }}
-        >
+    <PkgPanel tone="cream-2" className="!px-0 !pt-7 !pb-12">
+      <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,#000_12%,#000_88%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,#000_12%,#000_88%,transparent)]">
+        <div className="flex w-max items-center animate-scroll-logos" style={{ animationDuration: "100s" }}>
           {items.map((airline, index) => (
-            <div
-              key={`${airline.name}-${index}`}
-              className="flex-shrink-0 flex items-center justify-center px-8 md:px-12 min-w-[140px] md:min-w-[180px]"
-            >
-              <img
-                src={airline.logo}
-                alt={airline.name}
-                className={`${airline.className} w-auto max-w-[140px] object-contain grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all duration-300`}
-                loading="lazy"
-              />
+            <div key={`${airline.name}-${index}`} className="flex min-w-[140px] flex-shrink-0 items-center justify-center px-8 md:min-w-[180px] md:px-12">
+              <img src={airline.logo} alt={airline.name} className={`${airline.className} w-auto max-w-[140px] object-contain`} loading="lazy" />
             </div>
           ))}
         </div>
-
-        {/* Edge fade gradients */}
-        <div className="absolute top-0 left-0 w-16 md:w-32 h-full bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
-        <div className="absolute top-0 right-0 w-16 md:w-32 h-full bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
       </div>
-    </section>
+    </PkgPanel>
   );
 };

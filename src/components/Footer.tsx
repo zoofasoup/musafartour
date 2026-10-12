@@ -1,6 +1,6 @@
 import musafarLogo from "@/assets/musafar-logo.svg";
 import { jsonForScript } from "@/lib/jsonLd";
-import { Instagram, Facebook, Youtube, ArrowRight } from "lucide-react";
+import { Instagram, Facebook, Youtube, ArrowRight, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useHomepageData } from "@/hooks/useHomepageData";
 import { trackWhatsAppLead } from "@/lib/tracking";
@@ -10,7 +10,25 @@ const FALLBACK_PHONE = "021-38312137";
 const FALLBACK_WHATSAPP = "6281917403797";
 const FALLBACK_ADDRESS = "Commercial Park Harapan Indah Ruko Emerald Blok EB1 No. 28, Medan Satria, Kota Bekasi, Jawa Barat 17131";
 
-const Footer = () => {
+const PKG_MENU = [
+  { to: "/", label: "Beranda" },
+  { to: "/paket-umroh", label: "Paket Umroh" },
+  { to: "/jadwal-umroh", label: "Jadwal Keberangkatan" },
+  { to: "/artikel", label: "Artikel" },
+  { to: "/tentang-kami", label: "Tentang Kami" },
+  { to: "/galeri", label: "Galeri" },
+  { to: "/jadi-agen", label: "Jadi Agen Musafar" },
+];
+const PKG_SUPPORT = [
+  { to: "/#faq", label: "FAQs" },
+  { to: "/cara-bayar", label: "Cara Bayar" },
+  { to: "/cek-status", label: "Cek Status Pendaftaran" },
+  { to: "/kebijakan-privasi", label: "Kebijakan Privasi" },
+  { to: "/syarat-ketentuan", label: "Syarat & Ketentuan" },
+];
+const LINK = "inline-flex min-h-11 items-center text-base font-normal text-pkg-fg-2 transition-colors hover:text-pkg-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream";
+
+const Footer = ({ variant }: { variant?: "pkg" }) => {
   const { websiteSettings } = useHomepageData();
 
   const phone = websiteSettings?.phone_number || FALLBACK_PHONE;
@@ -36,6 +54,82 @@ const Footer = () => {
     },
     "sameAs": [instagramUrl, facebookUrl, youtubeUrl]
   };
+
+  if (variant === "pkg") {
+    const social = [
+      { href: instagramUrl, label: "Instagram", Icon: Instagram },
+      { href: facebookUrl, label: "Facebook", Icon: Facebook },
+      { href: youtubeUrl, label: "YouTube", Icon: Youtube },
+    ];
+    return (
+      <div className="pkg-v2 pkg-float">
+        <footer data-pkg-tone="ink" className="pkg-panel pkg-panel-last">
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonForScript(schemaData) }} />
+          <div className="mx-auto max-w-[1280px]">
+            <div className="grid gap-12 lg:grid-cols-2 lg:gap-24">
+              <div>
+                <div
+                  className="h-9 w-36 bg-pkg-cream [mask-image:url('/logo.webp')] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:left] [-webkit-mask-image:url('/logo.webp')] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:left]"
+                  role="img"
+                  aria-label="Musafar Tour"
+                />
+                <h2 className="pkg-h2 mt-10 max-w-md">Info promo paket umroh terbaru.</h2>
+                <a
+                  href={`https://wa.me/${whatsapp}?text=Halo%20Musamin,%20saya%20ingin%20mendapatkan%20info%20promo%20paket%20umroh%20terbaru`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackWhatsAppLead("footer")}
+                  className="pkg-press pkg-glass-red pkg-label mt-8 inline-flex h-12 items-center gap-2 rounded-full px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream focus-visible:ring-offset-2 focus-visible:ring-offset-pkg-ink"
+                >
+                  <MessageCircle className="h-5 w-5" aria-hidden /> Tanya via WhatsApp
+                </a>
+                <div className="mt-8 flex gap-3">
+                  {social.map(({ href, label, Icon }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={label}
+                      className="pkg-press pkg-glass flex h-12 w-12 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream"
+                    >
+                      <Icon className="h-5 w-5" aria-hidden />
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-8">
+                <nav aria-label="Menu">
+                  <h3 className="pkg-label text-pkg-fg-3">Menu</h3>
+                  <ul className="mt-2">
+                    {PKG_MENU.map((l) => (
+                      <li key={l.to}><Link to={l.to} className={LINK}>{l.label}</Link></li>
+                    ))}
+                  </ul>
+                </nav>
+                <nav aria-label="Support">
+                  <h3 className="pkg-label text-pkg-fg-3">Support</h3>
+                  <ul className="mt-2">
+                    {PKG_SUPPORT.map((l) => (
+                      <li key={l.to}><Link to={l.to} className={LINK}>{l.label}</Link></li>
+                    ))}
+                    <li><button type="button" onClick={openConsentSettings} className={LINK}>Pengaturan cookie</button></li>
+                    <li><Link to="/kontak" className={LINK}>Kontak</Link></li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+
+            <div className="mt-12 flex flex-col gap-1 border-t border-pkg-hair pt-6 text-sm text-pkg-fg-3 md:flex-row md:justify-between">
+              <p>{new Date().getFullYear()} © Musafar Tour</p>
+              <p>Made by Musawara Creative</p>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
 
   return (
     <footer className="bg-primary text-white pt-16 md:pt-24 pb-8">

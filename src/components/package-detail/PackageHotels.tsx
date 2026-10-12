@@ -10,10 +10,10 @@ import { LazyImage } from "@/components/ui/lazy-image";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackageHotels as PackageHotelsType } from "@/lib/packageSchema";
 
-const StarRating = ({ rating }: { rating: number }) => (
-  <div className="flex gap-0.5">
+const StarRating = ({ rating, bright = false }: { rating: number; bright?: boolean }) => (
+  <div className="flex shrink-0 gap-0.5" role="img" aria-label={`Bintang ${rating}`}>
     {[...Array(rating)].map((_, i) => (
-      <Star key={i} className="h-3 w-3 fill-amber-text text-amber-text" />
+      <Star key={i} className={bright ? "h-4 w-4 fill-pkg-red-bright text-pkg-red-bright" : "h-3 w-3 fill-amber-text text-amber-text"} />
     ))}
   </div>
 );
@@ -99,12 +99,58 @@ function HotelPhotoCarousel({ photos, onOpen }: { photos: { label: string; url: 
   );
 }
 
+
+/** Phone: edge-to-edge swipeable photo with the controls on the photo itself, no boxes around it. */
+function HotelSwipe({ photos, mapsUrl, onOpen }: { photos: { label: string; url: string }[]; mapsUrl: string | null; onOpen: (index: number) => void }) {
+  const [active, setActive] = useState(0);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  return (
+    <div className="relative overflow-hidden rounded-2xl bg-muted">
+      <div
+        ref={scrollerRef}
+        onScroll={() => {
+          const el = scrollerRef.current;
+          if (el) setActive(Math.round(el.scrollLeft / el.clientWidth));
+        }}
+        className="flex snap-x snap-mandatory overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+      >
+        {photos.map((photo, i) => (
+          <button key={photo.label} type="button" onClick={() => onOpen(i)} aria-label={`Perbesar foto ${photo.label}`} className="aspect-[4/3] w-full shrink-0 snap-center">
+            <LazyImage src={getOptimizedImageUrl(photo.url, 800)} alt={photo.label} loading="lazy" className="h-full w-full object-cover" />
+          </button>
+        ))}
+      </div>
+      <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-pkg-ink/60 px-2.5 py-1 text-xs font-semibold text-pkg-cream backdrop-blur-sm">{photos[active]?.label}</span>
+      {mapsUrl && (
+        <a
+          href={mapsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Lihat di Google Maps"
+          className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-pkg-cream/90 text-pkg-ink shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
+        >
+          <MapPin className="h-5 w-5" aria-hidden />
+        </a>
+      )}
+      {photos.length > 1 && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center gap-1.5" aria-hidden>
+          {photos.map((_, i) => (
+            <span key={i} className={cn("h-1.5 rounded-full transition-all", i === active ? "w-5 bg-pkg-cream" : "w-1.5 bg-pkg-cream/60")} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface PackageHotelsProps {
   packageData: PublishedPackage;
   hotels: PackageHotelsType | null;
+  /** Phone layout: flat, photo-first, big city names. */
+  mobile?: boolean;
 }
 
-export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
+export function PackageHotels({ packageData, hotels, mobile = false }: PackageHotelsProps) {
   const photoLookup = useHotelPhotoLookup();
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
@@ -131,11 +177,62 @@ export function PackageHotels({ packageData, hotels }: PackageHotelsProps) {
   const makkahMapsUrl = getMapsUrl(hotels.makkah.name);
   const madinahMapsUrl = getMapsUrl(hotels.madinah.name);
 
+  if (mobile) {
+    const entries = [
+      { city: "Makkah", hotel: hotels.makkah, nights: packageData.nights_makkah, photos: makkahPhotos, mapsUrl: makkahMapsUrl },
+      { city: "Madinah", hotel: hotels.madinah, nights: packageData.nights_madinah, photos: madinahPhotos, mapsUrl: madinahMapsUrl },
+    ].filter((e) => !!e.hotel.name);
+    const hasExtra = packageData.hotel_extra && packageData.hotel_extra !== "-" && packageData.nights_extra;
+    return (
+      <section aria-labelledby="hotel-heading">
+        <h2 id="hotel-heading" className="pkg-h2">Hotel</h2>
+        <div className="mt-8 space-y-12">
+          {entries.map(({ city, hotel, nights, photos, mapsUrl }) => (
+            <article key={city}>
+              <div className="mb-3 flex items-end justify-between gap-3">
+                <h3 className="pkg-h2">{city}</h3>
+                {nights ? <span className="pkg-glass pkg-label rounded-full px-3 py-1.5">{nights} malam</span> : null}
+              </div>
+              {photos.length > 0 ? (
+                <HotelSwipe photos={photos} mapsUrl={mapsUrl} onOpen={(index) => setLightbox({ images: photos.map((p) => p.url), index })} />
+              ) : null}
+              <div className={cn("flex items-start justify-between gap-3", photos.length > 0 && "mt-3")}>
+                <p className="text-xl font-normal leading-snug tracking-[-0.01em] text-pkg-fg">{hotel.name}</p>
+                {hotel.star ? <StarRating rating={hotel.star} bright /> : null}
+              </div>
+              {(hotel.distance || hotel.walk) && (
+                <p className="pkg-label mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-pkg-fg-2">
+                  {hotel.distance && <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4" aria-hidden /> {hotel.distance}</span>}
+                  {hotel.walk && <span className="inline-flex items-center gap-1.5"><Footprints className="h-4 w-4" aria-hidden /> {hotel.walk}</span>}
+                </p>
+              )}
+            </article>
+          ))}
+          {hasExtra ? (
+            <p className="pkg-label text-pkg-fg-2">
+              <span className="text-pkg-fg">Transit / ekstra:</span> {packageData.hotel_extra} · {packageData.nights_extra} malam
+            </p>
+          ) : null}
+        </div>
+        {lightbox && (
+          <ImageLightbox
+            images={lightbox.images.map((url) => getOptimizedImageUrl(url, 1600))}
+            currentIndex={lightbox.index}
+            isOpen={true}
+            onClose={() => setLightbox(null)}
+            onPrevious={() => setLightbox((prev) => prev && { ...prev, index: Math.max(0, prev.index - 1) })}
+            onNext={() => setLightbox((prev) => prev && { ...prev, index: Math.min(prev.images.length - 1, prev.index + 1) })}
+          />
+        )}
+      </section>
+    );
+  }
+
   return (
     <Card>
       <CardContent className="p-5">
         <h3 className="text-sm font-bold text-muted-foreground uppercase mb-4">
-          Akomodasi
+          Hotel
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {hotels.makkah.name && (

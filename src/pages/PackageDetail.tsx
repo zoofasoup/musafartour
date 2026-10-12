@@ -27,6 +27,8 @@ import { TierSelector, TIER_LABELS } from "@/components/package-detail/TierSelec
 import { PackageGallery } from "@/components/package-detail/PackageGallery";
 import { PackageHeader } from "@/components/package-detail/PackageHeader";
 import { PackageHotels } from "@/components/package-detail/PackageHotels";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
+import { PkgDetailSkeleton } from "@/components/package-list/PkgSkeletons";
 import { PackageFeatures } from "@/components/package-detail/PackageFeatures";
 import { PackagePricing } from "@/components/package-detail/PackagePricing";
 import { PackagePaymentTerms } from "@/components/package-detail/PackagePaymentTerms";
@@ -196,6 +198,18 @@ const PackageDetailPage = () => {
     redirectToWhatsApp(msg, "package_solo", trackedPackage());
   };
 
+  // "Book Now" on the phone layout: the chosen room and its price go into the message.
+  const handleBookWhatsApp = (room?: { label: string; price: number }) => {
+    if (!packageData) return;
+    const depDate = fmtDate(packageData.departure_date);
+    let msg = `Assalamu'alaikum Musafar Tour,\n\nSaya ingin booking paket Umroh berikut:\n\n`;
+    msg += `📦 *Paket:* ${packageData.package_name}\n`;
+    msg += `📅 *Keberangkatan:* ${depDate}\n`;
+    if (room) msg += `🛏️ *Kamar:* ${room.label}\n💰 *Harga:* ${formatCurrency(room.price)}/orang\n`;
+    msg += `\nMohon info langkah selanjutnya. Terima kasih.`;
+    redirectToWhatsApp(msg, "package_book", trackedPackage());
+  };
+
   // Waitlist goes through WhatsApp like every other CTA - the old toast
   // promised a notification but never recorded who asked.
   const handleNotifyMe = () => {
@@ -207,6 +221,15 @@ const PackageDetailPage = () => {
     msg += `Mohon kabari saya jika ada seat kosong, atau info jadwal terdekat lainnya. Terima kasih.`;
     redirectToWhatsApp(msg, "package_waitlist", trackedPackage());
   };
+
+  if (loading && !isDesktop) {
+    return (
+      <>
+        <Navbar />
+        <PkgDetailSkeleton />
+      </>
+    );
+  }
 
   if (loading) {
     return (
@@ -440,7 +463,7 @@ const PackageDetailPage = () => {
             packageData={packageData}
             price={price}
             transport={transport}
-            onSoloWhatsApp={handleSoloWhatsApp}
+            onBookWhatsApp={handleBookWhatsApp}
             handleNotifyMe={handleNotifyMe}
             pricing={pricingProps}
             availableTiers={availableTiers}
@@ -449,18 +472,31 @@ const PackageDetailPage = () => {
               setSelectedTier(t);
               setSelectedComboIdx(0);
             }}
-          />
-          <main id="main" className="space-y-6 px-6 pb-28 pt-4">
-            <PackageHotels packageData={packageData} hotels={hotels} />
-            <PackageFeatures includedItems={includedItems} excludedItems={excludedItems} />
-            <PackagePaymentTerms />
-            <PackageTestimonials />
-            <RelatedPackages currentPackageId={packageData.id} currentTier={effectiveTier} />
-          </main>
+          >
+            {hotels && (hotels.makkah.name || hotels.madinah.name) && (
+              <PkgPanel tone="ink">
+                <PackageHotels packageData={packageData} hotels={hotels} mobile />
+              </PkgPanel>
+            )}
+            {(includedItems.length > 0 || excludedItems.length > 0) && (
+              <PkgPanel tone="cream-2">
+                <PackageFeatures includedItems={includedItems} excludedItems={excludedItems} mobile />
+              </PkgPanel>
+            )}
+            <PkgPanel tone="cream" last>
+              <PackagePaymentTerms flat />
+              <div className="mt-14 [&>section]:mt-0">
+                <PackageTestimonials headingClassName="pkg-h2 mb-6" flat />
+              </div>
+              <div className="mt-14 [&>section]:mt-0">
+                <RelatedPackages currentPackageId={packageData.id} currentTier={effectiveTier} headingClassName="pkg-h2 mb-6" flat />
+              </div>
+            </PkgPanel>
+          </PackageMobileView>
         </>
       )}
 
-      <Footer />
+      <Footer variant={isDesktop ? undefined : "pkg"} />
 
       <ProductTour steps={tourSteps} active={tour.active} onFinish={tour.finish} />
     </div>

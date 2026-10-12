@@ -1,7 +1,8 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import musafarLogo from "@/assets/musafar-logo.svg";
-import musafarLogoDark from "@/assets/musafar-logo-dark.svg";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
+import "@/styles/pkg-v2.css";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -11,75 +12,37 @@ interface AuthLayoutProps {
   quote?: string;
 }
 
-export const AuthLayout = ({ 
-  children, 
-  title, 
+/**
+ * Shared shell for the sign-in family (admin login, agent login, register, forgot password), in the pkg-v2 look.
+ * Phone: a short dark header with the logo, then the form on a cream panel. Desktop: dark photo side, form on cream.
+ * Fields and buttons inside get their look from `.pkg-auth` in pkg-v2.css.
+ */
+export const AuthLayout = ({
+  children,
+  title,
   subtitle,
-  illustration = "https://images.unsplash.com/photo-1604871000636-074fa5117945?auto=format&fit=crop&q=80"
+  illustration = "https://images.unsplash.com/photo-1604871000636-074fa5117945?auto=format&fit=crop&q=80",
 }: AuthLayoutProps) => {
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-background">
-      {/* Left Panel - Visual/Brand */}
-      <div className="hidden md:flex md:w-1/2 lg:w-[55%] relative overflow-hidden bg-primary">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] hover:scale-105"
-          style={{ backgroundImage: `url(${illustration})` }}
-        />
-        
-        {/* Dark Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/30" />
-        <div className="absolute inset-0 bg-primary/20 mix-blend-overlay" />
-        
-        {/* Content */}
-        <div className="relative z-10 w-full h-full flex flex-col justify-between p-12 lg:p-20 text-white">
-          <div>
-            <Link to="/" className="inline-block transition-transform hover:scale-105">
-              <img src={musafarLogo} alt="Musafar Tour" className="h-8 brightness-0 invert" />
-            </Link>
-          </div>
-          
-          <div className="max-w-xl animate-fade-up">
-            <h1 className="text-4xl lg:text-5xl font-bold leading-tight tracking-tight drop-shadow-lg">
-              Selamat Datang
-            </h1>
-          </div>
+    <div className="pkg-v2 flex min-h-screen flex-col md:flex-row">
+      <header data-pkg-tone="ink" className="relative flex items-center justify-between overflow-hidden px-6 pb-14 pt-6 md:w-1/2 md:flex-col md:items-start md:justify-between md:p-12 lg:w-[55%] lg:p-20">
+        <div aria-hidden className="absolute inset-0 hidden bg-cover bg-center md:block" style={{ backgroundImage: `url(${illustration})` }} />
+        <div aria-hidden className="absolute inset-0 hidden bg-gradient-to-t from-black/70 via-black/30 to-black/40 md:block" />
+        <Link to="/" className="relative z-10 inline-block" aria-label="Musafar Tour, ke beranda">
+          <img src={musafarLogo} alt="Musafar Tour" className="h-8 brightness-0 invert" />
+        </Link>
+        <Link to="/" className="pkg-glass pkg-label relative z-10 inline-flex h-10 items-center rounded-full px-4 text-[14px] md:hidden">Beranda</Link>
+        <p className="pkg-title relative z-10 hidden md:block lg:!text-[72px]">Selamat datang</p>
+      </header>
+
+      <PkgPanel tone="cream" last className="pkg-auth flex-1 md:!mt-0 md:!rounded-none md:flex md:items-center md:!px-12 lg:!px-20 xl:!px-24">
+        <div className="mx-auto w-full max-w-md">
+          <Link to="/" className="pkg-label hidden min-h-11 items-center text-pkg-fg-2 underline underline-offset-4 md:inline-flex">&larr; Kembali ke halaman utama</Link>
+          <h1 className="pkg-h2 mt-2 text-balance md:mt-4">{title}</h1>
+          <p className="mt-3 text-[16px] leading-[1.5] text-pkg-fg-2">{subtitle}</p>
+          <div className="mt-8">{children}</div>
         </div>
-      </div>
-
-      {/* Right Panel - Form */}
-      <div className="w-full md:w-1/2 lg:w-[45%] flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-20 xl:px-24 bg-white">
-        <div className="w-full max-w-md mx-auto">
-          {/* Mobile Logo */}
-          <div className="md:hidden text-center mb-10 animate-fade-in">
-            <Link to="/">
-              <img src={musafarLogoDark} alt="Musafar Tour" className="h-10 mx-auto" />
-            </Link>
-          </div>
-
-          <div className="mb-6 animate-fade-in-down">
-            <Link 
-              to="/" 
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
-            >
-              &larr; Kembali ke halaman utama
-            </Link>
-          </div>
-
-          <div className="mb-10 animate-fade-in-up">
-            <h2 className="text-3xl font-bold text-foreground tracking-tight mb-2">
-              {title}
-            </h2>
-            <p className="text-muted-foreground">
-              {subtitle}
-            </p>
-          </div>
-
-          <div className="animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-            {children}
-          </div>
-        </div>
-      </div>
+      </PkgPanel>
     </div>
   );
 };

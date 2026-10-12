@@ -328,7 +328,7 @@ export const PackageCard = ({
                 id={cartButtonTourId}
                 ref={heartRef}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleFavoriteClick(e); }}
-                className={`relative z-20 flex items-center justify-center w-10 h-10 rounded-full shadow-md transition-colors ${
+                className={`relative z-20 flex items-center justify-center w-10 h-10 [@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11 rounded-full shadow-md transition-colors ${
                   isFav ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-200 hover:bg-slate-300'
                 } ${isAnimating ? 'animate-cart-pop' : ''}`}
                 aria-label={isFav ? "Keluarkan dari keranjang" : "Masukkan ke keranjang"}

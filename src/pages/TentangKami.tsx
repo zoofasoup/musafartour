@@ -1,43 +1,28 @@
-import { Skeleton } from "@/components/ui/skeleton";
+import { useRef } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
-import { Button } from "@/components/ui/button";
 import { useHomepageData } from "@/hooks/useHomepageData";
-import { TestimonialCard } from "@/components/TestimonialCard";
-import { PackageCard } from "@/components/PackageCard";
-import { getTierPrice, isPackageUnavailable, getSlotsTaken, formatPriceJuta } from "@/lib/utils";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
+import { PkgListCard } from "@/components/package-list/PkgListCard";
+import { PkgTestimonialCard } from "@/components/package-list/PkgTestimonialCard";
+import { PkgCardSkeleton } from "@/components/package-list/PkgSkeletons";
+import { usePkgNav } from "@/hooks/usePkgNav";
+import "@/styles/pkg-v2.css";
+import { getTierPrice, isPackageUnavailable, getSlotsTaken } from "@/lib/utils";
 import { resolveTierHotels } from "@/lib/roomCombos";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import {
-  Heart,
-  Baby,
-  Star,
-  CheckCircle2,
-  MapPin,
-  Landmark,
-  CreditCard,
-  MessageCircle,
-  ChevronRight,
-  Phone,
-  Mail,
-  ExternalLink,
-} from "lucide-react";
-import { motion } from "framer-motion";
+import { Heart, Baby, MapPin, Landmark, CreditCard, MessageCircle, Phone, Mail, ExternalLink, CheckCircle2 } from "lucide-react";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
-};
-
-const stagger = {
-  visible: { transition: { staggerChildren: 0.12 } },
-};
+const btnFocus = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2";
 
 const TentangKami = () => {
+  const rootRef = useRef<HTMLDivElement>(null);
+  usePkgNav(rootRef);
   const { packages, packagesLoading, testimonials, websiteSettings } = useHomepageData();
 
   const handleWhatsApp = () => {
@@ -49,7 +34,7 @@ const TentangKami = () => {
   const email = websiteSettings?.email || "musafartour@gmail.com";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div ref={rootRef} className="pkg-v2 min-h-screen">
       <SEO
         title="Tentang Kami - Musafar Tour | Travel Umroh Ramah Keluarga"
         description="Musafar Tour adalah travel umroh terpercaya, berizin resmi PPIU Kemenag, yang dirancang khusus untuk keluarga - ramah lansia dan ramah anak."
@@ -67,343 +52,161 @@ const TentangKami = () => {
       />
       <Navbar />
       <main id="main">
-      {/* ══════════════════════════════════════════════════════════
-          SECTION 1: HERO
-      ══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-background text-foreground">
-        <div className="relative z-10 container mx-auto px-6 md:px-8 py-24 md:py-32 text-center max-w-4xl">
-          <motion.div initial="hidden" animate="visible" variants={stagger}>
-            <motion.p variants={fadeUp} className="text-foreground font-semibold text-sm tracking-widest uppercase mb-6">
-              Bukan Safar Biasa
-            </motion.p>
-            <motion.h1 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter leading-[1.1] mb-6">
-              Umroh Bersama Keluarga,{" "}
-              <span className="text-foreground/70">Tanpa Cemas Sedikitpun.</span>
-            </motion.h1>
-            <motion.p variants={fadeUp} className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-10 tracking-tight leading-relaxed">
-              Membawa orang tua yang sudah sepuh atau si kecil ke Tanah Suci bukan hal sederhana. Musafar Tour dirancang khusus supaya seluruh keluarga bisa beribadah dengan tenang, bersama.
-            </motion.p>
-            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="brand"
-                size="lg"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base px-8"
-                onClick={handleWhatsApp}
-              >
-                Konsultasi Umroh Sekeluarga
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-foreground/20 text-foreground hover:bg-foreground/5 font-semibold text-base px-8"
-                onClick={() => window.location.href = "/paket-umroh"}
-              >
-                Lihat Jadwal Keberangkatan
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
+        <PkgPanel tone="ink" top>
+          <div className="mx-auto max-w-3xl">
+            <p className="pkg-glass pkg-label inline-flex h-8 items-center rounded-full px-3 text-[13px]">Bukan safar biasa</p>
+            <h1 className="pkg-title mt-5 text-balance !text-[46px] md:!text-[64px]">Umroh sekeluarga, tanpa cemas.</h1>
+            <p className="mt-5 text-[17px] leading-[1.5] text-pkg-fg-2">
+              Orang tua yang sepuh atau si kecil ikut ke Tanah Suci bukan hal sederhana. Musafar dirancang supaya semua bisa beribadah dengan tenang.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <button type="button" onClick={handleWhatsApp} className={`pkg-press pkg-glass-red pkg-label inline-flex h-14 items-center justify-center gap-2 rounded-full px-7 ${btnFocus} focus-visible:ring-pkg-cream focus-visible:ring-offset-pkg-ink`}>
+                <MessageCircle className="h-5 w-5" aria-hidden /> Tanya CS, gratis
+              </button>
+              <Link to="/paket-umroh" className={`pkg-press pkg-glass pkg-label inline-flex h-14 items-center justify-center rounded-full px-7 ${btnFocus} focus-visible:ring-pkg-cream focus-visible:ring-offset-pkg-ink`}>
+                Lihat jadwal berangkat
+              </Link>
+            </div>
+          </div>
+        </PkgPanel>
 
-      {/* ══════════════════════════════════════════════════════════
-          SECTION 2: RAMAH KELUARGA — the one thing this page is about
-      ══════════════════════════════════════════════════════════ */}
-      <section className="py-20 md:py-28">
-        <div className="container mx-auto px-6 md:px-8">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            variants={stagger}
-            className="max-w-3xl mx-auto text-center mb-16"
-          >
-            <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tighter mb-6 text-foreground">
-              Kami Paham, Membawa Orang Tercinta ke Tanah Suci{" "}
-              <span className="text-primary">Bukan Hal Sederhana.</span>
-            </motion.h2>
-            <motion.p variants={fadeUp} className="text-muted-foreground text-base md:text-lg leading-relaxed tracking-tight">
-              Mungkin Anda cemas membawa orang tua yang sudah sepuh, atau ragu membawa si kecil menempuh perjalanan jauh. Rasa khawatir akan kenyamanan dan keamanan seringkali memecah fokus ibadah Anda.
-            </motion.p>
-            <motion.p variants={fadeUp} className="text-foreground font-semibold text-base md:text-lg mt-4 tracking-tight">
-              Di Musafar Tour & Travel, kami tidak hanya mengurus tiket dan hotel.{" "}
-              <span className="text-primary">Kami mengurus Ketenangan Hati Anda.</span>
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            variants={stagger}
-            className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto"
-          >
-            {[
-              {
-                icon: Heart,
-                title: "Ramah Lansia",
-                desc: "Dilengkapi kursi roda dan GPS Tracker untuk keamanan orang tua Anda selama perjalanan.",
-              },
-              {
-                icon: Baby,
-                title: "Ramah Anak",
-                desc: "Tersedia Children Kit, Stroller, dan rencana perjalanan yang tidak melelahkan si kecil.",
-              },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                variants={fadeUp}
-                className="group relative rounded-3xl border border-border/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className="bg-primary/10 w-14 h-14 rounded-xl flex items-center justify-center mb-5">
-                  <item.icon className="h-7 w-7 text-primary" />
+        <PkgPanel tone="cream">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="pkg-h2 text-balance">Kami urus ketenangan hatimu.</h2>
+            <p className="mt-5 text-[17px] leading-[1.55] text-pkg-fg-2">
+              Cemas membawa orang tua, ragu membawa si kecil menempuh perjalanan jauh. Rasa khawatir itu sering memecah fokus ibadah. Kami tidak hanya mengurus tiket dan hotel.
+            </p>
+            <div className="mt-10 space-y-8">
+              {[
+                { icon: Heart, title: "Ramah lansia", desc: "Kursi roda dan GPS tracker untuk keamanan orang tua." },
+                { icon: Baby, title: "Ramah anak", desc: "Children kit, stroller, dan rencana perjalanan yang tidak melelahkan." },
+              ].map((item) => (
+                <div key={item.title} className="flex items-start gap-4">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pkg-cream-2 text-pkg-red-deep">
+                    <item.icon className="h-6 w-6" aria-hidden />
+                  </span>
+                  <div>
+                    <h3 className="pkg-h3">{item.title}</h3>
+                    <p className="mt-1 text-[16px] leading-[1.5] text-pkg-fg-2">{item.desc}</p>
+                  </div>
                 </div>
-                <h3 className="font-bold text-lg tracking-tight mb-2 text-foreground">{item.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════
-          SECTION 3: TESTIMONIALS — real reviews, not a made-up stat
-      ══════════════════════════════════════════════════════════ */}
-      <section className="py-20 md:py-28 bg-muted/40">
-        <div className="container mx-auto px-6 md:px-8">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            variants={stagger}
-            className="text-center mb-16"
-          >
-            <motion.p variants={fadeUp} className="text-primary font-semibold text-sm tracking-widest uppercase mb-3">
-              Kata Jamaah Kami
-            </motion.p>
-            <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tighter text-foreground mb-4">
-              Cerita Keluarga yang Sudah Berangkat Bersama Kami
-            </motion.h2>
-            {websiteSettings?.google_review_url && (
-              <motion.a
-                variants={fadeUp}
-                href={websiteSettings.google_review_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
-              >
-                Lihat semua review di Google <ExternalLink className="h-3.5 w-3.5" />
-              </motion.a>
-            )}
-          </motion.div>
-
-          {testimonials.length > 0 ? (
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.15 }}
-              variants={stagger}
-              className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 max-w-5xl mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-            >
-              {testimonials.slice(0, 8).map((t) => (
-                <motion.div key={t.id} variants={fadeUp} className="w-[320px] shrink-0 snap-start">
-                  <TestimonialCard
-                    name={t.name}
-                    text={t.content}
-                    location={t.location || ""}
-                    gender={(t.gender as "male" | "female") || "male"}
-                    imageUrl={t.image_url}
-                  />
-                </motion.div>
               ))}
-            </motion.div>
-          ) : null}
-        </div>
-      </section>
+            </div>
+          </div>
+        </PkgPanel>
 
-      {/* ══════════════════════════════════════════════════════════
-          SECTION 4: PRODUCT SHOWCASE — Packages
-      ══════════════════════════════════════════════════════════ */}
-      <section className="py-20 md:py-28">
-        <div className="container mx-auto px-6 md:px-8">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            variants={stagger}
-            className="text-center mb-16"
-          >
-            <motion.p variants={fadeUp} className="text-primary font-semibold text-sm tracking-widest uppercase mb-3">
-              Paket Umroh
-            </motion.p>
-            <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tighter text-foreground">
-              Pilih Paket Terbaik untuk Kenyamanan Ibadah Keluarga Anda
-            </motion.h2>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.15 }}
-            variants={stagger}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto"
-          >
-            {packagesLoading ? (
-              <div className="col-span-full py-10 flex gap-4">
-                <Skeleton className="h-[300px] w-full rounded-2xl" />
-                <Skeleton className="h-[300px] w-full rounded-2xl" />
-                <Skeleton className="h-[300px] w-full rounded-2xl" />
-              </div>
-            ) : packages && packages.length > 0 ? (
-              [...packages]
-                .sort((a, b) => Number(isPackageUnavailable(a)) - Number(isPackageUnavailable(b)))
-                .slice(0, 3)
-                .map((pkg, i) => {
-                  // Same as RelatedPackages: show the package's own tier hotels, not the
-                  // legacy base fields (empty or mismatched stars on hemat/five-star-only packages).
-                  const tier = pkg.available_tiers?.[0] || "nyaman";
-                  const tierHotels = resolveTierHotels(pkg as unknown as PublishedPackage, tier);
-                  return (
-                <motion.div key={pkg.id} variants={fadeUp} className="h-full">
-                  <PackageCard
-                    id={pkg.id}
-                    slug={pkg.slug || undefined}
-                    image={pkg.banner_image || "/placeholder.svg"}
-                    title={pkg.package_name}
-                    price={formatPriceJuta(getTierPrice(pkg).quad)}
-                    date={format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId })}
-                    duration={`${pkg.duration_days} Hari`}
-                    airline={pkg.flight}
-                    hotelMakkah={tierHotels.makkah.name || undefined}
-                    hotelMakkahRating={tierHotels.makkah.star || undefined}
-                    hotelMadinah={tierHotels.madinah.name || undefined}
-                    hotelMadinahRating={tierHotels.madinah.star || undefined}
-                    category={tier}
-                    index={i}
-                    seatAvailable={!isPackageUnavailable(pkg)}
-                    isSoldOut={isPackageUnavailable(pkg)}
-                    waitlistCount={pkg.waitlist_count || 0}
-                    slotsTotal={pkg.slots_total}
-                    slotsFilled={getSlotsTaken(pkg)}
-                    className="h-full"
-                  />
-                </motion.div>
-                  );
-                })
-            ) : (
-              <div className="col-span-full text-center text-muted-foreground py-10">Belum ada paket tersedia.</div>
-            )}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════
-          SECTION 5: PRACTICAL INFO
-      ══════════════════════════════════════════════════════════ */}
-      <section className="py-20 md:py-28 bg-muted/40">
-        <div className="container mx-auto px-6 md:px-8">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            variants={stagger}
-            className="text-center mb-16"
-          >
-            <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tighter text-foreground mb-3">
-              Siapkan Niat, Kami Siapkan Sisanya.
-            </motion.h2>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.15 }}
-            variants={stagger}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto"
-          >
-            {/* Persyaratan */}
-            <motion.div variants={fadeUp} className="rounded-3xl border border-border/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-7">
-              <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
-                <CheckCircle2 className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-bold text-base tracking-tight mb-4 text-foreground">Persyaratan Mudah</h3>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <ChevronRight className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
-                  Paspor (berlaku min. 12 bulan setelah tanggal berangkat)
-                </li>
-                <li className="flex items-start gap-2">
-                  <ChevronRight className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
-                  Deposit Awal hanya <strong className="text-foreground">Rp 5.000.000/pax</strong>
-                </li>
-                <li className="flex items-start gap-2">
-                  <ChevronRight className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
-                  Cicilan bebas, lunas H-30 keberangkatan
-                </li>
-              </ul>
-            </motion.div>
-
-            {/* Pembayaran */}
-            <motion.div variants={fadeUp} className="rounded-3xl border border-border/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-7">
-              <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
-                <CreditCard className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-bold text-base tracking-tight mb-4 text-foreground">Pembayaran Resmi & Aman</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Transfer hanya ke rekening a.n{" "}
-                <strong className="text-foreground">PT Musa Amanah Wisata</strong>
-              </p>
-              <div className="space-y-2">
-                {["BCA", "BSI", "BNI"].map((bank) => (
-                  <div key={bank} className="flex items-center gap-2 text-sm">
-                    <Landmark className="h-4 w-4 text-primary" />
-                    <span className="font-medium text-foreground">{bank}</span>
+        {testimonials.length > 0 && (
+          <PkgPanel tone="cream-2">
+            <div className="mx-auto max-w-5xl">
+              <h2 className="pkg-h2 text-balance">Cerita jamaah kami</h2>
+              {websiteSettings?.google_review_url && (
+                <a href={websiteSettings.google_review_url} target="_blank" rel="noopener noreferrer" className="pkg-label mt-4 inline-flex min-h-11 items-center gap-1.5 text-pkg-red-deep underline underline-offset-4">
+                  Semua review di Google <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+                </a>
+              )}
+              <div className="-mx-6 mt-8 flex snap-x snap-mandatory scroll-px-6 gap-4 overflow-x-auto px-6 pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                {testimonials.slice(0, 8).map((t) => (
+                  <div key={t.id} className="w-[300px] shrink-0 snap-start">
+                    <PkgTestimonialCard
+                      name={t.name}
+                      text={t.content}
+                      location={t.location || ""}
+                      gender={(t.gender as "male" | "female") || "male"}
+                      imageUrl={t.image_url}
+                    />
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
+          </PkgPanel>
+        )}
 
-            {/* Kontak */}
-            <motion.div variants={fadeUp} className="rounded-3xl border border-border/60 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-7">
-              <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
-                <MapPin className="h-6 w-6 text-primary" />
+        <PkgPanel tone="cream">
+          <div className="mx-auto max-w-6xl">
+            <h2 className="pkg-h2 text-balance">Pilih paket untuk keluarga</h2>
+            <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+              {packagesLoading ? (
+                <>
+                  <PkgCardSkeleton />
+                  <PkgCardSkeleton />
+                  <PkgCardSkeleton />
+                </>
+              ) : packages && packages.length > 0 ? (
+                [...packages]
+                  .sort((a, b) => Number(isPackageUnavailable(a)) - Number(isPackageUnavailable(b)))
+                  .slice(0, 3)
+                  .map((pkg, i) => {
+                    // Same as RelatedPackages: the package's own tier hotels, not the legacy base fields.
+                    const tier = pkg.available_tiers?.[0] || "nyaman";
+                    const tierHotels = resolveTierHotels(pkg as unknown as PublishedPackage, tier);
+                    return (
+                      <PkgListCard
+                        key={pkg.id}
+                        id={pkg.id}
+                        slug={pkg.slug || undefined}
+                        image={pkg.banner_image || "/placeholder.svg"}
+                        title={pkg.package_name}
+                        price={`${(getTierPrice(pkg).quad / 1_000_000).toFixed(1).replace(/\.0$/, "")} Juta`}
+                        priceValue={getTierPrice(pkg).quad}
+                        date={format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId })}
+                        dateShort={format(new Date(pkg.departure_date), "d MMM yyyy", { locale: localeId })}
+                        duration={`${pkg.duration_days} Hari`}
+                        airline={pkg.flight}
+                        hotelMakkah={tierHotels.makkah.name || undefined}
+                        hotelMakkahRating={tierHotels.makkah.star || undefined}
+                        hotelMadinah={tierHotels.madinah.name || undefined}
+                        hotelMadinahRating={tierHotels.madinah.star || undefined}
+                        index={i}
+                        isSoldOut={isPackageUnavailable(pkg)}
+                        waitlistCount={pkg.waitlist_count || 0}
+                        slotsTotal={pkg.slots_total}
+                        slotsFilled={getSlotsTaken(pkg)}
+                      />
+                    );
+                  })
+              ) : (
+                <p className="text-pkg-fg-2">Belum ada paket tersedia.</p>
+              )}
+            </div>
+          </div>
+        </PkgPanel>
+
+        <PkgPanel tone="ink" last>
+          <div className="mx-auto max-w-5xl">
+            <h2 className="pkg-h2 text-balance">Siapkan niat, kami siapkan sisanya.</h2>
+            <div className="mt-10 grid gap-10 md:grid-cols-3">
+              <div>
+                <CheckCircle2 className="h-6 w-6 text-pkg-red-bright" aria-hidden />
+                <h3 className="pkg-h3 mt-4">Syarat mudah</h3>
+                <ul className="mt-3 space-y-2 text-[16px] leading-[1.5] text-pkg-fg-2">
+                  <li>Paspor berlaku min. 12 bulan setelah berangkat</li>
+                  <li>DP awal <span className="font-medium text-pkg-fg">Rp 5.000.000/pax</span></li>
+                  <li>Cicilan bebas, lunas H-30</li>
+                </ul>
               </div>
-              <h3 className="font-bold text-base tracking-tight mb-4 text-foreground">Kantor Kami</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {address}
-              </p>
-              <div className="mt-4 space-y-1.5 text-sm text-muted-foreground">
-                <p className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-primary" /> {phone}</p>
-                <p className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-primary" /> {email}</p>
+              <div>
+                <CreditCard className="h-6 w-6 text-pkg-red-bright" aria-hidden />
+                <h3 className="pkg-h3 mt-4">Pembayaran resmi</h3>
+                <p className="mt-3 text-[16px] leading-[1.5] text-pkg-fg-2">
+                  Transfer hanya ke rekening a.n <span className="font-medium text-pkg-fg">PT Musa Amanah Wisata</span>
+                </p>
+                <p className="mt-3 flex items-center gap-2 text-[16px] text-pkg-fg-2">
+                  <Landmark className="h-4 w-4" aria-hidden /> BCA · BSI · BNI
+                </p>
               </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════
-          STICKY BOTTOM BAR
-      ══════════════════════════════════════════════════════════ */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t shadow-[0_-4px_20px_-4px_hsl(var(--foreground)/0.1)] py-3 px-4">
-        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 max-w-5xl">
-          <p className="text-sm text-muted-foreground tracking-tight text-center sm:text-left">
-            Masih ada pertanyaan tentang jadwal atau fasilitas?
-          </p>
-          <Button variant="brand"
-            className="bg-[#25D366] hover:bg-[#22c55e] text-foreground font-semibold px-6 shrink-0"
-            onClick={handleWhatsApp}
-          >
-            <MessageCircle className="mr-2 h-4 w-4" />
-            Konsultasi Gratis via WhatsApp
-          </Button>
-        </div>
-      </div>
-
-      {/* Spacer for sticky bar */}
-      <div className="h-16" />
-
+              <div>
+                <MapPin className="h-6 w-6 text-pkg-red-bright" aria-hidden />
+                <h3 className="pkg-h3 mt-4">Kantor kami</h3>
+                <p className="mt-3 text-[16px] leading-[1.5] text-pkg-fg-2">{address}</p>
+                <p className="mt-3 flex items-center gap-2 text-[16px] text-pkg-fg-2"><Phone className="h-4 w-4" aria-hidden /> {phone}</p>
+                <p className="mt-1 flex items-center gap-2 text-[16px] text-pkg-fg-2"><Mail className="h-4 w-4" aria-hidden /> {email}</p>
+              </div>
+            </div>
+          </div>
+        </PkgPanel>
       </main>
 
-      <Footer />
+      <Footer variant="pkg" />
     </div>
   );
 };

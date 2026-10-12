@@ -1,8 +1,11 @@
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { Award, Banknote, CalendarClock, CheckCircle2, ClipboardCheck, Gift, IdCard, Mail, MessageCircle, Rocket, UserPlus, Wallet } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
+import { usePkgNav } from "@/hooks/usePkgNav";
+import "@/styles/pkg-v2.css";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { rupiah } from "@/lib/jamaah";
 import { AGENT_CS_WHATSAPP } from "@/lib/agentSupport";
@@ -72,155 +75,160 @@ const FAQS = [
   },
 ] as const;
 
+const focus = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2";
+
 export default function JadiAgen() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  usePkgNav(rootRef);
   const csUrl = formatWhatsAppUrl(AGENT_CS_WHATSAPP, "Halo Musafar Tour, saya tertarik jadi agen. Boleh tanya-tanya dulu?");
 
   return (
-    <div className="min-h-screen bg-background">
+    <div ref={rootRef} className="pkg-v2 min-h-screen">
       <Navbar />
-      <main id="main" className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6">
-        {/* Dark block with the one crimson action (DESIGN.md public hero) */}
-        <section className="rounded-3xl bg-primary px-6 py-10 text-primary-foreground sm:px-10 sm:py-14" aria-labelledby="judul">
-          <p className="text-sm font-semibold uppercase tracking-wider text-primary-foreground/70">Program agen Musafar Tour</p>
-          <h1 id="judul" className="mt-3 max-w-2xl text-4xl font-extrabold leading-tight tracking-tight [text-wrap:balance] sm:text-5xl">
-            Jadi Duta Musafar, agen resmi umroh
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg text-primary-foreground/85">
-            Ajak keluarga, teman, atau jamaah pengajianmu berangkat umroh. Komisi sesuai tingkat dan paket. Registrasi sekali seumur hidup.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button asChild variant="brand" className="h-12 gap-2 px-6 text-base font-bold">
-              <Link to="/agent/register">
+      <main id="main">
+        <PkgPanel tone="ink" top>
+          <div className="mx-auto max-w-3xl">
+            <p className="pkg-glass pkg-label inline-flex h-8 items-center rounded-full px-3 text-[13px]">Program agen Musafar Tour</p>
+            <h1 className="pkg-title mt-5 text-balance !text-[46px] md:!text-[64px]">Jadi Duta Musafar.</h1>
+            <p className="mt-5 text-[17px] leading-[1.5] text-pkg-fg-2">
+              Ajak keluarga, teman, atau jamaah pengajianmu berangkat umroh. Komisi sesuai tingkat dan paket. Registrasi sekali seumur hidup.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link to="/agent/register" className={`pkg-press pkg-glass-red pkg-label inline-flex h-14 items-center justify-center gap-2 rounded-full px-7 ${focus} focus-visible:ring-pkg-cream focus-visible:ring-offset-pkg-ink`}>
                 <UserPlus className="h-5 w-5" aria-hidden /> Daftar jadi agen
               </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-12 gap-2 border-primary-foreground/30 bg-transparent px-6 text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
-              <a href={csUrl} target="_blank" rel="noopener noreferrer">
+              <a href={csUrl} target="_blank" rel="noopener noreferrer" className={`pkg-press pkg-glass pkg-label inline-flex h-14 items-center justify-center gap-2 rounded-full px-7 ${focus} focus-visible:ring-pkg-cream focus-visible:ring-offset-pkg-ink`}>
                 <MessageCircle className="h-5 w-5" aria-hidden /> Tanya CS dulu
               </a>
-            </Button>
+            </div>
+            <p className="mt-5 text-[15px] text-pkg-fg-2">
+              Sudah punya akun? <Link to="/agent/login" className="font-medium text-pkg-fg underline underline-offset-4">Masuk ke portal agen</Link>
+            </p>
           </div>
-          <p className="mt-4 text-sm text-primary-foreground/70">
-            Sudah punya akun? <Link to="/agent/login" className="font-semibold text-primary-foreground underline underline-offset-4">Masuk ke portal agen</Link>
-          </p>
-        </section>
+        </PkgPanel>
 
-        <section className="mt-12" aria-labelledby="keuntungan">
-          <h2 id="keuntungan" className="text-2xl font-bold text-foreground sm:text-3xl">Yang kamu dapat</h2>
-          <ul className="mt-5 grid gap-4 md:grid-cols-3">
-            {BENEFITS.map(({ icon: Icon, title, text }) => (
-              <li key={title} className="rounded-2xl border bg-card p-5 shadow-sm">
-                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-brand-soft text-brand">
-                  <Icon className="h-6 w-6" aria-hidden />
-                </span>
-                <h3 className="mt-4 text-lg font-bold text-foreground">{title}</h3>
-                <p className="mt-1 text-foreground/80">{text}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="mt-12 rounded-2xl border bg-card p-6 shadow-sm" aria-labelledby="biaya">
-          <h2 id="biaya" className="text-2xl font-bold text-foreground">Biaya registrasi {rupiah(AGENT_REGISTRATION_FEE)}, sekali seumur hidup</h2>
-          <p className="mt-2 text-foreground/80">Sudah termasuk:</p>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-            {AGENT_FEE_INCLUDES.map((i) => (
-              <li key={i} className="flex items-start gap-3 text-foreground">
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-status-ok-text" aria-hidden />
-                <span>{i}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
-            <Wallet className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-            <span>Dibayar setelah pendaftaranmu disetujui, ke rekening PT Musa Amanah Wisata, lalu bukti transfer dikirim ke PIC Agen. Pembayaran dianjurkan sekaligus. Jika agen mundur, biaya registrasi hangus karena ditukar dengan perlengkapan dan welcome kit.</span>
-          </p>
-        </section>
-
-        <section className="mt-12" aria-labelledby="tingkat">
-          <h2 id="tingkat" className="text-2xl font-bold text-foreground sm:text-3xl">Tiga tingkat agen</h2>
-          <p className="mt-2 text-foreground/80">Duta Musafar adalah nama komunitas agen kami, bukan tingkat. Semua agen baru mulai dari Silver. Tingkat dihitung dari jumlah jamaah per tahun. {COMMISSION_PER_LEVEL_TEXT}</p>
-          <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {AGENT_LEVEL_RULES.filter((l) => l.key !== "duta").map((l) => (
-              <li key={l.key} className="rounded-2xl border bg-card p-5 shadow-sm">
-                <h3 className="text-lg font-bold text-foreground">{l.label}</h3>
-                <p className="mt-1 text-foreground/80">{l.range}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="mt-12 rounded-2xl border bg-card p-6 shadow-sm" aria-labelledby="program-bonus">
-          <h2 id="program-bonus" className="flex items-center gap-2 text-2xl font-bold text-foreground"><Gift className="h-6 w-6" aria-hidden />Program dan bonus</h2>
-          <p className="mt-3 text-foreground/80">{BONUS_TEXT}</p>
-        </section>
-
-        <section className="mt-12" aria-labelledby="cara">
-          <h2 id="cara" className="text-2xl font-bold text-foreground sm:text-3xl">Cara bergabung, 6 langkah</h2>
-          <ol className="mt-5 grid gap-4 sm:grid-cols-2">
-            {STEPS.map(({ icon: Icon, title, text }, i) => (
-              <li key={title} className="flex items-start gap-4 rounded-2xl border bg-card p-5 shadow-sm">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
-                  <Icon className="h-6 w-6" aria-hidden />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-muted-foreground">Langkah {i + 1}</p>
-                  <h3 className="text-lg font-bold text-foreground">{title}</h3>
-                  <p className="mt-1 text-foreground/80">{text}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section className="mt-12 rounded-2xl border bg-card p-6 shadow-sm" aria-labelledby="syarat">
-          <h2 id="syarat" className="text-2xl font-bold text-foreground">Syarat jadi agen</h2>
-          <ul className="mt-4 space-y-3">
-            {AGENT_REQUIREMENTS.map((r) => (
-              <li key={r} className="flex items-start gap-3 text-foreground">
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-status-ok-text" aria-hidden />
-                <span>{r}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
-            <CalendarClock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-            <span>
-              Baca <Link to="/sop-agen" className="font-semibold text-foreground underline underline-offset-4">SOP Program Agen</Link> selengkapnya. Data diproses sesuai <Link to="/kebijakan-privasi" className="font-semibold text-foreground underline underline-offset-4">Kebijakan Privasi</Link> dan{" "}
-              <Link to="/syarat-ketentuan" className="font-semibold text-foreground underline underline-offset-4">Syarat &amp; Ketentuan</Link>.
-            </span>
-          </p>
-        </section>
-
-        <section className="mt-12" aria-labelledby="faq">
-          <h2 id="faq" className="text-2xl font-bold text-foreground sm:text-3xl">Pertanyaan yang sering diajukan</h2>
-          <Accordion type="single" collapsible className="mt-4 rounded-2xl border bg-card px-5 shadow-sm">
-            {FAQS.map((f, i) => (
-              <AccordionItem key={f.q} value={`faq-${i}`} className={i === FAQS.length - 1 ? "border-b-0" : undefined}>
-                <AccordionTrigger className="min-h-11 text-left text-base font-semibold">{f.q}</AccordionTrigger>
-                <AccordionContent className="text-base text-foreground/80">{f.a}</AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </section>
-
-        <section className="mt-12 rounded-3xl bg-primary px-6 py-10 text-center text-primary-foreground sm:px-10" aria-labelledby="ajakan">
-          <h2 id="ajakan" className="text-2xl font-bold sm:text-3xl [text-wrap:balance]">Siap jadi agen resmi Musafar Tour?</h2>
-          <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button asChild variant="brand" className="h-12 gap-2 px-6 text-base font-bold">
-              <Link to="/agent/register">
-                <UserPlus className="h-5 w-5" aria-hidden /> Daftar jadi agen
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-12 gap-2 border-primary-foreground/30 bg-transparent px-6 text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
-              <a href={csUrl} target="_blank" rel="noopener noreferrer">
-                <MessageCircle className="h-5 w-5" aria-hidden /> Hubungi PIC Agen lewat WhatsApp
-              </a>
-            </Button>
+        <PkgPanel tone="cream">
+          <div className="mx-auto max-w-5xl">
+            <h2 id="keuntungan" className="pkg-h2">Yang kamu dapat</h2>
+            <ul className="mt-8 grid gap-8 md:grid-cols-3">
+              {BENEFITS.map(({ icon: Icon, title, text }) => (
+                <li key={title} className="flex items-start gap-4">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pkg-cream-2 text-pkg-red-deep">
+                    <Icon className="h-6 w-6" aria-hidden />
+                  </span>
+                  <div>
+                    <h3 className="pkg-h3">{title}</h3>
+                    <p className="mt-1 text-[16px] leading-[1.5] text-pkg-fg-2">{text}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
-        </section>
+        </PkgPanel>
+
+        <PkgPanel tone="cream-2">
+          <div className="mx-auto max-w-3xl">
+            <h2 id="biaya" className="pkg-h2 text-balance">Registrasi {rupiah(AGENT_REGISTRATION_FEE)}, sekali seumur hidup.</h2>
+            <p className="pkg-label mt-5 text-pkg-fg-2">Sudah termasuk</p>
+            <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+              {AGENT_FEE_INCLUDES.map((i) => (
+                <li key={i} className="flex items-start gap-3 text-[16px] text-pkg-fg">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-pkg-ok" aria-hidden />
+                  <span>{i}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-6 flex items-start gap-2 text-[14px] leading-[1.5] text-pkg-fg-3">
+              <Wallet className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+              <span>Dibayar setelah pendaftaranmu disetujui, ke rekening PT Musa Amanah Wisata, lalu bukti transfer dikirim ke PIC Agen. Pembayaran dianjurkan sekaligus. Jika agen mundur, biaya registrasi hangus karena ditukar dengan perlengkapan dan welcome kit.</span>
+            </p>
+            <h3 className="pkg-h3 mt-12 flex items-center gap-2"><Gift className="h-6 w-6" aria-hidden />Program dan bonus</h3>
+            <p className="mt-3 text-[16px] leading-[1.55] text-pkg-fg-2">{BONUS_TEXT}</p>
+          </div>
+        </PkgPanel>
+
+        <PkgPanel tone="cream">
+          <div className="mx-auto max-w-3xl">
+            <h2 id="tingkat" className="pkg-h2">Tiga tingkat agen</h2>
+            <p className="mt-4 text-[16px] leading-[1.55] text-pkg-fg-2">Duta Musafar adalah nama komunitas agen kami, bukan tingkat. Semua agen baru mulai dari Silver. Tingkat dihitung dari jumlah jamaah per tahun. {COMMISSION_PER_LEVEL_TEXT}</p>
+            <ul className="mt-8 space-y-5">
+              {AGENT_LEVEL_RULES.filter((l) => l.key !== "duta").map((l) => (
+                <li key={l.key}>
+                  <h3 className="pkg-sub">{l.label}</h3>
+                  <p className="mt-1 text-[16px] text-pkg-fg-2">{l.range}</p>
+                </li>
+              ))}
+            </ul>
+
+            <h2 id="cara" className="pkg-h2 mt-16">Cara bergabung</h2>
+            <ol className="mt-8 space-y-7">
+              {STEPS.map(({ icon: Icon, title, text }, i) => (
+                <li key={title} className="flex items-start gap-4">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pkg-cream-2 text-pkg-fg">
+                    <Icon className="h-6 w-6" aria-hidden />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="pkg-caption text-pkg-fg-3">Langkah {i + 1}</p>
+                    <h3 className="pkg-h3 mt-0.5">{title}</h3>
+                    <p className="mt-1 text-[16px] leading-[1.5] text-pkg-fg-2">{text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </PkgPanel>
+
+        <PkgPanel tone="ink">
+          <div className="mx-auto max-w-3xl">
+            <h2 id="syarat" className="pkg-h2">Syarat jadi agen</h2>
+            <ul className="mt-6 space-y-3">
+              {AGENT_REQUIREMENTS.map((r) => (
+                <li key={r} className="flex items-start gap-3 text-[16px] text-pkg-fg">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-pkg-red-bright" aria-hidden />
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-6 flex items-start gap-2 text-[14px] leading-[1.5] text-pkg-fg-2">
+              <CalendarClock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+              <span>
+                Baca <Link to="/sop-agen" className="font-medium text-pkg-fg underline underline-offset-4">SOP Program Agen</Link>. Data diproses sesuai <Link to="/kebijakan-privasi" className="font-medium text-pkg-fg underline underline-offset-4">Kebijakan Privasi</Link> dan{" "}
+                <Link to="/syarat-ketentuan" className="font-medium text-pkg-fg underline underline-offset-4">Syarat &amp; Ketentuan</Link>.
+              </span>
+            </p>
+          </div>
+        </PkgPanel>
+
+        <PkgPanel tone="cream-2">
+          <div className="mx-auto max-w-3xl">
+            <h2 id="faq" className="pkg-h2 text-balance">Pertanyaan umum</h2>
+            <Accordion type="single" collapsible className="mt-6">
+              {FAQS.map((f, i) => (
+                <AccordionItem key={f.q} value={`faq-${i}`} className={i === FAQS.length - 1 ? "border-b-0" : "border-pkg-hair"}>
+                  <AccordionTrigger className="min-h-14 text-left text-[17px] font-medium text-pkg-fg hover:no-underline">{f.q}</AccordionTrigger>
+                  <AccordionContent className="text-[16px] leading-[1.55] text-pkg-fg-2">{f.a}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </PkgPanel>
       </main>
-      <Footer />
+
+      <PkgPanel tone="red" className="!pb-24">
+        <div className="mx-auto max-w-3xl">
+          <h2 id="ajakan" className="pkg-h2 text-pkg-on-red text-balance">Siap jadi agen resmi?</h2>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Link to="/agent/register" className="pkg-press pkg-glass-deep pkg-label inline-flex h-14 items-center justify-center gap-2 rounded-full px-7 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-on-red focus-visible:ring-offset-2">
+              <UserPlus className="h-5 w-5" aria-hidden /> Daftar jadi agen
+            </Link>
+            <a href={csUrl} target="_blank" rel="noopener noreferrer" className="pkg-press pkg-glass pkg-label inline-flex h-14 items-center justify-center gap-2 rounded-full px-7 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-on-red focus-visible:ring-offset-2">
+              <MessageCircle className="h-5 w-5" aria-hidden /> Hubungi PIC Agen
+            </a>
+          </div>
+        </div>
+      </PkgPanel>
+
+      <Footer variant="pkg" />
     </div>
   );
 }

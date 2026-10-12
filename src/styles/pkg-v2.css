@@ -1,0 +1,393 @@
+/* Design tokens for the mobile package page. Source of truth: /MASTER.md. Scoped, so nothing else on the site changes. */
+.pkg-v2 {
+  --pkg-cream: #f4efe6;
+  --pkg-cream-2: #eae3d6;
+  --pkg-white: #fdfaf5;
+  --pkg-ink: #1a1512;
+  --pkg-ink-2: #4a423b;
+  --pkg-ink-3: #6b6258;
+
+  --pkg-red: #c4141b;
+  --pkg-red-press: #a50f16;
+  --pkg-red-bright: #e0303d;
+  --pkg-on-red: #ffe4e7;
+  --pkg-red-deep: #9e1710;
+  --pkg-ok: #1b6b3f;
+  --pkg-warn: #a84300;
+  --pkg-gradient-red: radial-gradient(120% 55% at 0% 58%, rgb(255 96 108 / 0.3), transparent 62%), linear-gradient(195deg, #a5101a 0%, #c4141b 46%, #d92635 100%);
+
+  --pkg-r-panel: 32px;
+  --pkg-r-media: 24px;
+  --pkg-r-field: 16px;
+  --pkg-r-pill: 999px;
+
+  --pkg-shadow-lift: 0 -10px 28px rgb(26 21 18 / 0.1);
+  --pkg-shadow-cta: 0 8px 20px rgb(224 36 26 / 0.28);
+
+  --pkg-dur-press: 100ms;
+  --pkg-dur-fast: 150ms;
+  --pkg-dur-base: 220ms;
+  --pkg-dur-slow: 320ms;
+  --pkg-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --pkg-ease-in: cubic-bezier(0.4, 0, 0.2, 1);
+  --pkg-stagger: 40ms;
+
+  /* Text roles for the current panel tone; tones below override them. */
+  --pkg-fg: var(--pkg-ink);
+  --pkg-fg-2: var(--pkg-ink-2);
+  --pkg-fg-3: var(--pkg-ink-3);
+  --pkg-hair: rgb(26 21 18 / 0.12);
+  --pkg-scrim: rgb(26 21 18 / 0.28);
+
+  /* Glass, per panel tone (re-set in the tone blocks below): fill, light rim, shade, drop shadow, and a strong variant. */
+  --g-fg: var(--pkg-ink);
+  --g-bg: rgb(255 252 246 / 0.55);
+  --g-rim-top: rgb(255 253 248 / 0.9);
+  --g-rim: rgb(26 21 18 / 0.1);
+  --g-shade: rgb(26 21 18 / 0.06);
+  --g-drop: rgb(26 21 18 / 0.16);
+  --g-strong-bg: rgb(30 24 21 / 0.9);
+  --g-strong-fg: var(--pkg-cream);
+  --g-strong-rim: rgb(244 239 230 / 0.32);
+  --g-light: radial-gradient(120% 50% at 0% 0%, rgb(255 253 248 / 0.7), transparent 62%);
+
+  background: var(--pkg-cream);
+  color: var(--pkg-ink);
+  font-family: "Onest", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* Type roles. Weight 300 only from 28px up; body never below 400. */
+.pkg-v2 .pkg-title { font-size: 56px; line-height: 0.95; font-weight: 300; letter-spacing: -0.04em; }
+.pkg-v2 .pkg-price { font-size: clamp(88px, 29vw, 112px); line-height: 0.9; font-weight: 400; letter-spacing: -0.06em; }
+.pkg-v2 .pkg-sub { font-size: 30px; line-height: 1.1; font-weight: 300; letter-spacing: -0.03em; }
+.pkg-v2 .pkg-h2 { font-size: 40px; line-height: 1; font-weight: 300; letter-spacing: -0.035em; }
+.pkg-v2 .pkg-h3 { font-size: 28px; line-height: 1.1; font-weight: 400; letter-spacing: -0.025em; }
+.pkg-v2 .pkg-stat { font-size: 40px; line-height: 1; font-weight: 400; letter-spacing: -0.02em; }
+.pkg-v2 .pkg-body { font-size: 16px; line-height: 1.5; font-weight: 400; letter-spacing: 0; }
+.pkg-v2 .pkg-route { font-size: 24px; line-height: 1.15; font-weight: 400; letter-spacing: -0.02em; }
+.pkg-v2 .pkg-label { font-size: 15px; line-height: 1.3; font-weight: 500; letter-spacing: 0.01em; }
+.pkg-v2 .pkg-caption { font-size: 12px; line-height: 1.3; font-weight: 500; letter-spacing: 0.01em; }
+
+/* Press feedback only; hover only where a real pointer exists. */
+.pkg-v2 .pkg-press { transition: transform var(--pkg-dur-press) var(--pkg-ease-out), background-color var(--pkg-dur-fast) var(--pkg-ease-out); }
+.pkg-v2 .pkg-press:active { transform: scale(0.98); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pkg-v2 *,
+  .pkg-v2 *::before,
+  .pkg-v2 *::after {
+    transition-duration: var(--pkg-dur-fast) !important;
+    animation-duration: var(--pkg-dur-fast) !important;
+  }
+  .pkg-v2 .pkg-press:active { transform: none; }
+}
+
+/* Stacked panels: each overlaps the one above by the corner radius. */
+.pkg-v2 .pkg-panel {
+  position: relative;
+  z-index: 1;
+  margin-top: -32px;
+  padding: 44px 24px 60px;
+  border-radius: var(--pkg-r-panel) var(--pkg-r-panel) 0 0;
+  box-shadow: var(--pkg-shadow-lift), inset 0 1px 0 var(--g-rim-top);
+  background: var(--g-light), var(--pkg-cream);
+  color: var(--pkg-fg);
+}
+.pkg-v2 .pkg-panel-last { padding-bottom: 120px; }
+.pkg-v2 [data-pkg-tone="cream-2"] {
+  background: var(--g-light), var(--pkg-cream-2);
+  --g-bg: rgb(255 252 246 / 0.5);
+}
+.pkg-v2 [data-pkg-tone="ink"],
+.pkg-v2.pkg-toast {
+  --g-fg: var(--pkg-cream);
+  --g-bg: rgb(244 239 230 / 0.09);
+  --g-rim-top: rgb(244 239 230 / 0.34);
+  --g-rim: rgb(244 239 230 / 0.16);
+  --g-shade: rgb(0 0 0 / 0.28);
+  --g-drop: rgb(0 0 0 / 0.5);
+  --g-strong-bg: rgb(244 239 230 / 0.9);
+  --g-strong-fg: var(--pkg-ink);
+  --g-strong-rim: rgb(255 253 248 / 0.7);
+  --g-light: radial-gradient(110% 45% at 0% 0%, rgb(244 239 230 / 0.09), transparent 62%);
+  background: var(--g-light), var(--pkg-ink);
+  --pkg-fg: #f4efe6;
+  --pkg-fg-2: rgb(244 239 230 / 0.8);
+  --pkg-fg-3: rgb(244 239 230 / 0.64);
+  --pkg-hair: rgb(244 239 230 / 0.16);
+  --pkg-scrim: rgb(244 239 230 / 0.14);
+}
+.pkg-v2 [data-pkg-tone="red"] {
+  --g-fg: var(--pkg-on-red);
+  --g-bg: rgb(70 0 8 / 0.26);
+  --g-rim-top: rgb(255 228 231 / 0.42);
+  --g-rim: rgb(255 228 231 / 0.2);
+  --g-shade: rgb(50 0 6 / 0.2);
+  --g-drop: rgb(50 0 6 / 0.35);
+  --g-strong-bg: rgb(58 3 8 / 0.74);
+  --g-strong-fg: var(--pkg-on-red);
+  --g-strong-rim: rgb(255 228 231 / 0.38);
+  background: var(--pkg-gradient-red);
+  --pkg-fg: var(--pkg-on-red);
+  --pkg-fg-2: var(--pkg-on-red);
+  --pkg-fg-3: var(--pkg-on-red);
+  --pkg-hair: rgb(255 228 231 / 0.28);
+  --pkg-scrim: rgb(60 0 6 / 0.3);
+}
+
+/* One weight system for everything inside the page, including the shared cards: 300 big, 400 text, 500 labels. */
+.pkg-v2 :is(.font-bold, .font-semibold, .font-extrabold, .font-black, strong, b) { font-weight: 500; }
+.pkg-v2 :is(.font-thin, .font-extralight) { font-weight: 300; }
+
+/* The site-wide `img { content-visibility: auto }` skips painting photos that are off screen and repaints them on the way
+   back, which shows up as photos blinking in and out when scrolling up. Keep them painted on this page. */
+.pkg-v2 img { content-visibility: visible; }
+
+/* Bottom of the flyer, right behind the first panel: blurred copies of the same photo that fade in toward the panel. */
+.pkg-v2 { --pkg-flyer-h: min(125vw, 560px); --pkg-shadow-bar: 0 -6px 24px rgb(26 21 18 / 0.16), 0 -1px 0 rgb(26 21 18 / 0.06); }
+.pkg-v2 .pkg-slide-blur { position: absolute; left: 0; right: 0; bottom: 0; height: 176px; overflow: hidden; pointer-events: none; display: block; }
+.pkg-v2 .pkg-slide-blur > span { position: absolute; inset: 0; display: block; overflow: hidden; }
+.pkg-v2 .pkg-slide-blur img {
+  position: absolute; left: 0; bottom: 0; width: 100%; height: var(--pkg-flyer-h);
+  object-fit: cover; object-position: top; transform: scale(1.1); transform-origin: bottom center;
+}
+.pkg-v2 .pkg-slide-blur > span:nth-child(1) { -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 100%); mask-image: linear-gradient(to top, #000 0%, transparent 100%); }
+.pkg-v2 .pkg-slide-blur > span:nth-child(1) img { filter: blur(5px); }
+.pkg-v2 .pkg-slide-blur > span:nth-child(2) { -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 62%); mask-image: linear-gradient(to top, #000 0%, transparent 62%); }
+.pkg-v2 .pkg-slide-blur > span:nth-child(2) img { filter: blur(14px); }
+
+/* First panel sits right on the flyer: less air above the title. */
+.pkg-v2 .pkg-panel-first { padding-top: 40px; }
+
+/* Seats: urgent state pulses a ring (transform and opacity only). */
+.pkg-v2 .pkg-seat-ring { position: absolute; inset: 0; border-radius: 999px; background: var(--pkg-red); pointer-events: none; }
+@keyframes pkg-seat-pulse { 0% { transform: scale(1); opacity: 0.5; } 70%, 100% { transform: scale(1.22, 1.45); opacity: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .pkg-v2 .pkg-seat-ring { animation: pkg-seat-pulse 1.6s var(--pkg-ease-out) infinite; }
+}
+
+
+/* Navbar on the package page: flyer-coloured, white logo and icons. The navbar lives outside .pkg-v2, so it is keyed on the body. */
+body[data-pkg-nav] #nav-root > nav {
+  background: var(--pkg-nav-bg, #1a1512);
+  border-color: transparent;
+  color: var(--pkg-nav-fg, #fff);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+body[data-pkg-nav] #nav-root > nav a,
+body[data-pkg-nav] #nav-root > nav button,
+body[data-pkg-nav] #nav-root > nav svg { color: var(--pkg-nav-fg, #fff); }
+body[data-pkg-nav] #nav-root > nav div[aria-hidden="true"] { color: var(--pkg-nav-fg, #fff); }
+
+/* While the cookie card is open the sticky bar would float above it mid-screen; the in-page button is still there. */
+html[data-consent-open] .pkg-bar { display: none; }
+
+/* First-visit scroll hint: the arrow slides down and back, looping, until the visitor scrolls. */
+@keyframes pkg-hint { 0%, 100% { transform: translateY(-3px); opacity: 0.55; } 50% { transform: translateY(5px); opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) {
+  .pkg-v2 .pkg-hint-arrow { animation: pkg-hint 1.5s var(--pkg-ease-in) infinite; }
+}
+
+/* Glass, tone-aware: translucent fill in the panel's own hue, light rim on top, soft inner shade, soft drop shadow. */
+.pkg-v2 .pkg-glass {
+  color: var(--g-fg);
+  background: var(--g-bg);
+  box-shadow: inset 0 1px 0 var(--g-rim-top), inset 0 0 0 1px var(--g-rim), inset 0 -10px 18px var(--g-shade), 0 8px 16px -6px var(--g-drop);
+}
+.pkg-v2 .pkg-glass-deep {
+  color: var(--g-strong-fg);
+  background: var(--g-strong-bg);
+  box-shadow: inset 0 1px 0 var(--g-strong-rim), inset 0 0 0 1px var(--g-rim), 0 10px 20px -8px var(--g-drop);
+}
+.pkg-v2 .pkg-glass-lit {
+  color: var(--g-fg);
+  background: var(--g-rim);
+  box-shadow: inset 0 1px 0 var(--g-rim-top), inset 0 0 0 1px var(--g-rim);
+}
+/* Red glass (urgent seats, the bar's action): the brand red with the same rim. */
+.pkg-v2 .pkg-glass-red {
+  color: var(--pkg-on-red);
+  background: linear-gradient(180deg, #d02029, #c4141b 55%, #a50f16);
+  box-shadow: inset 0 1px 0 rgb(255 228 231 / 0.45), inset 0 0 0 1px rgb(255 228 231 / 0.2), inset 0 -8px 14px rgb(60 0 6 / 0.25), 0 8px 18px -6px rgb(120 6 12 / 0.5);
+}
+.pkg-v2 .pkg-tile { box-shadow: inset 0 1px 0 var(--g-rim-top), inset 0 0 0 1px var(--g-rim), 0 6px 14px -8px var(--g-drop); }
+
+/* Navbar gets the same hairline rim as the panels. */
+body[data-pkg-nav] #nav-root > nav { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--pkg-nav-fg, #fff) 14%, transparent); }
+
+/* A panel that opens a page (nothing above it): flush, no overlap, room for the fixed navbar. */
+.pkg-v2 .pkg-panel-top { margin-top: 0; border-radius: 0; padding-top: 92px; padding-bottom: 72px; box-shadow: none; }
+/* Fixed controls portaled outside the page root need the tokens but no page background. */
+.pkg-v2.pkg-float { background: transparent; }
+
+/* A package in a list: a raised glass container so each one reads as one unit. Outer radius = inner radius + padding. */
+.pkg-v2 .pkg-card {
+  background: var(--pkg-white);
+  box-shadow: inset 0 1px 0 var(--g-rim-top), inset 0 0 0 1px var(--g-rim), 0 14px 28px -16px var(--g-drop);
+}
+@media (hover: hover) and (pointer: fine) {
+  .pkg-v2 .pkg-card { transition: transform var(--pkg-dur-base) var(--pkg-ease-out), box-shadow var(--pkg-dur-base) var(--pkg-ease-out); }
+  .pkg-v2 .pkg-card:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 var(--g-rim-top), inset 0 0 0 1px var(--g-rim), 0 20px 34px -16px var(--g-drop); }
+}
+
+/* Listing card photo: blur that grows toward the bottom edge. */
+.pkg-v2 .pkg-card-blur { position: absolute; inset: 0; display: block; pointer-events: none; }
+.pkg-v2 .pkg-card-blur > span { position: absolute; inset: 0; display: block; overflow: hidden; }
+.pkg-v2 .pkg-card-blur img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; transform: scale(1.1); transform-origin: bottom center; }
+.pkg-v2 .pkg-card-blur > span:nth-child(1) { -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 56%); mask-image: linear-gradient(to top, #000 0%, transparent 56%); }
+.pkg-v2 .pkg-card-blur > span:nth-child(1) img { filter: blur(5px); }
+.pkg-v2 .pkg-card-blur > span:nth-child(2) { -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 32%); mask-image: linear-gradient(to top, #000 0%, transparent 32%); }
+.pkg-v2 .pkg-card-blur > span:nth-child(2) img { filter: blur(14px); }
+
+/* Cards adapt to their own width (container query), so the same card works in a wide list and a two-column marketplace grid. */
+.pkg-v2 .pkg-card-wrap { container-type: inline-size; }
+.pkg-v2 .pkg-date-short { display: none; }
+.pkg-v2 [data-dates="short"] .pkg-date-long { display: none; }
+.pkg-v2 [data-dates="short"] .pkg-date-short { display: inline; }
+.pkg-v2 [data-dates="tiny"] .pkg-date-long { display: none; }
+.pkg-v2 [data-dates="tiny"] .pkg-date-short { display: inline; }
+.pkg-v2 [data-dates="tiny"] .pkg-card-date { font-size: 20px; }
+@container (max-width: 230px) {
+  .pkg-v2 .pkg-card { border-radius: 24px; padding: 8px; }
+  .pkg-v2 .pkg-card-media { aspect-ratio: 4 / 3; border-radius: 16px; }
+  .pkg-v2 .pkg-card-body { margin-top: 8px; padding: 0 4px 4px; }
+  .pkg-v2 .pkg-card-body ul { margin-top: 6px; }
+  .pkg-v2 .pkg-card-body > div:last-child { padding-top: 10px; }
+  .pkg-v2 .pkg-date-long { display: none; }
+  .pkg-v2 .pkg-date-short { display: inline; }
+  .pkg-v2 .pkg-card-date { font-size: 15px; line-height: 1.2; letter-spacing: -0.01em; font-weight: 500; }
+  .pkg-v2 .pkg-card-dur { flex-basis: 100%; font-size: 12px; }
+  .pkg-v2 .pkg-card-hotel { font-size: 12px; gap: 4px; }
+  .pkg-v2 .pkg-card-price .pkg-stat { font-size: 22px; letter-spacing: -0.02em; }
+  .pkg-v2 .pkg-card-price .pkg-label { font-size: 12px; }
+  .pkg-v2 .pkg-card-pill { height: 28px; padding: 0 10px; font-size: 12px; }
+  .pkg-v2 .pkg-card-row { left: 8px; right: 8px; bottom: 8px; }
+}
+
+/* Skeletons: calm blocks in the panel's own tone with a light sweep moving across (transform only). */
+.pkg-v2 .pkg-skel { position: relative; overflow: hidden; background-color: var(--pkg-hair); }
+.pkg-v2 .pkg-skel::after,
+.pkg-v2 .animate-pulse.absolute::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(100deg, transparent 15%, var(--g-rim-top) 50%, transparent 85%);
+  opacity: 0.55;
+  animation: pkg-shimmer 1.5s var(--pkg-ease-in) infinite;
+}
+.pkg-v2 .animate-pulse.absolute { animation: none; overflow: hidden; background-color: var(--pkg-hair); }
+@keyframes pkg-shimmer { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .pkg-v2 .pkg-skel::after,
+  .pkg-v2 .animate-pulse.absolute::after { animation: none; display: none; }
+}
+
+/* Sheets in the pkg look: the dimmer is global (it sits outside the page root); the panel scrolls inside the sheet. */
+.pkg-overlay { background: rgb(26 21 18 / 0.55); }
+.pkg-v2 .pkg-panel-sheet {
+  margin-top: 0;
+  max-height: 88svh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 28px 24px max(32px, env(safe-area-inset-bottom));
+  position: relative;
+}
+
+/* The expanded phone menu: an ink panel dropping from the navbar. */
+.pkg-v2 .pkg-panel-menu {
+  margin-top: 0;
+  border-radius: 0 0 var(--pkg-r-panel) var(--pkg-r-panel);
+  padding: 4px 24px 28px;
+  max-height: calc(100dvh - 4rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-shadow: 0 24px 40px -22px rgb(26 21 18 / 0.55);
+}
+
+/* Notifications (toasts and the cookie card): an ink glass pill with soft type. The element is its own pkg-v2 root. */
+.pkg-v2.pkg-toast {
+  background: rgb(30 24 21 / 0.94);
+  color: var(--pkg-cream);
+  border: 0;
+  border-radius: 24px;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
+  box-shadow: inset 0 1px 0 rgb(244 239 230 / 0.3), inset 0 0 0 1px rgb(244 239 230 / 0.14), 0 18px 36px -12px rgb(26 21 18 / 0.5);
+}
+.pkg-v2.pkg-toast [data-description],
+.pkg-v2.pkg-toast .pkg-toast-desc { color: rgb(244 239 230 / 0.78); font-weight: 400; }
+.pkg-v2.pkg-toast [data-button],
+.pkg-v2.pkg-toast .pkg-toast-btn { height: 36px; padding: 0 14px; border-radius: 999px; background: rgb(244 239 230 / 0.16); color: var(--pkg-cream); font-weight: 500; }
+.pkg-v2.pkg-toast [toast-close] { color: rgb(244 239 230 / 0.65); }
+.pkg-v2.pkg-toast.pkg-toast-bad { background: linear-gradient(180deg, #c4141b, #a50f16); color: var(--pkg-on-red); }
+
+/* The cart drawer ("Paket Umrohku"): a cream panel under the navbar; header, list and footer each carry their own 24px gutters. */
+.pkg-v2 .pkg-panel-drawer {
+  margin-top: 0;
+  height: 100%;
+  padding: 24px 0 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 32px 32px 0 0;
+}
+@media (min-width: 640px) { .pkg-v2 .pkg-panel-drawer { border-radius: 32px 0 0 0; } }
+
+/* Full-screen menu: ink, one column of large light links, header and action pinned. */
+.pkg-v2 .pkg-menu-full {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: env(safe-area-inset-top);
+  color: var(--pkg-fg);
+}
+
+/* Home hero photo: blur growing toward the panel below (same idea as the flyer and the card photos). */
+.pkg-v2 .pkg-hero-blur { position: absolute; inset: 0; display: block; pointer-events: none; }
+.pkg-v2 .pkg-hero-blur > span { position: absolute; inset: 0; display: block; overflow: hidden; }
+.pkg-v2 .pkg-hero-blur img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 32%; transform: scale(1.08); transform-origin: bottom center; }
+.pkg-v2 .pkg-hero-blur > span:nth-child(1) { -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 38%); mask-image: linear-gradient(to top, #000 0%, transparent 38%); }
+.pkg-v2 .pkg-hero-blur > span:nth-child(1) img { filter: blur(5px); }
+.pkg-v2 .pkg-hero-blur > span:nth-child(2) { -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 20%); mask-image: linear-gradient(to top, #000 0%, transparent 20%); }
+.pkg-v2 .pkg-hero-blur > span:nth-child(2) img { filter: blur(14px); }
+
+/* Article body inside pkg-v2: Onest light/regular, no 600+ weights, tokens only. */
+.pkg-v2 .article-content { color: var(--pkg-ink); font-size: 17px; line-height: 1.65; }
+.pkg-v2 .article-content p { color: var(--pkg-ink-2); margin-bottom: 20px; line-height: 1.65; }
+.pkg-v2 .article-content h1,
+.pkg-v2 .article-content h2 { font-size: 30px; font-weight: 300; line-height: 1.1; letter-spacing: -0.035em; margin: 40px 0 16px; color: var(--pkg-ink); }
+.pkg-v2 .article-content h3 { font-size: 22px; font-weight: 400; line-height: 1.2; letter-spacing: -0.025em; margin: 32px 0 12px; color: var(--pkg-ink); }
+.pkg-v2 .article-content strong { font-weight: 500; color: var(--pkg-ink); }
+.pkg-v2 .article-content a { color: var(--pkg-red-deep); text-underline-offset: 3px; }
+.pkg-v2 .article-content blockquote { border-left: 0; padding: 4px 0 4px 20px; box-shadow: inset 2px 0 0 var(--pkg-red); color: var(--pkg-ink-2); font-style: normal; font-size: 20px; font-weight: 300; line-height: 1.4; margin: 28px 0; }
+.pkg-v2 .article-content li { color: var(--pkg-ink-2); }
+.pkg-v2 .article-content img { border-radius: var(--pkg-r-media); margin: 28px 0; }
+
+/* Quiz step: fades and rises a little; reduced motion gets a plain fade. */
+@keyframes pkg-quiz-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.pkg-v2 .pkg-quiz-in { animation: pkg-quiz-in var(--pkg-dur-slow) var(--pkg-ease-out) both; }
+@media (prefers-reduced-motion: reduce) { .pkg-v2 .pkg-quiz-in { animation-name: pkg-quiz-fade; } @keyframes pkg-quiz-fade { from { opacity: 0; } to { opacity: 1; } } }
+
+/* Sign-in family (AuthLayout): fields and buttons restyled by scope, so every auth page and its shadcn controls follow without edits. */
+.pkg-v2 .pkg-auth label { font-size: 15px; font-weight: 500; color: var(--pkg-ink); }
+.pkg-v2 .pkg-auth input:not([type="checkbox"]) {
+  height: 52px; border-radius: var(--pkg-r-field); border: 0; background: var(--pkg-cream-2); color: var(--pkg-ink); font-size: 16px; padding-inline: 16px;
+  box-shadow: inset 0 0 0 1px transparent; transition: box-shadow var(--pkg-dur-fast) var(--pkg-ease-out);
+}
+.pkg-v2 .pkg-auth input::placeholder { color: var(--pkg-ink-3); }
+.pkg-v2 .pkg-auth input:not([type="checkbox"]):focus-visible { outline: none; background: var(--pkg-white); box-shadow: inset 0 0 0 2px var(--pkg-ink); }
+.pkg-v2 .pkg-auth input[aria-invalid="true"] { box-shadow: inset 0 0 0 2px var(--pkg-red-deep); }
+.pkg-v2 .pkg-auth form button[type="submit"] {
+  height: 56px; border-radius: 999px; font-size: 17px; font-weight: 500; color: var(--pkg-on-red); border: 0;
+  background: linear-gradient(180deg, var(--pkg-red-bright), var(--pkg-red) 55%, var(--pkg-red-press)); box-shadow: var(--pkg-shadow-cta);
+}
+.pkg-v2 .pkg-auth form button[type="submit"]:active { transform: scale(0.98); }
+.pkg-v2 .pkg-auth form button[type="button"]:not([aria-pressed]):not([role="checkbox"]):not([class*="absolute"]):not([class*="underline"]):not([class*="link"]) {
+  height: 52px; border-radius: 999px; font-size: 16px; font-weight: 500; background: var(--pkg-cream-2); color: var(--pkg-ink); border: 0;
+}
+.pkg-v2 .pkg-auth a { color: var(--pkg-red-deep); }
+.pkg-v2 .pkg-auth a:focus-visible { outline: 2px solid var(--pkg-ink); outline-offset: 2px; border-radius: 4px; }
+.pkg-v2 .pkg-auth form span[class*="bg-card"] { background: var(--pkg-cream); }

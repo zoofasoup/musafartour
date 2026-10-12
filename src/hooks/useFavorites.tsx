@@ -38,7 +38,7 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     // The cart button on cards and the detail page both land here.
     trackAddToCart({ id: pkg.id, name: pkg.title, value: pkg.value });
     toast({
-      title: "Ditambahkan ke favorit",
+      title: "Masuk keranjang",
       description: pkg.title,
     });
   };
@@ -48,7 +48,7 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     setFavorites(prev => prev.filter(p => p.id !== id));
     if (pkg) {
       toast({
-        title: "Dihapus dari favorit",
+        title: "Keluar dari keranjang",
         description: pkg.title,
         variant: "destructive",
       });

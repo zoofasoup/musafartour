@@ -5,6 +5,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
 import type { FAQItem } from "@/hooks/useHomepageData";
 
 interface FAQSectionProps {
@@ -28,49 +29,21 @@ export const FAQSection = ({ faqItems }: FAQSectionProps) => {
   };
 
   return (
-    <section id="faq" className="py-16 md:py-24 bg-background scroll-mt-20">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonForScript(schemaData) }}
-      />
-      <div className="container mx-auto px-6 md:px-8">
-        <div className="text-center mb-16">
-          <span className="text-accent uppercase tracking-[0.2em] text-xs font-bold mb-4 block">
-            FAQ
-          </span>
-          <h2 className="text-4xl md:text-5xl font-display font-bold mb-4 text-foreground tracking-tight">
-            Pertanyaan yang Sering Diajukan
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Temukan jawaban atas pertanyaan umum tentang layanan umroh kami
-          </p>
-        </div>
-
-        <div className="max-w-3xl mx-auto">
-          {faqItems.length > 0 ? (
-            <Accordion type="single" collapsible className="w-full">
-              {faqItems.map((faq, index) => (
-                <AccordionItem 
-                  key={faq.id} 
-                  value={`item-${index + 1}`}
-                  className="mb-2 border-b border-border last:border-0"
-                >
-                  <AccordionTrigger className="text-left text-base md:text-lg font-medium py-4 md:py-5 hover:no-underline hover:text-primary transition-colors pr-4">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-sm md:text-base text-muted-foreground leading-relaxed pb-6">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          ) : (
-            <div className="text-center text-muted-foreground">
-              Belum ada FAQ yang ditambahkan
-            </div>
-          )}
-        </div>
+    <PkgPanel tone="cream-2" id="faq" className="scroll-mt-20">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonForScript(schemaData) }} />
+      <div className="mx-auto max-w-3xl">
+        <h2 className="pkg-h2 text-balance">Pertanyaan umum</h2>
+        <Accordion type="single" collapsible className="mt-6 w-full">
+          {faqItems.map((faq, index) => (
+            <AccordionItem key={faq.id} value={`item-${index + 1}`} className="border-pkg-hair last:border-0">
+              <AccordionTrigger className="min-h-14 pr-2 text-left text-[17px] font-medium text-pkg-fg hover:no-underline">
+                {faq.question}
+              </AccordionTrigger>
+              <AccordionContent className="pb-6 text-[16px] leading-[1.55] text-pkg-fg-2">{faq.answer}</AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </div>
-    </section>
+    </PkgPanel>
   );
 };

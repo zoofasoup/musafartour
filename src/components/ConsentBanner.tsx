@@ -2,8 +2,8 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import "@/styles/pkg-v2.css";
 import { CONSENT_OPEN_EVENT, getConsent, hasDecided, setConsent, withdrawnCategories } from "@/lib/consent";
 import { isPrivateRoute } from "@/lib/privateRoutes";
 import { isInternalBrowser } from "@/lib/tracking";
@@ -75,11 +75,14 @@ export default function ConsentBanner() {
     const card = cardRef.current;
     if (!visible || !card) {
       root.style.removeProperty("--consent-h");
+      root.removeAttribute("data-consent-open");
       return;
     }
     const apply = () => {
       const below = window.matchMedia("(max-width: 1023.98px)").matches;
       root.style.setProperty("--consent-h", below ? `${Math.ceil(card.getBoundingClientRect().height) + 24}px` : "0px");
+      if (below) root.setAttribute("data-consent-open", "");
+      else root.removeAttribute("data-consent-open");
     };
     apply();
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(apply) : null;
@@ -89,6 +92,7 @@ export default function ConsentBanner() {
       ro?.disconnect();
       window.removeEventListener("resize", apply);
       root.style.removeProperty("--consent-h");
+      root.removeAttribute("data-consent-open");
     };
   }, [visible, expanded, host]);
 
@@ -126,27 +130,49 @@ export default function ConsentBanner() {
           else setExpanded(false);
         }
       }}
-      className="fixed inset-x-3 bottom-3 z-50 max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-lg border border-border bg-card p-3 text-foreground shadow-[0_16px_40px_rgb(124_126_126/0.22),0_2px_8px_rgb(124_126_126/0.10)] motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-200 sm:inset-x-auto sm:bottom-4 sm:left-4 sm:w-[440px] sm:p-5"
+      className="pkg-v2 pkg-toast fixed inset-x-3 bottom-3 z-50 max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-[28px] p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-200 sm:inset-x-auto sm:bottom-4 sm:left-4 sm:w-[440px] sm:p-5"
     >
-      <h2 id={TITLE_ID} ref={titleRef} tabIndex={-1} className="text-base font-bold leading-snug outline-none sm:text-lg">
-        Cookie dan pelacakan
+      <h2 id={TITLE_ID} ref={titleRef} tabIndex={-1} className={expanded ? "text-base font-medium leading-snug outline-none sm:text-lg" : "sr-only"}>
+        Cookie
       </h2>
-      <p id={DESC_ID} className="mt-1.5 text-[13px] leading-snug text-muted-foreground sm:mt-2 sm:text-sm sm:leading-relaxed">
-        Kami memakai cookie untuk menghitung statistik kunjungan, menayangkan iklan Meta dan TikTok, dan merekam sesi anonim lewat Clarity
-        supaya situs lebih mudah dipakai. Semuanya mati sampai kamu memilih, dan bisa kamu ubah kapan saja lewat &quot;Pengaturan cookie&quot;
-        di bagian bawah halaman.{" "}
-        <Link to="/kebijakan-privasi" className="font-semibold text-foreground underline underline-offset-4">
-          Baca Kebijakan Privasi
-        </Link>
+      <p id={DESC_ID} className="text-[15px] font-medium leading-snug sm:text-base">
+        Cookie untuk paket yang lebih sesuai.
       </p>
+      {!expanded && (
+        <p className="mt-1 text-[13px] opacity-75">
+          <button
+            type="button"
+            className="underline underline-offset-4"
+            onClick={() => {
+              const c = getConsent();
+              setAnalytics(c?.analytics ?? false);
+              setMarketing(c?.marketing ?? false);
+              setExpanded(true);
+            }}
+          >
+            Atur pilihan
+          </button>
+          {" · "}
+          <Link to="/kebijakan-privasi" className="underline underline-offset-4">
+            Kebijakan Privasi
+          </Link>
+        </p>
+      )}
+      {expanded && (
+        <p className="mt-1 text-[13px] opacity-75">
+          <Link to="/kebijakan-privasi" className="underline underline-offset-4">
+            Kebijakan Privasi
+          </Link>
+        </p>
+      )}
 
       {expanded && (
-        <div className="mt-3 divide-y divide-border rounded-md border border-border">
+        <div className="pkg-glass mt-3 divide-y divide-pkg-hair rounded-2xl">
           <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3 p-3">
             <span className="min-w-0">
               <span id="consent-analytics-label" className="block text-sm font-semibold">Analitik</span>
-              <span className="block text-[13px] text-muted-foreground">
-                Statistik kunjungan (Google Tag Manager, GA4) dan rekaman sesi anonim (Microsoft Clarity).
+              <span className="block text-[13px] opacity-75">
+                Statistik kunjungan dan rekaman sesi anonim (GA4, Clarity).
               </span>
             </span>
             <Switch
@@ -159,8 +185,8 @@ export default function ConsentBanner() {
           <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3 p-3">
             <span className="min-w-0">
               <span id="consent-marketing-label" className="block text-sm font-semibold">Pemasaran</span>
-              <span className="block text-[13px] text-muted-foreground">
-                Meta Pixel dan TikTok Pixel untuk iklan dan mengukur hasilnya, termasuk kiriman peristiwa dari server kami ke Meta.
+              <span className="block text-[13px] opacity-75">
+                Iklan dan pengukurannya (Meta, TikTok).
               </span>
             </span>
             <Switch
@@ -175,40 +201,21 @@ export default function ConsentBanner() {
 
       {expanded ? (
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => (decided ? setOpen(false) : setExpanded(false))}
-          >
+          <button type="button" className="pkg-press pkg-glass h-12 rounded-full px-6 text-[15px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream" onClick={() => (decided ? setOpen(false) : setExpanded(false))}>
             {decided ? "Tutup" : "Kembali"}
-          </Button>
-          <Button type="button" variant="brand" onClick={() => decide({ analytics, marketing })}>
+          </button>
+          <button type="button" className="pkg-press pkg-glass-red h-12 rounded-full px-6 text-[15px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream" onClick={() => decide({ analytics, marketing })}>
             Simpan pilihan
-          </Button>
+          </button>
         </div>
       ) : (
-        <div className="mt-3 space-y-1 sm:mt-4 sm:space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            <Button type="button" variant="outline" className="border-foreground/40" onClick={() => decide({ analytics: false, marketing: false })}>
-              Tolak semua
-            </Button>
-            <Button type="button" variant="brand" onClick={() => decide({ analytics: true, marketing: true })}>
-              Setuju semua
-            </Button>
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full"
-            onClick={() => {
-              const c = getConsent();
-              setAnalytics(c?.analytics ?? false);
-              setMarketing(c?.marketing ?? false);
-              setExpanded(true);
-            }}
-          >
-            Atur pilihan
-          </Button>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-4">
+          <button type="button" className="pkg-press pkg-glass h-12 rounded-full text-[15px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream" onClick={() => decide({ analytics: false, marketing: false })}>
+            Tolak
+          </button>
+          <button type="button" className="pkg-press pkg-glass-red h-12 rounded-full text-[15px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream" onClick={() => decide({ analytics: true, marketing: true })}>
+            Terima
+          </button>
         </div>
       )}
     </div>,

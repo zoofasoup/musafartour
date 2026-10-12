@@ -1,4 +1,4 @@
-import { useState, useEffect, type MouseEvent } from "react";
+import { useState, useEffect, useRef, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Menu, X, MessageCircle, ShoppingCart } from "lucide-react";
 import musafarLogoLight from "@/assets/musafar-logo.svg";
 import musafarLogoDark from "@/assets/musafar-logo-dark.svg";
 import { FavoritesDrawer } from "./FavoritesDrawer";
+import "@/styles/pkg-v2.css";
 import { useFavorites } from "@/hooks/useFavorites";
 
 const navLinks = [
@@ -57,6 +58,36 @@ const Navbar = () => {
   }, []);
 
   const isActive = (path: string) => location.pathname === path;
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Full-screen menu is modal: focus moves in, Tab stays inside, Escape closes, focus returns to the menu button.
+  useEffect(() => {
+    if (!isOpen) return;
+    const btn = menuBtnRef.current;
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+      if (e.key !== "Tab") return;
+      const root = document.getElementById("pkg-menu");
+      const f = root ? Array.from(root.querySelectorAll<HTMLElement>("a[href], button:not([disabled])")) : [];
+      if (!f.length) return;
+      const first = f[0];
+      const last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      btn?.focus();
+    };
+  }, [isOpen]);
   const isHome = location.pathname === "/";
   const isTransparent = isHome && !isScrolled && !isOpen;
 
@@ -154,6 +185,7 @@ const Navbar = () => {
               </button>
             </FavoritesDrawer>
             <button
+              ref={menuBtnRef}
               onClick={() => setIsOpen(!isOpen)}
               className="p-2 text-foreground"
               aria-label={isOpen ? "Tutup menu" : "Buka menu"}
@@ -164,31 +196,6 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Menu Content */}
-        {isOpen && (
-          <div className="md:hidden py-4 border-t animate-fade-in space-y-1 max-h-[calc(100dvh-4rem)] overflow-y-auto">
-            {[...navLinks, ...mobileExtraLinks].map((link) => (
-              <Link
-                key={link.href}
-                to={link.href}
-                onClick={() => setIsOpen(false)}
-                className={`block py-3 text-base font-medium transition-colors hover:text-primary ${
-                  isActive(link.href) ? "text-primary" : (isTransparent ? "text-white/90 hover:text-white" : "text-foreground")
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <div className="pt-4 border-t mt-4">
-              <Link to="/kontak" onClick={() => setIsOpen(false)}>
-                <Button variant="brand" className="w-full bg-brand hover:bg-brand-press text-brand-foreground font-semibold">
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Konsultasi Gratis
-                </Button>
-              </Link>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Animation styles */}
@@ -222,8 +229,63 @@ const Navbar = () => {
     main.scrollIntoView();
   };
 
+  const menuOverlay = isOpen
+    ? createPortal(
+        <div id="pkg-menu" role="dialog" aria-modal="true" aria-label="Menu" className="pkg-v2 pkg-float fixed inset-0 z-[60] animate-fade-in md:hidden">
+          <div data-pkg-tone="ink" className="pkg-menu-full">
+            <div className="flex h-16 shrink-0 items-center justify-between px-6">
+              <Link to="/" onClick={() => setIsOpen(false)} aria-label="Musafar Tour, ke beranda" className="flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream">
+                <div
+                  aria-hidden="true"
+                  className="h-8 w-32 bg-pkg-cream [mask-image:url('/logo.webp')] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:left] [-webkit-mask-image:url('/logo.webp')] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:left]"
+                />
+              </Link>
+              <button
+                ref={closeRef}
+                type="button"
+                onClick={() => setIsOpen(false)}
+                aria-label="Tutup menu"
+                className="pkg-press pkg-glass flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream"
+              >
+                <X className="h-5 w-5" aria-hidden />
+              </button>
+            </div>
+            <nav aria-label="Menu utama" className="flex-1 overflow-y-auto px-6 pt-2">
+              <ul>
+                {[...navLinks, ...mobileExtraLinks].map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      to={link.href}
+                      onClick={() => setIsOpen(false)}
+                      aria-current={isActive(link.href) ? "page" : undefined}
+                      className="flex min-h-[60px] items-center justify-between gap-3 border-b border-pkg-hair text-[28px] font-light tracking-[-0.025em] text-pkg-fg transition-colors hover:text-pkg-fg-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream"
+                    >
+                      {link.label}
+                      {isActive(link.href) && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-pkg-red-bright" aria-hidden />}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            <div className="shrink-0 px-6 pb-[max(24px,env(safe-area-inset-bottom))] pt-4">
+              <Link
+                to="/kontak"
+                onClick={() => setIsOpen(false)}
+                className="pkg-press pkg-glass-red flex h-14 w-full items-center justify-center gap-2 rounded-full text-[17px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream focus-visible:ring-offset-2 focus-visible:ring-offset-pkg-ink"
+              >
+                <MessageCircle className="h-5 w-5" aria-hidden />
+                Konsultasi Gratis
+              </Link>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )
+    : null;
+
   return (
     <>
+      {menuOverlay}
       {/* Spacer to prevent layout shifting since navbar is now fixed */}
       {!isHome && <div className="h-16 w-full bg-transparent" />}
       {mounted &&

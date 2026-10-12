@@ -1,19 +1,22 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
-import { PackageCard } from "@/components/PackageCard";
+import { PkgListCard } from "@/components/package-list/PkgListCard";
+import { PkgCardSkeleton } from "@/components/package-list/PkgSkeletons";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
+import { usePkgNav } from "@/hooks/usePkgNav";
+import "@/styles/pkg-v2.css";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
-import { Package, Calendar, Plane, Clock, X, MessageCircle, SlidersHorizontal } from "lucide-react";
+import { X, MessageCircle, SlidersHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { formatPriceJuta, getTierPrice, isPackageUnavailable, getSlotsTaken } from "@/lib/utils";
+import { formatPriceJuta, getTierPrice, isPackageUnavailable, getSlotsTaken, cn } from "@/lib/utils";
 import { resolveTierHotels } from "@/lib/roomCombos";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { usePublishedPackages } from "@/hooks/usePackages";
@@ -105,7 +108,9 @@ const PaketUmroh = () => {
       image: pkg.banner_image || "/placeholder.svg",
       title: pkg.package_name,
       price: formatPrice(getTierPrice(pkg).quad),
+      priceValue: getTierPrice(pkg).quad,
       date: format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId }),
+      dateShort: format(new Date(pkg.departure_date), "d MMM yyyy", { locale: localeId }),
       duration: `${pkg.duration_days} Hari`,
       airline: pkg.flight,
       transit: pkg.flight_type.toLowerCase() === "direct" ? "Direct" : "Transit",
@@ -133,7 +138,7 @@ const PaketUmroh = () => {
     {
       targets: ["#tour-cart-button"],
       title: "Simpan Paket ke Keranjang",
-      body: "Klik ikon kotak hijau ini untuk memasukkan paket ke Keranjang. Kamu bisa menyimpan beberapa paket sekaligus untuk dibandingkan nanti.",
+      body: "Ketuk ikon keranjang di foto paket untuk memasukkannya ke Keranjang. Kamu bisa menyimpan beberapa paket sekaligus untuk dibandingkan nanti.",
     },
     {
       targets: ["#tour-navbar-cart", "#tour-navbar-cart-mobile"],
@@ -142,9 +147,14 @@ const PaketUmroh = () => {
     },
   ];
 
+  const rootRef = useRef<HTMLDivElement>(null);
+  usePkgNav(rootRef);
+
+  const categoryChips = [{ value: "all", label: "Semua" }, ...filterOptions.categories.map((c: { value: string; label: string }) => ({ value: c.value, label: c.label }))];
+
   return (
-    <div className="min-h-screen bg-background">
-      <SEO 
+    <div ref={rootRef} className="pkg-v2 min-h-screen">
+      <SEO
         title="Paket Umroh 2026 Terlengkap & Terpercaya - Musafar Tour"
         description="Pilih paket umroh terbaik: hemat hingga five star, 9 dan 12 hari, keberangkatan setiap bulan. Berizin resmi Kemenag. Daftar sekarang!"
         keywords="paket umroh 2026, harga umroh, paket umroh murah, jadwal umroh 2026, umroh hemat"
@@ -152,20 +162,83 @@ const PaketUmroh = () => {
       />
       <Navbar />
       <main id="main">
-      {/* Header */}
-      <section className="py-16 bg-card border-b">
-        <div className="container mx-auto px-6 md:px-8 text-center">
-          <Package className="h-16 w-16 mx-auto mb-4 text-primary" />
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Paket Umroh Musafar Tour</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Pilihan paket Umroh terlengkap mulai dari Budget hingga Premium Bintang 5.
-          </p>
-          {/* Filter Bar - desktop: one grouped pill, dividers between each filter */}
-          <div className="hidden lg:flex items-center justify-center gap-3 mt-8">
-            <div id="tour-filter-bar" className="flex items-center divide-x divide-border rounded-full border border-border bg-white shadow-sm overflow-hidden">
+        {/* Header + filters */}
+        <PkgPanel tone="ink" top>
+          <div className="mx-auto max-w-[1280px]">
+            {!loading && (
+              <p className="pkg-glass pkg-label inline-flex h-8 items-center rounded-full px-3 text-[13px]">{transformedPackages.length} paket</p>
+            )}
+            <h1 className="pkg-title mt-5">Paket Umroh</h1>
+            <p className="pkg-label mt-4 text-pkg-fg-2">Pilih tanggal dan harga yang cocok.</p>
+
+            <div className="-mx-6 mt-8 flex gap-2 overflow-x-auto scroll-px-6 px-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] lg:mx-0 lg:px-0">
+              {categoryChips.map((c) => (
+                <button
+                  key={c.value}
+                  type="button"
+                  aria-pressed={category === c.value}
+                  onClick={() => setCategory(c.value)}
+                  className={cn(
+                    "pkg-press pkg-label h-11 shrink-0 rounded-full px-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream focus-visible:ring-offset-2 focus-visible:ring-offset-pkg-ink",
+                    category === c.value ? "pkg-glass-deep" : "pkg-glass"
+                  )}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Desktop: all filters in one glass bar */}
+            <div className="mt-5 hidden items-center gap-3 lg:flex">
+              <div id="tour-filter-bar" className="pkg-glass flex items-center divide-x divide-pkg-hair overflow-hidden rounded-full">
+                {filterConfigs.map((f) => (
+                  <Select key={f.key} value={f.value} onValueChange={f.onChange}>
+                    <SelectTrigger className={`${f.width} h-11 rounded-none border-0 bg-transparent text-sm text-pkg-fg shadow-none focus:ring-0 focus:ring-offset-0`}><SelectValue placeholder={f.placeholder} /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{f.allLabel}</SelectItem>
+                      {f.options.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ))}
+              </div>
+              {isFiltered && (
+                <button type="button" onClick={resetFilters} className="pkg-glass pkg-label inline-flex h-11 items-center gap-1 rounded-full px-4">
+                  <X className="h-3.5 w-3.5" aria-hidden /> Reset
+                </button>
+              )}
+            </div>
+          </div>
+        </PkgPanel>
+
+        {/* Mobile: floating filter trigger, always reachable, opens a bottom sheet */}
+        {mounted && createPortal(
+          <div className="pkg-v2 pkg-float lg:hidden fixed bottom-6 left-1/2 z-40 -translate-x-1/2">
+            <button
+              id="tour-filter-mobile"
+              type="button"
+              className="pkg-press pkg-glass-deep pkg-label inline-flex h-12 items-center gap-2 rounded-full px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
+              onClick={() => setMobileFilterOpen(true)}
+            >
+              <SlidersHorizontal className="h-4 w-4" aria-hidden />
+              Filter
+              {activeFilterCount > 0 && (
+                <span className="pkg-glass-red inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs">{activeFilterCount}</span>
+              )}
+            </button>
+          </div>,
+          document.body
+        )}
+        <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
+          <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-2xl">
+            <SheetHeader>
+              <SheetTitle>Filter Paket</SheetTitle>
+            </SheetHeader>
+            <div className="space-y-3 py-4">
               {filterConfigs.map((f) => (
                 <Select key={f.key} value={f.value} onValueChange={f.onChange}>
-                  <SelectTrigger className={`${f.width} h-9 text-sm rounded-none border-0 bg-transparent shadow-none focus:ring-0 focus:ring-offset-0`}><SelectValue placeholder={f.placeholder} /></SelectTrigger>
+                  <SelectTrigger className="h-11 w-full rounded-xl text-sm"><SelectValue placeholder={f.placeholder} /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{f.allLabel}</SelectItem>
                     {f.options.map((o) => (
@@ -175,108 +248,77 @@ const PaketUmroh = () => {
                 </Select>
               ))}
             </div>
-
-            {isFiltered && (
-              <Button variant="ghost" size="sm" onClick={resetFilters} className="text-muted-foreground hover:text-foreground gap-1">
-                <X className="h-3 w-3" /> Reset
+            <div className="flex gap-2 border-t pt-4">
+              {isFiltered && (
+                <Button variant="outline" className="flex-1" onClick={resetFilters}>
+                  <X className="h-3.5 w-3.5" /> Reset
+                </Button>
+              )}
+              <Button variant="brand" className="flex-1" onClick={() => setMobileFilterOpen(false)}>
+                Terapkan Filter
               </Button>
-            )}
-          </div>
+            </div>
+          </SheetContent>
+        </Sheet>
 
-        </div>
-      </section>
-
-      {/* Filter Bar - mobile: floating trigger, always reachable while scrolling, opens a bottom sheet */}
-      {mounted && createPortal(
-        <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-          <Button
-            id="tour-filter-mobile"
-            variant="outline"
-            className="h-11 gap-2 bg-white shadow-lg border-border/50 px-6"
-            onClick={() => setMobileFilterOpen(true)}
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            Filter
-            {activeFilterCount > 0 && (
-              <Badge className="h-5 min-w-5 justify-center rounded-full px-1 text-xs">{activeFilterCount}</Badge>
-            )}
-          </Button>
-        </div>,
-        document.body
-      )}
-      <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
-        <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-2xl">
-          <SheetHeader>
-            <SheetTitle>Filter Paket</SheetTitle>
-          </SheetHeader>
-          <div className="space-y-3 py-4">
-            {filterConfigs.map((f) => (
-              <Select key={f.key} value={f.value} onValueChange={f.onChange}>
-                <SelectTrigger className="w-full h-11 text-sm rounded-xl"><SelectValue placeholder={f.placeholder} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{f.allLabel}</SelectItem>
-                  {f.options.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ))}
-          </div>
-          <div className="flex gap-2 border-t pt-4">
-            {isFiltered && (
-              <Button variant="outline" className="flex-1" onClick={resetFilters}>
-                <X className="h-3.5 w-3.5" /> Reset
-              </Button>
-            )}
-            <Button variant="brand" className="flex-1" onClick={() => setMobileFilterOpen(false)}>
-              Terapkan Filter
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Packages */}
-      <section className="py-12 container mx-auto px-6 md:px-8">
-        {/* Results */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="space-y-4">
-                <Skeleton className="aspect-square w-full rounded-xl" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
+        {/* Packages */}
+        <PkgPanel tone="cream" last>
+          <div className="mx-auto max-w-[1280px]">
+            {loading ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-8 lg:grid-cols-3 xl:grid-cols-4">
+                {[...Array(6)].map((_, i) => (
+                  <PkgCardSkeleton key={i} />
+                ))}
               </div>
-            ))}
+            ) : transformedPackages.length === 0 ? (
+              <div className="py-8">
+                <h2 className="pkg-h2">Belum ada paket</h2>
+                <p className="pkg-label mt-4 text-pkg-fg-2">Paket dengan kriteria itu belum tersedia.</p>
+                <button
+                  type="button"
+                  className="pkg-press pkg-glass-red pkg-label mt-6 inline-flex h-12 items-center gap-2 rounded-full px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
+                  onClick={() => {
+                    redirectToWhatsApp("Halo Musafar Tour, saya mencari paket umroh yang belum tersedia di website. Bisa dibantu?", "paket_umroh_request");
+                  }}
+                >
+                  <MessageCircle className="h-4 w-4" aria-hidden />
+                  Tanya via WhatsApp
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-8 lg:grid-cols-3 xl:grid-cols-4">
+                {transformedPackages.map((pkg, idx) => (
+                  <PkgListCard
+                    key={pkg.id}
+                    id={pkg.id}
+                    slug={pkg.slug}
+                    image={pkg.image}
+                    title={pkg.title}
+                    price={pkg.price}
+                    priceValue={pkg.priceValue}
+                    date={pkg.date}
+                    dateShort={pkg.dateShort}
+                    duration={pkg.duration}
+                    airline={pkg.airline}
+                    hotelMakkah={pkg.hotelMakkah}
+                    hotelMakkahRating={pkg.hotelMakkahRating}
+                    hotelMadinah={pkg.hotelMadinah}
+                    hotelMadinahRating={pkg.hotelMadinahRating}
+                    isSoldOut={pkg.isSoldOut}
+                    waitlistCount={pkg.waitlistCount}
+                    slotsTotal={pkg.slotsTotal}
+                    slotsFilled={pkg.slotsFilled}
+                    index={idx}
+                    cartButtonTourId={idx === 0 ? "tour-cart-button" : undefined}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        ) : transformedPackages.length === 0 ? (
-          <div className="text-center py-16">
-            <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2 text-foreground">Paket tidak ditemukan</h3>
-            <p className="text-muted-foreground mb-4">
-              Maaf, paket dengan kriteria tersebut belum tersedia.
-            </p>
-            <Button variant="brand"
-              className="gap-2"
-              onClick={() => {
-                redirectToWhatsApp("Halo Musafar Tour, saya mencari paket umroh yang belum tersedia di website. Bisa dibantu?", "paket_umroh_request");
-              }}
-            >
-              <MessageCircle className="h-4 w-4" />
-              Hubungi via WhatsApp
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {transformedPackages.map((pkg, idx) => (
-              <PackageCard key={pkg.id} {...pkg} index={idx} cartButtonTourId={idx === 0 ? "tour-cart-button" : undefined} />
-            ))}
-          </div>
-        )}
-      </section>
-
+        </PkgPanel>
       </main>
 
-      <Footer />
+      <Footer variant="pkg" />
       <ProductTour steps={tourSteps} active={tour.active} onFinish={tour.finish} />
     </div>
   );

@@ -1,9 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { Camera } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
+import { Skel } from "@/components/package-list/PkgSkeletons";
+import { usePkgNav } from "@/hooks/usePkgNav";
+import "@/styles/pkg-v2.css";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { supabase } from "@/integrations/supabase/client";
 import { LazyImage } from "@/components/ui/lazy-image";
@@ -17,6 +21,8 @@ interface GalleryImage {
 }
 
 const Galeri = () => {
+  const rootRef = useRef<HTMLDivElement>(null);
+  usePkgNav(rootRef);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentImages, setCurrentImages] = useState<string[]>([]);
@@ -68,7 +74,7 @@ const Galeri = () => {
   }, {} as Record<string, GalleryImage[]>);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div ref={rootRef} className="pkg-v2 min-h-screen">
       <SEO 
         title="Galeri Jamaah - Dokumentasi Perjalanan Spiritual | Musafar Tour"
         description="Lihat dokumentasi perjalanan spiritual dan momen berharga jamaah Musafar Tour di Tanah Suci dan destinasi wisata halal lainnya."
@@ -77,81 +83,70 @@ const Galeri = () => {
       />
       <Navbar />
       <main id="main">
-      {/* Header */}
-      <section className="py-16 bg-card border-b">
-        <div className="container mx-auto px-6 md:px-8 text-center">
-          <Camera className="h-16 w-16 mx-auto mb-4 text-primary" />
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Galeri Jamaah</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Dokumentasi perjalanan spiritual dan momen berharga bersama Musafriends
-          </p>
-        </div>
-      </section>
+        <PkgPanel tone="ink" top>
+          <div className="mx-auto max-w-6xl">
+            <h1 className="pkg-title">Galeri jamaah</h1>
+            <p className="pkg-label mt-4 text-pkg-fg-2">Momen bersama Musafriends.</p>
+          </div>
+        </PkgPanel>
 
-      {/* Gallery Sections */}
-      <section className="py-16 container mx-auto px-6 md:px-8">
-        {loading ? (
-          <div className="space-y-16">
-            {[...Array(3)].map((_, groupIndex) => (
-              <div key={groupIndex}>
-                <Skeleton className="h-8 w-48 mx-auto mb-6" />
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {[...Array(4)].map((_, imgIndex) => (
-                    <Skeleton key={imgIndex} className="aspect-[4/3] rounded-lg" />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : Object.keys(groupedGalleries).length === 0 ? (
-          <div className="text-center py-12">
-            <Camera className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-xl text-muted-foreground">Belum ada galeri tersedia</p>
-          </div>
-        ) : (
-          <div className="space-y-16">
-            {Object.entries(groupedGalleries).map(([category, images]) => (
-              <div key={category}>
-                <h2 className="text-2xl font-bold mb-6 text-center capitalize">{category}</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {images.map((image, imgIndex) => (
-                    <div
-                      key={image.id}
-                      className="relative overflow-hidden rounded-lg aspect-[4/3] group cursor-pointer"
-                      onClick={() => openLightbox(images.map(i => i.image_url), imgIndex)}
-                    >
-                      <LazyImage
-                        src={image.image_url}
-                        alt={image.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                        <Camera className="h-8 w-8 text-white" />
-                      </div>
+        <PkgPanel tone="cream" last>
+          <div className="mx-auto max-w-6xl">
+            {loading ? (
+              <div className="space-y-12">
+                {[...Array(2)].map((_, g) => (
+                  <div key={g}>
+                    <Skel className="h-9 w-40" />
+                    <div className="mt-6 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
+                      {[...Array(4)].map((_, i) => (
+                        <Skel key={i} className="aspect-square rounded-[24px]" />
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : Object.keys(groupedGalleries).length === 0 ? (
+              <div className="py-12">
+                <Camera className="h-8 w-8 text-pkg-fg-3" aria-hidden />
+                <p className="pkg-sub mt-4">Belum ada foto.</p>
+              </div>
+            ) : (
+              <div className="space-y-14">
+                {Object.entries(groupedGalleries).map(([category, images]) => (
+                  <section key={category}>
+                    <h2 className="pkg-h2 capitalize">{category}</h2>
+                    <div className="mt-6 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
+                      {images.map((image, imgIndex) => (
+                        <button
+                          type="button"
+                          key={image.id}
+                          aria-label={`Buka foto: ${image.title}`}
+                          className="pkg-press relative aspect-square overflow-hidden rounded-[24px] bg-pkg-cream-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
+                          onClick={() => openLightbox(images.map((i) => i.image_url), imgIndex)}
+                        >
+                          <LazyImage src={image.image_url} alt={image.title} className="h-full w-full object-cover" loading="lazy" />
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </section>
+        </PkgPanel>
+      </main>
 
-      {/* CTA */}
-      <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-6 md:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ingin Menjadi Bagian dari Musafriends?</h2>
-          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Bergabunglah dengan ribuan jamaah yang telah merasakan pengalaman spiritual tak terlupakan bersama Musafar Tour
-          </p>
-          <a href="/">
-            <button className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3 rounded-md font-semibold">
-              Lihat Paket Umroh
-            </button>
-          </a>
+      <PkgPanel tone="red" className="!pb-24">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="pkg-h2 text-pkg-on-red text-balance">Jadi bagian dari Musafriends.</h2>
+          <Link
+            to="/paket-umroh"
+            className="pkg-press pkg-glass-deep pkg-label mt-6 inline-flex h-14 items-center rounded-full px-7 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-on-red focus-visible:ring-offset-2"
+          >
+            Lihat paket umroh
+          </Link>
         </div>
-      </section>
+      </PkgPanel>
 
       <ImageLightbox
         images={currentImages}
@@ -162,9 +157,7 @@ const Galeri = () => {
         onNext={handleNext}
       />
 
-      </main>
-
-      <Footer />
+      <Footer variant="pkg" />
     </div>
   );
 };

@@ -53,11 +53,19 @@ export const saveClickToDatabase = async (
  */
 export const redirectToWhatsApp = async (message: string, source = "whatsapp_button", pkg?: TrackedPackage) => {
   trackWhatsAppLead(source, pkg);
+  // Open the tab right now, while the click is still "user-initiated": iOS Safari (and others) silently block
+  // window.open once it comes after an await, which made every WhatsApp button do nothing there.
+  const popup = window.open('', '_blank');
+  const go = (url: string) => {
+    if (popup && !popup.closed) popup.location.href = url;
+    else window.location.href = url;
+  };
+
   const cs = await getNextCS();
 
   if (!cs) {
     // Fallback: open /chat route
-    window.open('/chat?msg=' + encodeURIComponent(message), '_blank');
+    go('/chat?msg=' + encodeURIComponent(message));
     return;
   }
 
@@ -67,6 +75,5 @@ export const redirectToWhatsApp = async (message: string, source = "whatsapp_but
   logRedirect(cs.id, cs.name, message, utmParams);
 
   // Open WhatsApp
-  const url = buildWhatsAppUrl(cs.phone_number, message);
-  window.open(url, '_blank');
+  go(buildWhatsAppUrl(cs.phone_number, message));
 };

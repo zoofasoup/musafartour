@@ -1,6 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
+import "@/styles/pkg-v2.css";
 
 interface Props {
   children: ReactNode;
@@ -58,45 +58,34 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
+      const btn = "pkg-press pkg-label inline-flex h-14 items-center justify-center gap-2 rounded-full px-7 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream focus-visible:ring-offset-2 focus-visible:ring-offset-pkg-ink";
       return (
-        <div className="min-h-screen flex items-center justify-center bg-background p-4">
-          <div className="text-center max-w-md">
-            <div className="mb-6">
-              <AlertTriangle className="h-16 w-16 text-destructive mx-auto" />
+        <div className="pkg-v2 min-h-screen">
+          <div data-pkg-tone="ink" className="flex min-h-screen flex-col justify-center px-6 py-16">
+            <div className="mx-auto w-full max-w-xl">
+              <p aria-hidden className="pkg-title !text-[min(calc((100vw-48px)/3),200px)] !leading-[0.85]">Oops</p>
+              <h1 className="pkg-h2 mt-8 text-balance">Ada yang tidak beres.</h1>
+              <p className="mt-4 text-[17px] leading-[1.5] text-pkg-fg-2">Coba lagi, atau muat ulang halaman.</p>
+              {this.state.error?.message && (
+                <p className="pkg-glass mt-6 break-words rounded-[16px] px-4 py-3 font-mono text-[12px] leading-[1.4] text-pkg-fg-2">{this.state.error.message}</p>
+              )}
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <button type="button" onClick={this.handleRetry} className={`${btn} pkg-glass-red`}>
+                  <RefreshCw className="h-4 w-4" aria-hidden /> Coba lagi
+                </button>
+                <button type="button" onClick={this.handleReload} className={`${btn} pkg-glass`}>Muat ulang</button>
+              </div>
+              {import.meta.env.DEV && this.state.error && (
+                <details className="mt-6 text-left">
+                  <summary className="cursor-pointer text-sm text-pkg-fg-2">Detail error (development)</summary>
+                  <pre className="pkg-glass mt-2 max-h-48 overflow-auto rounded-[16px] p-4 text-xs">
+                    {this.state.error.message}
+                    {"\n"}
+                    {this.state.error.stack}
+                  </pre>
+                </details>
+              )}
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              Terjadi Kesalahan
-            </h1>
-            <p className="text-muted-foreground mb-6">
-              Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi atau refresh halaman.
-              <br /><br />
-              <span className="text-xs font-mono text-destructive break-all block max-w-full text-left bg-status-bad-bg p-2 rounded">
-                {this.state.error?.message}
-                <br />
-                {this.state.error?.stack?.split('\n').slice(0, 3).join('\n')}
-              </span>
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={this.handleRetry} variant="brand">
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Coba Lagi
-              </Button>
-              <Button onClick={this.handleReload} variant="outline">
-                Refresh Halaman
-              </Button>
-            </div>
-            {import.meta.env.DEV && this.state.error && (
-              <details className="mt-6 text-left">
-                <summary className="cursor-pointer text-sm text-muted-foreground">
-                  Detail Error (Development)
-                </summary>
-                <pre className="mt-2 p-4 bg-muted rounded-lg text-xs overflow-auto max-h-48">
-                  {this.state.error.message}
-                  {"\n"}
-                  {this.state.error.stack}
-                </pre>
-              </details>
-            )}
           </div>
         </div>
       );

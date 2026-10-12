@@ -1,47 +1,26 @@
-import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
 import type { WebsiteSettings } from "@/hooks/useHomepageData";
-import { trackWhatsAppLead } from "@/lib/tracking";
+import { redirectToWhatsApp } from "@/lib/chatRedirect";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
 
 interface CTASectionProps {
   websiteSettings: WebsiteSettings | null | undefined;
 }
 
-export const CTASection = ({ websiteSettings }: CTASectionProps) => {
-  const handleWhatsAppClick = () => {
-    trackWhatsAppLead("home_cta_section");
-    const whatsappNumber = websiteSettings?.whatsapp_number || "6281917403797";
-    window.open(
-      `https://wa.me/${whatsappNumber}?text=Halo%20Musamin,%20saya%20tertarik%20untuk%20mengetahui%20lebih%20lanjut%20tentang%20paket%20Umroh`,
-      "_blank"
-    );
-  };
-
+export const CTASection = (_props: CTASectionProps) => {
   return (
-    <section className="relative py-32 md:py-48 bg-foreground text-white overflow-hidden">
-      {/* Subtle radial gradient for depth */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(140,80,40,0.15)_0%,_transparent_70%)]" aria-hidden="true" />
-      
-      <div className="relative container mx-auto px-6 md:px-8 text-center">
-        <span className="text-accent uppercase tracking-[0.3em] text-xs font-bold mb-6 block">
-          Mulai Perjalanan Anda
-        </span>
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 tracking-tight max-w-3xl mx-auto leading-[1.1]">
-          Belum Yakin Paket Umroh Mana yang Cocok?
-        </h2>
-        <p className="text-lg md:text-xl mb-12 text-background max-w-2xl mx-auto leading-relaxed">
-          Tim Musamin kami siap membantu Anda menemukan perjalanan sempurna
-          sesuai kebutuhan dan budget Anda.
-        </p>
-        <Button variant="brand"
-          size="lg"
-          className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-base md:text-lg px-8 h-14 md:h-16 rounded-xl transition-all hover:scale-105"
-          onClick={handleWhatsAppClick}
+    <PkgPanel tone="red" last className="!pb-24">
+      <div className="mx-auto max-w-3xl">
+        <h2 className="pkg-h2 text-balance text-pkg-on-red">Belum yakin paket mana yang cocok?</h2>
+        <p className="mt-4 text-[17px] leading-[1.5] text-pkg-on-red">Tim Musamin bantu cari yang pas dengan kebutuhan dan budget kamu.</p>
+        <button
+          type="button"
+          onClick={() => redirectToWhatsApp("Halo Musamin, saya tertarik untuk mengetahui lebih lanjut tentang paket Umroh", "home_cta_section")}
+          className="pkg-press pkg-glass-deep pkg-label mt-6 inline-flex h-14 items-center gap-2 rounded-full px-7 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-on-red focus-visible:ring-offset-2"
         >
-          <MessageCircle className="mr-2 h-5 w-5" />
-          Konsultasi via WhatsApp
-        </Button>
+          <MessageCircle className="h-5 w-5" aria-hidden /> Tanya via WhatsApp
+        </button>
       </div>
-    </section>
+    </PkgPanel>
   );
 };

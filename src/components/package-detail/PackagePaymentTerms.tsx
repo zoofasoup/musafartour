@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Banknote, CalendarCheck, Repeat } from "lucide-react";
+import { ArrowRight, Banknote, CalendarCheck, FileText, Landmark, Repeat } from "lucide-react";
 import { DP_MIN_PER_PAX, LUNAS_DAYS_BEFORE_DEPARTURE, PT_ACCOUNT_HOLDER, rupiah } from "@/lib/jamaah";
 
 /**
@@ -13,7 +13,34 @@ const HIGHLIGHTS = [
   { icon: CalendarCheck, title: `Lunas paling lambat H-${LUNAS_DAYS_BEFORE_DEPARTURE}`, text: "sebelum tanggal berangkat" },
 ] as const;
 
-export function PackagePaymentTerms() {
+export function PackagePaymentTerms({ flat = false }: { flat?: boolean }) {
+  if (flat) {
+    // Short lines on purpose; the full wording lives on /cara-bayar.
+    const rows: { icon: typeof Banknote; text: string; tag?: string }[] = [
+      { icon: Banknote, text: `DP minimal Rp ${DP_MIN_PER_PAX / 1_000_000} Juta` },
+      { icon: Repeat, text: "Cicilan bebas" },
+      { icon: CalendarCheck, text: `Lunas H-${LUNAS_DAYS_BEFORE_DEPARTURE}` },
+      { icon: Landmark, text: `Rekening resmi ${PT_ACCOUNT_HOLDER}` },
+      { icon: FileText, text: "Paspor min. 12 bulan sebelum berangkat" },
+    ];
+    return (
+      <section aria-labelledby="cara-bayar-heading">
+        <h2 id="cara-bayar-heading" className="pkg-h2">Pembayaran</h2>
+        <ul className="mt-6 divide-y divide-pkg-hair">
+          {rows.map(({ icon: Icon, text, tag }) => (
+            <li key={text} className="flex min-h-14 items-center gap-3 py-3">
+              <Icon className="h-6 w-6 shrink-0 text-pkg-red" aria-hidden />
+              <p className="min-w-0 flex-1 text-[17px] font-normal leading-snug text-pkg-fg">{text}</p>
+              {tag && <span className="pkg-caption shrink-0 rounded-full bg-pkg-cream-2 px-3 py-1 text-pkg-fg-2">{tag}</span>}
+            </li>
+          ))}
+        </ul>
+        <Link to="/cara-bayar" className="pkg-label mt-2 inline-flex min-h-11 items-center gap-1 text-pkg-red-deep underline underline-offset-4">
+          Cara bayar lengkap <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+        </Link>
+      </section>
+    );
+  }
   return (
     <section aria-labelledby="cara-bayar-heading" className="rounded-3xl border border-border/60 bg-white p-5 shadow-sm">
       <h2 id="cara-bayar-heading" className="text-lg font-bold text-foreground">

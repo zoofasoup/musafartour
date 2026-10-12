@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { LazyImage } from "@/components/LazyImage";
-import { BookOpen, Clock, User, MessageCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { BookOpen, Clock, MessageCircle } from "lucide-react";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
+import { Skel } from "@/components/package-list/PkgSkeletons";
+import { usePkgNav } from "@/hooks/usePkgNav";
+import "@/styles/pkg-v2.css";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
-import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -33,6 +35,8 @@ const readMinutes = (html?: string) => {
 };
 
 const Artikel = () => {
+  const rootRef = useRef<HTMLDivElement>(null);
+  usePkgNav(rootRef);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -85,8 +89,8 @@ const Artikel = () => {
 
 
   return (
-    <div className="min-h-screen bg-background">
-      <SEO 
+    <div ref={rootRef} className="pkg-v2 min-h-screen">
+      <SEO
         title="Artikel & Tips Umroh - Musafar Tour"
         description="Baca artikel dan tips lengkap seputar umroh, persiapan ibadah, dan wisata religi. Panduan praktis untuk jamaah pemula hingga berpengalaman."
         keywords="artikel umroh, tips umroh, panduan umroh, persiapan umroh, tips ibadah"
@@ -96,143 +100,113 @@ const Artikel = () => {
           "@type": "Blog",
           "name": "Artikel & Tips Umroh - Musafar Tour",
           "description": "Panduan, tips, dan informasi bermanfaat seputar perjalanan Umroh",
-          "publisher": {
-            "@type": "Organization",
-            "name": "Musafar Tour"
-          }
+          "publisher": { "@type": "Organization", "name": "Musafar Tour" }
         }}
       />
       <Navbar />
       <main id="main">
-      {/* Header */}
-      <section className="py-16 bg-card border-b">
-        <div className="container mx-auto px-6 md:px-8 text-center">
-          <BookOpen className="h-16 w-16 mx-auto mb-4 text-primary" />
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Artikel & Tips Umroh</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Panduan, tips, dan informasi bermanfaat seputar perjalanan Umroh
-          </p>
-        </div>
-      </section>
+        <PkgPanel tone="ink" top>
+          <div className="mx-auto max-w-[1200px]">
+            <h1 className="pkg-title">Artikel &amp; tips umroh</h1>
+            <p className="pkg-label mt-4 text-pkg-fg-2">Panduan singkat sebelum berangkat.</p>
+          </div>
+        </PkgPanel>
 
-      {/* Articles Grid */}
-      <section className="py-16 container mx-auto px-6 md:px-8">
-        {loading && page === 1 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-card rounded-lg overflow-hidden shadow-md">
-                <Skeleton className="h-48 w-full" />
-                <div className="p-6 space-y-4">
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : articles.length === 0 ? (
-          <div className="text-center py-12">
-            <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-xl text-muted-foreground">Belum ada artikel tersedia</p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {articles.map((article) => (
-                <Link
-                  key={article.id}
-                  to={`/artikel/${article.slug}`}
-                  className="block bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow"
-                >
-                <article>
-                  <div className="relative h-48 overflow-hidden">
-                    <LazyImage
-                      src={article.featured_image || "/og-default.jpg"}
-                      alt={article.title}
-                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                    />
-                    {article.category && (
-                      <div className="absolute top-4 left-4">
-                        <span className="bg-accent text-accent-foreground text-xs font-semibold px-3 py-1 rounded">
-                          {article.category}
-                        </span>
-                      </div>
-                    )}
+        <PkgPanel tone="cream" last>
+          <div className="mx-auto max-w-[1200px]">
+            {loading && page === 1 ? (
+              <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i}>
+                    <Skel className="aspect-[4/3] w-full rounded-[24px]" />
+                    <Skel className="mt-5 h-6 w-4/5" />
+                    <Skel className="mt-3 h-4 w-full" />
+                    <Skel className="mt-2 h-4 w-2/3" />
                   </div>
-                  <div className="p-6">
-                    <h2 className="text-xl font-bold mb-3 line-clamp-2 hover:text-primary transition-colors">
-                      {article.title}
-                    </h2>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                      {article.excerpt || article.meta_description || ""}
-                    </p>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-4">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          <span>{article.author_name || "Admin"}</span>
+                ))}
+              </div>
+            ) : articles.length === 0 ? (
+              <div className="py-12">
+                <BookOpen className="h-8 w-8 text-pkg-fg-3" aria-hidden />
+                <p className="pkg-sub mt-4">Belum ada artikel.</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">
+                  {articles.map((article) => (
+                    <Link
+                      key={article.id}
+                      to={`/artikel/${article.slug}`}
+                      className="pkg-press group block rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
+                    >
+                      <article>
+                        <div className="relative aspect-[4/3] overflow-hidden rounded-[24px] bg-pkg-cream-2">
+                          <LazyImage
+                            src={article.featured_image || "/og-default.jpg"}
+                            alt={article.title}
+                            className="h-full w-full object-cover"
+                          />
+                          {article.category && (
+                            <span className="pkg-glass pkg-label absolute bottom-3 left-3 inline-flex h-8 items-center rounded-full px-3 text-[13px]">
+                              {article.category}
+                            </span>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
+                        <h2 className="mt-5 line-clamp-2 text-[24px] font-normal leading-[1.15] tracking-[-0.025em] text-pkg-fg">
+                          {article.title}
+                        </h2>
+                        <p className="mt-3 line-clamp-3 text-[16px] leading-[1.5] text-pkg-fg-2">
+                          {article.excerpt || article.meta_description || ""}
+                        </p>
+                        <p className="pkg-caption mt-4 flex items-center gap-2 text-pkg-fg-3">
+                          <span>{format(new Date(article.created_at), "d MMM yyyy", { locale: localeId })}</span>
+                          <span aria-hidden>·</span>
+                          <Clock className="h-3.5 w-3.5" aria-hidden />
                           <span>{readMinutes(article.content)} menit</span>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {format(new Date(article.created_at), "dd MMMM yyyy", { locale: localeId })}
-                    </p>
+                        </p>
+                      </article>
+                    </Link>
+                  ))}
+                </div>
+
+                {hasMore && (
+                  <div className="mt-12 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                      className="pkg-press pkg-glass pkg-label inline-flex h-12 items-center rounded-full px-6 disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
+                    >
+                      {loadingMore ? "Memuat..." : "Muat lebih banyak"}
+                    </button>
                   </div>
-                </article>
-                </Link>
-              ))}
-            </div>
-            
-            {hasMore && (
-              <div className="mt-12 flex justify-center">
-                <Button 
-                  onClick={handleLoadMore} 
-                  disabled={loadingMore}
-                  variant="outline"
-                  size="lg"
-                  className="px-8 border-foreground/20 hover:bg-foreground/5 text-foreground"
-                >
-                  {loadingMore ? "Memuat..." : "Muat Lebih Banyak Artikel"}
-                </Button>
-              </div>
+                )}
+              </>
             )}
-          </>
-        )}
-      </section>
-
-      {/* Updates CTA: the old email "newsletter" form showed success but stored nothing. */}
-      <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-6 md:px-8">
-          <div className="max-w-2xl mx-auto text-center bg-card p-8 rounded-lg shadow-md">
-            <BookOpen className="h-12 w-12 mx-auto mb-4 text-primary" />
-            <h2 className="text-2xl font-bold mb-4">Dapatkan Tips & Info Promo Terbaru</h2>
-            <p className="text-muted-foreground mb-6">
-              Kami kirimkan artikel, tips persiapan, dan info jadwal umroh terbaru langsung ke WhatsApp Anda.
-            </p>
-            <Button variant="brand"
-              size="lg"
-              className="gap-2"
-              onClick={() =>
-                redirectToWhatsApp(
-                  "Assalamu'alaikum Musafar Tour, saya ingin menerima info artikel, tips, dan promo umroh terbaru via WhatsApp.",
-                  "artikel_subscribe"
-                )
-              }
-            >
-              <MessageCircle className="h-4 w-4" /> Kabari Saya via WhatsApp
-            </Button>
           </div>
-        </div>
-      </section>
-
+        </PkgPanel>
       </main>
 
-      <Footer />
+      <PkgPanel tone="red" className="!pb-24">
+        <div className="mx-auto max-w-[1200px]">
+          <h2 className="pkg-h2 text-pkg-on-red">Info &amp; promo terbaru</h2>
+          <p className="pkg-label mt-4 text-pkg-on-red">Dikirim langsung ke WhatsApp kamu.</p>
+          <button
+            type="button"
+            onClick={() =>
+              redirectToWhatsApp(
+                "Assalamu'alaikum Musafar Tour, saya ingin menerima info artikel, tips, dan promo umroh terbaru via WhatsApp.",
+                "artikel_subscribe"
+              )
+            }
+            className="pkg-press pkg-glass-deep pkg-label mt-6 inline-flex h-14 items-center gap-2 rounded-full px-7 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-on-red focus-visible:ring-offset-2"
+          >
+            <MessageCircle className="h-5 w-5" aria-hidden /> Kabari saya
+          </button>
+        </div>
+      </PkgPanel>
+
+      <Footer variant="pkg" />
     </div>
   );
 };

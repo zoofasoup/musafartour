@@ -76,6 +76,7 @@ const LEAD_BUTTON_LABELS: Record<string, string> = {
   floating_button: "Tombol WA melayang",
   package_calculator: "Kalkulator harga paket",
   package_solo: "Berangkat sendiri",
+  package_book: "Book Now (paket)",
   package_waitlist: "Waitlist (halaman paket)",
   package_card_waitlist: "Waitlist (kartu paket)",
   cart_drawer: "Keranjang",

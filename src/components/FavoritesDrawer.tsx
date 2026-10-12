@@ -1,11 +1,10 @@
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { ShoppingBag, Trash2, MessageCircle, ShoppingCart } from "lucide-react";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import "@/styles/pkg-v2.css";
+import { ShoppingBag, Trash2, X } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import React, { useState } from "react";
 import { LazyImage } from "@/components/ui/lazy-image";
-import { getPriceBadgeStyle } from "@/lib/utils";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 
 interface FavoritesDrawerProps {
@@ -14,15 +13,6 @@ interface FavoritesDrawerProps {
 
 export const FavoritesDrawer = ({ children }: FavoritesDrawerProps) => {
   const { favorites, removeFavorite } = useFavorites();
-  const navigate = useNavigate();
-
-  const handleNavigate = (slug?: string, id?: string) => {
-    const urlParam = slug || id;
-    if (urlParam) {
-      navigate(`/paket-umroh/${urlParam}`);
-    }
-  };
-
   const handleWhatsAppSubmit = () => {
     let message = "Assalamu'alaikum Musafar Tour, Saya tertarik dengan paket Umroh berikut yang saya simpan dari website:\n";
     favorites.forEach((pkg, index) => {
@@ -38,71 +28,83 @@ export const FavoritesDrawer = ({ children }: FavoritesDrawerProps) => {
       <SheetTrigger asChild>
         {children}
       </SheetTrigger>
-      <SheetContent 
-        className="w-full sm:max-w-md flex flex-col bg-muted/80 backdrop-blur-xl"
-        style={{ top: '64px', height: 'calc(100vh - 64px)' }}
+      <SheetContent
+        side="right"
+        className="pkg-v2 pkg-float w-full max-w-none border-0 bg-transparent p-0 shadow-none sm:max-w-md [&>button]:hidden"
+        style={{ top: "4rem", height: "calc(100dvh - 4rem)" }}
       >
-        <SheetHeader className="mb-2">
-          <SheetTitle className="flex items-center gap-2.5 text-2xl md:text-3xl font-extrabold tracking-tight">
-            <ShoppingCart className="h-7 w-7 fill-primary text-primary shrink-0" />
-            <span className="flex items-baseline gap-2">
-              Paket Umrohku
-              <span className="text-muted-foreground text-lg md:text-xl font-semibold">({favorites.length})</span>
-            </span>
-          </SheetTitle>
-        </SheetHeader>
-        <div className="mt-4 flex flex-col gap-3 overflow-y-auto flex-1 pr-1 pb-4">
-          {favorites.length === 0 ? (
-            <div className="text-center py-12">
-              <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-              <p className="font-medium text-foreground">Belum ada paket tersimpan</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Klik ikon keranjang pada paket untuk menyimpannya di sini.
-              </p>
-            </div>
-          ) : (
-            favorites.map((pkg) => (
-              <div 
-                key={pkg.id} 
-                className="flex gap-4 p-4 rounded-3xl bg-card border border-border/60 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:border-status-bad-border hover:shadow-md transition-all cursor-pointer group"
-                onClick={() => handleNavigate(pkg.slug, pkg.id)}
-              >
-                <LazyImage 
-                  src={pkg.image} 
-                  alt={pkg.title}
-                  className="w-[84px] h-[84px] object-cover object-top rounded-2xl flex-shrink-0"
-                />
-                <div className="flex-1 min-w-0 py-1 flex flex-col justify-center items-start">
-                  <h4 className="font-semibold text-[15px] leading-tight text-foreground group-hover:text-destructive transition-colors pr-2">{pkg.title}</h4>
-                  {pkg.date && <p className="text-[13px] text-muted-foreground font-medium mt-1.5">{pkg.date}</p>}
-                  <p className={`font-bold text-sm mt-2 px-2.5 py-0.5 rounded-full shadow-sm w-fit ${getPriceBadgeStyle(pkg.title)}`}>{pkg.price}</p>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeFavorite(pkg.id);
-                  }}
-                  className="p-2.5 rounded-full hover:bg-status-bad-bg transition-colors self-center flex-shrink-0 group/btn"
-                  aria-label="Hapus dari favorit"
-                >
-                  <Trash2 className="h-6 w-6 text-destructive group-hover/btn:text-destructive" />
-                </button>
+        <div data-pkg-tone="cream" className="pkg-panel pkg-panel-drawer">
+          <SheetHeader className="flex-row items-center justify-between space-y-0 px-6 pb-5">
+            <SheetTitle className="flex min-w-0 items-center gap-3 text-left">
+              <span className="pkg-sub">Paket Umrohku</span>
+              <span className="pkg-glass pkg-label inline-flex h-8 min-w-8 items-center justify-center rounded-full px-2.5">{favorites.length}</span>
+            </SheetTitle>
+            <SheetClose asChild>
+              <button type="button" aria-label="Tutup" className="pkg-press pkg-glass flex h-11 w-11 shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink">
+                <X className="h-5 w-5" aria-hidden />
+              </button>
+            </SheetClose>
+          </SheetHeader>
+
+          <div className="flex-1 space-y-3 overflow-y-auto px-6 pb-5">
+            {favorites.length === 0 ? (
+              <div className="flex flex-col items-center px-4 py-16 text-center">
+                <span className="pkg-glass flex h-16 w-16 items-center justify-center rounded-full">
+                  <ShoppingBag className="h-7 w-7" aria-hidden />
+                </span>
+                <p className="pkg-sub mt-6 !text-[24px]">Belum ada paket</p>
+                <p className="pkg-label mt-2 text-pkg-fg-2">Ketuk ikon keranjang di paket untuk menyimpannya di sini.</p>
               </div>
-            ))
+            ) : (
+              favorites.map((pkg) => {
+                const urlParam = pkg.slug || pkg.id;
+                return (
+                  <article key={pkg.id} className="pkg-card relative flex items-center gap-3 rounded-[28px] p-3">
+                    <LazyImage
+                      src={pkg.image}
+                      alt=""
+                      className="h-20 w-20 shrink-0 rounded-[18px] object-cover object-top"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-[15px] font-medium leading-tight">
+                        {urlParam ? (
+                          <Link to={`/paket-umroh/${urlParam}`} className="after:absolute after:inset-0 after:rounded-[28px] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-pkg-ink">
+                            {pkg.title}
+                          </Link>
+                        ) : (
+                          pkg.title
+                        )}
+                      </h3>
+                      {pkg.date && <p className="mt-1 text-[13px] font-normal text-pkg-fg-3">{pkg.date}</p>}
+                      <p className="mt-1.5 text-[20px] font-normal leading-none tracking-[-0.02em]">{pkg.price}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeFavorite(pkg.id)}
+                      className="pkg-press pkg-glass relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink"
+                      aria-label={`Hapus ${pkg.title} dari keranjang`}
+                    >
+                      <Trash2 className="h-5 w-5 text-pkg-red-deep" aria-hidden />
+                    </button>
+                  </article>
+                );
+              })
+            )}
+          </div>
+
+          {favorites.length > 0 && (
+            <div className="border-t border-pkg-hair px-6 pb-[max(20px,env(safe-area-inset-bottom))] pt-4">
+              <button
+                type="button"
+                className="pkg-press pkg-glass-red inline-flex h-14 w-full items-center justify-center gap-2 rounded-full text-[17px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
+                onClick={handleWhatsAppSubmit}
+              >
+                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.489-1.761-1.663-2.06-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                Konsultasi {favorites.length} paket
+              </button>
+            </div>
           )}
         </div>
-
-        {favorites.length > 0 && (
-          <div className="pt-4 border-t mt-auto">
-            <Button variant="brand" 
-              className="w-full gap-2 font-bold h-11 shadow-md bg-brand hover:bg-brand-press text-brand-foreground"
-              onClick={handleWhatsAppSubmit}
-            >
-              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.489-1.761-1.663-2.06-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-              Konsultasi {favorites.length} Paket
-            </Button>
-          </div>
-        )}
       </SheetContent>
     </Sheet>
   );
