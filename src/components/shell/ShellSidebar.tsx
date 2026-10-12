@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { LogOut, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import {
   Sidebar,
@@ -98,9 +98,28 @@ const FooterLink = ({ link }: { link: ShellSidebarLink }) => {
   );
 };
 
+// The shell remounts on every admin route, so the menu would jump back to the top. Its scroll position is kept here
+// between pages, and the open page is scrolled into view when it would be hidden.
+let savedMenuScroll = 0;
+
 export const ShellSidebar = ({ nav, pathname, brandTo, brandBadge, links, extra, onSignOut }: ShellSidebarProps) => {
   const { isMobile, setOpenMobile } = useSidebar();
   const active = findActiveItem(nav, pathname);
+  const menuRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = menuRef.current;
+    if (!el) return;
+    el.scrollTop = savedMenuScroll;
+    const current = el.querySelector<HTMLElement>('[data-active="true"]');
+    if (current) {
+      const box = el.getBoundingClientRect();
+      const r = current.getBoundingClientRect();
+      if (r.top < box.top + 8 || r.bottom > box.bottom - 8) current.scrollIntoView({ block: "center" });
+    }
+    const onScroll = () => { savedMenuScroll = el.scrollTop; };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [pathname, isMobile]);
   const closeDrawer = () => {
     if (isMobile) setOpenMobile(false);
   };
@@ -130,7 +149,7 @@ export const ShellSidebar = ({ nav, pathname, brandTo, brandBadge, links, extra,
         <CollapseToggle />
       </SidebarHeader>
 
-      <SidebarContent className="gap-0 px-2 py-2">
+      <SidebarContent ref={menuRef} className="gap-0 px-2 py-2">
         {nav.map((group, idx) => (
           <SidebarGroup
             key={group.label ?? idx}

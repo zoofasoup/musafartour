@@ -12,6 +12,7 @@ Disallow: /chat
 Disallow: /api
 Disallow: /booth
 Disallow: /styleguide
+Disallow: /daftar
 
 # Short links and result pages (duplicates / personal results)
 Disallow: /s/
@@ -20,8 +21,13 @@ Disallow: /r/
 Disallow: /kalkulator/hasil/
 Disallow: /packages
 
+# Tracking and test switches create duplicate URLs of the same page
+Disallow: /*?px=
+Disallow: /*?consent=
+Disallow: /*?intro
+
 # Everything else (home, paket-umroh, jadwal, artikel, galeri, kontak, tentang-kami, cara-bayar,
-# jadi-agen, sop-agen, syarat-umroh, legal pages, daftar) stays crawlable.
+# jadi-agen, sop-agen, syarat-umroh, legal pages) stays crawlable.
 Allow: /
 
 Sitemap: https://musafartour.com/sitemap.xml

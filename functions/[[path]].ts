@@ -1,6 +1,7 @@
 import { findRedirect, packageSlugExists } from "./_lib/data";
 import type { Env } from "./_lib/env";
 import { classifyPath, normalizePath } from "./_lib/routes";
+import { applyHead, packageHeadMeta, staticHeadMeta } from "./_lib/seoHead";
 
 /**
  * Catch-all: gives unknown URLs a real HTTP 404.
@@ -24,11 +25,21 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, next }) => {
 
   const url = new URL(request.url);
   const verdict = classifyPath(url.pathname);
-  if (verdict.kind === "known") return next();
+  if (verdict.kind === "known") {
+    // Own title, description, canonical and share tags in the HTML itself (crawlers without JS, WhatsApp previews).
+    const meta = request.method === "GET" ? await staticHeadMeta(env, normalizePath(url.pathname)) : null;
+    const res = await next();
+    return meta && (res.headers.get("content-type") ?? "").includes("text/html") ? applyHead(res, meta) : res;
+  }
 
   if (verdict.kind === "package-slug") {
     const exists = await packageSlugExists(env, verdict.slug);
-    if (exists !== false) return next(); // exists, or unknown (fail open)
+    if (exists !== false) {
+      // Fails open: no package row (or a database hiccup) just serves the plain shell, as before.
+      const meta = request.method === "GET" ? await packageHeadMeta(env, verdict.slug) : null;
+      const res = await next();
+      return meta && (res.headers.get("content-type") ?? "").includes("text/html") ? applyHead(res, meta) : res;
+    }
   }
 
   const response = await next();

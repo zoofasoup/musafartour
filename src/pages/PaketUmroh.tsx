@@ -158,8 +158,8 @@ const PaketUmroh = () => {
   return (
     <div ref={rootRef} className="pkg-v2 min-h-screen">
       <SEO
-        title="Paket Umroh 2026 Terlengkap & Terpercaya - Musafar Tour"
-        description="Pilih paket umroh terbaik: hemat hingga five star, 9 dan 12 hari, keberangkatan setiap bulan. Berizin resmi Kemenag. Daftar sekarang!"
+        title="Paket Umroh 2026: Hemat sampai Five Star - Musafar Tour"
+        description="Pilih paket umroh 9 dan 12 hari, dari hemat hingga five star, berangkat setiap bulan. Berizin resmi Kemenag, DP Rp 5 juta, cicilan bebas."
         keywords="paket umroh 2026, harga umroh, paket umroh murah, jadwal umroh 2026, umroh hemat"
         canonicalUrl="https://musafartour.com/paket-umroh"
       />

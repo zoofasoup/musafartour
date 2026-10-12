@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,14 +9,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2, Save, Globe, FileText, Link as LinkIcon, Settings, ExternalLink } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { checkSEO } from "@/lib/seoScoreChecker";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
+import { Loader2, Save, Home, Link as LinkIcon, Trash2 } from "lucide-react";
 
+const HOME_PATH = "/";
+const TITLE_MAX = 60;
+const DESC_MAX = 155;
+
+/** Hint under a field: green-ish while it fits what Google shows, a warning once it will be cut. */
+const Counter = ({ value, max }: { value: string; max: number }) => (
+  <p className={`text-xs ${value.length > max ? "text-status-warn-text" : "text-muted-foreground"}`}>
+    {value.length} dari {max} karakter{value.length > max ? ", akan terpotong di Google" : ""}
+  </p>
+);
+
+/**
+ * The two SEO settings that really change the site:
+ *  - the home page's title and description (page_seo, path "/"), read by the page and by the server HTML;
+ *  - 301 redirects for old addresses (redirects), read by the server for paths that no longer exist.
+ * Everything else (robots.txt, sitemap, other pages' titles) lives in the code and is not editable here.
+ */
 const SEO = () => {
   const { user, isAdmin: isOwner, userRole } = useAuth();
   // The menu also shows this page to content_admin, so the page has to let that role in (it used to render blank).
@@ -24,104 +40,106 @@ const SEO = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [saving, setSaving] = useState(false);
+  const { ask, dialog } = useConfirmDialog();
 
-  // Fetch global SEO settings
-  const { data: globalSettings, isLoading: loadingGlobal } = useQuery({
-    queryKey: ["seo-settings"],
+  const { data: home, isLoading: loadingHome } = useQuery({
+    queryKey: ["page-seo", HOME_PATH],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("seo_settings")
-        .select("*")
-        .single();
+      const { data, error } = await supabase.from("page_seo").select("*").eq("page_path", HOME_PATH).maybeSingle();
       if (error) throw error;
       return data;
     },
   });
 
-  // Fetch page SEO settings
-  const { data: pageSettings, isLoading: loadingPages } = useQuery({
-    queryKey: ["page-seo"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("page_seo")
-        .select("*")
-        .order("page_name");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Fetch redirects
   const { data: redirects, isLoading: loadingRedirects } = useQuery({
     queryKey: ["redirects"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("redirects")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("redirects").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
 
-  // Save global settings mutation
-  const saveGlobalMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const { error } = await supabase
-        .from("seo_settings")
-        .update(data)
-        .eq("id", globalSettings?.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["seo-settings"] });
-      toast({
-        title: "Tersimpan",
-        description: "Pengaturan SEO global diperbarui.",
-      });
-    },
-  });
+  // Home form
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  useEffect(() => {
+    if (home !== undefined) {
+      setTitle(home?.meta_title ?? "");
+      setDescription(home?.meta_description ?? "");
+    }
+  }, [home]);
 
-  // Save page SEO mutation
-  const savePageMutation = useMutation({
-    mutationFn: async ({ id, data }: any) => {
-      const { error } = await supabase
-        .from("page_seo")
-        .update(data)
-        .eq("id", id);
+  const saveHome = useMutation({
+    mutationFn: async () => {
+      const payload = { meta_title: title.trim() || null, meta_description: description.trim() || null };
+      const { error } = home?.id
+        ? await supabase.from("page_seo").update(payload).eq("id", home.id)
+        : await supabase.from("page_seo").insert({ ...payload, page_path: HOME_PATH, page_name: "Beranda" });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["page-seo"] });
-      toast({
-        title: "Tersimpan",
-        description: "SEO halaman diperbarui.",
-      });
+      queryClient.invalidateQueries({ queryKey: ["page-seo", HOME_PATH] });
+      toast({ title: "Tersimpan", description: "Judul dan deskripsi beranda diperbarui. Google butuh beberapa hari untuk mengikutinya." });
     },
+    onError: () => toast({ title: "Gagal menyimpan", description: "Coba lagi atau hubungi admin teknis.", variant: "destructive" }),
   });
 
-  // Add/update redirect mutation
-  const saveRedirectMutation = useMutation({
-    mutationFn: async (data: any) => {
-      if (data.id) {
-        const { error } = await supabase
-          .from("redirects")
-          .update(data)
-          .eq("id", data.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("redirects").insert(data);
-        if (error) throw error;
-      }
+  // Redirects
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const normalizedFrom = from.trim().replace(/\/+$/, "") || "";
+  const trimmedTo = to.trim();
+  const fromError = !normalizedFrom
+    ? ""
+    : !normalizedFrom.startsWith("/") || /[\s?#]/.test(normalizedFrom)
+      ? "Mulai dengan / dan tanpa spasi, tanda tanya, atau #. Contoh: /paket-lama"
+      : "";
+  const toError = !trimmedTo
+    ? ""
+    : !(trimmedTo.startsWith("/") || /^https?:\/\//i.test(trimmedTo)) || trimmedTo.startsWith("//")
+      ? "Isi dengan alamat di situs (/paket-umroh) atau alamat lengkap (https://...)"
+      : trimmedTo.replace(/\/+$/, "") === normalizedFrom
+        ? "Alamat tujuan tidak boleh sama dengan alamat asal"
+        : "";
+  const canAdd = !!normalizedFrom && !!trimmedTo && !fromError && !toError;
+
+  const addRedirect = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("redirects")
+        .insert({ from_path: normalizedFrom, to_path: trimmedTo, redirect_type: 301, is_active: true });
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["redirects"] });
-      toast({
-        title: "Tersimpan",
-        description: "Aturan pengalihan disimpan.",
-      });
+      setFrom("");
+      setTo("");
+      toast({ title: "Pengalihan ditambahkan" });
     },
+    onError: () => toast({ title: "Gagal menambah", description: "Alamat asal mungkin sudah punya pengalihan.", variant: "destructive" }),
+  });
+
+  const toggleRedirect = useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      const { error } = await supabase.from("redirects").update({ is_active: active }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["redirects"] }),
+    onError: () => toast({ title: "Gagal mengubah status", variant: "destructive" }),
+  });
+
+  const removeRedirect = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("redirects").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["redirects"] });
+      toast({ title: "Pengalihan dihapus" });
+    },
+    onError: () => toast({ title: "Gagal menghapus", variant: "destructive" }),
   });
 
   if (!user || !isAdmin) {
@@ -129,230 +147,143 @@ const SEO = () => {
     return null;
   }
 
-  if (loadingGlobal || loadingPages || loadingRedirects) {
+  if (loadingHome || loadingRedirects) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" aria-label="Memuat" />
       </div>
     );
   }
 
+  const previewTitle = title.trim() || "Musafar Tour - Paket Umroh Terpercaya 2026";
+  const previewDesc = description.trim() || "Isi deskripsi di atas.";
+
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Kelola SEO</h1>
-        <p className="text-muted-foreground">
-          Atur pengaturan optimasi mesin pencari website
-        </p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-medium">SEO</h1>
+        <p className="text-muted-foreground">Dua pengaturan yang benar-benar mengubah situs.</p>
       </div>
 
-      <Tabs defaultValue="global" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="global">
-            <Globe className="w-4 h-4 mr-2" />
-            Pengaturan global
-          </TabsTrigger>
-          <TabsTrigger value="pages">
-            <FileText className="w-4 h-4 mr-2" />
-            Halaman
+      <Tabs defaultValue="home" className="w-full">
+        <TabsList>
+          <TabsTrigger value="home">
+            <Home className="mr-2 h-4 w-4" aria-hidden />
+            SEO beranda
           </TabsTrigger>
           <TabsTrigger value="redirects">
-            <LinkIcon className="w-4 h-4 mr-2" />
-            Pengalihan
-          </TabsTrigger>
-          <TabsTrigger value="robots">
-            <Settings className="w-4 h-4 mr-2" />
-            Robots.txt
-          </TabsTrigger>
-          <TabsTrigger value="sitemap">
-            <ExternalLink className="w-4 h-4 mr-2" />
-            Sitemap
+            <LinkIcon className="mr-2 h-4 w-4" aria-hidden />
+            Pengalihan 301
           </TabsTrigger>
         </TabsList>
 
-        {/* Global Settings Tab */}
-        <TabsContent value="global">
+        <TabsContent value="home">
           <Card>
             <CardHeader>
-              <CardTitle>Pengaturan SEO bawaan</CardTitle>
+              <CardTitle>Judul dan deskripsi beranda</CardTitle>
               <CardDescription>
-                Dipakai sebagai nilai bawaan di seluruh website
+                Ini yang muncul di hasil Google dan di pratinjau saat beranda dibagikan. Halaman lain (paket, artikel, kontak, dan seterusnya) memakai teks dari kode dan datanya masing-masing.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="site_title">Judul website</Label>
-                <Input
-                  id="site_title"
-                  defaultValue={globalSettings?.site_title}
-                  onChange={(e) =>
-                    saveGlobalMutation.mutate({ site_title: e.target.value })
-                  }
-                />
+                <Label htmlFor="seo-title">Judul</Label>
+                <Input id="seo-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Musafar Tour - Paket Umroh Terpercaya 2026" />
+                <Counter value={title} max={TITLE_MAX} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="seo-desc">Deskripsi</Label>
+                <Textarea id="seo-desc" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
+                <Counter value={description} max={DESC_MAX} />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="site_description">Deskripsi meta bawaan</Label>
-                <Textarea
-                  id="site_description"
-                  rows={3}
-                  defaultValue={globalSettings?.site_description}
-                  onChange={(e) =>
-                    saveGlobalMutation.mutate({ site_description: e.target.value })
-                  }
-                />
-                <p className="text-sm text-muted-foreground">
-                  {globalSettings?.site_description?.length || 0} karakter
-                </p>
+              <div className="rounded-lg bg-muted p-4" aria-label="Pratinjau di Google">
+                <p className="mb-1 text-xs text-muted-foreground">Pratinjau di Google</p>
+                <p className="text-sm text-muted-foreground">musafartour.com</p>
+                <p className="text-lg leading-snug text-foreground">{previewTitle.slice(0, TITLE_MAX + 10)}</p>
+                <p className="text-sm text-muted-foreground">{previewDesc.slice(0, DESC_MAX + 10)}</p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="default_keywords">Kata kunci bawaan</Label>
-                <Input
-                  id="default_keywords"
-                  placeholder="Pisahkan dengan koma"
-                  defaultValue={globalSettings?.default_keywords}
-                  onChange={(e) =>
-                    saveGlobalMutation.mutate({ default_keywords: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="default_og_image">Gambar bawaan saat dibagikan (URL)</Label>
-                <Input
-                  id="default_og_image"
-                  placeholder="https://..."
-                  defaultValue={globalSettings?.default_og_image}
-                  onChange={(e) =>
-                    saveGlobalMutation.mutate({ default_og_image: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="twitter_site">Akun Twitter</Label>
-                <Input
-                  id="twitter_site"
-                  placeholder="@musafartour"
-                  defaultValue={globalSettings?.twitter_site}
-                  onChange={(e) =>
-                    saveGlobalMutation.mutate({ twitter_site: e.target.value })
-                  }
-                />
-              </div>
+              <Button onClick={() => saveHome.mutate()} disabled={saveHome.isPending}>
+                {saveHome.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                Simpan
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Pages Tab */}
-        <TabsContent value="pages">
-          <Card>
-            <CardHeader>
-              <CardTitle>SEO per halaman</CardTitle>
-              <CardDescription>
-                Atur SEO untuk tiap halaman
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Halaman</TableHead>
-                    <TableHead>Judul meta</TableHead>
-                    <TableHead>Deskripsi meta</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Aksi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pageSettings?.map((page: any) => (
-                    <TableRow key={page.id}>
-                      <TableCell className="font-medium">{page.page_name}</TableCell>
-                      <TableCell className="max-w-xs truncate">
-                        {page.meta_title || "-"}
-                      </TableCell>
-                      <TableCell className="max-w-xs truncate">
-                        {page.meta_description || "-"}
-                        {page.meta_description && (
-                          <span className="text-xs text-muted-foreground ml-2">
-                            ({page.meta_description.length} chars)
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={page.robots_meta?.includes("noindex") ? "destructive" : "default"}>
-                          {page.robots_meta || "index, follow"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button size="sm" variant="outline">
-                          Ubah
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Redirects Tab */}
         <TabsContent value="redirects">
           <Card>
             <CardHeader>
               <CardTitle>Pengalihan 301</CardTitle>
               <CardDescription>
-                Atur pengalihan URL supaya tidak ada link yang mati
+                Arahkan alamat lama ke alamat baru supaya tautan lama tidak mati dan peringkat Google ikut pindah. Hanya untuk alamat yang sudah tidak ada di situs; alamat yang masih aktif tidak akan dialihkan.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="mb-4">
-                <Button>
-                  <LinkIcon className="w-4 h-4 mr-2" />
-                  Tambah pengalihan
-                </Button>
-              </div>
+            <CardContent className="space-y-6">
+              <form
+                className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-start"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (canAdd) addRedirect.mutate();
+                }}
+              >
+                <div className="space-y-1.5">
+                  <Label htmlFor="r-from">Dari (alamat lama)</Label>
+                  <Input id="r-from" value={from} onChange={(e) => setFrom(e.target.value)} placeholder="/paket-lama" className="font-mono" aria-invalid={!!fromError} />
+                  {fromError && <p className="text-xs text-status-bad-text">{fromError}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="r-to">Ke (alamat baru)</Label>
+                  <Input id="r-to" value={to} onChange={(e) => setTo(e.target.value)} placeholder="/paket-umroh" className="font-mono" aria-invalid={!!toError} />
+                  {toError && <p className="text-xs text-status-bad-text">{toError}</p>}
+                </div>
+                <div className="md:pt-[26px]">
+                  <Button type="submit" disabled={!canAdd || addRedirect.isPending}>
+                    {addRedirect.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Tambah
+                  </Button>
+                </div>
+              </form>
+
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Dari</TableHead>
                     <TableHead>Ke</TableHead>
                     <TableHead>Jenis</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Aksi</TableHead>
+                    <TableHead>Aktif</TableHead>
+                    <TableHead className="w-12"><span className="sr-only">Hapus</span></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {redirects?.map((redirect: any) => (
-                    <TableRow key={redirect.id}>
-                      <TableCell className="font-mono text-sm">
-                        {redirect.from_path}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {redirect.to_path}
+                  {redirects?.map((r) => (
+                    <TableRow key={r.id}>
+                      <TableCell className="font-mono text-sm">{r.from_path}</TableCell>
+                      <TableCell className="font-mono text-sm">{r.to_path}</TableCell>
+                      <TableCell><Badge variant="outline">{r.redirect_type ?? 301}</Badge></TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={!!r.is_active}
+                          onCheckedChange={(active) => toggleRedirect.mutate({ id: r.id, active })}
+                          aria-label={`Pengalihan ${r.from_path} aktif`}
+                        />
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{redirect.redirect_type}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={redirect.is_active ? "default" : "secondary"}>
-                          {redirect.is_active ? "Aktif" : "Nonaktif"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button size="sm" variant="ghost">
-                          Ubah
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          aria-label={`Hapus pengalihan ${r.from_path}`}
+                          onClick={() => ask({ title: "Hapus pengalihan ini?", description: `${r.from_path} tidak lagi diarahkan ke ${r.to_path}.` }, () => removeRedirect.mutate(r.id))}
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden />
                         </Button>
                       </TableCell>
                     </TableRow>
                   ))}
                   {redirects?.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        Belum ada pengalihan
-                      </TableCell>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">Belum ada pengalihan</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -360,76 +291,8 @@ const SEO = () => {
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* Robots.txt Tab */}
-        <TabsContent value="robots">
-          <Card>
-            <CardHeader>
-              <CardTitle>Robots.txt</CardTitle>
-              <CardDescription>
-                Atur halaman mana yang boleh dirayapi mesin pencari
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                rows={12}
-                className="font-mono text-sm"
-                defaultValue={globalSettings?.robots_txt}
-                onChange={(e) =>
-                  saveGlobalMutation.mutate({ robots_txt: e.target.value })
-                }
-              />
-              <Button onClick={() => toast({ title: "Tersimpan", description: "Robots.txt diperbarui." })}>
-                <Save className="w-4 h-4 mr-2" />
-                Simpan Robots.txt
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Sitemap Tab */}
-        <TabsContent value="sitemap">
-          <Card>
-            <CardHeader>
-              <CardTitle>Peta situs XML</CardTitle>
-              <CardDescription>
-                Peta situs dibuat dan diperbarui otomatis
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 border rounded-lg bg-muted/50">
-                <p className="text-sm font-mono mb-2">
-                  https://musafartour.com/sitemap.xml
-                </p>
-                <Button variant="outline" asChild>
-                  <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Lihat peta situs
-                  </a>
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                <h4 className="font-semibold">Halaman yang disertakan:</h4>
-                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                  <li>Semua halaman statis yang terbit</li>
-                  <li>Semua artikel yang terbit</li>
-                  <li>Semua paket yang terbit</li>
-                </ul>
-              </div>
-
-              <div className="space-y-2">
-                <h4 className="font-semibold">Halaman yang dikecualikan:</h4>
-                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                  <li>Halaman panel admin</li>
-                  <li>Halaman login</li>
-                  <li>Konten draf</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
+      {dialog}
     </div>
   );
 };

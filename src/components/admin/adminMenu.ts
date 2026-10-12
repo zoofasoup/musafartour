@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard, Image, Target, MessageSquare,
   Images, Package, Hotel, Calendar, FileText, HelpCircle,
-  Settings, Users, TrendingUp, Search, MessageCircleMore, UserCog, Trophy, Link2, ListChecks, Calculator, Sparkles, Backpack, Wallet, Download, CalendarCheck, PenTool, BarChart3, Coins, Banknote,
+  Settings, Users, TrendingUp, Search, UserCog, Trophy, ListChecks, Calculator, Backpack, Wallet, Download, CalendarCheck, PenTool, BarChart3, Coins, Banknote,
 } from "lucide-react";
 
 /**
@@ -37,14 +37,6 @@ export const ADMIN_MENU_SECTIONS: AdminMenuSection[] = [
       { icon: BarChart3, label: "Laporan Keuangan", path: "/admin/jamaah/keuangan", roles: ["admin", "superadmin", "finance"] },
       // Commission lifecycle: approve (management = superadmin, finance = finance, two different users), then pay in batches.
       { icon: Banknote, label: "Pembayaran Komisi", path: "/admin/pembayaran-komisi", roles: ["admin", "superadmin", "finance", "agent_admin"] },
-    ]
-  },
-  {
-    label: "Penjualan & Operasional",
-    items: [
-      { icon: MessageCircleMore, label: "Kotak Masuk WhatsApp", path: "/admin/whatsapp-inbox", roles: ["admin", "superadmin", "sales"] },
-      // product_admin has no access to calculator leads (names and WhatsApp numbers; ADM-031): RLS gives them nothing.
-      { icon: Sparkles, label: "Prospek Kalkulator", path: "/admin/calculator-leads", roles: ["admin", "superadmin", "sales"] },
     ]
   },
   {
@@ -90,9 +82,6 @@ export const ADMIN_MENU_SECTIONS: AdminMenuSection[] = [
       // Access is enforced in get_analytics_summary (admin/superadmin/advertiser).
       { icon: BarChart3, label: "Analitik", path: "/admin/analytics", roles: ["admin", "superadmin", "advertiser"] },
       { icon: TrendingUp, label: "Pengaturan Pemasaran", path: "/admin/settings/marketing", roles: ["admin", "superadmin", "advertiser"] },
-      { icon: Wallet, label: "Biaya Iklan", path: "/admin/ad-spend", roles: ["admin", "superadmin", "advertiser"] },
-      { icon: MessageCircleMore, label: "Rotasi Chat", path: "/admin/chat-rotation", roles: ["admin", "superadmin", "advertiser"] },
-      { icon: Link2, label: "Pemendek Tautan", path: "/admin/url-shortener", roles: ["admin", "superadmin", "advertiser"] },
       { icon: Search, label: "SEO", path: "/admin/seo", roles: ["admin", "superadmin", "content_admin"] },
     ]
   },

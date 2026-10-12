@@ -73,14 +73,14 @@ export async function fetchAllPublishedSlugs(env: Env): Promise<{ slug: string; 
 }
 
 /** Published packages that haven't departed yet (departed ones stay reachable but aren't advertised). */
-export async function fetchUpcomingPackageSlugs(env: Env): Promise<{ slug: string; updated_at: string | null }[]> {
+export async function fetchUpcomingPackageSlugs(env: Env): Promise<{ slug: string; updated_at: string | null; banner_image?: string | null }[]> {
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
   const res = await restFetch(
     env,
-    `packages?select=slug,updated_at&status=eq.published&slug=not.is.null&departure_date=gte.${today}&order=departure_date.asc&limit=1000`
+    `packages?select=slug,updated_at,banner_image&status=eq.published&slug=not.is.null&departure_date=gte.${today}&order=departure_date.asc&limit=1000`
   );
   if (!res.ok) return [];
-  return (await res.json()) as { slug: string; updated_at: string | null }[];
+  return (await res.json()) as { slug: string; updated_at: string | null; banner_image?: string | null }[];
 }
 
 /** Same pixel config the SPA loads, so server-rendered article pages are tracked too. */

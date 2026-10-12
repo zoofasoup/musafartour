@@ -71,6 +71,12 @@ html.pkg-app input:not([type="checkbox"]):not([type="radio"]), html.pkg-app text
 html.pkg-app [data-sidebar="sidebar"] img { filter: brightness(0) invert(1); }
 html.pkg-app [data-sidebar="menu-button"][data-active="true"] { background: hsl(var(--sidebar-accent)); color: hsl(var(--sidebar-accent-foreground)); box-shadow: inset 2px 0 0 hsl(var(--primary)); }
 
+/* Sidebar text and icons: idle items were the muted grey, which is dark on the dark sidebar. Lighter cream now; group
+   labels a step dimmer so the hierarchy stays; hover is a lifted dark capsule instead of a light one. */
+html.pkg-app [data-sidebar="menu-button"]:not([data-active="true"]) { color: hsl(39 24% 86%); }
+html.pkg-app [data-sidebar="menu-button"]:not([data-active="true"]):hover { background: hsl(var(--sidebar-accent)); color: hsl(var(--sidebar-foreground)); }
+html.pkg-app [data-sidebar="group-label"] { color: hsl(36 16% 70%); }
+
 /* Cards: no heavy edge, a soft lift instead. */
 html.pkg-app .shadow-sm { box-shadow: 0 1px 2px rgb(var(--shadow-rgb) / 0.06), 0 6px 16px -8px rgb(var(--shadow-rgb) / 0.10); }
 
