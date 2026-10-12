@@ -73,8 +73,13 @@ html.pkg-app [data-sidebar="menu-button"][data-active="true"] { background: hsl(
 
 /* Sidebar text and icons: idle items were the muted grey, which is dark on the dark sidebar. Lighter cream now; group
    labels a step dimmer so the hierarchy stays; hover is a lifted dark capsule instead of a light one. */
-html.pkg-app [data-sidebar="menu-button"]:not([data-active="true"]) { color: hsl(39 24% 86%); }
-html.pkg-app [data-sidebar="menu-button"]:not([data-active="true"]):hover { background: hsl(var(--sidebar-accent)); color: hsl(var(--sidebar-foreground)); }
+html.pkg-app [data-sidebar="menu-button"]:not([data-active="true"]):not(.bg-card) { color: hsl(39 24% 86%); }
+/* The open page: a soft raised dark capsule with a red edge on the left (the shell marks it with bg-card). */
+html.pkg-app [data-sidebar="menu-button"].bg-card { background: hsl(var(--sidebar-accent)); color: hsl(var(--sidebar-foreground)); box-shadow: inset 3px 0 0 hsl(var(--primary)); }
+/* Dividers and edges inside the dark sidebar are quiet hairlines, not bright lines. */
+html.pkg-app [data-sidebar="sidebar"] [class*="border"], html.pkg-app [data-sidebar="sidebar"] { border-color: hsl(var(--sidebar-border)); }
+html.pkg-app [data-sidebar="sidebar"] [data-sidebar="footer"] { border-color: hsl(var(--sidebar-border)); }
+html.pkg-app [data-sidebar="menu-button"]:not([data-active="true"]):not(.bg-card):hover { background: hsl(var(--sidebar-accent)); color: hsl(var(--sidebar-foreground)); }
 html.pkg-app [data-sidebar="group-label"] { color: hsl(36 16% 70%); }
 
 /* Cards: no heavy edge, a soft lift instead. */
@@ -801,3 +806,31 @@ html.pkg-app .text-\[\#FEF3C7\]{color:hsl(25 70% 91%)}
 html.pkg-app .text-\[\#d8f3dc\]{color:hsl(147 40% 90%)}
 html.pkg-app .text-\[\#dc2626\]{color:hsl(3 82% 34%)}
 html.pkg-app .text-amber-700\/50{color:hsl(25 100% 26% / 0.5)}
+
+/* ---- Work-area rules from the design system (MASTER.md), applied to every admin and agent page ---- */
+
+/* Smallest text is 12px; the 9/10/11px sizes scattered through the admin were below that. */
+html.pkg-app .text-\[9px\], html.pkg-app .text-\[10px\], html.pkg-app .text-\[11px\] { font-size: 12px; line-height: 1.3; }
+
+/* No all-caps labels with wide tracking: sentence case, normal spacing. */
+html.pkg-app .uppercase { text-transform: none; }
+html.pkg-app .tracking-wider, html.pkg-app .tracking-widest { letter-spacing: 0.01em; }
+
+/* Two soft shadow levels only; the heavy ones become the lift level. */
+html.pkg-app .shadow-md, html.pkg-app .shadow-lg, html.pkg-app .shadow-xl, html.pkg-app .shadow-2xl {
+  box-shadow: 0 1px 2px rgb(var(--shadow-rgb) / 0.06), 0 12px 28px -12px rgb(var(--shadow-rgb) / 0.18);
+}
+
+/* Colour bands in the COGS price table: green = selling price, ink = subtotal, deep red = after discount. */
+html.pkg-app .border-\[\#14532D\] { border-color: hsl(147 59% 17%); }
+html.pkg-app .border-\[\#0369A1\] { border-color: hsl(28 11% 26%); }
+html.pkg-app .bg-\[\#0284C7\] { background-color: hsl(28 11% 26%); }
+html.pkg-app .border-\[\#881337\] { border-color: hsl(3 82% 28%); }
+
+/* Table headers default to bold in the browser; the system stops at 500. */
+html.pkg-app th { font-weight: 500; }
+
+/* Native selects look like the other fields (they were plain white boxes). */
+html.pkg-app select { background-color: hsl(var(--field)); border-radius: 14px; border-color: transparent; color: hsl(var(--foreground)); }
+/* Translucent white bars follow the card colour. */
+html.pkg-app .bg-white\/95, html.pkg-app .bg-white\/90 { background-color: hsl(var(--card) / 0.95); }

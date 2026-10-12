@@ -206,11 +206,11 @@ function generateRoomCombos(adults: number, price: PackagePrice, discount: numbe
 function CounterInput({ value, onChange, min = 0, max = 99 }: { value: number; onChange: (v: number) => void; min?: number; max?: number }) {
   return (
     <div className="flex items-center gap-1.5">
-      <Button type="button" variant="outline" size="icon" className="h-7 w-7 shrink-0 rounded-full" onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min}>
+      <Button type="button" variant="outline" size="icon" className="h-7 w-7 shrink-0 rounded-full" onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min} aria-label="Kurangi">
         <Minus className="h-3 w-3" />
       </Button>
       <span className="text-lg font-bold tracking-tighter min-w-[2rem] text-center">{value}</span>
-      <Button type="button" variant="outline" size="icon" className="h-7 w-7 shrink-0 rounded-full" onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max}>
+      <Button type="button" variant="outline" size="icon" className="h-7 w-7 shrink-0 rounded-full" onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max} aria-label="Tambah">
         <Plus className="h-3 w-3" />
       </Button>
     </div>

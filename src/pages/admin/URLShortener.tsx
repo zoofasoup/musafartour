@@ -506,7 +506,7 @@ const URLShortener = () => {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" aria-label="Menu lainnya">
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -610,7 +610,7 @@ const URLShortener = () => {
                   variant="outline" 
                   size="icon"
                   onClick={() => setFormData({ ...formData, short_code: generateShortCode() })}
-                >
+ aria-label="Muat ulang">
                   <RefreshCw className="w-4 h-4" />
                 </Button>
               </div>

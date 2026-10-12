@@ -132,7 +132,7 @@ const AgentDashboard = () => {
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className={`shrink-0 whitespace-nowrap ${AGENT_STATE_CLASS[j.pay_state]}`}>{AGENT_STATE_LABEL[j.pay_state]}</Badge>
                     {j.phone && (
-                      <Button asChild variant="outline" size="icon" className={`h-9 w-9 ${TOUCH_H} [@media(pointer:coarse)]:w-11`}>
+                      <Button asChild variant="outline" size="icon" aria-label="Chat WhatsApp" className={`h-9 w-9 ${TOUCH_H} [@media(pointer:coarse)]:w-11`}>
                         <a aria-label={`Ingatkan ${j.full_name} lewat WhatsApp`} target="_blank" rel="noopener noreferrer" href={reminderWhatsAppUrl({ phone: j.phone, name: j.full_name, packageName: j.package_name, departureDate: j.departure_date, outstanding: j.outstanding, dueDate: j.due_date })}>
                           <MessageCircle className="h-4 w-4" aria-hidden />
                         </a>

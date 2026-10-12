@@ -141,7 +141,7 @@ const JadwalKeberangkatan = () => {
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" onClick={handlePrevMonth}>
+              <Button variant="outline" size="icon" aria-label="Sebelumnya" onClick={handlePrevMonth}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <div className="flex gap-2">
@@ -170,7 +170,7 @@ const JadwalKeberangkatan = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button variant="outline" size="icon" onClick={handleNextMonth}>
+              <Button variant="outline" size="icon" aria-label="Berikutnya" onClick={handleNextMonth}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

@@ -81,10 +81,10 @@ const SortableCard = ({
       <Switch checked={item.is_active} onCheckedChange={() => onToggle(item)} />
 
       <div className="flex gap-1 shrink-0">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(item)}>
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(item)} aria-label="Ubah">
           <Pencil className="h-3.5 w-3.5" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onDelete(item)}>
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onDelete(item)} aria-label="Hapus">
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </div>

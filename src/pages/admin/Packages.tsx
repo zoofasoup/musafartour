@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, Images, RefreshCw, Route, History, BadgeCheck } from "lucide-react";
+import { Plus, Edit, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, FileSpreadsheet, Images, RefreshCw, Route, History, BadgeCheck, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { PACKAGE_HAS_JAMAAH_MESSAGE, canEditPackages, daysUntilDeparture, departureCountdownLabel, packageStatusBadgeClass, packageStatusLabel } from "@/lib/packageStatus";
@@ -367,58 +368,60 @@ const Packages = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Paket Umroh</h1>
+          <h1 className="text-3xl font-medium tracking-tight">Paket Umroh</h1>
           <p className="text-muted-foreground">
             {canEdit ? "Kelola paket umrohmu" : "Mode lihat saja: perubahan paket dilakukan oleh PIC produk"}
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3">
-          <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)} className="flex items-center gap-2">
-            <History className="h-4 w-4" />
-            Riwayat Perubahan
-          </Button>
+          {/* One primary action, the selection mode, and everything occasional tucked into a menu. */}
           {canEdit && (
-          <>
-          <Button
-            variant={selectionMode ? "secondary" : "outline"}
-            onClick={() => selectionMode ? handleExitSelectionMode() : setSelectionMode(true)}
-            size="sm"
-          >
-            {selectionMode ? "Batal Pilih" : "Pilih"}
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)} className="flex items-center gap-2">
-            <FileSpreadsheet className="h-4 w-4" />
-            Unggah Excel
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setFlyerOpen(true)} className="flex items-center gap-2">
-            <Images className="h-4 w-4" />
-            Unggah flyer
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSyncSeats}
-            disabled={syncingSeats}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${syncingSeats ? "animate-spin" : ""}`} />
-            {syncingSeats ? "Syncing..." : "Sync Sisa Seat"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSyncItinerary}
-            disabled={syncingItinerary}
-            className="flex items-center gap-2"
-          >
-            <Route className={`h-4 w-4 ${syncingItinerary ? "animate-spin" : ""}`} />
-            {syncingItinerary ? "Syncing..." : "Sync Itinerary"}
-          </Button>
-          <Button onClick={() => navigate("/admin/packages/new")} size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            Tambah Paket
-          </Button>
-          </>
+            <Button
+              variant={selectionMode ? "secondary" : "outline"}
+              onClick={() => selectionMode ? handleExitSelectionMode() : setSelectionMode(true)}
+              size="sm"
+            >
+              {selectionMode ? "Batal Pilih" : "Pilih"}
+            </Button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <MoreHorizontal className="h-4 w-4" aria-hidden />
+                Lainnya
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-60">
+              <DropdownMenuItem onSelect={() => setHistoryOpen(true)}>
+                <History className="mr-2 h-4 w-4" aria-hidden /> Riwayat Perubahan
+              </DropdownMenuItem>
+              {canEdit && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => setImportOpen(true)}>
+                    <FileSpreadsheet className="mr-2 h-4 w-4" aria-hidden /> Unggah Excel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setFlyerOpen(true)}>
+                    <Images className="mr-2 h-4 w-4" aria-hidden /> Unggah flyer
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={handleSyncSeats} disabled={syncingSeats}>
+                    <RefreshCw className={`mr-2 h-4 w-4 ${syncingSeats ? "animate-spin" : ""}`} aria-hidden />
+                    {syncingSeats ? "Syncing..." : "Sync Sisa Seat"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={handleSyncItinerary} disabled={syncingItinerary}>
+                    <Route className={`mr-2 h-4 w-4 ${syncingItinerary ? "animate-spin" : ""}`} aria-hidden />
+                    {syncingItinerary ? "Syncing..." : "Sync Itinerary"}
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {canEdit && (
+            <Button onClick={() => navigate("/admin/packages/new")} size="sm">
+              <Plus className="mr-2 h-4 w-4" />
+              Tambah Paket
+            </Button>
           )}
         </div>
       </div>

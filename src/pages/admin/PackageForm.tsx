@@ -289,7 +289,7 @@ const ImageDropZone = ({
           <div className="overflow-hidden rounded-lg border aspect-[4/5]">
             <img src={previews[0]} alt="Pratinjau" className="w-full h-full object-cover" />
           </div>
-          <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 w-7 h-7 shadow-md" onClick={() => onRemove(0)}>
+          <Button type="button" variant="destructive" size="icon" aria-label="Hapus foto" className="absolute top-2 right-2 w-7 h-7 shadow-md" onClick={() => onRemove(0)}>
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -302,7 +302,7 @@ const ImageDropZone = ({
                   <div className="overflow-hidden rounded-lg border aspect-square">
                     <img src={preview} alt={`Pratinjau ${index + 1}`} className="w-full h-full object-cover" />
                   </div>
-                  <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 w-6 h-6" onClick={() => onRemove(index)}>
+                  <Button type="button" variant="destructive" size="icon" aria-label="Hapus foto" className="absolute -top-2 -right-2 w-6 h-6" onClick={() => onRemove(index)}>
                     <X className="w-3 h-3" />
                   </Button>
                 </div>
@@ -370,7 +370,7 @@ const DocDropZone = ({
             <span className="text-xs truncate max-w-full px-2 text-center">{preview.split('/').pop() || 'Uploaded file'}</span>
           </div>
         )}
-        <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 w-7 h-7 shadow-md" onClick={onRemove}>
+        <Button type="button" variant="destructive" size="icon" aria-label="Hapus foto" className="absolute top-2 right-2 w-7 h-7 shadow-md" onClick={onRemove}>
           <X className="w-4 h-4" />
         </Button>
       </div>
@@ -1422,7 +1422,7 @@ const PackageForm = () => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSave, handleValidationError)} className="space-y-6 pb-12 bg-background min-h-[calc(100vh-4rem)] -m-6 p-6 md:-m-8 md:p-8">
         {/* Sticky top action bar */}
-        <div className="sticky top-0 z-40 -mx-6 -mt-6 px-6 py-3 md:-mx-8 md:-mt-8 md:px-8 bg-white/95 backdrop-blur border-b shadow-sm mb-8">
+        <div className="sticky top-0 z-40 -mx-4 -mt-4 px-4 py-3 md:-mx-6 md:-mt-6 md:px-6 bg-card border-b shadow-sm mb-8">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" type="button" onClick={() => safeNavigate("/admin/packages")} className="rounded-full">

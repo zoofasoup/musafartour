@@ -291,7 +291,7 @@ export default function CalculatorLeads() {
                       </td>
                       <td className="py-3 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end gap-1">
-                          <Button size="icon" variant="ghost" asChild>
+                          <Button size="icon" aria-label="Chat WhatsApp" variant="ghost" asChild>
                             <a href={buildWaLink(l)} target="_blank" rel="noopener noreferrer" title="Kirim hasil via WA">
                               <MessageCircle className="h-4 w-4" />
                             </a>

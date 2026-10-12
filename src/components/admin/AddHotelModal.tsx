@@ -321,7 +321,7 @@ export const AddHotelModal = ({ open, onOpenChange, location, onSuccess }: AddHo
                         <Button
                           type="button"
                           variant="destructive"
-                          size="icon"
+                          size="icon" aria-label="Hapus foto"
                           className="absolute top-1 right-1 h-6 w-6"
                           onClick={() => removePhoto(type)}
                         >
@@ -345,7 +345,7 @@ export const AddHotelModal = ({ open, onOpenChange, location, onSuccess }: AddHo
                         <Button
                           type="button"
                           variant="outline"
-                          size="icon"
+                          size="icon" aria-label="Salin"
                           className="h-16 w-12"
                           onClick={() => handlePasteFromClipboard(type)}
                         >

@@ -464,10 +464,10 @@ const GalleryManagement = () => {
                 {/* Actions (Top Right) - Only show if not in selection mode */}
                 {!selectionMode && (
                   <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow-sm" onClick={() => openEditDialog(item)}>
+                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow-sm" onClick={() => openEditDialog(item)} aria-label="Ubah">
                       <Edit className="h-4 w-4 text-slate-700" />
                     </Button>
-                    <Button variant="destructive" size="icon" className="h-8 w-8 rounded-full bg-red-500/90 hover:bg-red-500 shadow-sm" onClick={() => handleDelete(item.id)}>
+                    <Button variant="destructive" size="icon" className="h-8 w-8 rounded-full bg-red-500/90 hover:bg-red-500 shadow-sm" onClick={() => handleDelete(item.id)} aria-label="Hapus">
                       <Trash2 className="h-4 w-4 text-white" />
                     </Button>
                   </div>

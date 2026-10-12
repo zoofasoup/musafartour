@@ -4,7 +4,8 @@ import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CreditCard, Download, FileSpreadsheet, Loader2, Plus, Search, Users, Link2 } from "lucide-react";
+import { CreditCard, Download, FileSpreadsheet, Loader2, MoreHorizontal, Plus, Search, Users, Link2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
@@ -355,47 +356,51 @@ export default function Jamaah() {
                 </SelectContent>
               </Select>
             </div>
+            {/* Daily actions stay visible; the occasional ones (link, imports, export) sit in "Lainnya". */}
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="gap-1 [@media(pointer:coarse)]:h-11"
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(`${window.location.origin}/daftar/${pkg.slug}`);
-                    toast.success("Link pendaftaran disalin. Kirim ke jamaah atau agen.");
-                  } catch {
-                    toast.error("Link belum bisa disalin. Salin manual dari /daftar/" + pkg.slug);
-                  }
-                }}
-              >
-                <Link2 className="h-4 w-4" /> Salin link pendaftaran
-              </Button>
-              <Button type="button" variant="outline" size="sm" className="gap-1 [@media(pointer:coarse)]:h-11" onClick={() => setImportOpen(true)}>
-                <FileSpreadsheet className="h-4 w-4" /> Impor dari Sheet
-              </Button>
-              <Button type="button" variant="outline" size="sm" className="gap-1 [@media(pointer:coarse)]:h-11" onClick={() => setImportAllOpen(true)}>
-                <FileSpreadsheet className="h-4 w-4" /> Impor semua tab
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="gap-1 [@media(pointer:coarse)]:h-11"
-                disabled={!active.length}
-                onClick={() =>
-                  exportJamaahWorkbook({ packageName: pkg.package_name, departureDate: pkg.departure_date, registrations, payments, groups, agents })
-                }
-              >
-                <Download className="h-4 w-4" /> Ekspor Excel
+              <Button type="button" size="sm" className="order-first col-span-2 gap-1 sm:order-none sm:col-span-1 [@media(pointer:coarse)]:h-11" onClick={openNew}>
+                <Plus className="h-4 w-4" /> Tambah Jamaah
               </Button>
               <Button type="button" variant="outline" size="sm" className="gap-1 [@media(pointer:coarse)]:h-11" disabled={!active.length} onClick={() => openPay(null)}>
                 <CreditCard className="h-4 w-4" /> Catat Pembayaran
               </Button>
-              <Button type="button" size="sm" className="order-first col-span-2 gap-1 sm:order-none sm:col-span-1 [@media(pointer:coarse)]:h-11" onClick={openNew}>
-                <Plus className="h-4 w-4" /> Tambah Jamaah
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button type="button" variant="outline" size="sm" className="gap-1 [@media(pointer:coarse)]:h-11">
+                    <MoreHorizontal className="h-4 w-4" aria-hidden /> Lainnya
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-60">
+                  <DropdownMenuItem
+                    onSelect={async () => {
+                      try {
+                        await navigator.clipboard.writeText(`${window.location.origin}/daftar/${pkg.slug}`);
+                        toast.success("Link pendaftaran disalin. Kirim ke jamaah atau agen.");
+                      } catch {
+                        toast.error("Link belum bisa disalin. Salin manual dari /daftar/" + pkg.slug);
+                      }
+                    }}
+                  >
+                    <Link2 className="mr-2 h-4 w-4" aria-hidden /> Salin link pendaftaran
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => setImportOpen(true)}>
+                    <FileSpreadsheet className="mr-2 h-4 w-4" aria-hidden /> Impor dari Sheet
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setImportAllOpen(true)}>
+                    <FileSpreadsheet className="mr-2 h-4 w-4" aria-hidden /> Impor semua tab
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    disabled={!active.length}
+                    onSelect={() =>
+                      exportJamaahWorkbook({ packageName: pkg.package_name, departureDate: pkg.departure_date, registrations, payments, groups, agents })
+                    }
+                  >
+                    <Download className="mr-2 h-4 w-4" aria-hidden /> Ekspor Excel
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
@@ -453,7 +458,7 @@ export default function Jamaah() {
                   return (
                     <TableRow
                       key={r.id}
-                      className={`group/row cursor-pointer [&>td]:py-2 ${hot} ${person}`}
+                      className={`group/row cursor-pointer [&>td]:py-2 ${hot} ${person} ${r.status === "cancelled" ? "opacity-60" : ""}`}
                       onClick={() => setDetail(r)}
                       onMouseEnter={inFamily ? () => setHoverGroup(r.group_id) : undefined}
                       onMouseLeave={inFamily ? () => setHoverGroup(null) : undefined}

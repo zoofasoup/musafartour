@@ -109,7 +109,7 @@ export const FileUpload = ({
             <Button
               type="button"
               variant="destructive"
-              size="icon"
+              size="icon" aria-label="Hapus file"
               className="absolute -top-3 -right-3 rounded-full shadow-md z-10"
               onClick={onRemove}
             >

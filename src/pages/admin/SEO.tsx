@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,10 +34,9 @@ const Counter = ({ value, max }: { value: string; max: number }) => (
  * Everything else (robots.txt, sitemap, other pages' titles) lives in the code and is not editable here.
  */
 const SEO = () => {
-  const { user, isAdmin: isOwner, userRole } = useAuth();
+  const { loading: authLoading, isAdmin: isOwner, userRole } = useAuth();
   // The menu also shows this page to content_admin, so the page has to let that role in (it used to render blank).
   const isAdmin = isOwner || userRole === "content_admin";
-  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { ask, dialog } = useConfirmDialog();
@@ -142,18 +141,17 @@ const SEO = () => {
     onError: () => toast({ title: "Gagal menghapus", variant: "destructive" }),
   });
 
-  if (!user || !isAdmin) {
-    navigate("/auth");
-    return null;
-  }
-
-  if (loadingHome || loadingRedirects) {
+  // Wait for the session and role before judging access: on a client-side move the hook starts empty, and judging
+  // too early sent a signed-in admin to the login page. The admin layout already guards the signed-out case.
+  if (authLoading || loadingHome || loadingRedirects) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" aria-label="Memuat" />
       </div>
     );
   }
+
+  if (!isAdmin) return <Navigate to="/admin" replace />;
 
   const previewTitle = title.trim() || "Musafar Tour - Paket Umroh Terpercaya 2026";
   const previewDesc = description.trim() || "Isi deskripsi di atas.";

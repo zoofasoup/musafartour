@@ -299,7 +299,7 @@ const ArticleForm = () => {
                             <Button
                               type="button"
                               variant="destructive"
-                              size="icon"
+                              size="icon" aria-label="Hapus gambar"
                               className="absolute top-2 right-2"
                               onClick={removeImage}
                             >
