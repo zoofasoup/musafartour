@@ -91,7 +91,7 @@ const fallbackFaqs: FAQItem[] = [
     question: "Bagaimana cara daftar dan membayar?",
     category: "general",
     answer:
-      "Isi form pendaftaran di halaman paket yang kamu pilih. CS kami menghubungi lewat WhatsApp untuk mengecek data dan seat, lalu kamu transfer DP Rp 5.000.000 per orang (DP tidak dapat dikembalikan). Cicilan bebas, kapan saja dan berapa saja, asalkan lunas paling lambat 30 hari sebelum tanggal berangkat. Semua pembayaran hanya ke rekening atas nama PT Musa Amanah Wisata.",
+      "Isi form pendaftaran di halaman paket yang kamu pilih. UC kami menghubungi lewat WhatsApp untuk mengecek data dan seat, lalu kamu transfer DP Rp 5.000.000 per orang (DP tidak dapat dikembalikan). Cicilan bebas, kapan saja dan berapa saja, asalkan lunas paling lambat 30 hari sebelum tanggal berangkat. Semua pembayaran hanya ke rekening atas nama PT Musa Amanah Wisata.",
     display_order: 1,
     ...stamp,
   },
@@ -100,7 +100,7 @@ const fallbackFaqs: FAQItem[] = [
     question: "Apa syarat paspor?",
     category: "general",
     answer:
-      "Paspor berlaku minimal 12 bulan setelah tanggal berangkat, dan nama di paspor minimal dua kata. Data paspor dan dokumen dilengkapi setelah DP, lewat link pribadi yang dikirim CS.",
+      "Paspor berlaku minimal 12 bulan setelah tanggal berangkat, dan nama di paspor minimal dua kata. Data paspor dan dokumen dilengkapi setelah DP, lewat link pribadi yang dikirim UC.",
     display_order: 2,
     ...stamp,
   },
@@ -118,7 +118,7 @@ const fallbackFaqs: FAQItem[] = [
     question: "Apa saja yang termasuk dalam harga paket?",
     category: "general",
     answer:
-      "Berbeda untuk setiap paket. Rincian yang termasuk dan tidak termasuk, hotel, dan maskapai tertulis di halaman masing-masing paket. Kalau ada yang belum jelas, tanyakan ke CS sebelum mendaftar.",
+      "Berbeda untuk setiap paket. Rincian yang termasuk dan tidak termasuk, hotel, dan maskapai tertulis di halaman masing-masing paket. Kalau ada yang belum jelas, tanyakan ke UC sebelum mendaftar.",
     display_order: 4,
     ...stamp,
   },

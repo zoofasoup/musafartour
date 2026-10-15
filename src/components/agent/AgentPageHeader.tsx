@@ -14,19 +14,13 @@ interface AgentPageHeaderProps {
  * type sizes. One shared header so every page reads as part of the same
  * tool.
  */
-export function AgentPageHeader({ title, description, icon: Icon, action }: AgentPageHeaderProps) {
+export function AgentPageHeader({ title, description, action }: AgentPageHeaderProps) {
+  // The page title is large and light (the page's own heading, the header bar only carries the logo on a phone).
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-      <div className="flex items-center gap-3 min-w-0">
-        {Icon && (
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
-            <Icon className="h-5 w-5" />
-          </span>
-        )}
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-foreground truncate">{title}</h1>
-          {description && <p className="text-sm text-muted-foreground mt-0.5">{description}</p>}
-        </div>
+    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="min-w-0">
+        <h1 className="text-balance text-[36px] font-light leading-[1.05] tracking-[-0.035em] text-foreground md:text-[40px]">{title}</h1>
+        {description && <p className="mt-3 text-[16px] leading-[1.5] text-muted-foreground">{description}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </div>

@@ -1,10 +1,11 @@
 import musafarLogo from "@/assets/musafar-logo.svg";
 import { jsonForScript } from "@/lib/jsonLd";
-import { Instagram, Facebook, Youtube, ArrowRight, MessageCircle } from "lucide-react";
+import { Instagram, Facebook, Youtube, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useHomepageData } from "@/hooks/useHomepageData";
 import { trackWhatsAppLead } from "@/lib/tracking";
 import { openConsentSettings } from "@/lib/consent";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 const FALLBACK_PHONE = "021-38312137";
 const FALLBACK_WHATSAPP = "6281917403797";
@@ -13,7 +14,6 @@ const FALLBACK_ADDRESS = "Commercial Park Harapan Indah Ruko Emerald Blok EB1 No
 const PKG_MENU = [
   { to: "/", label: "Beranda" },
   { to: "/paket-umroh", label: "Paket Umroh" },
-  { to: "/jadwal-umroh", label: "Jadwal Keberangkatan" },
   { to: "/artikel", label: "Artikel" },
   { to: "/tentang-kami", label: "Tentang Kami" },
   { to: "/galeri", label: "Galeri" },
@@ -74,15 +74,23 @@ const Footer = ({ variant }: { variant?: "pkg" }) => {
                   aria-label="Musafar Tour"
                 />
                 <h2 className="pkg-h2 mt-10 max-w-md">Info promo paket umroh terbaru.</h2>
-                <a
-                  href={`https://wa.me/${whatsapp}?text=Halo%20Musamin,%20saya%20ingin%20mendapatkan%20info%20promo%20paket%20umroh%20terbaru`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => trackWhatsAppLead("footer")}
-                  className="pkg-press pkg-glass-red pkg-label mt-8 inline-flex h-12 items-center gap-2 rounded-full px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream focus-visible:ring-offset-2 focus-visible:ring-offset-pkg-ink"
-                >
-                  <MessageCircle className="h-5 w-5" aria-hidden /> Tanya via WhatsApp
-                </a>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <a
+                    href={`https://wa.me/${whatsapp}?text=Halo%20Musamin,%20saya%20ingin%20mendapatkan%20info%20promo%20paket%20umroh%20terbaru`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackWhatsAppLead("footer")}
+                    className="pkg-press pkg-glass-red pkg-label inline-flex h-12 items-center gap-2 rounded-full px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream focus-visible:ring-offset-2 focus-visible:ring-offset-pkg-ink"
+                  >
+                    <WhatsAppIcon className="h-5 w-5" /> Tanya UC
+                  </a>
+                  <Link
+                    to="/paket-umroh"
+                    className="pkg-press pkg-glass pkg-label inline-flex h-12 items-center rounded-full px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream focus-visible:ring-offset-2 focus-visible:ring-offset-pkg-ink"
+                  >
+                    Lihat paket
+                  </Link>
+                </div>
                 <div className="mt-8 flex gap-3">
                   {social.map(({ href, label, Icon }) => (
                     <a
@@ -190,7 +198,6 @@ const Footer = ({ variant }: { variant?: "pkg" }) => {
                 <ul className="space-y-2 text-white/60">
                   <li><Link to="/" className="inline-block py-1.5 hover:text-white transition-colors">Beranda</Link></li>
                   <li><Link to="/paket-umroh" className="inline-block py-1.5 hover:text-white transition-colors">Paket Umroh</Link></li>
-                  <li><Link to="/jadwal-umroh" className="inline-block py-1.5 hover:text-white transition-colors">Jadwal Keberangkatan</Link></li>
                   <li><Link to="/artikel" className="inline-block py-1.5 hover:text-white transition-colors">Artikel</Link></li>
                   <li><Link to="/tentang-kami" className="inline-block py-1.5 hover:text-white transition-colors">Tentang Kami</Link></li>
                   <li><Link to="/galeri" className="inline-block py-1.5 hover:text-white transition-colors">Galeri</Link></li>

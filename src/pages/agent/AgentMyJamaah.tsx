@@ -2,16 +2,10 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { Loader2, MessageCircle, UserPlus, Users } from "lucide-react";
-import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
+import { Inbox, Loader2, UserPlus, Users, Wallet } from "lucide-react";
+import { AgentEmpty, AgentPage, AgentPanel, Chips, Figures, agentGlass, agentPrimary } from "@/components/agent/AgentPage";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
-import { StatCard } from "@/components/admin/jamaah/StatCard";
-import { TOUCH_H } from "@/components/admin/jamaah/touch";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  AGENT_STATE_CLASS,
   AGENT_STATE_LABEL,
   byUrgency,
   deadlineText,
@@ -20,62 +14,62 @@ import {
   useAgentJamaah,
   type AgentJamaah,
 } from "@/hooks/useAgentJamaah";
-import { STATUS_BADGE, juta, reminderWhatsAppUrl, rupiah } from "@/lib/jamaah";
+import { juta, reminderWhatsAppUrl, rupiah } from "@/lib/jamaah";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 type Tab = "semua" | "belum_dp" | "dp" | "lunas" | "antre";
 
 const day = (d: string) => format(new Date(`${d.slice(0, 10)}T00:00:00`), "d MMM yyyy", { locale: localeId });
 
 const COMMISSION_TEXT: Record<AgentJamaah["commission_status"], (j: AgentJamaah) => string | null> = {
-  earned: (j) => `Komisi ${rupiah(j.commission_amount)} sudah tercatat di saldo`,
-  waiting: (j) => `Perkiraan komisi ${rupiah(j.commission_amount)}, dicatat setelah syarat terpenuhi`,
+  earned: (j) => `Komisi ${rupiah(j.commission_amount)} masuk saldo`,
+  waiting: (j) => `Komisi ${rupiah(j.commission_amount)} menunggu`,
   none: () => null,
 };
 
-function JamaahCard({ j }: { j: AgentJamaah }) {
+function JamaahRow({ j }: { j: AgentJamaah }) {
   const progress = j.agreed_price > 0 ? Math.min(100, Math.round((j.paid_verified / j.agreed_price) * 100)) : 0;
   const commission = COMMISSION_TEXT[j.commission_status](j);
   const chase = needsPayment(j) && !!j.phone;
   return (
-    <li className={`rounded-lg border bg-card p-4 ${j.pay_state === "batal" ? "text-muted-foreground" : ""}`}>
+    <li className={`py-6 ${j.pay_state === "batal" ? "opacity-60" : ""}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-base font-semibold">{j.full_name}</p>
-          <p className="text-[13px] text-muted-foreground">{j.package_name} · berangkat {day(j.departure_date)}</p>
+          <p className="text-[19px] leading-tight text-pkg-fg">{j.full_name}</p>
+          <p className="mt-1 text-[14px] text-pkg-fg-3">{j.package_name} · berangkat {day(j.departure_date)}</p>
         </div>
-        <Badge variant="outline" className={`shrink-0 whitespace-nowrap ${AGENT_STATE_CLASS[j.pay_state]}`}>{AGENT_STATE_LABEL[j.pay_state]}</Badge>
+        <span className="pkg-label shrink-0 rounded-full bg-pkg-cream-2 px-3 py-1 text-[13px] text-pkg-fg">{AGENT_STATE_LABEL[j.pay_state]}</span>
       </div>
 
       {j.pay_state !== "batal" && (
         <>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={`Terbayar ${progress} persen`}>
-            <div className="h-full rounded-full bg-status-ok-fg/70" style={{ width: `${progress}%` }} />
+          <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-pkg-hair" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={`Terbayar ${progress} persen`}>
+            <div className="h-full rounded-full bg-pkg-red" style={{ width: `${progress}%` }} />
           </div>
-          <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+          <dl className="mt-4 grid grid-cols-2 gap-4">
             <div>
-              <dt className="text-[13px] text-muted-foreground">Sudah masuk</dt>
-              <dd className="font-semibold">{rupiah(j.paid_verified)}</dd>
-              {j.paid_pending > 0 && <dd className="text-[13px] text-status-warn-text">+{rupiah(j.paid_pending)} menunggu verifikasi</dd>}
+              <dt className="text-[13px] text-pkg-fg-3">Sudah masuk</dt>
+              <dd className="mt-0.5 text-[17px] text-pkg-fg">{rupiah(j.paid_verified)}</dd>
+              {j.paid_pending > 0 && <dd className="text-[13px] text-pkg-fg-3">+{rupiah(j.paid_pending)} menunggu verifikasi</dd>}
             </div>
             <div>
-              <dt className="text-[13px] text-muted-foreground">Sisa tagihan</dt>
-              <dd className="font-semibold">{rupiah(Math.max(0, j.outstanding))}</dd>
-              <dd className="text-[13px] text-muted-foreground">dari {rupiah(j.agreed_price)}{needsPayment(j) ? `, ${deadlineText(j.due_date)}` : ""}</dd>
+              <dt className="text-[13px] text-pkg-fg-3">Sisa tagihan</dt>
+              <dd className="mt-0.5 text-[17px] text-pkg-fg">{rupiah(Math.max(0, j.outstanding))}</dd>
+              <dd className="text-[13px] text-pkg-fg-3">{needsPayment(j) ? deadlineText(j.due_date) : `dari ${rupiah(j.agreed_price)}`}</dd>
             </div>
           </dl>
         </>
       )}
-      {commission && <p className="mt-3 text-[13px] text-muted-foreground">{commission}</p>}
+      {commission && <p className="mt-4 flex items-center gap-2 text-[14px] text-pkg-fg-3"><Wallet className="h-4 w-4 shrink-0" aria-hidden />{commission}</p>}
       {chase && (
-        <Button type="button" variant="outline" className={`mt-3 gap-2 ${TOUCH_H}`} asChild>
-          <a
-            href={reminderWhatsAppUrl({ phone: j.phone, name: j.full_name, packageName: j.package_name, departureDate: j.departure_date, outstanding: j.outstanding, dueDate: j.due_date })}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <MessageCircle className="h-4 w-4" aria-hidden /> Ingatkan lewat WhatsApp
-          </a>
-        </Button>
+        <a
+          className={`${agentGlass} mt-4`}
+          href={reminderWhatsAppUrl({ phone: j.phone, name: j.full_name, packageName: j.package_name, departureDate: j.departure_date, outstanding: j.outstanding, dueDate: j.due_date })}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <WhatsAppIcon className="h-5 w-5" /> Ingatkan
+        </a>
       )}
     </li>
   );
@@ -102,78 +96,75 @@ export default function AgentMyJamaah() {
   const count = (s: string) => list.filter((j) => j.pay_state === s).length;
 
   return (
-    <div className="space-y-6">
-      <AgentPageHeader
-        title="Jamaah Saya"
-        description="Jamaah yang kamu daftarkan: siapa yang sudah bayar, siapa yang masih kurang, dan komisi yang akan masuk."
-        icon={Users}
-        action={<Button asChild className="h-11 gap-2"><Link to="/agent/daftar-jamaah"><UserPlus className="h-4 w-4" aria-hidden /> Daftarkan jamaah</Link></Button>}
-      />
+    <AgentPage
+      title="Jamaah saya."
+      hero={
+        <>
+          {!jamaah.error && (
+            <Figures
+              items={[
+                { value: String(active.length), label: "Aktif", note: `${count("lunas")} lunas` },
+                { value: String(owing.length), label: "Belum lunas", note: `Sisa ${juta(totals.outstanding)}` },
+                { value: juta(totals.held), label: "Komisi menunggu", note: "Perkiraan" },
+              ]}
+            />
+          )}
+          <Link to="/agent/daftar-jamaah" className={`${agentPrimary} mt-8`}>
+            <UserPlus className="h-5 w-5" aria-hidden /> Daftarkan jamaah
+          </Link>
+        </>
+      }
+    >
+      <AgentPanel last>
+        {jamaah.error && <LoadError what="Daftar jamaah" error={jamaah.error} onRetry={() => jamaah.refetch()} retrying={jamaah.isFetching} />}
 
-      {jamaah.error && <LoadError what="Daftar jamaah" error={jamaah.error} onRetry={() => jamaah.refetch()} retrying={jamaah.isFetching} />}
+        <Chips<Tab>
+          label="Filter jamaah"
+          value={tab}
+          onChange={setTab}
+          options={[
+            { value: "semua", label: `Semua ${list.length}` },
+            { value: "belum_dp", label: `Belum DP ${count("belum_dp")}` },
+            { value: "dp", label: `Sudah DP ${count("dp")}` },
+            { value: "lunas", label: `Lunas ${count("lunas")}` },
+            { value: "antre", label: `Menunggu UC ${waiting.length}` },
+          ]}
+        />
 
-      {!jamaah.error && (
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatCard label="Jamaah aktif" value={String(active.length)} hint={`${count("lunas")} sudah lunas`} />
-          <StatCard label="Belum lunas" value={String(owing.length)} hint={`Sisa ${juta(totals.outstanding)}`} />
-          <StatCard label="Komisi menunggu (perkiraan)" value={juta(totals.held)} hint="Besaran final mengikuti tingkat dan SOP." />
-          <StatCard label="Menunggu CS" value={String(waiting.length)} hint="Pendaftaran belum dicek" />
-        </div>
-      )}
-
-      <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
-        <TabsList aria-label="Filter jamaah" className="h-auto flex-wrap justify-start">
-          <TabsTrigger value="semua" className={TOUCH_H}>Semua ({list.length})</TabsTrigger>
-          <TabsTrigger value="belum_dp" className={TOUCH_H}>Belum DP ({count("belum_dp")})</TabsTrigger>
-          <TabsTrigger value="dp" className={TOUCH_H}>Sudah DP ({count("dp")})</TabsTrigger>
-          <TabsTrigger value="lunas" className={TOUCH_H}>Lunas ({count("lunas")})</TabsTrigger>
-          <TabsTrigger value="antre" className={TOUCH_H}>Menunggu CS ({waiting.length})</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      {tab === "antre" ? (
-        intakes.isPending ? (
-          <div className="flex justify-center rounded-lg border py-10" role="status" aria-label="Memuat"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
-        ) : intakes.error ? (
-          <LoadError what="Daftar pendaftaran" error={intakes.error} onRetry={() => intakes.refetch()} retrying={intakes.isFetching} />
+        {tab === "antre" ? (
+          intakes.isPending ? (
+            <div className="flex justify-center py-12" role="status" aria-label="Memuat"><Loader2 className="h-5 w-5 animate-spin text-pkg-fg-3" /></div>
+          ) : intakes.error ? (
+            <LoadError what="Daftar pendaftaran" error={intakes.error} onRetry={() => intakes.refetch()} retrying={intakes.isFetching} />
+          ) : (intakes.data ?? []).length === 0 ? (
+            <AgentEmpty icon={Inbox} text="Belum ada pendaftaran" />
+          ) : (
+            <ul className="mt-2 divide-y divide-pkg-hair">
+              {(intakes.data ?? []).map((i) => (
+                <li key={i.code} className="flex items-start justify-between gap-3 py-6">
+                  <div className="min-w-0">
+                    <p className="text-[19px] leading-tight text-pkg-fg">{i.contact_name}</p>
+                    <p className="mt-1 text-[14px] text-pkg-fg-3">{i.code} · {i.package_name}</p>
+                    <p className="text-[14px] text-pkg-fg-3">Berangkat {day(i.departure_date)} · {i.people_count} orang</p>
+                    <p className="text-[13px] text-pkg-fg-3">Dikirim {format(new Date(i.created_at), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
+                  </div>
+                  <span className={`pkg-label shrink-0 rounded-full bg-pkg-cream-2 px-3 py-1 text-[13px] ${i.status === "rejected" ? "text-pkg-red-deep" : "text-pkg-fg"}`}>
+                    {i.status === "accepted" ? "Diterima" : i.status === "rejected" ? "Ditolak" : "Menunggu UC"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )
+        ) : jamaah.isPending ? (
+          <div className="flex justify-center py-12" role="status" aria-label="Memuat"><Loader2 className="h-5 w-5 animate-spin text-pkg-fg-3" /></div>
+        ) : shown.length === 0 && !jamaah.error ? (
+          <AgentEmpty icon={Users} text={list.length === 0 ? "Belum ada jamaah" : "Tidak ada di sini"} />
         ) : (
-          <>
-            <p className="text-sm text-muted-foreground">Pendaftaran yang kamu kirim dan belum selesai dicek CS. Setelah diterima, orangnya muncul di tab lain.</p>
-            {(intakes.data ?? []).length === 0 ? (
-              <p className="rounded-lg border py-10 text-center text-sm text-muted-foreground">Belum ada pendaftaran yang kamu kirim.</p>
-            ) : (
-              <ul className="space-y-3">
-                {(intakes.data ?? []).map((i) => (
-                  <li key={i.code} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border bg-card p-4">
-                    <div className="min-w-0">
-                      <p className="font-semibold">{i.contact_name} <span className="font-normal text-muted-foreground">· {i.code}</span></p>
-                      <p className="text-[13px] text-muted-foreground">{i.package_name} · berangkat {day(i.departure_date)}</p>
-                      <p className="text-[13px] text-muted-foreground">{i.people_count} orang · dikirim {format(new Date(i.created_at), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
-                    </div>
-                    <Badge variant="outline" className={`shrink-0 whitespace-nowrap ${i.status === "accepted" ? STATUS_BADGE.ok : i.status === "rejected" ? STATUS_BADGE.bad : STATUS_BADGE.warn}`}>
-                      {i.status === "accepted" ? "Diterima" : i.status === "rejected" ? "Ditolak" : "Menunggu CS"}
-                    </Badge>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
-        )
-      ) : jamaah.isPending ? (
-        <div className="flex justify-center rounded-lg border py-10" role="status" aria-label="Memuat"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
-      ) : shown.length === 0 && !jamaah.error ? (
-        <div className="flex flex-col items-center gap-3 rounded-lg border py-10 text-center">
-          <Users className="h-6 w-6 text-muted-foreground" aria-hidden />
-          <p className="max-w-sm text-sm text-muted-foreground">
-            {list.length === 0 ? "Belum ada jamaah atas namamu. Daftarkan jamaah pertamamu, atau kirim link pendaftaran supaya jamaah mengisi sendiri." : "Tidak ada jamaah di kategori ini."}
-          </p>
-          {list.length === 0 && <Button asChild className="h-11"><Link to="/agent/daftar-jamaah">Daftarkan jamaah</Link></Button>}
-        </div>
-      ) : (
-        <ul className="grid gap-3 xl:grid-cols-2" aria-label="Daftar jamaah">
-          {shown.map((j) => <JamaahCard key={j.registration_id} j={j} />)}
-        </ul>
-      )}
-    </div>
+          <ul className="mt-2 divide-y divide-pkg-hair" aria-label="Daftar jamaah">
+            {shown.map((j) => <JamaahRow key={j.registration_id} j={j} />)}
+          </ul>
+        )}
+      </AgentPanel>
+    </AgentPage>
   );
 }

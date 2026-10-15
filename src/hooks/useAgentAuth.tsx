@@ -4,6 +4,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { translateAuthError } from "@/lib/authErrors";
 import { takeAgentReferral } from "@/lib/agentReferral";
+import { accountExists, ACCOUNT_NOT_FOUND } from "@/lib/accountExists";
 
 interface Agent {
   id: string;
@@ -38,6 +39,8 @@ interface Agent {
   province?: string | null;
   social_links?: any;
   experience_level?: string | null;
+  /** Unsubmitted onboarding form values, kept in the cloud until the profile is sent. */
+  onboarding_draft?: Record<string, unknown> | null;
 }
 
 interface AgentAuthContextType {
@@ -223,6 +226,9 @@ export const AgentAuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
+        if (/invalid login credentials/i.test(error.message) && (await accountExists(email)) === false) {
+          return { success: false, error: ACCOUNT_NOT_FOUND };
+        }
         const needsEmailConfirmation = error.code === 'email_not_confirmed' || /email not confirmed/i.test(error.message);
         return { success: false, error: translateAuthError(error), needsEmailConfirmation };
       }

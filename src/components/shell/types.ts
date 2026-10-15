@@ -26,6 +26,8 @@ export interface ShellProfile {
   profileUrl: string;
   /** Shown in the avatar instead of the initial, when the person picked one. */
   avatarEmoji?: string;
+  /** The person's photo; the initial shows until it loads, or when there is none. */
+  avatarUrl?: string;
 }
 
 export interface ShellSidebarLink {

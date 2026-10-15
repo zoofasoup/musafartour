@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown, LogOut, UserRound } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -5,14 +6,23 @@ import type { ShellProfile } from "./types";
 
 const initialOf = (name: string) => name.trim().charAt(0).toUpperCase() || "?";
 
-export const ShellAvatar = ({ profile, className = "h-9 w-9" }: { profile: Pick<ShellProfile, "name" | "avatarEmoji">; className?: string }) => (
-  <span
-    className={`flex shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground ${className}`}
-    aria-hidden
-  >
-    {profile.avatarEmoji || initialOf(profile.name)}
-  </span>
-);
+export const ShellAvatar = ({ profile, className = "h-9 w-9" }: { profile: Pick<ShellProfile, "name" | "avatarEmoji" | "avatarUrl">; className?: string }) => {
+  const [photo, setPhoto] = useState(false);
+  return (
+    <span className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-foreground ${className}`} aria-hidden>
+      {profile.avatarEmoji || initialOf(profile.name)}
+      {profile.avatarUrl && (
+        <img
+          src={profile.avatarUrl}
+          alt=""
+          onLoad={() => setPhoto(true)}
+          onError={() => setPhoto(false)}
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity ${photo ? "opacity-100" : "opacity-0"}`}
+        />
+      )}
+    </span>
+  );
+};
 
 export const ShellUserMenu = ({ profile, onSignOut }: { profile: ShellProfile; onSignOut: () => void | Promise<void> }) => (
   <DropdownMenu>

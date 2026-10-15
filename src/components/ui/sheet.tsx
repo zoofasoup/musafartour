@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { useAgentSkin } from "@/hooks/useAgentSkin";
 
 const Sheet = SheetPrimitive.Root;
 
@@ -55,18 +56,21 @@ interface SheetContentProps
 }
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Content>, SheetContentProps>(
-  ({ side = "right", className, overlayClassName, children, ...props }, ref) => (
+  ({ side = "right", className, overlayClassName, children, ...props }, ref) => {
+    const skin = useAgentSkin() && !className?.includes("pkg-v2");
+    return (
     <SheetPortal>
-      <SheetOverlay className={overlayClassName} />
-      <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
-        {children}
+      <SheetOverlay className={cn(skin && "pkg-dlg-overlay", overlayClassName)} />
+      <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), skin && "pkg-v2 pkg-sheet-skin", className)} {...props}>
+        {skin ? <div className="pkg-form contents">{children}</div> : children}
         <SheetPrimitive.Close className="absolute right-4 top-4 -m-2.5 rounded-sm p-2.5 opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-secondary hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </SheetPrimitive.Close>
       </SheetPrimitive.Content>
     </SheetPortal>
-  ),
+    );
+  },
 );
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 

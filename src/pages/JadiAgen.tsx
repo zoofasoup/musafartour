@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Link } from "react-router-dom";
-import { Banknote, ClipboardCheck, GraduationCap, MessageCircle, Rocket, UserPlus, Wallet } from "lucide-react";
+import { Banknote, ClipboardCheck, GraduationCap, Rocket, UserPlus, Wallet } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { PkgPanel } from "@/components/package-detail/PkgPanel";
@@ -10,6 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { rupiah } from "@/lib/jamaah";
 import { AGENT_CS_WHATSAPP } from "@/lib/agentSupport";
 import { formatWhatsAppUrl } from "@/lib/utils";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import {
   AGENT_REGISTRATION_FEE,
 } from "@/lib/sopAgen";
@@ -31,7 +32,7 @@ const FAQS = [
   { q: "Berapa komisi saya?", a: "Sesuai tingkat dan paket, dikonfirmasi PIC Agen. Silver 1 sampai 15, Gold 15 sampai 30, Platinum minimal 30 jamaah per tahun." },
   { q: "Kapan komisi dibayar?", a: "Hari H sampai H+2 setelah jamaah landing, bila syarat terpenuhi." },
   { q: "Apa syarat jadi agen?", a: "Minimal 17 tahun, WNI, punya KTP, WhatsApp dan rekening bank aktif, bukan karyawan Musafar atau mitra travel lain." },
-  { q: "Ada bonus?", a: "Closing 5 jamaah Rp500.000, 10 jamaah Rp1.500.000, 40 jamaah motor listrik atau tunai. Hanya untuk jamaah yang kamu bawa langsung." },
+  { q: "Ada bonus?", a: "Closing 5 jamaah Rp500.000, 10 jamaah Rp1.500.000, 40 jamaah motor listrik atau tunai, dalam 1 invoice (sekali transaksi). Hanya untuk jamaah yang kamu bawa langsung." },
   { q: "Registrasi dibayar ke mana?", a: `${rupiah(AGENT_REGISTRATION_FEE)}, sekali, setelah disetujui, ke rekening PT Musa Amanah Wisata. Jika mundur, biaya hangus karena ditukar perlengkapan dan welcome kit.` },
   { q: "Kalau jamaah batal atau refund?", a: "Tidak ada komisi. Komisi yang sudah dibayar dipotong dari komisi berikutnya atau dikembalikan." },
   { q: "Apakah agen menerima uang jamaah?", a: "Tidak. Semua pembayaran hanya ke rekening resmi Musafar." },
@@ -58,7 +59,7 @@ export default function JadiAgen() {
                 <UserPlus className="h-5 w-5" aria-hidden /> Daftar jadi agen
               </Link>
               <a href={csUrl} target="_blank" rel="noopener noreferrer" className={`pkg-press pkg-glass pkg-label inline-flex h-14 items-center justify-center gap-2 rounded-full px-7 ${focus} focus-visible:ring-pkg-cream focus-visible:ring-offset-pkg-ink`}>
-                <MessageCircle className="h-5 w-5" aria-hidden /> Tanya CS
+                <WhatsAppIcon className="h-5 w-5" /> Tanya CS
               </a>
             </div>
             <p className="mt-5 text-[15px] text-pkg-fg-2">

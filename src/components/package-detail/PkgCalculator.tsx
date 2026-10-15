@@ -1,6 +1,7 @@
-import { Bell, Minus, Plus, Sparkles, MessageCircle } from "lucide-react";
+import { Minus, Plus, Sparkles } from "lucide-react";
 import { cn, formatCurrency, isPackageDeparted, isPackageUnavailable } from "@/lib/utils";
 import type { PackagePricingBodyProps } from "./PackagePricing";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 const jt = (n: number) => (n > 0 ? `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")} jt` : "-");
 
@@ -131,7 +132,7 @@ export function PkgPricingBody({
               onClick={handleWhatsApp}
               className="pkg-press pkg-glass-red inline-flex h-14 w-full items-center justify-center gap-2 rounded-full text-[17px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
             >
-              <MessageCircle className="h-5 w-5" aria-hidden /> Kirim via WhatsApp
+              <WhatsAppIcon className="h-5 w-5" /> Kirim via WhatsApp
             </button>
           </div>
         </>
@@ -143,7 +144,7 @@ export function PkgPricingBody({
           onClick={handleNotifyMe}
           className="pkg-press pkg-glass-deep inline-flex h-14 w-full items-center justify-center gap-2 rounded-full text-[17px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
         >
-          <Bell className="h-5 w-5" aria-hidden /> Gabung waitlist
+          <WhatsAppIcon className="h-5 w-5" /> Gabung waitlist
         </button>
       )}
     </div>

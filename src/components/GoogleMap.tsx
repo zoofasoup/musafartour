@@ -1,5 +1,4 @@
-import { MapPin, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { GoogleMapsIcon } from "@/components/icons/GoogleMapsIcon";
 
 interface GoogleMapProps {
   className?: string;
@@ -12,7 +11,7 @@ export const GoogleMap = ({ className = "", googleMapsUrl = "https://maps.app.go
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <div className="relative w-full h-[400px] md:h-[500px] rounded-lg overflow-hidden shadow-lg border border-border">
+      <div className="relative h-[320px] w-full overflow-hidden rounded-[24px] shadow-[0_18px_36px_-18px_rgb(26_21_18/0.4)] md:h-[440px]">
         <iframe
           src={embedUrl}
           width="100%"
@@ -25,19 +24,15 @@ export const GoogleMap = ({ className = "", googleMapsUrl = "https://maps.app.go
           className="absolute inset-0"
         />
       </div>
-      
-      <div className="flex justify-center">
-        <Button
-          variant="secondary"
-          size="lg"
-          onClick={() => window.open(googleMapsUrl, '_blank')}
-          className="gap-2"
-        >
-          <MapPin className="h-4 w-4" />
-          Lihat di Google Maps
-          <ExternalLink className="h-4 w-4" />
-        </Button>
-      </div>
+
+      <a
+        href={googleMapsUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="pkg-press pkg-glass pkg-label inline-flex h-14 items-center justify-center gap-2.5 rounded-full px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
+      >
+        <GoogleMapsIcon className="h-6 w-6 object-contain" /> Buka di Google Maps
+      </a>
     </div>
   );
 };

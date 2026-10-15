@@ -4,32 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import {
-  Wallet,
-  Clock,
-  CheckCircle2,
-  Loader2,
-  AlertCircle,
-  CreditCard,
-  User,
-  FileText,
-  Hourglass,
-  BadgeCheck,
-  Banknote,
-} from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertCircle, Clock, CreditCard, FileText, Loader2, User, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { StatusBadge, type StatusKind } from "@/components/ui/status-badge";
-import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "sonner";
-import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
-import { AgentStatCard } from "@/components/agent/AgentStatCard";
+import { AgentEmpty, AgentPage, AgentPanel, Chips, Figures, agentGlass, agentPrimary } from "@/components/agent/AgentPage";
 import { formatCurrency } from "@/lib/utils";
 
 /** The statement shown to the agent: one row per jamaah, from list_my_commissions() (own rows only). */
@@ -108,12 +90,12 @@ type StateKey = "pending" | "held" | "eligible" | "approved" | "paid";
 const commissionStateKey = (c: Pick<MyCommission, "state" | "hold_reason">): StateKey =>
   c.state === "pending" && c.hold_reason ? "held" : (c.state as StateKey);
 
-const STATE_LABEL: Record<StateKey, { kind: StatusKind; label: string }> = {
-  pending: { kind: "warn", label: "Menunggu" },
-  held: { kind: "mute", label: "Ditahan" },
-  eligible: { kind: "info", label: "Layak dibayar" },
-  approved: { kind: "info", label: "Disetujui" },
-  paid: { kind: "ok", label: "Dibayar" },
+const STATE_LABEL: Record<StateKey, string> = {
+  pending: "Menunggu",
+  held: "Ditahan",
+  eligible: "Layak dibayar",
+  approved: "Disetujui",
+  paid: "Dibayar",
 };
 
 const HOLD_TEXT: Record<string, string> = {
@@ -128,18 +110,17 @@ const sum = (rows: MyCommission[], pick: (c: MyCommission) => number) => rows.re
 
 const CommissionStatusChip = ({ c }: { c: MyCommission }) => {
   const key = commissionStateKey(c);
-  const s = STATE_LABEL[key] ?? { kind: "mute" as StatusKind, label: c.state };
-  return <StatusBadge kind={s.kind} icon={key === "approved" ? CheckCircle2 : undefined}>{s.label}</StatusBadge>;
+  return <span className="pkg-label shrink-0 whitespace-nowrap rounded-full bg-pkg-cream-2 px-3 py-1 text-[13px] text-pkg-fg">{STATE_LABEL[key] ?? c.state}</span>;
 };
 
 /** What the agent should read next to a row, by state. */
 const rowInfo = (c: MyCommission): string => {
   const key = commissionStateKey(c);
-  if (key === "held") return `${HOLD_TEXT[c.hold_reason ?? ""] ?? "Ditahan."}`;
+  if (key === "held") return HOLD_TEXT[c.hold_reason ?? ""] ?? "Ditahan.";
   if (key === "paid") return `Dibayar ${fmtDate(c.transfer_date ?? c.paid_at)}${c.transfer_reference ? `, ref ${c.transfer_reference}` : ""}`;
-  if (key === "approved") return `Disetujui ${fmtDate(c.approved_at)}. ${COMMISSION_WINDOW_NOTE}`;
-  if (key === "eligible") return `Jamaah sudah berangkat. Menunggu persetujuan. ${COMMISSION_WINDOW_NOTE}`;
-  return `Menunggu jamaah berangkat ${fmtDate(c.departure_date)}. ${COMMISSION_WINDOW_NOTE}`;
+  if (key === "approved") return `Disetujui ${fmtDate(c.approved_at)}`;
+  if (key === "eligible") return "Jamaah sudah berangkat, menunggu persetujuan";
+  return `Menunggu jamaah berangkat ${fmtDate(c.departure_date)}`;
 };
 
 const AgentCommission = () => {
@@ -252,239 +233,134 @@ const AgentCommission = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-label="Memuat" />
-      </div>
+      <AgentPage title="Komisi.">
+        <AgentPanel last><div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-pkg-fg-3" aria-label="Memuat" /></div></AgentPanel>
+      </AgentPage>
     );
   }
 
   if (isError && commissionRows === undefined) {
     return (
-      <div className="mx-auto w-full max-w-7xl space-y-4">
-        <AgentPageHeader title="Komisi" description="Status komisi tiap jamaah kamu" icon={Wallet} />
-        <EmptyState
-          icon={AlertCircle}
-          title="Komisi belum bisa dimuat"
-          action={<Button variant="outline" onClick={() => refetch()}>Coba lagi</Button>}
-        >
-          Periksa koneksi kamu, lalu coba lagi.
-        </EmptyState>
-      </div>
+      <AgentPage title="Komisi.">
+        <AgentPanel last>
+          <AgentEmpty icon={AlertCircle} text="Komisi belum bisa dimuat" action={<button type="button" className={agentGlass} onClick={() => refetch()}>Coba lagi</button>} />
+        </AgentPanel>
+      </AgentPage>
     );
   }
 
   const list = (rows: MyCommission[], empty: string) =>
     rows.length === 0 ? (
-      <EmptyState icon={Wallet} title={empty}>Komisi muncul di sini setelah jamaah kamu lunas.</EmptyState>
+      <AgentEmpty icon={Wallet} text={empty} />
     ) : (
-      <>
-        {/* Table from 640px */}
-        <div className="hidden sm:block rounded-lg border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Jamaah</TableHead>
-                <TableHead className="text-right">Komisi</TableHead>
-                <TableHead className="text-right">PPh 5%</TableHead>
-                <TableHead className="text-right">Diterima</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Keterangan</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((c) => {
-                const final = c.state === "approved" || c.state === "paid";
-                return (
-                  <TableRow key={c.sale_id}>
-                    <TableCell>
-                      <p className="font-semibold">{c.customer_name}</p>
-                      <p className="text-[13px] text-muted-foreground">
-                        {c.package_name} · berangkat {fmtDate(c.departure_date)}
-                      </p>
-                      {c.share_percent != null && (
-                        <p className="text-[13px] text-muted-foreground">
-                          {c.role === "bantuan" ? "Bagian agen pembantu" : "Bagian agen utama"} {c.share_percent}%
-                        </p>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(c.gross_amount)}</TableCell>
-                    <TableCell className="text-right">{final ? formatCurrency(c.tax_amount) : "-"}</TableCell>
-                    <TableCell className="text-right font-medium">{final ? formatCurrency(c.net_amount) : "-"}</TableCell>
-                    <TableCell><CommissionStatusChip c={c} /></TableCell>
-                    <TableCell className="max-w-[280px] whitespace-normal text-[13px] text-muted-foreground">
-                      {rowInfo(c)}
-                      {c.proof_path && (
-                        <Button variant="link" size="sm" className="h-auto p-0 pl-1" onClick={() => openProof(c.proof_path!)}>
-                          <FileText className="mr-1 h-3.5 w-3.5" aria-hidden />
-                          Bukti transfer
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* Cards under 640px */}
-        <div className="space-y-3 sm:hidden">
-          {rows.map((c) => {
-            const final = c.state === "approved" || c.state === "paid";
-            return (
-              <Card key={c.sale_id}>
-                <CardContent className="space-y-2 p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-semibold">{c.customer_name}</p>
-                      <p className="text-[13px] text-muted-foreground">
-                        {c.package_name} · berangkat {fmtDate(c.departure_date)}
-                      </p>
-                    </div>
-                    <CommissionStatusChip c={c} />
-                  </div>
-                  <dl className="grid grid-cols-3 gap-2 text-sm">
-                    <div>
-                      <dt className="text-[12.5px] text-muted-foreground">Komisi</dt>
-                      <dd className="font-medium">{formatCurrency(c.gross_amount)}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-[12.5px] text-muted-foreground">PPh 5%</dt>
-                      <dd>{final ? formatCurrency(c.tax_amount) : "-"}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-[12.5px] text-muted-foreground">Diterima</dt>
-                      <dd className="font-medium">{final ? formatCurrency(c.net_amount) : "-"}</dd>
-                    </div>
-                  </dl>
-                  {c.share_percent != null && (
-                    <p className="text-[13px] text-muted-foreground">
-                      {c.role === "bantuan" ? "Bagian agen pembantu" : "Bagian agen utama"} {c.share_percent}%
-                    </p>
-                  )}
-                  <p className="text-[13px] text-muted-foreground">{rowInfo(c)}</p>
-                  {c.proof_path && (
-                    <Button variant="outline" size="sm" onClick={() => openProof(c.proof_path!)}>
-                      <FileText className="mr-2 h-4 w-4" aria-hidden />
-                      Bukti transfer
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </>
+      <ul className="mt-2 divide-y divide-pkg-hair">
+        {rows.map((c) => {
+          const final = c.state === "approved" || c.state === "paid";
+          return (
+            <li key={c.sale_id} className="py-6">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[19px] leading-tight text-pkg-fg">{c.customer_name}</p>
+                  <p className="mt-1 text-[14px] text-pkg-fg-3">{c.package_name} · berangkat {fmtDate(c.departure_date)}</p>
+                </div>
+                <CommissionStatusChip c={c} />
+              </div>
+              <dl className="mt-4 grid grid-cols-3 gap-3">
+                <div><dt className="text-[13px] text-pkg-fg-3">Komisi</dt><dd className="mt-0.5 text-[16px] text-pkg-fg">{formatCurrency(c.gross_amount)}</dd></div>
+                <div><dt className="text-[13px] text-pkg-fg-3">PPh 5%</dt><dd className="mt-0.5 text-[16px] text-pkg-fg">{final ? formatCurrency(c.tax_amount) : "-"}</dd></div>
+                <div><dt className="text-[13px] text-pkg-fg-3">Diterima</dt><dd className="mt-0.5 text-[16px] text-pkg-fg">{final ? formatCurrency(c.net_amount) : "-"}</dd></div>
+              </dl>
+              {c.share_percent != null && <p className="mt-3 text-[14px] text-pkg-fg-3">{c.role === "bantuan" ? "Bagian agen pembantu" : "Bagian agen utama"} {c.share_percent}%</p>}
+              <p className="mt-3 text-[14px] text-pkg-fg-3">{rowInfo(c)}</p>
+              {c.proof_path && (
+                <button type="button" className={`${agentGlass} mt-4`} onClick={() => openProof(c.proof_path!)}>
+                  <FileText className="h-5 w-5" aria-hidden /> Bukti transfer
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     );
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <AgentPageHeader title="Komisi" description="Status komisi tiap jamaah kamu" icon={Wallet} />
-
-      <p className="flex items-start gap-2 rounded-lg border bg-card p-3 text-sm text-muted-foreground">
-        <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-        <span>
-          {COMMISSION_STATEMENT_NOTE} {COMMISSION_WINDOW_NOTE} Biaya transfer ditanggung Musafar.
-        </span>
-      </p>
-
-      {openClawback > 0 && (
-        <div role="status" className="flex items-start gap-2 rounded-lg border border-status-warn-border bg-status-warn-bg p-3 text-sm text-status-warn-fg">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-          <span>
-            Ada potongan {formatCurrency(openClawback)} dari komisi yang sudah dibayar untuk jamaah yang kemudian batal atau refund.
-            Jumlah ini dipotong dari pembayaran komisi kamu berikutnya.
-          </span>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <AgentStatCard
-          icon={Hourglass}
-          label="Menunggu"
-          value={formatCurrency(sum(waiting, (c) => c.gross_amount))}
-          helper={<span className="text-muted-foreground">{waiting.length} jamaah, sebelum berangkat</span>}
-        />
-        <AgentStatCard
-          icon={Clock}
-          label="Layak dibayar"
-          value={formatCurrency(sum(eligible, (c) => c.gross_amount))}
-          helper={<span className="text-muted-foreground">{eligible.length} jamaah, menunggu persetujuan</span>}
-        />
-        <AgentStatCard
-          icon={BadgeCheck}
-          label="Disetujui"
-          value={formatCurrency(sum(approved, (c) => c.net_amount))}
-          helper={<span className="text-muted-foreground">{approved.length} jamaah, setelah PPh 5%</span>}
-        />
-        <AgentStatCard
-          icon={Banknote}
-          label="Dibayar"
-          value={formatCurrency(sum(paid, (c) => c.net_amount))}
-          helper={<span className="text-muted-foreground">{paid.length} jamaah, setelah PPh 5%</span>}
-        />
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Rekening tujuan</CardTitle>
-          <CardDescription>Komisi yang sudah disetujui ditransfer admin ke rekening ini.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <>
+    <AgentPage
+      title="Komisi."
+      hero={
+        <>
+          <Figures
+            cols={2}
+            items={[
+              { value: formatCurrency(sum(waiting, (c) => c.gross_amount)), label: "Menunggu", note: `${waiting.length} jamaah` },
+              { value: formatCurrency(sum(eligible, (c) => c.gross_amount)), label: "Layak dibayar", note: `${eligible.length} jamaah` },
+              { value: formatCurrency(sum(approved, (c) => c.net_amount)), label: "Disetujui", note: `${approved.length} jamaah, bersih` },
+              { value: formatCurrency(sum(paid, (c) => c.net_amount)), label: "Dibayar", note: `${paid.length} jamaah, bersih` },
+            ]}
+          />
+          <p className="mt-8 flex items-center gap-2 text-[14px] text-pkg-fg-3"><Clock className="h-4 w-4 shrink-0" aria-hidden /> Dibayar paling lambat H+2 setelah jamaah landing. PPh 5% dipotong.</p>
+          {openClawback > 0 && (
+            <p role="status" className="mt-3 flex items-center gap-2 text-[14px] text-pkg-red-bright"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden /> Potongan {formatCurrency(openClawback)} dari komisi berikutnya (jamaah batal atau refund).</p>
+          )}
+        </>
+      }
+    >
+      <AgentPanel tone="cream-2">
+        <h2 className="pkg-h3">Rekening</h2>
+        <div className="mt-5 flex items-center justify-between gap-4">
           <div className="min-w-0">
             {hasBankInfo ? (
               <>
-                <p className="font-medium">{agent?.bank_name} - {agent?.bank_account}</p>
-                <p className="text-sm text-muted-foreground">a.n. {agent?.account_name}</p>
+                <p className="text-[17px] text-pkg-fg">{agent?.bank_name} · {agent?.bank_account}</p>
+                <p className="mt-0.5 text-[14px] text-pkg-fg-3">a.n. {agent?.account_name}</p>
               </>
             ) : (
-              <p className="text-sm text-muted-foreground">Belum diatur. Atur rekening dulu supaya komisi bisa dikirim ke kamu.</p>
+              <p className="text-[17px] text-pkg-fg-2">Belum diatur</p>
             )}
           </div>
-          <Button variant={hasBankInfo ? "outline" : "default"} onClick={openBankModal}>
-            {hasBankInfo ? "Ubah rekening" : "Atur rekening"}
-          </Button>
-        </CardContent>
-      </Card>
+          <button type="button" className={hasBankInfo ? agentGlass : agentPrimary.replace("h-14", "h-12")} onClick={openBankModal}>
+            {hasBankInfo ? "Ubah" : "Atur rekening"}
+          </button>
+        </div>
+      </AgentPanel>
 
-      <Tabs value={tab} onValueChange={setTab} className="space-y-4">
-        <TabsList className="h-auto flex-wrap justify-start">
-          <TabsTrigger value="all">Semua ({commissions.length})</TabsTrigger>
-          <TabsTrigger value="waiting">Menunggu ({waiting.length})</TabsTrigger>
-          <TabsTrigger value="eligible">Layak dibayar ({eligible.length})</TabsTrigger>
-          <TabsTrigger value="approved">Disetujui ({approved.length})</TabsTrigger>
-          <TabsTrigger value="paid">Dibayar ({paid.length})</TabsTrigger>
-          {withdrawals.length > 0 && <TabsTrigger value="old">Riwayat penarikan lama</TabsTrigger>}
-        </TabsList>
-        <TabsContent value="all">{list(commissions, "Belum ada komisi")}</TabsContent>
-        <TabsContent value="waiting">{list(waiting, "Tidak ada komisi yang menunggu")}</TabsContent>
-        <TabsContent value="eligible">{list(eligible, "Belum ada komisi yang layak dibayar")}</TabsContent>
-        <TabsContent value="approved">{list(approved, "Belum ada komisi yang disetujui")}</TabsContent>
-        <TabsContent value="paid">{list(paid, "Belum ada komisi yang dibayar")}</TabsContent>
-        {withdrawals.length > 0 && (
-          <TabsContent value="old">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Riwayat penarikan lama</CardTitle>
-                <CardDescription>Permintaan penarikan sebelum pencairan dipegang admin. Hanya untuk dibaca.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {withdrawals.map((w) => (
-                  <div key={w.id} className="flex flex-wrap items-start justify-between gap-2 rounded-lg border p-3 text-sm">
-                    <div>
-                      <p className="font-medium">{formatCurrency(w.amount)} · {w.bank_name} {w.bank_account}</p>
-                      <p className="text-[13px] text-muted-foreground">{fmtDate(w.requested_at)}{w.admin_notes ? ` · ${w.admin_notes}` : ""}</p>
-                    </div>
-                    <StatusBadge kind={w.status === "paid" || w.status === "completed" ? "ok" : w.status === "rejected" ? "bad" : "warn"}>
-                      {w.status === "paid" || w.status === "completed" ? "Dibayar" : w.status === "rejected" ? "Ditolak" : "Diproses"}
-                    </StatusBadge>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
+      <AgentPanel last>
+        <Chips
+          label="Filter komisi"
+          value={tab}
+          onChange={setTab}
+          options={[
+            { value: "all", label: `Semua ${commissions.length}` },
+            { value: "waiting", label: `Menunggu ${waiting.length}` },
+            { value: "eligible", label: `Layak ${eligible.length}` },
+            { value: "approved", label: `Disetujui ${approved.length}` },
+            { value: "paid", label: `Dibayar ${paid.length}` },
+            ...(withdrawals.length > 0 ? [{ value: "old", label: "Penarikan lama" }] : []),
+          ]}
+        />
+        {tab === "all" && list(commissions, "Belum ada komisi")}
+        {tab === "waiting" && list(waiting, "Tidak ada yang menunggu")}
+        {tab === "eligible" && list(eligible, "Belum ada")}
+        {tab === "approved" && list(approved, "Belum ada")}
+        {tab === "paid" && list(paid, "Belum ada")}
+        {tab === "old" && (
+          <ul className="mt-2 divide-y divide-pkg-hair">
+            {withdrawals.map((w) => (
+              <li key={w.id} className="flex items-start justify-between gap-3 py-6">
+                <div className="min-w-0">
+                  <p className="text-[17px] text-pkg-fg">{formatCurrency(w.amount)}</p>
+                  <p className="mt-0.5 text-[14px] text-pkg-fg-3">{w.bank_name} {w.bank_account}</p>
+                  <p className="text-[13px] text-pkg-fg-3">{fmtDate(w.requested_at)}{w.admin_notes ? ` · ${w.admin_notes}` : ""}</p>
+                </div>
+                <span className={`pkg-label shrink-0 rounded-full bg-pkg-cream-2 px-3 py-1 text-[13px] ${w.status === "rejected" ? "text-pkg-red-deep" : "text-pkg-fg"}`}>
+                  {w.status === "paid" || w.status === "completed" ? "Dibayar" : w.status === "rejected" ? "Ditolak" : "Diproses"}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
-      </Tabs>
+      </AgentPanel>
+    </AgentPage>
 
       {/* Bank Setup Modal */}
       <Dialog open={showBankModal} onOpenChange={setShowBankModal}>
@@ -554,7 +430,7 @@ const AgentCommission = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 };
 

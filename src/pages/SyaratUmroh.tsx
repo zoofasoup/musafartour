@@ -1,5 +1,5 @@
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { PkgPage } from "@/components/PkgPage";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
 
 interface Clause {
   text: string;
@@ -88,31 +88,29 @@ const REQUIREMENTS = [
 /** Persyaratan and Term of Service that people agree to on the registration form. */
 export default function SyaratUmroh() {
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="mx-auto max-w-3xl px-4 pb-16 pt-28 sm:px-6">
-        <h1 className="text-3xl font-bold tracking-tight">Persyaratan dan Term of Service Umroh</h1>
-        <p className="mt-2 text-muted-foreground">PT Musa Amanah Wisata (izin PPIU Kemenag: 17102200953750002)</p>
-
-        <section className="mt-8" aria-labelledby="persyaratan">
-          <h2 id="persyaratan" className="text-xl font-bold">Persyaratan umroh</h2>
-          <ol className="mt-3 list-decimal space-y-2 pl-6">
+    <PkgPage title="Persyaratan dan Term of Service." intro="PT Musa Amanah Wisata (izin PPIU Kemenag: 17102200953750002)">
+      <PkgPanel tone="cream">
+        <section className="mx-auto max-w-3xl" aria-labelledby="persyaratan">
+          <h2 id="persyaratan" className="pkg-h2">Persyaratan umroh</h2>
+          <ol className="mt-6 list-decimal space-y-3 pl-6 text-[17px] leading-[1.55] text-pkg-fg-2 marker:text-pkg-fg-3">
             {REQUIREMENTS.map((r) => (
-              <li key={r}>{r}</li>
+              <li key={r} className="pl-1">{r}</li>
             ))}
           </ol>
         </section>
+      </PkgPanel>
 
-        <section className="mt-10" aria-labelledby="tos">
-          <h2 id="tos" className="text-xl font-bold">Term of Service</h2>
-          <ol className="mt-3 list-decimal space-y-3 pl-6">
+      <PkgPanel tone="cream-2" last>
+        <section className="mx-auto max-w-3xl" aria-labelledby="tos">
+          <h2 id="tos" className="pkg-h2">Term of Service</h2>
+          <ol className="mt-6 list-decimal space-y-4 pl-6 text-[17px] leading-[1.55] text-pkg-fg-2 marker:text-pkg-fg-3">
             {CLAUSES.map((c) => (
-              <li key={c.text}>
+              <li key={c.text} className="pl-1">
                 {c.text}
                 {c.items && (
-                  <ol className="mt-2 list-[lower-alpha] space-y-2 pl-6">
+                  <ol className="mt-3 list-[lower-alpha] space-y-2 pl-6 text-[16px] marker:text-pkg-fg-3">
                     {c.items.map((i) => (
-                      <li key={i}>{i}</li>
+                      <li key={i} className="pl-1">{i}</li>
                     ))}
                   </ol>
                 )}
@@ -120,8 +118,7 @@ export default function SyaratUmroh() {
             ))}
           </ol>
         </section>
-      </main>
-      <Footer />
-    </div>
+      </PkgPanel>
+    </PkgPage>
   );
 }

@@ -1,16 +1,16 @@
 import { useState } from "react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { Link } from "react-router-dom";
+import { PkgPage, pkgArea, pkgFocus, pkgInput, pkgLabel } from "@/components/PkgPage";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
 import { SEO } from "@/components/SEO";
 import { GoogleMap } from "@/components/GoogleMap";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Phone, Mail, MapPin, Clock, MessageCircle } from "lucide-react";
+import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatWhatsAppUrl } from "@/lib/utils";
 import { useHomepageData } from "@/hooks/useHomepageData";
 import { trackWhatsAppLead } from "@/lib/tracking";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
+import { formatPhone } from "@/lib/phone";
 
 const FALLBACK_WHATSAPP = "6281917403797";
 const FALLBACK_ADDRESS = "Commercial Park Harapan Indah Ruko Emerald Blok EB1 No. 28, Medan Satria, Kota Bekasi, Jawa Barat 17131";
@@ -74,8 +74,24 @@ ${formData.message}`;
     });
   };
 
+  // 6281917403797 -> 0819 - 1740 - 3797. One number serves calls and WhatsApp.
+  const digits = whatsapp.replace(/\D/g, "").replace(/^62/, "0");
+  const displayPhone = digits.length >= 10 ? `${digits.slice(0, 4)} - ${digits.slice(4, 8)} - ${digits.slice(8)}` : phone;
+  // One line per schedule entry, even when the saved text has them run together ("...WIBSabtu...").
+  const hoursLines = officeHours
+    .split(/\r?\n|\s*,\s*|(?<=WIB)\s*(?=[A-Z])/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const rows = [
+    { icon: MapPin, label: "Alamat kantor", lines: [address] },
+    { icon: Phone, label: "Telepon dan WhatsApp", lines: [displayPhone] },
+    { icon: Mail, label: "Email", lines: [email] },
+    { icon: Clock, label: "Jam operasional", lines: hoursLines },
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
+    <>
       <SEO 
         title="Kontak Kami - Musafar Tour | Hubungi Tim Musamin"
         description="Hubungi Musafar Tour untuk konsultasi gratis tentang paket umroh dan wisata halal. WhatsApp: 0819-1740-3797. Kantor di Bekasi, buka Senin-Sabtu."
@@ -97,163 +113,74 @@ ${formData.message}`;
           }
         }}
       />
-      <Navbar />
-      <main id="main">
-      {/* Header */}
-      <section className="py-16 bg-card border-b">
-        <div className="container mx-auto px-6 md:px-8 text-center">
-          <MessageCircle className="h-16 w-16 mx-auto mb-4 text-primary" />
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Hubungi Kami</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Tim Musamin kami siap membantu dan menjawab setiap pertanyaan Anda
-          </p>
-        </div>
-      </section>
-
-      {/* Contact Info & Form */}
-      <section className="py-16 container mx-auto px-6 md:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Contact Information */}
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-3xl font-bold mb-6">Informasi Kontak</h2>
-              <p className="text-muted-foreground mb-8">
-                Jangan ragu untuk menghubungi kami melalui berbagai saluran komunikasi yang tersedia. Kami berkomitmen memberikan respons terbaik untuk setiap pertanyaan Anda.
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-3 rounded-lg">
-                  <MapPin className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Alamat Kantor</h3>
-                  <p className="text-sm text-muted-foreground">{address}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-3 rounded-lg">
-                  <Phone className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Telepon & WhatsApp</h3>
-                  <p className="text-sm text-muted-foreground">{phone}</p>
-                  <p className="text-sm text-muted-foreground">{whatsapp} (WhatsApp)</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-3 rounded-lg">
-                  <Mail className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Email</h3>
-                  <p className="text-sm text-muted-foreground">{email}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-3 rounded-lg">
-                  <Clock className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Jam Operasional</h3>
-                  <p className="text-sm text-muted-foreground">{officeHours}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-6">
-              <Button variant="brand"
-                size="lg"
-                className="w-full bg-accent hover:bg-accent/90"
-                onClick={handleWhatsAppClick}
-              >
-                <MessageCircle className="mr-2 h-5 w-5" />
-                Chat via WhatsApp
-              </Button>
+      <PkgPage title="Hubungi kami." intro="Tanya paket, jadwal, atau cara daftar. Kami balas lewat WhatsApp.">
+        <PkgPanel tone="cream">
+          <div className="mx-auto max-w-5xl">
+            <ul className="space-y-6">
+              {rows.map(({ icon: Icon, label, lines }) => (
+                <li key={label} className="flex items-start gap-4">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pkg-cream-2 text-pkg-red-deep">
+                    <Icon className="h-6 w-6" aria-hidden />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="pkg-caption text-pkg-fg-3">{label}</p>
+                    {lines.map((l) => (
+                      <p key={l} className="mt-0.5 text-[17px] leading-[1.45] text-pkg-fg">{l}</p>
+                    ))}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <button type="button" onClick={handleWhatsAppClick} className={`pkg-press pkg-glass-red pkg-label inline-flex h-14 items-center justify-center gap-2.5 rounded-full px-7 ${pkgFocus}`}>
+              <WhatsAppIcon className="h-5 w-5" /> Chat WhatsApp
+            </button>
+              <Link to="/paket-umroh" className={`pkg-press pkg-glass pkg-label inline-flex h-14 items-center justify-center rounded-full px-7 ${pkgFocus}`}>
+                Lihat paket
+              </Link>
             </div>
           </div>
+        </PkgPanel>
 
-          {/* Contact Form */}
-          <div className="bg-card p-8 rounded-lg shadow-md border">
-            <h2 className="text-2xl font-bold mb-6">Kirim Pesan</h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
+        <PkgPanel tone="cream-2">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="pkg-h2">Kirim pesan</h2>
+            <form onSubmit={handleSubmit} className="mt-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium mb-2">Nama Lengkap *</label>
-                <Input 
-                  placeholder="Masukkan nama lengkap Anda"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  required
-                />
+                <label htmlFor="k-name" className={pkgLabel}>Nama lengkap</label>
+                <input id="k-name" className={pkgInput} placeholder="Nama kamu" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
               </div>
-              
               <div>
-                <label className="block text-sm font-medium mb-2">Email *</label>
-                <Input 
-                  type="email" 
-                  placeholder="nama@email.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  required
-                />
+                <label htmlFor="k-email" className={pkgLabel}>Email</label>
+                <input id="k-email" type="email" className={pkgInput} placeholder="nama@email.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
               </div>
-              
               <div>
-                <label className="block text-sm font-medium mb-2">Nomor Telepon</label>
-                <Input 
-                  type="tel" 
-                  placeholder="08xx-xxxx-xxxx"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                />
+                <label htmlFor="k-phone" className={pkgLabel}>Nomor telepon <span className="text-pkg-fg-3">(opsional)</span></label>
+                <input id="k-phone" type="tel" className={pkgInput} placeholder="0812 3456 7890" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })} />
               </div>
-              
               <div>
-                <label className="block text-sm font-medium mb-2">Subjek</label>
-                <Input 
-                  placeholder="Perihal pesan Anda"
-                  value={formData.subject}
-                  onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                />
+                <label htmlFor="k-subject" className={pkgLabel}>Subjek <span className="text-pkg-fg-3">(opsional)</span></label>
+                <input id="k-subject" className={pkgInput} placeholder="Perihal pesan" value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} />
               </div>
-              
               <div>
-                <label className="block text-sm font-medium mb-2">Pesan *</label>
-                <Textarea 
-                  placeholder="Tulis pesan Anda di sini..."
-                  rows={6}
-                  value={formData.message}
-                  onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  required
-                />
+                <label htmlFor="k-msg" className={pkgLabel}>Pesan</label>
+                <textarea id="k-msg" rows={5} className={pkgArea} placeholder="Tulis pesanmu" value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} required />
               </div>
-              
-              <Button variant="brand" type="submit" className="w-full bg-brand hover:bg-brand-press">
-                Kirim Pesan
-              </Button>
+              <button type="submit" className={`pkg-press pkg-glass-red pkg-label inline-flex h-14 w-full items-center justify-center rounded-full px-7 sm:w-auto ${pkgFocus}`}>
+                Kirim lewat WhatsApp
+              </button>
             </form>
           </div>
-        </div>
-      </section>
+        </PkgPanel>
 
-      {/* Map Section */}
-      <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-6 md:px-8">
-          <h2 className="text-3xl font-bold text-center mb-8">Lokasi Kantor Kami</h2>
-          <div className="max-w-5xl mx-auto">
-            <GoogleMap googleMapsUrl={websiteSettings?.google_maps_url || undefined} />
+        <PkgPanel tone="cream" last>
+          <div className="mx-auto max-w-5xl">
+            <h2 className="pkg-h2">Lokasi kantor</h2>
+            <GoogleMap className="mt-6" googleMapsUrl={websiteSettings?.google_maps_url || undefined} />
           </div>
-        </div>
-      </section>
-
-      </main>
-
-      <Footer />
-    </div>
+        </PkgPanel>
+      </PkgPage>
+    </>
   );
 };
 

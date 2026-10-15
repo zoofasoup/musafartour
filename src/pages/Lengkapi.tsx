@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, AlertTriangle, CalendarDays, Check, FileUp, Loader2, MessageCircle } from "lucide-react";
+import { AlertCircle, AlertTriangle, CalendarDays, Check, FileUp, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -34,6 +34,8 @@ import {
   type ManifestPerson,
 } from "@/lib/manifestForm";
 import { formatWhatsAppUrl } from "@/lib/utils";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
+import { formatPhone } from "@/lib/phone";
 
 const FALLBACK_WHATSAPP = "6281917403797";
 const fmtDate = (d: string) => new Date(`${d.slice(0, 10)}T00:00:00`).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
@@ -200,7 +202,7 @@ function PersonCard({ p, token, departure, onSaved }: { p: ManifestPerson; token
       <div className="mt-3 grid gap-4 sm:grid-cols-2">
         <Field k="emergency_name" draft={draft} set={set} p={p} />
         <Field k="emergency_relation" draft={draft} set={set} p={p} />
-        <Field k="emergency_phone" draft={draft} set={set} p={p}><Input id={`${p.id}-emergency_phone`} type="tel" inputMode="tel" value={draft.emergency_phone} onChange={(e) => set("emergency_phone", e.target.value)} className="mt-1.5" aria-invalid={!!fieldProblem("emergency_phone", draft.emergency_phone)} /></Field>
+        <Field k="emergency_phone" draft={draft} set={set} p={p}><Input id={`${p.id}-emergency_phone`} type="tel" inputMode="tel" value={draft.emergency_phone} onChange={(e) => set("emergency_phone", formatPhone(e.target.value))} className="mt-1.5" aria-invalid={!!fieldProblem("emergency_phone", draft.emergency_phone)} /></Field>
       </div>
 
       <h3 className="mt-7 text-sm font-bold uppercase tracking-wide text-muted-foreground">Kesehatan dan perjalanan</h3>
@@ -278,7 +280,7 @@ export default function Lengkapi() {
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               {error.status !== 404 && <Button variant="brand"  onClick={() => window.location.reload()}>Coba lagi</Button>}
               <Button asChild variant="outline" >
-                <a href={formatWhatsAppUrl(whatsapp, "Assalamu'alaikum, saya butuh bantuan mengisi data jamaah.")} target="_blank" rel="noopener noreferrer"><MessageCircle className="mr-2 h-4 w-4" aria-hidden />Hubungi CS</a>
+                <a href={formatWhatsAppUrl(whatsapp, "Assalamu'alaikum, saya butuh bantuan mengisi data jamaah.")} target="_blank" rel="noopener noreferrer"><WhatsAppIcon className="mr-2 h-4 w-4" />Hubungi CS</a>
               </Button>
             </div>
           </div>

@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { LazyImage } from "@/components/LazyImage";
-import { BookOpen, Clock, MessageCircle } from "lucide-react";
+import { BookOpen, Clock } from "lucide-react";
 import { PkgPanel } from "@/components/package-detail/PkgPanel";
 import { Skel } from "@/components/package-list/PkgSkeletons";
 import { usePkgNav } from "@/hooks/usePkgNav";
@@ -13,6 +13,7 @@ import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 interface Article {
   id: string;
@@ -42,6 +43,7 @@ const Artikel = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [category, setCategory] = useState<string | null>(null);
   
   const ITEMS_PER_PAGE = 9;
 
@@ -81,6 +83,9 @@ const Artikel = () => {
     setLoadingMore(false);
   };
 
+  const categories = Array.from(new Set(articles.map((a) => a.category).filter((c): c is string => !!c)));
+  const shown = category ? articles.filter((a) => a.category === category) : articles;
+
   const handleLoadMore = () => {
     const nextPage = page + 1;
     setPage(nextPage);
@@ -115,13 +120,12 @@ const Artikel = () => {
         <PkgPanel tone="cream" last>
           <div className="mx-auto max-w-[1200px]">
             {loading && page === 1 ? (
-              <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-9 md:grid-cols-3 md:gap-x-8">
                 {[...Array(6)].map((_, i) => (
                   <div key={i}>
-                    <Skel className="aspect-[4/3] w-full rounded-[24px]" />
-                    <Skel className="mt-5 h-6 w-4/5" />
-                    <Skel className="mt-3 h-4 w-full" />
-                    <Skel className="mt-2 h-4 w-2/3" />
+                    <Skel className="aspect-[4/3] w-full rounded-2xl" />
+                    <Skel className="mt-4 h-3 w-1/3" />
+                    <Skel className="mt-2 h-5 w-4/5" />
                   </div>
                 ))}
               </div>
@@ -132,36 +136,52 @@ const Artikel = () => {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">
-                  {articles.map((article) => (
+                {categories.length > 1 && (
+                  <div className="-mx-6 -mt-4 mb-4 flex gap-2 overflow-x-auto px-6 py-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" role="group" aria-label="Tipe artikel">
+                    {[null, ...categories].map((c) => {
+                      const on = c === category;
+                      return (
+                        <button
+                          key={c ?? "all"}
+                          type="button"
+                          onClick={() => setCategory(c)}
+                          aria-pressed={on}
+                          className={`pkg-press pkg-label h-11 shrink-0 rounded-full px-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2 ${on ? "pkg-glass-red" : "pkg-glass"}`}
+                        >
+                          {c ?? "Semua"}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-x-4 gap-y-9 md:grid-cols-3 md:gap-x-8">
+                  {shown.map((article) => (
                     <Link
                       key={article.id}
                       to={`/artikel/${article.slug}`}
-                      className="pkg-press group block rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
+                      className="pkg-press group block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
                     >
                       <article>
-                        <div className="relative aspect-[4/3] overflow-hidden rounded-[24px] bg-pkg-cream-2">
+                        <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-pkg-cream-2">
                           <LazyImage
                             src={article.featured_image || "/og-default.jpg"}
                             alt={article.title}
                             className="h-full w-full object-cover"
                           />
                           {article.category && (
-                            <span className="pkg-glass pkg-label absolute bottom-3 left-3 inline-flex h-8 items-center rounded-full px-3 text-[13px]">
+                            <span className="pkg-label absolute bottom-2.5 left-2.5 inline-flex h-8 items-center rounded-full bg-[#fffdf8] px-3 text-[13px] text-[#1a1512] shadow-[0_4px_12px_-4px_rgb(0_0_0/0.4)]">
                               {article.category}
                             </span>
                           )}
                         </div>
-                        <h2 className="mt-5 line-clamp-2 text-[24px] font-normal leading-[1.15] tracking-[-0.025em] text-pkg-fg">
+                        <h2 className="mt-4 line-clamp-3 text-[18px] font-normal leading-[1.2] tracking-[-0.02em] text-pkg-fg md:text-[22px]">
                           {article.title}
                         </h2>
-                        <p className="mt-3 line-clamp-3 text-[16px] leading-[1.5] text-pkg-fg-2">
-                          {article.excerpt || article.meta_description || ""}
-                        </p>
-                        <p className="pkg-caption mt-4 flex items-center gap-2 text-pkg-fg-3">
+                        <p className="pkg-caption mt-2 flex flex-wrap items-center gap-x-1.5 text-pkg-fg-3">
                           <span>{format(new Date(article.created_at), "d MMM yyyy", { locale: localeId })}</span>
                           <span aria-hidden>·</span>
-                          <Clock className="h-3.5 w-3.5" aria-hidden />
+                          <Clock className="h-3 w-3" aria-hidden />
                           <span>{readMinutes(article.content)} menit</span>
                         </p>
                       </article>
@@ -201,7 +221,7 @@ const Artikel = () => {
             }
             className="pkg-press pkg-glass-deep pkg-label mt-6 inline-flex h-14 items-center gap-2 rounded-full px-7 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-on-red focus-visible:ring-offset-2"
           >
-            <MessageCircle className="h-5 w-5" aria-hidden /> Kabari saya
+            <WhatsAppIcon className="h-5 w-5" /> Kabari saya
           </button>
         </div>
       </PkgPanel>

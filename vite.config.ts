@@ -39,6 +39,7 @@ export default defineConfig(({ mode }) => ({
         // Admin-only screens are large and most visitors never open them; they still load
         // on demand, they just aren't pre-downloaded for every visitor.
         globIgnores: [
+          "**/data/**",
           "**/assets/js/PackageForm-*.js",
           "**/assets/js/ArticleForm-*.js",
           "**/assets/js/ChatRotation-*.js",

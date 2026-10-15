@@ -1,0 +1,2 @@
+Data wilayah dan kode pos Indonesia (provinsi, kabupaten/kota, kecamatan, kelurahan/desa, kode pos).
+Sumber: https://github.com/sooluh/kodepos (Apache License 2.0), dipadatkan untuk pencarian di form agen.

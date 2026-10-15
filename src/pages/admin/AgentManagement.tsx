@@ -198,12 +198,28 @@ const AgentManagement = () => {
   // Delete agent mutation
   const deleteAgentMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('agents')
-        .delete()
-        .eq('id', id);
-
+      // Removes the agent and the login account together (a leftover account blocks the same email from registering again).
+      const { data: { session } } = await supabase.auth.getSession();
+      let data: { ok?: boolean; error?: string; account_removed?: boolean } | null = null;
+      try {
+        const res = await fetch("/api/admin-hapus-agen", {
+          method: "POST",
+          headers: { "content-type": "application/json", authorization: `Bearer ${session?.access_token ?? ""}` },
+          body: JSON.stringify({ agent_id: id }),
+        });
+        data = (await res.json().catch(() => null)) as typeof data;
+      } catch {
+        data = null;
+      }
+      if (data?.ok) {
+        if (data.account_removed === false) toast.warning("Agen dihapus, tapi akun login-nya belum terhapus. Hapus manual di Supabase.");
+        return;
+      }
+      if (data?.error) throw new Error(data.error); // a real refusal (history, not an admin...): show it as is
+      // No usable answer (the endpoint is not there, e.g. a local dev server): remove just the agent row as before.
+      const { error } = await supabase.from('agents').delete().eq('id', id);
       if (error) throw error;
+      toast.warning(`Agen dihapus, tapi akun login-nya masih ada. Hapus di Supabase → Authentication supaya emailnya bisa daftar lagi.`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-agents'] });

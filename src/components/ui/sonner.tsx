@@ -11,6 +11,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      position="top-center"
+      offset={{ top: 72 }}
+      mobileOffset={{ top: 72, left: 16, right: 16 }}
+      swipeDirections={["top"]}
       toastOptions={{
         // pkg-v2 look: ink glass pill, soft type (see .pkg-toast in pkg-v2.css)
         className: "pkg-v2 pkg-toast",

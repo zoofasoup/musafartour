@@ -63,7 +63,7 @@ async function agentFromLogin(authorization: string, url: string, anonKey: strin
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const secret = env.TURNSTILE_SECRET_KEY;
   const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!secret || !serviceKey) return json({ ok: false, error: "Pendaftaran online belum aktif. Silakan hubungi CS lewat WhatsApp." }, 503);
+  if (!secret || !serviceKey) return json({ ok: false, error: "Pendaftaran online belum aktif. Silakan hubungi UC lewat WhatsApp." }, 503);
 
   if (!ALLOWED_HOST.test(hostOf(request.headers.get("origin")) ?? "")) return json({ ok: false, error: "Permintaan ditolak." }, 403);
   if (Number(request.headers.get("content-length") || 0) > 20_000) return json({ ok: false, error: "Data terlalu besar." }, 413);
@@ -108,11 +108,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
   if (!rpc.ok) {
     const detail = ((await rpc.json().catch(() => ({}))) as { message?: string }).message ?? "";
-    if (detail.includes("rate_limited")) return json({ ok: false, error: "Terlalu banyak pendaftaran dari nomor ini hari ini. Silakan hubungi CS lewat WhatsApp." }, 429);
+    if (detail.includes("rate_limited")) return json({ ok: false, error: "Terlalu banyak pendaftaran dari nomor ini hari ini. Silakan hubungi UC lewat WhatsApp." }, 429);
     if (detail.includes("Biaya registrasi belum diterima")) return json({ ok: false, error: "Biaya registrasi belum diterima. Selesaikan pembayaran dulu." }, 403);
     if (detail.includes("package_unavailable")) return json({ ok: false, error: "Paket ini sudah tidak tersedia. Silakan pilih paket lain." }, 410);
     console.error("create_jamaah_intake failed", rpc.status, detail.slice(0, 200));
-    return json({ ok: false, error: "Pendaftaran belum bisa dikirim. Coba lagi sebentar lagi atau hubungi CS lewat WhatsApp." }, 502);
+    return json({ ok: false, error: "Pendaftaran belum bisa dikirim. Coba lagi sebentar lagi atau hubungi UC lewat WhatsApp." }, 502);
   }
 
   const { code } = (await rpc.json()) as { code: string };

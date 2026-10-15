@@ -10,7 +10,7 @@ const NETWORK = "Tidak bisa terhubung ke server. Periksa internet kamu, lalu cob
 
 async function read(res: Response) {
   const data = (await res.json().catch(() => null)) as { ok?: boolean; error?: string; data?: unknown } | null;
-  if (!res.ok || !data?.ok) throw new ManifestError(data?.error || "Data belum bisa diproses. Coba lagi sebentar lagi atau hubungi CS lewat WhatsApp.", res.status);
+  if (!res.ok || !data?.ok) throw new ManifestError(data?.error || "Data belum bisa diproses. Coba lagi sebentar lagi atau hubungi UC lewat WhatsApp.", res.status);
   return data;
 }
 

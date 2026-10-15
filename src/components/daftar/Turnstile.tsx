@@ -73,7 +73,7 @@ export function Turnstile({ onToken, resetKey = 0 }: Props) {
   }, [siteKey, resetKey]);
 
   if (!siteKey) {
-    return <p className="text-sm text-destructive" role="alert">Pendaftaran online belum aktif. Silakan hubungi CS lewat WhatsApp.</p>;
+    return <p className="text-sm text-destructive" role="alert">Pendaftaran online belum aktif. Silakan hubungi UC lewat WhatsApp.</p>;
   }
   return <div ref={ref} aria-label="Verifikasi keamanan" />;
 }

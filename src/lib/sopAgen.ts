@@ -62,7 +62,7 @@ export const COMMISSION_PAYOUT_TEXT =
   "Komisi dicatat setelah syarat terpenuhi (jamaah lunas, data lengkap, tidak ada pembatalan atau refund) dan dibayarkan hari H sampai H+2 setelah jamaah landing.";
 export const WITHDRAWAL_SOP_NOTE = "Pencairan mengikuti jadwal SOP; permintaan ini diproses admin sesuai jadwal.";
 export const BONUS_TEXT =
-  "Bonus Closing: 5 jamaah Rp500.000, 10 jamaah Rp1.500.000, 40 jamaah motor listrik atau tunai. Bonus hanya berlaku bila agen membawa jamaah secara langsung dan nominal tagihan mengikuti harga resmi Musafar.";
+  "Bonus Closing: 5 jamaah Rp500.000, 10 jamaah Rp1.500.000, 40 jamaah motor listrik atau tunai, untuk 1 invoice (sekali transaksi). Bonus hanya berlaku bila agen membawa jamaah secara langsung dan nominal tagihan mengikuti harga resmi Musafar.";
 
 /** Who can register. */
 export const AGENT_REQUIREMENTS = [

@@ -21,7 +21,6 @@ import {
   Palette,
   Package
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,7 +31,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
+import { AgentPage, AgentPanel } from "@/components/agent/AgentPage";
 
 interface NativeMaterial {
   id: string;
@@ -61,6 +60,15 @@ interface PackageOption {
 }
 
 // Sales scripts data (placeholder until database has content)
+// Sections keep their old Card structure, drawn flat: a heading, then the content, a hairline between sections.
+const Card = ({ children }: { children: React.ReactNode; className?: string }) => <section className="py-8 first:pt-0 last:pb-0">{children}</section>;
+const CardHeader = ({ children }: { children: React.ReactNode; className?: string }) => <div className="mb-5">{children}</div>;
+const CardTitle = ({ children }: { children: React.ReactNode; className?: string }) => (
+  <h2 className="pkg-h3 flex items-center gap-3 text-pretty [&_svg]:h-5 [&_svg]:w-5 [&_svg]:shrink-0 [&_svg]:text-pkg-fg-3">{children}</h2>
+);
+const CardDescription = ({ children }: { children: React.ReactNode; className?: string }) => <p className="mt-1.5 text-[14px] text-pkg-fg-3">{children}</p>;
+const CardContent = ({ children }: { children: React.ReactNode; className?: string }) => <div className="space-y-4">{children}</div>;
+
 const SALES_SCRIPTS = {
   opening: [
     { id: 1, title: "Opening WA - Prospek Baru", content: "Assalamu'alaikum Bapak/Ibu [Nama] 🙏\n\nPerkenalkan saya [Nama Agent] dari Musafar Tour.\n\nKami sedang ada promo spesial untuk paket umroh keberangkatan [Bulan]. Apakah Bapak/Ibu berencana umroh dalam waktu dekat?\n\nJika berkenan, saya bisa kirimkan informasi lengkapnya 😊" },
@@ -258,21 +266,17 @@ const AgentMarketingKit = () => {
 
   if (packagesLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <AgentPage title="Marketing.">
+        <AgentPanel last><div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-pkg-fg-3" aria-label="Memuat" /></div></AgentPanel>
+      </AgentPage>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <AgentPageHeader
-        title="Marketing Kit"
-        description="Unduh materi promosi dan alat bantu untuk menarik calon jamaah"
-        icon={Palette}
-      />
-
-      <div className="space-y-8">
+    <>
+    <AgentPage title="Marketing.">
+      <AgentPanel last>
+        <div className="divide-y divide-pkg-hair">
         {/* General Marketing Kit */}
         <Card>
           <CardHeader>
@@ -283,7 +287,7 @@ const AgentMarketingKit = () => {
             <CardDescription>Materi promosi yang bisa digunakan untuk semua paket</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="visual" className="space-y-4">
+            <Tabs defaultValue="visual" className="pkg-form space-y-4">
               <TabsList className="grid grid-cols-4 w-full">
                 <TabsTrigger value="visual" className="flex items-center gap-1">
                   <Palette className="h-4 w-4" />
@@ -519,7 +523,7 @@ const AgentMarketingKit = () => {
         </Card>
 
         {/* Tools Section */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-0 divide-y divide-pkg-hair">
           {/* Link Shortener */}
           <Card>
             <CardHeader>
@@ -636,7 +640,9 @@ const AgentMarketingKit = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
+        </div>
+      </AgentPanel>
+    </AgentPage>
 
       {/* Sales Script Modal */}
       <Dialog open={showScriptModal} onOpenChange={setShowScriptModal}>
@@ -675,7 +681,7 @@ const AgentMarketingKit = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 };
 

@@ -1,6 +1,6 @@
 import { Fragment, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowDown, Info, ListTree, MessageCircle, Square, SquareCheck, UserPlus } from "lucide-react";
+import { ArrowDown, Info, ListTree, Square, SquareCheck, UserPlus } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { AGENT_CS_WHATSAPP } from "@/lib/agentSupport";
 import { formatWhatsAppUrl } from "@/lib/utils";
 import { SOP_DOCUMENT, SOP_PAGE_UPDATED, SOP_SECTIONS } from "@/lib/sopAgen";
 import type { SopBlock } from "@/lib/sopAgen";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 
 /** **bold** markers in the data become <strong>. */
@@ -187,7 +188,7 @@ export default function SopAgen() {
               <Link to="/agent/register"><UserPlus className="h-5 w-5" aria-hidden /> Daftar jadi agen</Link>
             </Button>
             <Button asChild variant="outline" className="h-12 gap-2 border-primary-foreground/30 bg-transparent px-6 text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
-              <a href={csUrl} target="_blank" rel="noopener noreferrer"><MessageCircle className="h-5 w-5" aria-hidden /> Tanya PIC Agen lewat WhatsApp</a>
+              <a href={csUrl} target="_blank" rel="noopener noreferrer"><WhatsAppIcon className="h-5 w-5" /> Tanya PIC Agen lewat WhatsApp</a>
             </Button>
           </div>
         </section>

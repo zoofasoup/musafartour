@@ -15,8 +15,9 @@ import { resolveTierHotels } from "@/lib/roomCombos";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { Heart, Baby, MapPin, Landmark, CreditCard, MessageCircle, Phone, Mail, ExternalLink, CheckCircle2 } from "lucide-react";
+import { Heart, Baby, MapPin, Landmark, CreditCard, Phone, Mail, ExternalLink, CheckCircle2 } from "lucide-react";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 const btnFocus = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2";
 
@@ -61,7 +62,7 @@ const TentangKami = () => {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <button type="button" onClick={handleWhatsApp} className={`pkg-press pkg-glass-red pkg-label inline-flex h-14 items-center justify-center gap-2 rounded-full px-7 ${btnFocus} focus-visible:ring-pkg-cream focus-visible:ring-offset-pkg-ink`}>
-                <MessageCircle className="h-5 w-5" aria-hidden /> Tanya CS, gratis
+                <WhatsAppIcon className="h-5 w-5" /> Tanya UC, gratis
               </button>
               <Link to="/paket-umroh" className={`pkg-press pkg-glass pkg-label inline-flex h-14 items-center justify-center rounded-full px-7 ${btnFocus} focus-visible:ring-pkg-cream focus-visible:ring-offset-pkg-ink`}>
                 Lihat jadwal berangkat
@@ -201,6 +202,14 @@ const TentangKami = () => {
                 <p className="mt-3 flex items-center gap-2 text-[16px] text-pkg-fg-2"><Phone className="h-4 w-4" aria-hidden /> {phone}</p>
                 <p className="mt-1 flex items-center gap-2 text-[16px] text-pkg-fg-2"><Mail className="h-4 w-4" aria-hidden /> {email}</p>
               </div>
+            </div>
+            <div className="mt-12 flex flex-col gap-3 sm:flex-row">
+              <button type="button" onClick={handleWhatsApp} className={`pkg-press pkg-glass-red pkg-label inline-flex h-14 items-center justify-center gap-2.5 rounded-full px-7 ${btnFocus} focus-visible:ring-pkg-cream focus-visible:ring-offset-pkg-ink`}>
+                <WhatsAppIcon className="h-5 w-5" /> Tanya UC
+              </button>
+              <Link to="/paket-umroh" className={`pkg-press pkg-glass pkg-label inline-flex h-14 items-center justify-center rounded-full px-7 ${btnFocus} focus-visible:ring-pkg-cream focus-visible:ring-offset-pkg-ink`}>
+                Lihat paket
+              </Link>
             </div>
           </div>
         </PkgPanel>

@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Armchair, Bell, Star } from "lucide-react";
+import { Armchair, Star } from "lucide-react";
 import { PkgCartButton } from "@/components/package-list/PkgCartButton";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -8,6 +8,7 @@ import { toRupiah } from "@/lib/tracking";
 import { getOptimizedImageUrl, cn } from "@/lib/utils";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { airlineLogos } from "@/lib/airlineLogos";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 export interface PkgListCardProps {
   id?: string;
@@ -35,6 +36,12 @@ export interface PkgListCardProps {
   className?: string;
   /** DOM id for the cart button so the product tour can point at it. */
   cartButtonTourId?: string;
+  /** Where the card leads instead of the public package page (the agent portal sends people to its own detail page). */
+  hrefOverride?: string;
+  /** Hides the cart button (agents do not keep a cart). */
+  hideCart?: boolean;
+  /** Extra content under the card body, above the stretched link (the agent portal puts its actions here). */
+  footer?: React.ReactNode;
 }
 
 /** Rupiah -> "35.9" (dot, as on the package page). */
@@ -47,12 +54,12 @@ const toJt = (n?: number) => (n && n >= 1_000_000 ? (n / 1_000_000).toFixed(1).r
 export function PkgListCard({
   id, slug, image, title, price, priceValue, date, dateShort, duration, airline,
   hotelMakkah, hotelMakkahRating, hotelMadinah, hotelMadinahRating,
-  isSoldOut = false, waitlistCount = 0, slotsTotal, slotsFilled, index = 0, className, cartButtonTourId,
+  isSoldOut = false, waitlistCount = 0, slotsTotal, slotsFilled, index = 0, className, cartButtonTourId, hrefOverride, hideCart = false, footer,
 }: PkgListCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const packageId = id || slug || "";
   const isFav = isFavorite(packageId);
-  const href = slug || id ? `/paket-umroh/${slug || id}` : undefined;
+  const href = hrefOverride ?? (slug || id ? `/paket-umroh/${slug || id}` : undefined);
   const remaining = slotsTotal ? Math.max(0, slotsTotal - (slotsFilled || 0)) : null;
   const urgent = slotsTotal ? Math.round(((slotsFilled || 0) / slotsTotal) * 100) >= 80 : false;
   const jt = toJt(priceValue);
@@ -131,7 +138,7 @@ export function PkgListCard({
           ) : (
             <span />
           )}
-          {!isSoldOut && (
+          {!isSoldOut && !hideCart && (
             <PkgCartButton id={cartButtonTourId} isFav={isFav} onClick={onCart} size="sm" look="deep" className="pkg-card-cart pointer-events-auto relative z-20 focus-visible:ring-pkg-cream" />
           )}
         </div>
@@ -177,14 +184,16 @@ export function PkgListCard({
           {isSoldOut ? (
             <div className="w-full space-y-3">
               <p className="pkg-label text-pkg-fg-3 line-through">{jt ? `${jt} jt` : price}</p>
+              {!hideCart && (
               <button
                 type="button"
                 onClick={onWaitlist}
                 className="pkg-press pkg-glass-deep pkg-label relative z-20 flex h-12 w-full items-center justify-center gap-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
               >
-                <Bell className="h-4 w-4" aria-hidden />
+                <WhatsAppIcon className="h-4 w-4" />
                 Gabung waitlist{waitlistCount > 0 ? ` (${waitlistCount})` : ""}
               </button>
+              )}
             </div>
           ) : (
             <>
@@ -200,6 +209,7 @@ export function PkgListCard({
             </>
           )}
         </div>
+        {footer && <div className="relative z-20 mt-5">{footer}</div>}
       </div>
     </article>
     </div>

@@ -69,7 +69,7 @@ export function validateIntake(body: unknown): Checked {
   if (b.consent !== true) return fail("Centang persetujuan data dan Term of Service untuk melanjutkan.");
 
   if (!Array.isArray(b.people) || b.people.length < 1) return fail("Tambahkan minimal satu orang yang berangkat.");
-  if (b.people.length > MAX_PEOPLE) return fail(`Maksimal ${MAX_PEOPLE} orang per pendaftaran. Untuk rombongan lebih besar, hubungi CS.`);
+  if (b.people.length > MAX_PEOPLE) return fail(`Maksimal ${MAX_PEOPLE} orang per pendaftaran. Untuk rombongan lebih besar, hubungi UC.`);
 
   const people: CleanIntake["people"] = [];
   for (let i = 0; i < b.people.length; i++) {

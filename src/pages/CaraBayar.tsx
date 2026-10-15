@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Banknote, CalendarCheck, Check, Copy, Info, Landmark, MessageCircle, Repeat, ShieldCheck } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { Banknote, CalendarCheck, Check, Copy, Info, Landmark, Repeat, ShieldCheck } from "lucide-react";
+import { PkgPage, pkgFocus } from "@/components/PkgPage";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
 import { useHomepageData } from "@/hooks/useHomepageData";
 import { DP_MIN_PER_PAX, LUNAS_DAYS_BEFORE_DEPARTURE, PT_ACCOUNTS, PT_ACCOUNT_HOLDER, rupiah } from "@/lib/jamaah";
 import { formatWhatsAppUrl } from "@/lib/utils";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 const FALLBACK_WHATSAPP = "6281917403797";
 
@@ -16,7 +15,7 @@ const STEPS = [
   {
     icon: Banknote,
     title: `DP ${rupiah(DP_MIN_PER_PAX)} per orang`,
-    text: "Setelah CS menerima pendaftaranmu, transfer DP untuk mengamankan seat.",
+    text: "Setelah UC menerima pendaftaranmu, transfer DP untuk mengamankan seat.",
     badge: "DP tidak dapat dikembalikan",
   },
   {
@@ -34,10 +33,9 @@ const STEPS = [
 function CopyNumber({ value, bank }: { value: string; bank: string }) {
   const [done, setDone] = useState(false);
   return (
-    <Button
+    <button
       type="button"
-      variant="outline"
-      className="h-11 gap-2"
+      className={`pkg-press pkg-glass pkg-label inline-flex h-12 shrink-0 items-center gap-2 rounded-full px-5 ${pkgFocus}`}
       aria-label={`Salin nomor rekening ${bank}`}
       onClick={async () => {
         try {
@@ -52,7 +50,7 @@ function CopyNumber({ value, bank }: { value: string; bank: string }) {
     >
       {done ? <Check className="h-4 w-4" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
       {done ? "Tersalin" : "Salin"}
-    </Button>
+    </button>
   );
 }
 
@@ -69,96 +67,87 @@ export default function CaraBayar() {
   const proofMessage = "Halo Musafar Tour, saya mau kirim bukti transfer.\nKode pendaftaran: \nNama: \nNominal: ";
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main id="main" className="mx-auto max-w-3xl px-4 pb-16 pt-28 sm:px-6">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Cara bayar</h1>
-          <p className="mt-2 text-muted-foreground">
-            Tiga langkah, semuanya lewat transfer ke rekening PT. Kamu bisa mulai setelah mendaftar dan CS menerima pendaftaranmu.
-          </p>
-        </header>
-
-        <ol className="space-y-4">
+    <PkgPage title="Cara bayar." intro="Tiga langkah, lewat transfer ke rekening PT. Mulai setelah Umroh Consultant (UC) menerima pendaftaranmu.">
+      <PkgPanel tone="cream">
+        <ol className="mx-auto grid max-w-5xl gap-8 md:grid-cols-3">
           {STEPS.map(({ icon: Icon, title, text, ...rest }, i) => (
-            <li key={title} className="flex items-start gap-4 rounded-2xl border bg-white p-5 shadow-sm">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand">
+            <li key={title} className="flex items-start gap-4">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pkg-cream-2 text-pkg-red-deep">
                 <Icon className="h-6 w-6" aria-hidden />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-muted-foreground">Langkah {i + 1}</p>
-                <h2 className="text-lg font-bold text-foreground">{title}</h2>
-                <p className="mt-1 text-foreground">{text}</p>
-                {"badge" in rest && (
-                  <StatusBadge kind="warn" className="mt-2">
-                    {rest.badge}
-                  </StatusBadge>
-                )}
+                <p className="pkg-caption text-pkg-fg-3">Langkah {i + 1}</p>
+                <h2 className="mt-0.5 text-[19px] font-normal leading-[1.2] tracking-[-0.02em] text-pkg-fg">{title}</h2>
+                <p className="mt-1 text-[16px] leading-[1.5] text-pkg-fg-2">{text}</p>
+                {"badge" in rest && <p className="pkg-label mt-2 inline-block rounded-full bg-pkg-cream-2 px-3 py-1 text-pkg-red-deep">{rest.badge}</p>}
               </div>
             </li>
           ))}
         </ol>
+      </PkgPanel>
 
-        <section className="mt-8" aria-labelledby="rekening">
-          <h2 id="rekening" className="flex items-center gap-2 text-2xl font-bold text-foreground">
-            <Landmark className="h-6 w-6 text-brand" aria-hidden /> Rekening resmi
-          </h2>
-          <p className="mt-2 text-foreground">
-            Semua pembayaran hanya ke rekening atas nama <strong>{holder}</strong>. Jangan transfer ke rekening pribadi, termasuk rekening agen atau staf.
+      <PkgPanel tone="cream-2">
+        <section className="mx-auto max-w-3xl" aria-labelledby="rekening">
+          <h2 id="rekening" className="pkg-h2">Rekening resmi</h2>
+          <p className="mt-4 text-[17px] leading-[1.5] text-pkg-fg-2">
+            Semua pembayaran hanya ke rekening atas nama <span className="text-pkg-fg">{holder}</span>. Jangan transfer ke rekening pribadi, termasuk rekening agen atau staf.
           </p>
 
           {accounts.length > 0 ? (
-            <ul className="mt-4 space-y-3">
-              {accounts.map((a) => (
-                <li key={a.code} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-white p-4 shadow-sm">
-                  <div>
-                    <p className="text-sm font-semibold text-muted-foreground">Bank {a.code}</p>
-                    <p className="text-xl font-bold tracking-wide text-foreground">{a.number}</p>
-                    <p className="text-sm text-muted-foreground">a.n. {holder}</p>
+            <ul className="mt-6">
+              {accounts.map((a, i) => (
+                <li key={a.code} className={`flex items-center justify-between gap-4 py-5 ${i > 0 ? "border-t border-pkg-hair" : ""}`}>
+                  <div className="min-w-0">
+                    <p className="pkg-caption text-pkg-fg-3">Bank {a.code}</p>
+                    <p className="mt-0.5 text-[24px] font-normal leading-tight tracking-[-0.02em] text-pkg-fg">{a.number}</p>
+                    <p className="mt-0.5 text-[14px] text-pkg-fg-3">a.n. {holder}</p>
                   </div>
                   <CopyNumber value={a.number} bank={a.code} />
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="mt-4 rounded-2xl border bg-white p-4 text-foreground shadow-sm">
-              Bank yang dipakai: <strong>{(namesWithoutNumber.length ? namesWithoutNumber : bankNames).join(", ") || "tanyakan ke CS"}</strong>. Minta nomor rekeningnya ke CS lewat WhatsApp.
+            <p className="mt-6 text-[17px] leading-[1.5] text-pkg-fg">
+              Bank yang dipakai: {(namesWithoutNumber.length ? namesWithoutNumber : bankNames).join(", ") || "tanyakan ke UC"}. Minta nomor rekeningnya ke UC lewat WhatsApp.
             </p>
           )}
           {accounts.length > 0 && namesWithoutNumber.length > 0 && (
-            <p className="mt-3 text-sm text-muted-foreground">Untuk {namesWithoutNumber.join(", ")}, minta nomor rekeningnya ke CS.</p>
+            <p className="mt-3 text-[14px] text-pkg-fg-3">Untuk {namesWithoutNumber.join(", ")}, minta nomor rekeningnya ke UC.</p>
           )}
         </section>
+      </PkgPanel>
 
-        <section className="mt-8 rounded-2xl border bg-white p-5 shadow-sm" aria-labelledby="bukti">
-          <h2 id="bukti" className="flex items-center gap-2 text-xl font-bold text-foreground">
-            <ShieldCheck className="h-5 w-5 text-brand" aria-hidden /> Kirim bukti transfer
-          </h2>
-          <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-foreground">
-            <li>Simpan bukti transfer (tangkapan layar atau foto struk).</li>
-            <li>Kirim ke CS lewat WhatsApp, sebut kode pendaftaran dan namamu.</li>
-            <li>CS memeriksa transfernya di rekening PT, lalu mencatatnya. Kamu bisa melihat tahapnya di Cek status.</li>
+      <PkgPanel tone="cream" last>
+        <section className="mx-auto max-w-3xl" aria-labelledby="bukti">
+          <h2 id="bukti" className="pkg-h2">Kirim bukti transfer</h2>
+          <ol className="mt-5 space-y-3">
+            {[
+              "Simpan bukti transfer (tangkapan layar atau foto struk).",
+              "Kirim ke UC lewat WhatsApp, sebut kode pendaftaran dan namamu.",
+              "UC memeriksa transfernya di rekening PT, lalu mencatatnya. Kamu bisa melihat tahapnya di Cek status.",
+            ].map((t, i) => (
+              <li key={t} className="flex items-start gap-3 text-[16px] leading-[1.5] text-pkg-fg-2">
+                <span className="pkg-label mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pkg-cream-2 text-pkg-fg">{i + 1}</span>
+                {t}
+              </li>
+            ))}
           </ol>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <Button variant="brand" asChild className="h-12 gap-2 px-6 text-base font-bold">
-              <a href={formatWhatsAppUrl(whatsapp, proofMessage)} target="_blank" rel="noopener noreferrer">
-                <MessageCircle className="h-5 w-5" aria-hidden /> Kirim lewat WhatsApp
-              </a>
-            </Button>
-            <Button variant="outline" asChild className="h-12 px-6 text-base">
-              <Link to="/cek-status">Cek status pendaftaran</Link>
-            </Button>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <a href={formatWhatsAppUrl(whatsapp, proofMessage)} target="_blank" rel="noopener noreferrer" className={`pkg-press pkg-glass-red pkg-label inline-flex h-14 items-center justify-center gap-2.5 rounded-full px-7 ${pkgFocus}`}>
+              <WhatsAppIcon className="h-5 w-5" /> Kirim lewat WhatsApp
+            </a>
+            <Link to="/cek-status" className={`pkg-press pkg-glass pkg-label inline-flex h-14 items-center justify-center rounded-full px-7 ${pkgFocus}`}>
+              Cek status pendaftaran
+            </Link>
           </div>
+          <p className="mt-6 flex items-start gap-2 text-[14px] leading-[1.5] text-pkg-fg-3">
+            <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>
+              DP tidak dapat dikembalikan. Rincian lengkap ada di <Link to="/syarat-umroh" className="font-medium text-pkg-fg underline underline-offset-4">Persyaratan dan Term of Service</Link>. Ada pertanyaan? Tanyakan ke UC sebelum transfer.
+            </span>
+          </p>
         </section>
-
-        <p className="mt-6 flex items-start gap-2 text-sm text-muted-foreground">
-          <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-          <span>
-            DP tidak dapat dikembalikan. Rincian lengkap ada di <Link to="/syarat-umroh" className="font-semibold text-foreground underline underline-offset-4">Persyaratan dan Term of Service</Link>. Ada pertanyaan? Tanyakan ke CS sebelum transfer.
-          </span>
-        </p>
-      </main>
-      <Footer />
-    </div>
+      </PkgPanel>
+    </PkgPage>
   );
 }

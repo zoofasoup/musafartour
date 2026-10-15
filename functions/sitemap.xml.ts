@@ -4,8 +4,6 @@ import type { Env } from "./_lib/env";
 const STATIC_URLS: { loc: string }[] = [
   { loc: "https://musafartour.com/" },
   { loc: "https://musafartour.com/paket-umroh" },
-  { loc: "https://musafartour.com/jadwal-umroh" },
-  { loc: "https://musafartour.com/kalkulator" },
   { loc: "https://musafartour.com/cara-bayar" },
   { loc: "https://musafartour.com/jadi-agen" },
   { loc: "https://musafartour.com/sop-agen" },

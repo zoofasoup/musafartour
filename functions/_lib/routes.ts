@@ -14,7 +14,6 @@ const EXACT = new Set([
   "/galeri",
   "/artikel",
   "/kontak",
-  "/jadwal-umroh",
   "/kebijakan-privasi",
   "/syarat-ketentuan",
   "/syarat-umroh",
@@ -24,7 +23,6 @@ const EXACT = new Set([
   "/sop-agen",
   "/chat",
   "/booth",
-  "/kalkulator",
   "/auth",
   "/set-password",
   "/packages",
@@ -41,7 +39,6 @@ const DYNAMIC: { re: RegExp; check?: "package" }[] = [
   { re: /^\/daftar\/([^/]+)$/, check: "package" },
   { re: /^\/lengkapi\/[^/]+$/ },
   { re: /^\/artikel\/[^/]+$/ }, // served by functions/artikel/[slug].ts, which answers 404 itself; listed for completeness
-  { re: /^\/kalkulator\/hasil\/[^/]+$/ },
   { re: /^\/(s|l|r)\/[^/]+$/ },
 ];
 

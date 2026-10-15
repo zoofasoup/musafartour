@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, CheckCircle2, MessageCircle, Plus, Trash2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Plus, Trash2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,6 +13,9 @@ import type { PublishedPackage } from "@/hooks/usePackages";
 import { DP_MIN_PER_PAX, LUNAS_DAYS_BEFORE_DEPARTURE, juta, rupiah, roomPriceOf } from "@/lib/jamaah";
 import { CHILD_PRICE, INFANT_PRICE } from "@/lib/roomCombos";
 import { getSlotsRemaining } from "@/lib/utils";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
+import { formatPhone } from "@/lib/phone";
+import { uuid } from "@/lib/uuid";
 import {
   CATEGORY_LABEL,
   MAX_PEOPLE,
@@ -61,7 +64,7 @@ const ROOMS: { value: Room; label: string; hint: string }[] = [
 ];
 
 const blankPerson = (room: Room, relation = ""): PersonDraft => ({
-  key: crypto.randomUUID(),
+  key: uuid(),
   name: "",
   nameTouched: false,
   gender: "",
@@ -194,7 +197,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, ini
       <div className="rounded-2xl border bg-white p-6 text-center shadow-sm sm:p-8" role="status">
         <CheckCircle2 className="mx-auto h-12 w-12 text-status-ok-text" aria-hidden />
         <h2 className="mt-4 text-2xl font-bold">Pendaftaran terkirim</h2>
-        <p className="mt-2 text-muted-foreground">{people.length} orang atas nama {contact.name.trim()} sudah masuk antrean CS.</p>
+        <p className="mt-2 text-muted-foreground">{people.length} orang atas nama {contact.name.trim()} sudah masuk antrean UC.</p>
         <div className="mx-auto mt-6 max-w-xs rounded-xl bg-muted px-4 py-3">
           <p className="text-sm text-muted-foreground">Kode pendaftaran</p>
           <p className="text-2xl font-bold tracking-wider">{done.code}</p>
@@ -219,15 +222,15 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, ini
           <p className="text-sm text-muted-foreground">Kode pendaftaran</p>
           <p className="text-2xl font-bold tracking-wider">{done.code}</p>
         </div>
-        <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground">Simpan kode ini. Sebut kode saat menghubungi CS supaya data {first} mudah ditemukan.</p>
+        <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground">Simpan kode ini. Sebut kode saat menghubungi UC supaya data {first} mudah ditemukan.</p>
         <ol className="mx-auto mt-6 max-w-md space-y-2 text-left text-sm">
-          <li><span className="font-semibold">1.</span> CS mengecek data dan seat, lalu menghubungi kamu lewat WhatsApp.</li>
+          <li><span className="font-semibold">1.</span> Umroh Consultant (UC) mengecek data dan seat, lalu menghubungi kamu lewat WhatsApp.</li>
           <li><span className="font-semibold">2.</span> Kamu transfer DP {juta(DP_MIN_PER_PAX)} per orang ke rekening PT Musa Amanah Wisata.</li>
           <li><span className="font-semibold">3.</span> Setelah DP, kamu mendapat link untuk melengkapi data paspor dan dokumen.</li>
         </ol>
         <Button variant="brand" asChild className="mt-6 h-12 gap-2 px-6 text-base font-bold">
           <a href={whatsappUrl(message)} target="_blank" rel="noopener noreferrer">
-            <MessageCircle className="h-5 w-5" aria-hidden /> Chat CS sekarang
+            <WhatsAppIcon className="h-5 w-5" /> Chat UC sekarang
           </a>
         </Button>
         <p className="mt-4 text-sm text-muted-foreground">
@@ -245,7 +248,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, ini
           <AlertDescription>
             {seatsLeft === 0
               ? "Paket ini sudah penuh. Pendaftaranmu tetap kami terima dan masuk daftar tunggu."
-              : `Sisa seat tinggal ${seatsLeft}. Pendaftaranmu tetap kami terima, dan CS akan menghubungi bila seat belum cukup.`}
+              : `Sisa seat tinggal ${seatsLeft}. Pendaftaranmu tetap kami terima, dan UC akan menghubungi bila seat belum cukup.`}
           </AlertDescription>
         </Alert>
       )}
@@ -262,7 +265,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, ini
           </div>
           <div>
             <Label htmlFor="contact-phone">{agent ? "Nomor WhatsApp jamaah" : "Nomor WhatsApp"}</Label>
-            <Input id="contact-phone" type="tel" inputMode="tel" autoComplete={agent ? "off" : "tel"} placeholder="0812 3456 7890" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} aria-invalid={!!errors.contactPhone} aria-describedby={errors.contactPhone ? "contact-phone-err" : undefined} className="mt-1.5" />
+            <Input id="contact-phone" type="tel" inputMode="tel" autoComplete={agent ? "off" : "tel"} placeholder="0812 3456 7890" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: formatPhone(e.target.value) })} aria-invalid={!!errors.contactPhone} aria-describedby={errors.contactPhone ? "contact-phone-err" : undefined} className="mt-1.5" />
             <FieldError id="contact-phone-err" message={errors.contactPhone} />
           </div>
           <div>
@@ -350,7 +353,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, ini
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground sm:col-span-2">
-                      Harga {p.category === "child_nobed" ? "anak (Non bed)" : "bayi"} sekitar {juta(p.category === "child_nobed" ? CHILD_PRICE : INFANT_PRICE)}. CS akan mengonfirmasi harga pastinya.
+                      Harga {p.category === "child_nobed" ? "anak (Non bed)" : "bayi"} sekitar {juta(p.category === "child_nobed" ? CHILD_PRICE : INFANT_PRICE)}. UC akan mengonfirmasi harga pastinya.
                     </p>
                   )}
                 </div>
@@ -364,7 +367,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, ini
             <Plus className="h-4 w-4" aria-hidden /> Tambah anggota
           </Button>
         ) : (
-          <p className="mt-4 text-sm text-muted-foreground">Maksimal {MAX_PEOPLE} orang per pendaftaran. Untuk rombongan lebih besar, hubungi CS.</p>
+          <p className="mt-4 text-sm text-muted-foreground">Maksimal {MAX_PEOPLE} orang per pendaftaran. Untuk rombongan lebih besar, hubungi UC.</p>
         )}
 
         {people.length > 1 && (
@@ -386,7 +389,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, ini
           <li>Pelunasan paling lambat H-{LUNAS_DAYS_BEFORE_DEPARTURE} sebelum berangkat. Cicilan boleh kapan saja.</li>
           <li>Semua pembayaran hanya ke rekening PT Musa Amanah Wisata (BCA, BSI, BNI).</li>
           <li>Harga dapat menyesuaikan kenaikan kurs dollar dan maskapai.</li>
-          {money.setByCs > 0 && <li>DP dan harga anak atau bayi dikonfirmasi CS.</li>}
+          {money.setByCs > 0 && <li>DP dan harga anak atau bayi dikonfirmasi UC.</li>}
         </ul>
       </section>
 
@@ -446,7 +449,7 @@ export function RegistrationForm({ pkg, refCode, submit, whatsappUrl, agent, ini
         <Button variant="brand" type="submit" disabled={sending || siteKeyMissing} className="h-12 w-full text-base font-bold">
           {sending ? "Mengirim..." : "Kirim pendaftaran"}
         </Button>
-        <p className="text-center text-[13px] text-muted-foreground">Mengirim form belum berarti seat terkunci. Seat dikonfirmasi CS setelah pendaftaranmu dicek.</p>
+        <p className="text-center text-[13px] text-muted-foreground">Mengirim form belum berarti seat terkunci. Seat dikonfirmasi UC setelah pendaftaranmu dicek.</p>
       </div>
     </form>
   );

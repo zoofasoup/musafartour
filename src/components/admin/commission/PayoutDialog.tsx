@@ -10,6 +10,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { usePayAgentCommissions } from "@/hooks/useCommissionPayouts";
 import { commissionErrorMessage, type AgentGroup } from "@/lib/commissionPayout";
 import { formatCurrency, todayJakarta } from "@/lib/utils";
+import { uuid } from "@/lib/uuid";
 
 interface PerAgent {
   reference: string;
@@ -37,13 +38,13 @@ export function PayoutDialog({
   const [per, setPer] = useState<Record<string, PerAgent>>({});
   const [confirming, setConfirming] = useState(false);
   const [running, setRunning] = useState(false);
-  const batchId = useRef(crypto.randomUUID());
+  const batchId = useRef(uuid());
 
   useEffect(() => {
     if (open) {
       setDate(todayJakarta());
       setPer(Object.fromEntries(groups.map((g) => [g.agent_id, { reference: "", proof: null, state: "idle" as const }])));
-      batchId.current = crypto.randomUUID();
+      batchId.current = uuid();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);

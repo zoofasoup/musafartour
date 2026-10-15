@@ -2,27 +2,30 @@ import { useState, useEffect, useRef, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, MessageCircle, ShoppingCart } from "lucide-react";
+import { Menu, X, ShoppingCart } from "lucide-react";
 import musafarLogoLight from "@/assets/musafar-logo.svg";
 import musafarLogoDark from "@/assets/musafar-logo-dark.svg";
 import { FavoritesDrawer } from "./FavoritesDrawer";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
+import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import "@/styles/pkg-v2.css";
 import { useFavorites } from "@/hooks/useFavorites";
 
 const navLinks = [
   { href: "/paket-umroh", label: "Paket Umroh" },
-  { href: "/galeri", label: "Galeri" },
   { href: "/artikel", label: "Artikel" },
+  { href: "/galeri", label: "Galeri" },
   { href: "/tentang-kami", label: "Tentang Kami" },
   { href: "/jadi-agen", label: "Jadi Agen" },
+  { href: "/cek-status", label: "Cek Status" },
 ];
 
 // The mobile menu has room for the pages the desktop bar leaves out.
 const mobileExtraLinks = [
-  { href: "/jadwal-umroh", label: "Jadwal Keberangkatan" },
-  { href: "/kalkulator", label: "Kalkulator Tabungan Umroh" },
   { href: "/kontak", label: "Kontak" },
 ];
+
+const CONSULT_MESSAGE = "Halo Musafar Tour, saya ingin konsultasi tentang paket umroh.";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -159,17 +162,16 @@ const Navbar = () => {
               </button>
             </FavoritesDrawer>
 
-            <Link to="/kontak">
-              <Button variant="brand" 
-                className="relative overflow-hidden group bg-brand hover:bg-brand-press text-brand-foreground font-semibold px-5 animate-pulse-subtle"
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4" />
-                  Konsultasi
-                </span>
-                <span className="absolute inset-0 bg-gradient-to-r from-primary via-primary-foreground/20 to-primary bg-[length:200%_100%] animate-shimmer opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Button>
-            </Link>
+            <Button variant="brand"
+              onClick={() => redirectToWhatsApp(CONSULT_MESSAGE, "navbar_konsultasi")}
+              className="relative overflow-hidden group bg-brand hover:bg-brand-press text-brand-foreground font-semibold px-5 animate-pulse-subtle"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                <WhatsAppIcon className="h-4 w-4" />
+                Konsultasi
+              </span>
+              <span className="absolute inset-0 bg-gradient-to-r from-primary via-primary-foreground/20 to-primary bg-[length:200%_100%] animate-shimmer opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -268,14 +270,14 @@ const Navbar = () => {
               </ul>
             </nav>
             <div className="shrink-0 px-6 pb-[max(24px,env(safe-area-inset-bottom))] pt-4">
-              <Link
-                to="/kontak"
-                onClick={() => setIsOpen(false)}
+              <button
+                type="button"
+                onClick={() => { setIsOpen(false); redirectToWhatsApp(CONSULT_MESSAGE, "navbar_konsultasi"); }}
                 className="pkg-press pkg-glass-red flex h-14 w-full items-center justify-center gap-2 rounded-full text-[17px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream focus-visible:ring-offset-2 focus-visible:ring-offset-pkg-ink"
               >
-                <MessageCircle className="h-5 w-5" aria-hidden />
+                <WhatsAppIcon className="h-5 w-5" />
                 Konsultasi Gratis
-              </Link>
+              </button>
             </div>
           </div>
         </div>,

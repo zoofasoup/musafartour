@@ -4,15 +4,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { toast } from "sonner";
-import { Link2, UserPlus, Users } from "lucide-react";
+import { Link2, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { usePublishedPackages } from "@/hooks/usePackages";
-import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
+import { AgentPage, AgentPanel, agentGlass } from "@/components/agent/AgentPage";
 import { RegistrationForm, type SubmitPayload } from "@/components/daftar/RegistrationForm";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const day = (d: string) => format(new Date(`${d.slice(0, 10)}T00:00:00`), "d MMM yyyy", { locale: localeId });
@@ -30,13 +28,23 @@ export default function AgentRegisterJamaah() {
   const [packageId, setPackageId] = useState(params.get("paket") ?? "");
   const [formKey, setFormKey] = useState(0);
   const pkg = useMemo(() => packages.find((p) => p.id === packageId), [packages, packageId]);
+  // One group per departure month ("Oktober 2026"), in date order.
+  const byMonth = useMemo(() => {
+    const groups = new Map<string, typeof packages>();
+    for (const p of [...packages].sort((a, b) => a.departure_date.localeCompare(b.departure_date))) {
+      const key = format(new Date(`${p.departure_date.slice(0, 10)}T00:00:00`), "MMMM yyyy", { locale: localeId });
+      groups.set(key, [...(groups.get(key) ?? []), p]);
+    }
+    return [...groups.entries()];
+  }, [packages]);
 
   if (agent && agent.status !== "active") {
     return (
-      <div>
-        <AgentPageHeader title="Daftarkan Jamaah" icon={UserPlus} />
-        <Alert><AlertDescription>Akun agen kamu belum aktif, jadi belum bisa mendaftarkan jamaah. Hubungi tim Musafar bila ini keliru.</AlertDescription></Alert>
-      </div>
+      <AgentPage title="Daftarkan jamaah.">
+        <AgentPanel last>
+          <p className="text-[17px] leading-[1.5] text-pkg-fg-2">Akun agenmu belum aktif, jadi belum bisa mendaftarkan jamaah. Hubungi tim Musafar kalau ini keliru.</p>
+        </AgentPanel>
+      </AgentPage>
     );
   }
 
@@ -68,37 +76,40 @@ export default function AgentRegisterJamaah() {
   };
 
   return (
-    <div className="space-y-8">
-      <AgentPageHeader title="Daftarkan Jamaah" description="Isi data jamaah sendiri, atau kirim link supaya jamaah mengisi sendiri. Keduanya tercatat atas namamu." icon={UserPlus} />
-      <p className="-mt-4 text-sm text-muted-foreground">
-        Sebelum jamaah mendaftar, catat dulu sebagai lead di <Link to="/agent/leads" className="font-medium text-foreground underline underline-offset-2">Lead Saya</Link>.
-      </p>
-
-      <section aria-labelledby="pilih-paket" className="space-y-3">
-        <h2 id="pilih-paket" className="text-lg font-bold">1. Pilih paket</h2>
-        {loadingPackages ? (
-          <Skeleton className="h-11 w-full max-w-xl" />
-        ) : (
-          <div className="flex max-w-xl flex-col gap-3 sm:flex-row">
-            <Select value={packageId} onValueChange={(v) => { setPackageId(v); setFormKey((k) => k + 1); }}>
-              <SelectTrigger aria-label="Pilih paket" className="h-11"><SelectValue placeholder={packages.length ? "Pilih paket keberangkatan" : "Belum ada paket yang dibuka"} /></SelectTrigger>
-              <SelectContent>
-                {packages.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{day(p.departure_date)} · {p.package_name} · {p.duration_days} hari</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button type="button" variant="outline" className="h-11 gap-2" disabled={!pkg} onClick={copyLink}>
-              <Link2 className="h-4 w-4" aria-hidden /> Salin link untuk jamaah
-            </Button>
-          </div>
-        )}
-      </section>
+    <AgentPage title="Daftarkan jamaah.">
+      <AgentPanel last={!(pkg && agent)}>
+        <section aria-labelledby="pilih-paket" className="pkg-form">
+          <h2 id="pilih-paket" className="pkg-h3">Pilih paket</h2>
+          {loadingPackages ? (
+            <Skeleton className="mt-6 h-14 w-full rounded-full" />
+          ) : (
+            <div className="mt-6 space-y-4">
+              <Select value={packageId} onValueChange={(v) => { setPackageId(v); setFormKey((k) => k + 1); }}>
+                <SelectTrigger aria-label="Pilih paket"><SelectValue placeholder={packages.length ? "Pilih paket keberangkatan" : "Belum ada paket yang dibuka"} /></SelectTrigger>
+                <SelectContent>
+                  {byMonth.map(([month, items]) => (
+                    <SelectGroup key={month}>
+                      <SelectLabel className="pkg-caption px-3 pb-1 pt-3 text-pkg-fg-3">{month}</SelectLabel>
+                      {items.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>{format(new Date(`${p.departure_date.slice(0, 10)}T00:00:00`), "d MMM", { locale: localeId })} · {p.package_name} · {p.duration_days} hari</SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ))}
+                </SelectContent>
+              </Select>
+              <button type="button" className={agentGlass} disabled={!pkg} onClick={copyLink}>
+                <Link2 className="h-5 w-5" aria-hidden /> Salin link untuk jamaah
+              </button>
+            </div>
+          )}
+        </section>
+        <Link to="/agent/leads" className="pkg-label mt-8 inline-flex min-h-11 items-center gap-2 text-pkg-red-deep underline underline-offset-4"><Target className="h-4 w-4" aria-hidden /> Catat sebagai lead dulu</Link>
+      </AgentPanel>
 
       {pkg && agent && (
-        <section aria-labelledby="isi-data" className="space-y-3">
-          <h2 id="isi-data" className="text-lg font-bold">2. Isi data jamaah</h2>
-          <div className="max-w-2xl">
+        <AgentPanel tone="cream-2" last>
+          <section aria-labelledby="isi-data" className="pkg-form">
+            <h2 id="isi-data" className="pkg-h3 mb-8">Data jamaah</h2>
             <RegistrationForm
               key={`${pkg.id}-${formKey}`}
               pkg={pkg}
@@ -108,17 +119,10 @@ export default function AgentRegisterJamaah() {
               agent={{ name: agent.name, onAnother: () => setFormKey((k) => k + 1) }}
               initialContact={initialContact}
             />
-          </div>
-        </section>
+          </section>
+          <Link to="/agent/jamaah" className="pkg-label mt-10 inline-flex min-h-11 items-center text-pkg-red-deep underline underline-offset-4">Pantau di Jamaah saya</Link>
+        </AgentPanel>
       )}
-
-      <section aria-labelledby="saya" className="flex flex-col items-start gap-3 rounded-lg border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 id="saya" className="font-semibold">Pantau pendaftaranmu</h2>
-          <p className="text-sm text-muted-foreground">Status pendaftaran, pembayaran, dan komisi tiap jamaah ada di Jamaah Saya.</p>
-        </div>
-        <Button asChild variant="outline" className="h-11 gap-2"><Link to="/agent/jamaah"><Users className="h-4 w-4" aria-hidden /> Jamaah Saya</Link></Button>
-      </section>
-    </div>
+    </AgentPage>
   );
 }

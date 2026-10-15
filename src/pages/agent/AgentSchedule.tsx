@@ -25,7 +25,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { cn, formatCurrency, getTierPrice, getSlotsTaken, todayJakarta } from "@/lib/utils";
 import { AGENT_PACKAGE_COLUMNS } from "@/hooks/usePackages";
 import PackageShareModal from "@/components/package-detail/PackageShareModal";
-import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
+import { AgentEmpty, AgentPage, AgentPanel, Chips } from "@/components/agent/AgentPage";
 import { MyCommission } from "@/components/agent/MyCommission";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
 
@@ -238,279 +238,149 @@ const AgentSchedule = () => {
     setBudgetFilters([]);
   };
 
-  const getStatusBadge = (pkg: Package) => {
+  const statusText = (pkg: Package) => {
     const status = getPackageStatus(pkg);
     const remaining = (pkg.slots_total || 40) - getSlotsTaken(pkg);
-
-    switch (status) {
-      case 'open':
-        return (
-          <Badge variant="outline" className="bg-status-ok-bg text-status-ok-fg border-status-ok-border">
-            Tersedia ({remaining} kursi)
-          </Badge>
-        );
-      case 'almost-full':
-        return (
-          <Badge variant="outline" className="bg-status-warn-bg text-status-warn-fg border-status-warn-border">
-            Hampir penuh ({remaining} kursi)
-          </Badge>
-        );
-      case 'full':
-        return (
-          <Badge variant="outline" className="bg-status-bad-bg text-status-bad-fg border-status-bad-border">
-            Penuh
-          </Badge>
-        );
-    }
+    return status === 'open' ? `Tersedia, ${remaining} kursi` : status === 'almost-full' ? `Hampir penuh, ${remaining} kursi` : 'Penuh';
   };
 
-  const PackageCard = ({ pkg, compact = false }: { pkg: Package; compact?: boolean }) => {
+  /** One departure: the date, the package, price and commission, and a share button. */
+  const PackageCard = ({ pkg }: { pkg: Package; compact?: boolean }) => {
     const price = getTierPrice(pkg).quad;
-    
-    if (compact) {
-      return (
-        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium flex items-center gap-1">
-                <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                {format(new Date(pkg.departure_date), 'd MMM', { locale: localeId })}
-              </span>
-              <span className="text-sm text-muted-foreground">-</span>
-              <span className="text-sm font-medium truncate">{pkg.package_name}</span>
-            </div>
-            <div className="flex items-center gap-3 mt-1 flex-wrap">
-              {getStatusBadge(pkg)}
-              <span className="text-sm text-muted-foreground">
-                Harga: {formatCurrency(price)}
-              </span>
-              <MyCommission packageId={pkg.id} variant="compact" />
-            </div>
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setSharePackage(pkg)}
-          >
-            <Share2 className="h-4 w-4" />
-          </Button>
-        </div>
-      );
-    }
-
+    const status = getPackageStatus(pkg);
     return (
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
-                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">
-                  {format(new Date(pkg.departure_date), 'd MMMM yyyy', { locale: localeId })}
-                </span>
-                <span className="text-muted-foreground">•</span>
-                <span className="text-sm text-muted-foreground">{pkg.duration_days} hari</span>
-              </div>
-              
-              <h3 className="font-semibold text-lg mb-2">{pkg.package_name}</h3>
-              
-              <div className="flex items-center gap-2 mb-2">
-                {getStatusBadge(pkg)}
-              </div>
-              
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-1">
-                  <Plane className="h-4 w-4 text-muted-foreground" />
-                  <span>{pkg.flight}</span>
-                </div>
-              </div>
-              
-              <div className="mt-3 flex items-center gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Harga</p>
-                  <p className="font-bold text-lg">{formatCurrency(price)}</p>
-                </div>
-                <MyCommission packageId={pkg.id} />
-              </div>
-            </div>
-            
-            <Button
-              variant="outline"
-              onClick={() => setSharePackage(pkg)}
-            >
-              <Share2 className="h-4 w-4 mr-2" />
-              Bagikan
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-start gap-4 py-5">
+        <div className="w-14 shrink-0 text-center">
+          <p className="text-[28px] font-light leading-none tracking-[-0.03em] text-pkg-fg">{format(new Date(pkg.departure_date), 'd', { locale: localeId })}</p>
+          <p className="pkg-caption mt-1 text-pkg-fg-3">{format(new Date(pkg.departure_date), 'MMM', { locale: localeId })}</p>
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[19px] leading-tight text-pkg-fg">{pkg.package_name}</p>
+          <p className={`mt-1 text-[14px] ${status === 'full' ? 'text-pkg-red-deep' : 'text-pkg-fg-3'}`}>{pkg.duration_days} hari · {statusText(pkg)}</p>
+          <p className="mt-2 text-[17px] text-pkg-fg">{formatCurrency(price)}<span className="text-[13px] text-pkg-fg-3"> /pax</span></p>
+          <div className="mt-2"><MyCommission packageId={pkg.id} variant="compact" /></div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setSharePackage(pkg)}
+          aria-label={`Bagikan ${pkg.package_name}`}
+          className="pkg-press pkg-glass grid h-12 w-12 shrink-0 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
+        >
+          <Share2 className="h-5 w-5" aria-hidden />
+        </button>
+      </div>
     );
   };
 
   if (error) {
     return (
-      <div className="mx-auto w-full max-w-6xl">
-        <LoadError what="Jadwal keberangkatan" error={error} onRetry={() => refetch()} retrying={isFetching} />
-      </div>
+      <AgentPage title="Jadwal.">
+        <AgentPanel last><LoadError what="Jadwal keberangkatan" error={error} onRetry={() => refetch()} retrying={isFetching} /></AgentPanel>
+      </AgentPage>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <AgentPage title="Jadwal.">
+        <AgentPanel last><div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-pkg-fg-3" aria-label="Memuat" /></div></AgentPanel>
+      </AgentPage>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto w-full pb-6">
-      <AgentPageHeader
-        title="Jadwal Keberangkatan"
-        description={`${filteredPackages.length} paket tersedia`}
-        icon={CalendarIcon}
-        action={
-          <div className="flex items-center gap-2">
-            <div className="flex bg-muted rounded-lg p-1">
-              <Button
-                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="h-8"
-              >
-                <List className="h-4 w-4 mr-1" />
-                List
-              </Button>
-              <Button
-                variant={viewMode === 'calendar' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('calendar')}
-                className="h-8"
-              >
-                <CalendarIcon className="h-4 w-4 mr-1" />
-                Calendar
-              </Button>
-            </div>
-
-            {/* Filter Button (Mobile) */}
-            <Sheet open={showFilters} onOpenChange={setShowFilters}>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="lg:hidden">
-                  <Filter className="h-4 w-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-80">
-                <SheetHeader>
-                  <SheetTitle>Filter Jadwal</SheetTitle>
-                </SheetHeader>
-                <ScrollArea className="h-[calc(100vh-100px)] mt-4">
-                  <FilterPanel />
-                </ScrollArea>
-              </SheetContent>
-            </Sheet>
-          </div>
-        }
-      />
-
-      {/* Quick Month Selector */}
-      <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
-        <Button
-          variant={selectedMonthFilter === null ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setSelectedMonthFilter(null)}
-          className="shrink-0"
-        >
-          Semua
-        </Button>
-        {MONTHS.map((month, index) => (
-          <Button
-            key={month}
-            variant={selectedMonthFilter === index ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedMonthFilter(index)}
-            className="shrink-0"
-          >
-            {month}
-          </Button>
-        ))}
-      </div>
-
-      <div className="flex gap-6">
-        {/* Sidebar Filters (Desktop) */}
-        <div className="hidden lg:block w-64 shrink-0">
-          <Card className="sticky top-24">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm">Filter</CardTitle>
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  Reset
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <FilterPanel />
-            </CardContent>
-          </Card>
+    <>
+    <AgentPage
+      title="Jadwal."
+      hero={
+        <div className="mt-7 flex flex-wrap items-center gap-2">
+          {([['list', 'Daftar', List], ['calendar', 'Kalender', CalendarIcon]] as const).map(([mode, label, Icon]) => (
+            <button
+              key={mode}
+              type="button"
+              aria-pressed={viewMode === mode}
+              onClick={() => setViewMode(mode)}
+              className={`pkg-press pkg-label inline-flex h-11 items-center gap-2 rounded-full px-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream ${viewMode === mode ? 'pkg-glass-red' : 'pkg-glass'}`}
+            >
+              <Icon className="h-4 w-4" aria-hidden /> {label}
+            </button>
+          ))}
+          <Sheet open={showFilters} onOpenChange={setShowFilters}>
+            <SheetTrigger asChild>
+              <button type="button" className="pkg-press pkg-glass pkg-label inline-flex h-11 items-center gap-2 rounded-full px-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream">
+                <Filter className="h-4 w-4" aria-hidden /> Filter
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-80">
+              <SheetHeader>
+                <SheetTitle>Filter jadwal</SheetTitle>
+              </SheetHeader>
+              <ScrollArea className="mt-4 h-[calc(100vh-100px)]">
+                <FilterPanel />
+              </ScrollArea>
+              <Button variant="ghost" className="mt-2" onClick={clearFilters}>Reset</Button>
+            </SheetContent>
+          </Sheet>
         </div>
+      }
+    >
+      <AgentPanel last>
+        <Chips
+          label="Bulan"
+          value={selectedMonthFilter === null ? 'all' : String(selectedMonthFilter)}
+          onChange={(v) => setSelectedMonthFilter(v === 'all' ? null : Number(v))}
+          options={[{ value: 'all', label: 'Semua' }, ...MONTHS.map((m, i) => ({ value: String(i), label: m }))]}
+        />
+        <div className="mt-4">{viewMode === 'list' ? <ListView /> : <CalendarView />}</div>
+      </AgentPanel>
+    </AgentPage>
 
-        {/* Main Content */}
-        <div className="flex-1 min-w-0">
-          {viewMode === 'list' ? (
-            <ListView />
-          ) : (
-            <CalendarView />
+    {/* Share Modal */}
+    {sharePackage && (
+      <PackageShareModal
+        open={!!sharePackage}
+        onOpenChange={(open) => !open && setSharePackage(null)}
+        package={{
+          id: sharePackage.id,
+          slug: sharePackage.slug,
+          package_name: sharePackage.package_name,
+          departure_date: sharePackage.departure_date,
+          duration_days: sharePackage.duration_days,
+          flight: sharePackage.flight,
+          flight_type: sharePackage.flight_type || 'Direct',
+          madinah_hotel_name: sharePackage.madinah_hotel_name ?? null,
+          madinah_hotel_star: sharePackage.madinah_hotel_star,
+          makkah_hotel_name: sharePackage.makkah_hotel_name ?? null,
+          makkah_hotel_star: sharePackage.makkah_hotel_star,
+          package_price: sharePackage.package_price as { quad: number; double: number; triple: number },
+          hemat_package_price: sharePackage.hemat_package_price,
+          five_star_package_price: sharePackage.five_star_package_price,
+          pelataran_package_price: sharePackage.pelataran_package_price,
+          available_tiers: sharePackage.available_tiers,
+        }}
+        agentCode={agent?.referral_code || ''}
+      />
+    )}
+
+    {/* Date Modal */}
+    <Dialog open={!!selectedDate} onOpenChange={() => setSelectedDate(null)}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>
+            Keberangkatan {selectedDate && format(selectedDate, 'd MMMM yyyy', { locale: localeId })}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="max-h-[60vh] divide-y divide-pkg-hair overflow-y-auto">
+          {selectedDate && getPackagesForDate(selectedDate).map(pkg => (
+            <PackageCard key={pkg.id} pkg={pkg} />
+          ))}
+          {selectedDate && getPackagesForDate(selectedDate).length === 0 && (
+            <p className="py-4 text-center text-muted-foreground">Tidak ada keberangkatan</p>
           )}
         </div>
-      </div>
-
-      {/* Share Modal */}
-      {sharePackage && (
-        <PackageShareModal
-          open={!!sharePackage}
-          onOpenChange={(open) => !open && setSharePackage(null)}
-          package={{
-            id: sharePackage.id,
-            slug: sharePackage.slug,
-            package_name: sharePackage.package_name,
-            departure_date: sharePackage.departure_date,
-            duration_days: sharePackage.duration_days,
-            flight: sharePackage.flight,
-            flight_type: sharePackage.flight_type || 'Direct',
-            madinah_hotel_name: sharePackage.madinah_hotel_name ?? null,
-            madinah_hotel_star: sharePackage.madinah_hotel_star,
-            makkah_hotel_name: sharePackage.makkah_hotel_name ?? null,
-            makkah_hotel_star: sharePackage.makkah_hotel_star,
-            package_price: sharePackage.package_price as { quad: number; double: number; triple: number },
-            hemat_package_price: sharePackage.hemat_package_price,
-            five_star_package_price: sharePackage.five_star_package_price,
-            pelataran_package_price: sharePackage.pelataran_package_price,
-            available_tiers: sharePackage.available_tiers,
-          }}
-          agentCode={agent?.referral_code || ''}
-        />
-      )}
-
-      {/* Date Modal */}
-      <Dialog open={!!selectedDate} onOpenChange={() => setSelectedDate(null)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>
-              Keberangkatan {selectedDate && format(selectedDate, 'd MMMM yyyy', { locale: localeId })}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-            {selectedDate && getPackagesForDate(selectedDate).map(pkg => (
-              <PackageCard key={pkg.id} pkg={pkg} compact />
-            ))}
-            {selectedDate && getPackagesForDate(selectedDate).length === 0 && (
-              <p className="text-center text-muted-foreground py-4">
-                Tidak ada keberangkatan di tanggal ini
-              </p>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 
   function FilterPanel() {
@@ -615,61 +485,44 @@ const AgentSchedule = () => {
 
   function ListView() {
     const sortedMonths = Object.keys(packagesByMonth).sort();
-    
+
     if (sortedMonths.length === 0) {
-      return (
-        <div className="text-center py-12 text-muted-foreground">
-          <CalendarIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <p>Tidak ada jadwal yang sesuai dengan filter</p>
-        </div>
-      );
+      return <AgentEmpty icon={CalendarIcon} text="Tidak ada jadwal" />;
     }
 
     return (
-      <div className="space-y-8">
-        {sortedMonths.map(monthKey => {
-          const monthDate = new Date(monthKey + '-01');
-          const monthPackages = packagesByMonth[monthKey];
-          
-          return (
-            <div key={monthKey}>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="h-px flex-1 bg-border" />
-                <h2 className="text-sm font-bold uppercase text-muted-foreground">
-                  {format(monthDate, 'MMMM yyyy', { locale: localeId })}
-                </h2>
-                <div className="h-px flex-1 bg-border" />
-              </div>
-              
-              <div className="space-y-3">
-                {monthPackages.map(pkg => (
-                  <PackageCard key={pkg.id} pkg={pkg} compact />
-                ))}
-              </div>
+      <div>
+        {sortedMonths.map(monthKey => (
+          <section key={monthKey} className="mt-4">
+            <p className="pkg-caption sticky top-14 z-10 bg-pkg-cream py-3 text-pkg-fg-3 md:top-0">{format(new Date(monthKey + '-01'), 'MMMM yyyy', { locale: localeId })}</p>
+            <div className="divide-y divide-pkg-hair">
+              {packagesByMonth[monthKey].map(pkg => (
+                <PackageCard key={pkg.id} pkg={pkg} />
+              ))}
             </div>
-          );
-        })}
+          </section>
+        ))}
       </div>
     );
   }
 
   function CalendarView() {
     return (
-      <Card>
-        <CardHeader className="pb-4">
+      <div>
+        <div className="pb-4">
           <div className="flex items-center justify-between">
-            <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} aria-label="Bulan sebelumnya">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <h2 className="font-bold text-lg">
+            <button type="button" className="pkg-press pkg-glass grid h-12 w-12 place-items-center rounded-full" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} aria-label="Bulan sebelumnya">
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <h2 className="text-[20px] font-light tracking-[-0.02em] text-pkg-fg">
               {format(currentMonth, 'MMMM yyyy', { locale: localeId })}
             </h2>
-            <Button variant="outline" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} aria-label="Bulan berikutnya">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            <button type="button" className="pkg-press pkg-glass grid h-12 w-12 place-items-center rounded-full" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} aria-label="Bulan berikutnya">
+              <ChevronRight className="h-5 w-5" />
+            </button>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div>
           {/* Weekday Headers */}
           <div className="grid grid-cols-7 gap-1 mb-2">
             {WEEKDAYS.map(day => (
@@ -699,13 +552,13 @@ const AgentSchedule = () => {
                   className={cn(
                     "aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-colors relative",
                     isCurrentMonth ? "text-foreground" : "text-muted-foreground/50",
-                    hasPackages && "cursor-pointer hover:bg-primary/10",
+                    hasPackages && "cursor-pointer",
                     !hasPackages && "cursor-default"
                   )}
                 >
                   <span className={cn(
                     "w-8 h-8 flex items-center justify-center rounded-full",
-                    hasPackages && "bg-primary text-primary-foreground font-medium"
+                    hasPackages && "bg-pkg-red text-pkg-on-red font-medium"
                   )}>
                     {format(day, 'd')}
                   </span>
@@ -720,7 +573,7 @@ const AgentSchedule = () => {
                             className={cn(
                               "w-1.5 h-1.5 rounded-full",
                               status === 'open' && "bg-status-ok-fg",
-                              status === 'almost-full' && "bg-amber",
+                              status === 'almost-full' && "bg-pkg-fg-3",
                               status === 'full' && "bg-destructive"
                             )}
                           />
@@ -751,8 +604,8 @@ const AgentSchedule = () => {
               <span className="text-xs text-muted-foreground">Penuh</span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 };

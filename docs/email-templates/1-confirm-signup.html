@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Konfirmasi emailmu.</title>
+</head>
+<body style="margin:0;padding:0;background:#f4efe6;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#f4efe6;">Satu langkah lagi: konfirmasi emailmu.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4efe6;">
+  <tr><td align="center" style="padding:24px 12px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;">
+      <tr><td style="background:#1a1512;border-radius:24px 24px 0 0;padding:28px 32px;">
+        <img src="https://musafartour.com/email/logo-cream.png" width="140" alt="Musafar Tour" style="display:block;border:0;height:auto;">
+      </td></tr>
+      <tr><td style="background:#fffdf8;border-radius:0 0 24px 24px;padding:36px 32px 32px;font-family:-apple-system,'Segoe UI','Helvetica Neue',Arial,sans-serif;">
+        <h1 style="margin:0 0 20px;font-size:28px;line-height:1.2;font-weight:300;letter-spacing:-0.02em;color:#1a1512;">Konfirmasi emailmu.</h1>
+        <p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#4a423c;">Terima kasih sudah mendaftar sebagai agen Musafar Tour. Konfirmasi emailmu supaya akun bisa dilanjutkan.</p><p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#4a423c;">Setelah itu masuk, lengkapi data dan KTP, lalu setujui SOP. Tim kami memeriksanya, biasanya 1 sampai 2 hari kerja.</p>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 24px;"><tr>
+          <td align="center" bgcolor="#c4141b" style="border-radius:999px;">
+            <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:16px 32px;font-size:16px;font-weight:500;color:#ffffff;text-decoration:none;border-radius:999px;background:#c4141b;">Konfirmasi email</a>
+          </td>
+        </tr></table>
+        <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#7a7068;">Tombol tidak berfungsi? Salin tautan ini ke browser:</p>
+        <p style="margin:0 0 24px;font-size:13px;line-height:1.5;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#c4141b;">{{ .ConfirmationURL }}</a></p>
+        
+        <p style="margin:0;padding-top:20px;border-top:1px solid #e8e1d4;font-size:13px;line-height:1.6;color:#7a7068;">Kalau kamu tidak merasa mendaftar, abaikan saja email ini. Tidak ada yang berubah di akunmu.</p>
+      </td></tr>
+      <tr><td align="center" style="padding:20px 16px 0;font-family:-apple-system,'Segoe UI','Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:1.6;color:#7a7068;">
+        PT Musa Amanah Wisata (Musafar Tour &amp; Travel)<br>
+        Commercial Park Harapan Indah, Ruko Emerald Blok EB1 No. 28, Bekasi<br>
+        Email ini dikirim ke {{ .Email }}. Jangan balas email ini.
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>

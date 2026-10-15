@@ -1,5 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   BedDouble, BookOpen, Bus, Check, CheckCircle2, Droplets, FileCheck2, ImageOff, Luggage, MapPin, Package, Plane, ShieldCheck,
@@ -42,6 +42,17 @@ function FoldList({ id, title, items, icon, muted = false }: { id: string; title
   const foldable = items.length > FOLD_AFTER;
   const [open, setOpen] = useState(false);
   const [h, setH] = useState<number | "auto">(foldable ? FOLD_PX : "auto");
+  // True while the heading bar is frozen under the navbar. Only then does it get a solid colour and a shadow; in place it
+  // stays transparent, so it never shows as a box against the panel's gradient.
+  const [stuck, setStuck] = useState(false);
+  const sentinel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setStuck(!e.isIntersecting && e.boundingClientRect.top < 66), { rootMargin: "-65px 0px 0px 0px", threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
   const ref = useRef<HTMLElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const still = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -66,20 +77,58 @@ function FoldList({ id, title, items, icon, muted = false }: { id: string; title
     requestAnimationFrame(() => requestAnimationFrame(() => setH(FOLD_PX)));
   };
 
+  // One continuous motion: the heading shrinks, the bar gains its shadow, "Tutup" fades in and "Lihat semua" folds away,
+  // all on the same 340 ms curve as the list height. Nothing is mounted or unmounted, so nothing jumps.
+  const t = still() ? "none" : "340ms var(--pkg-ease-out)";
   return (
     <section ref={ref} aria-labelledby={id} className="scroll-mt-16">
+      <div ref={sentinel} aria-hidden className="h-px" />
       <div
-        className={cn(
-          "flex items-center justify-between gap-3",
-          open && "sticky top-16 z-10 -mx-6 bg-pkg-cream-2 px-6 py-2 shadow-[0_10px_14px_-10px_rgb(26_21_18/0.18)]"
-        )}
+        className="relative z-10 -mx-6 flex items-center justify-between gap-3 px-6"
+        style={{
+          // Frozen under the navbar only while open; closed, it scrolls away with its section like any heading.
+          position: open ? "sticky" : "relative",
+          // `top` also offsets a relative element, so it only applies while sticky.
+          top: open ? 64 : "auto",
+          paddingBlock: open ? 18 : 0,
+          // Transparent while closed (the panel's own gradient shows through, no visible band); solid once open and stuck.
+          backgroundColor: open && stuck ? "var(--pkg-cream-2)" : "rgb(234 227 214 / 0)",
+          boxShadow: open && stuck ? "0 10px 14px -10px rgb(26 21 18 / 0.18)" : "0 10px 14px -10px rgb(26 21 18 / 0)",
+          transition: still() ? "none" : `padding ${t}, box-shadow ${t}, background-color ${t}`,
+        }}
       >
         <div className="flex min-w-0 items-center gap-3">
-          <h2 id={id} className={open ? "text-[24px] font-normal leading-none tracking-[-0.025em]" : "pkg-h2"}>{title}</h2>
+          <h2
+            id={id}
+            className="leading-none"
+            style={{
+              fontSize: open ? 24 : 40,
+              fontWeight: open ? 400 : 300,
+              letterSpacing: open ? "-0.025em" : "-0.035em",
+              transition: still() ? "none" : `font-size ${t}, font-weight ${t}, letter-spacing ${t}`,
+            }}
+          >
+            {title}
+          </h2>
           <span className="pkg-label inline-flex h-7 min-w-7 shrink-0 items-center justify-center rounded-full bg-pkg-hair px-2 tracking-normal text-pkg-fg-2">{items.length}</span>
         </div>
-        {open && (
-          <button type="button" onClick={collapse} aria-expanded className="pkg-press pkg-label pkg-glass inline-flex h-11 shrink-0 items-center gap-1 rounded-full px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2">
+        {foldable && (
+          // Laid over the bar's right edge instead of taking part in the flex row: it needs no room while closed (the
+          // heading keeps its full width) and nothing clips its shadow.
+          <button
+            type="button"
+            onClick={collapse}
+            aria-expanded={open}
+            aria-hidden={!open}
+            tabIndex={open ? 0 : -1}
+            className="pkg-press pkg-label pkg-glass absolute right-6 top-1/2 inline-flex h-11 -translate-y-1/2 items-center gap-1 whitespace-nowrap rounded-full px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink"
+            style={{
+              opacity: open ? 1 : 0,
+              scale: open ? "1" : "0.92",
+              pointerEvents: open ? "auto" : "none",
+              transition: still() ? "none" : `opacity ${t}, scale ${t}`,
+            }}
+          >
             Tutup <ChevronDown className="h-4 w-4 rotate-180" aria-hidden />
           </button>
         )}
@@ -107,10 +156,22 @@ function FoldList({ id, title, items, icon, muted = false }: { id: string; title
           />
         )}
       </div>
-      {foldable && !open && (
-        <button type="button" onClick={expand} aria-expanded={false} className="pkg-press pkg-label mx-auto mt-1 flex h-12 items-center gap-2 rounded-full pkg-glass-deep px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2">
-          Lihat semua <ChevronDown className="h-4 w-4" aria-hidden />
-        </button>
+      {foldable && (
+        <div
+          className="grid"
+          style={{
+            gridTemplateRows: open ? "0fr" : "1fr",
+            opacity: open ? 0 : 1,
+            transition: still() ? "none" : `grid-template-rows ${t}, opacity ${t}`,
+          }}
+          aria-hidden={open}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <button type="button" onClick={expand} aria-expanded={open} tabIndex={open ? -1 : 0} className="pkg-press pkg-label mx-auto mt-1 flex h-12 items-center gap-2 rounded-full pkg-glass-deep px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2">
+              Lihat semua <ChevronDown className="h-4 w-4" aria-hidden />
+            </button>
+          </div>
+        </div>
       )}
     </section>
   );

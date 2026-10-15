@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { tierFieldNames } from "@/lib/roomCombos";
 import type { Tables } from "@/integrations/supabase/types";
+import { uuid } from "./uuid";
 
 /**
  * Offline registration rules (owner, 2026-10-01):
@@ -277,7 +278,7 @@ const DOCS_BUCKET = "jamaah-docs";
 /** Upload a transfer proof / KTP / passport / photo. Returns the storage path to save. */
 export async function uploadJamaahDoc(file: File, folder: string): Promise<string> {
   const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
-  const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+  const path = `${folder}/${uuid()}.${ext}`;
   const { error } = await supabase.storage.from(DOCS_BUCKET).upload(path, file, { upsert: false, contentType: file.type });
   if (error) throw error;
   return path;

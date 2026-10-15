@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { ResendConfirmation } from "@/components/agent/ResendConfirmation";
 import { peekAgentReferral, rememberAgentReferral } from "@/lib/agentReferral";
+import { formatPhone } from "@/lib/phone";
 
 type FieldName = "name" | "email" | "phone" | "password" | "confirmPassword" | "consent";
 type FieldErrors = Partial<Record<FieldName, string>>;
@@ -56,7 +57,8 @@ const AgentRegister = () => {
   }, [authLoading, user, agent, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name, value: rawValue } = e.target;
+    const value = name === "phone" ? formatPhone(rawValue) : rawValue;
     setFormData(prev => ({ ...prev, [name]: value }));
     // The message goes away as soon as the person starts fixing the field.
     if (errors[name as FieldName]) setErrors(prev => ({ ...prev, [name]: undefined }));

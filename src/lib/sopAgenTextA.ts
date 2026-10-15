@@ -151,6 +151,7 @@ export const SOP_SECTIONS_A: readonly SopSection[] = [
       { t: "p", text: "5 Jamaah = Bonus Rp500.000" },
       { t: "p", text: "10 Jamaah = Bonus Rp1.500.000" },
       { t: "p", text: "40 Jamaah = Motor Listrik atau Cash" },
+      { t: "p", text: "Berlaku untuk 1 invoice (sekali transaksi), bukan akumulasi." },
       { t: "h", id: "reward-tahunan", text: "Reward Tahunan" },
       { t: "p", text: "**Top 10 Agen**" },
       { t: "ul", items: ["Piagam", "Trophy", "Uang Tunai"] },

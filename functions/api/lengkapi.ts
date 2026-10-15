@@ -53,12 +53,12 @@ async function rpc(ctx: Ctx, name: string, args: Record<string, unknown>): Promi
   const err = (await res.json().catch(() => ({}))) as { code?: string; message?: string };
   if (err.code === "P0001" && err.message) return { ok: false, message: err.message, status: err.message.startsWith("Link tidak valid") ? 404 : 400 };
   console.error(`${name} failed`, res.status, (err.message ?? "").slice(0, 160));
-  return { ok: false, message: "Data belum bisa diproses. Coba lagi sebentar lagi atau hubungi CS lewat WhatsApp.", status: 502 };
+  return { ok: false, message: "Data belum bisa diproses. Coba lagi sebentar lagi atau hubungi UC lewat WhatsApp.", status: 502 };
 }
 
 function setup(request: Request, env: Env): { ctx: Ctx } | { error: Response } {
   const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceKey) return { error: json({ ok: false, error: "Pengisian data online belum aktif. Silakan hubungi CS lewat WhatsApp." }, 503) };
+  if (!serviceKey) return { error: json({ ok: false, error: "Pengisian data online belum aktif. Silakan hubungi UC lewat WhatsApp." }, 503) };
   if (!ALLOWED_HOST.test(hostOf(request.headers.get("origin") ?? request.headers.get("referer")) ?? "")) return { error: json({ ok: false, error: "Permintaan ditolak." }, 403) };
   const { url } = getSupabaseConfig(env);
   return { ctx: { url, headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" } } };

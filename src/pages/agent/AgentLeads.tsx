@@ -3,27 +3,22 @@ import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { toast } from "sonner";
-import { AlertCircle, Loader2, MessageCircle, MoreHorizontal, NotebookPen, Target, UserPlus } from "lucide-react";
-import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
+import { AlertCircle, Loader2, MoreHorizontal, NotebookPen, Target, UserPlus } from "lucide-react";
+import { AgentEmpty, AgentPage, AgentPanel, Chips, Figures, agentGlass, agentPrimary } from "@/components/agent/AgentPage";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
 import { TOUCH_H } from "@/components/admin/jamaah/touch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { usePublishedPackages } from "@/hooks/usePackages";
 import {
   FOLLOWUP_LABEL,
-  LEAD_STATUS_KIND,
   LEAD_STATUS_LABEL,
   followupText,
   leadErrorMessage,
@@ -38,6 +33,8 @@ import {
   type FollowupKind,
 } from "@/hooks/useAgentLeads";
 import { normalizePhone, validName } from "@/lib/intakeForm";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
+import { formatPhone } from "@/lib/phone";
 
 type Filter = "semua" | "active" | "inactive" | "registered";
 
@@ -52,21 +49,21 @@ const matchFilter = (l: AgentLead, f: Filter) =>
 const localPhone = (wa: string) => `0${wa.slice(2)}`.replace(/^(\d{4})(\d{4})(\d+)$/, "$1 $2 $3");
 
 function Protection({ lead }: { lead: AgentLead }) {
-  if (lead.status === "registered") return <span className="text-[13px] text-muted-foreground">Jamaah sudah daftar</span>;
-  if (lead.status !== "active") return <span className="text-[13px] text-muted-foreground">Perlindungan tidak berlaku</span>;
+  if (lead.status === "registered") return <span className="text-[14px] text-pkg-fg-3">Sudah daftar</span>;
+  if (lead.status !== "active") return <span className="text-[14px] text-pkg-fg-3">Tidak terlindungi</span>;
   const pct = Math.max(0, Math.min(100, Math.round((lead.days_left / PROTECTION_DAYS) * 100)));
   return (
     <div className="min-w-[8.5rem]">
-      <p className="text-[13px] font-semibold">Sisa {lead.days_left} hari</p>
-      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={lead.days_left} aria-valuemin={0} aria-valuemax={PROTECTION_DAYS} aria-label={`Sisa perlindungan ${lead.days_left} hari`}>
-        <div className={`h-full rounded-full ${lead.days_left <= 7 ? "bg-status-warn-fg/70" : "bg-status-ok-fg/70"}`} style={{ width: `${pct}%` }} />
+      <p className="text-[14px] text-pkg-fg">Sisa {lead.days_left} hari</p>
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-pkg-hair" role="progressbar" aria-valuenow={lead.days_left} aria-valuemin={0} aria-valuemax={PROTECTION_DAYS} aria-label={`Sisa perlindungan ${lead.days_left} hari`}>
+        <div className={`h-full rounded-full ${lead.days_left <= 7 ? "bg-pkg-red" : "bg-pkg-fg-3"}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
 }
 
 function StatusChip({ status }: { status: AgentLead["status"] }) {
-  return <StatusBadge kind={LEAD_STATUS_KIND[status]}>{LEAD_STATUS_LABEL[status]}</StatusBadge>;
+  return <span className={`pkg-label shrink-0 whitespace-nowrap rounded-full bg-pkg-cream-2 px-3 py-1 text-[13px] ${status === "lost" ? "text-pkg-red-deep" : "text-pkg-fg"}`}>{LEAD_STATUS_LABEL[status]}</span>;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -96,7 +93,7 @@ function AddLeadDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o
     setServerError(null);
     if (errors.name || errors.phone || errors.note) return;
     try {
-      await create.mutateAsync({ name: name.replace(/\s+/g, " ").trim(), whatsapp: phone, packageId: pkg === NONE ? null : pkg, note });
+      await create.mutateAsync({ name: name.replace(/\s+/g, " ").trim(), whatsapp: phone.replace(/\s/g, ""), packageId: pkg === NONE ? null : pkg, note });
       toast.success("Lead tercatat. Masa perlindungan 30 hari dimulai hari ini.");
       reset();
       onOpenChange(false);
@@ -120,7 +117,7 @@ function AddLeadDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="lead-wa">Nomor WhatsApp</Label>
-            <Input id="lead-wa" type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0812 3456 7890" autoComplete="off" aria-invalid={touched && !!errors.phone} aria-describedby={touched && errors.phone ? "lead-wa-err" : undefined} />
+            <Input id="lead-wa" type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} placeholder="0812 3456 7890" autoComplete="off" aria-invalid={touched && !!errors.phone} aria-describedby={touched && errors.phone ? "lead-wa-err" : undefined} />
             {touched && errors.phone && <p id="lead-wa-err" role="alert" className="flex items-center gap-1.5 text-sm text-destructive"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden />{errors.phone}</p>}
           </div>
           <div className="space-y-1.5">
@@ -357,25 +354,27 @@ function RowActions({ lead, h }: { lead: AgentLead; h: Handlers }) {
   const canReactivate = lead.status === "inactive" && lead.days_left > 0;
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {canFollow && (
-        <Button type="button" size="sm" variant="outline" className={`gap-1.5 ${TOUCH_H}`} onClick={() => h.onFollowup(lead)}>
-          <NotebookPen className="h-4 w-4" aria-hidden /> Catat follow-up
-        </Button>
-      )}
-      <Button type="button" size="sm" variant="outline" className={`gap-1.5 ${TOUCH_H}`} asChild>
-        <a href={waLeadUrl(lead.whatsapp, lead.name)} target="_blank" rel="noopener noreferrer"><MessageCircle className="h-4 w-4" aria-hidden /> Buka WhatsApp</a>
-      </Button>
       {canRegister && (
-        <Button type="button" size="sm" className={`gap-1.5 ${TOUCH_H}`} asChild>
-          <Link to={lead.package_id ? `/agent/daftar-jamaah?paket=${lead.package_id}` : "/agent/daftar-jamaah"} state={{ lead: { name: lead.name, phone: localPhone(lead.whatsapp).replace(/\s/g, "") } }}>
-            <UserPlus className="h-4 w-4" aria-hidden /> Daftarkan jamaah
-          </Link>
-        </Button>
+        <Link
+          to={lead.package_id ? `/agent/daftar-jamaah?paket=${lead.package_id}` : "/agent/daftar-jamaah"}
+          state={{ lead: { name: lead.name, phone: localPhone(lead.whatsapp).replace(/\s/g, "") } }}
+          className="pkg-press pkg-glass-red pkg-label inline-flex h-12 items-center justify-center gap-2 rounded-full px-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
+        >
+          <UserPlus className="h-5 w-5" aria-hidden /> Daftarkan
+        </Link>
+      )}
+      <a href={waLeadUrl(lead.whatsapp, lead.name)} target="_blank" rel="noopener noreferrer" aria-label={`Buka WhatsApp ${lead.name}`} className="pkg-press pkg-glass grid h-12 w-12 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2">
+        <WhatsAppIcon className="h-5 w-5" />
+      </a>
+      {canFollow && (
+        <button type="button" aria-label={`Catat follow-up ${lead.name}`} className="pkg-press pkg-glass grid h-12 w-12 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2" onClick={() => h.onFollowup(lead)}>
+          <NotebookPen className="h-5 w-5" aria-hidden />
+        </button>
       )}
       {(lead.status === "active" || canReactivate) && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button type="button" size="icon" variant="ghost" className={TOUCH_H} aria-label={`Ubah status ${lead.name}`}><MoreHorizontal className="h-4 w-4" aria-hidden /></Button>
+            <button type="button" aria-label={`Ubah status ${lead.name}`} className="pkg-press pkg-glass grid h-12 w-12 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"><MoreHorizontal className="h-5 w-5" aria-hidden /></button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {lead.status === "active" && <DropdownMenuItem onSelect={() => h.onStatus(lead, "inactive")}>Tandai tidak aktif</DropdownMenuItem>}
@@ -388,21 +387,21 @@ function RowActions({ lead, h }: { lead: AgentLead; h: Handlers }) {
   );
 }
 
-function LeadCard({ lead, h }: { lead: AgentLead; h: Handlers }) {
+function LeadRow({ lead, h }: { lead: AgentLead; h: Handlers }) {
   return (
-    <li className="rounded-lg border bg-card p-4">
+    <li className="py-6">
       <div className="flex items-start justify-between gap-3">
         <button type="button" className="min-w-0 text-left" onClick={() => h.onOpen(lead)}>
-          <p className="text-base font-semibold">{lead.name}</p>
-          <p className="text-[13px] text-muted-foreground">+{lead.whatsapp} · {lead.package_name ?? "Paket belum dipilih"}</p>
+          <p className="text-[19px] leading-tight text-pkg-fg">{lead.name}</p>
+          <p className="mt-1 text-[14px] text-pkg-fg-3">+{lead.whatsapp} · {lead.package_name ?? "Paket belum dipilih"}</p>
         </button>
         <StatusChip status={lead.status} />
       </div>
-      <div className="mt-3 flex items-end justify-between gap-3">
+      <div className="mt-4 flex items-end justify-between gap-3">
         <Protection lead={lead} />
-        <p className="text-right text-[13px] text-muted-foreground">Follow-up terakhir<br /><span className="font-semibold text-foreground">{followupText(lead.last_followup_at)}</span></p>
+        <p className="text-right text-[13px] text-pkg-fg-3">Follow-up terakhir<br /><span className="text-[14px] text-pkg-fg">{followupText(lead.last_followup_at)}</span></p>
       </div>
-      <div className="mt-3"><RowActions lead={lead} h={h} /></div>
+      <div className="mt-4"><RowActions lead={lead} h={h} /></div>
     </li>
   );
 }
@@ -441,79 +440,63 @@ export default function AgentLeads() {
   };
 
   return (
-    <div className="space-y-6">
-      <AgentPageHeader
-        title="Lead Saya"
-        description="Catat calon jamaah dulu sebelum mendaftarkannya. Nomor yang kamu catat terlindungi atas namamu selama 30 hari sejak tanggal pendaftaran lead, selama kamu aktif follow-up."
-        icon={Target}
-        action={<Button type="button" className="h-11 gap-2" onClick={() => setAdding(true)}><UserPlus className="h-4 w-4" aria-hidden /> Tambah lead</Button>}
-      />
-
-      {leads.error && <LoadError what="Daftar lead" error={leads.error} onRetry={() => leads.refetch()} retrying={leads.isFetching} />}
-
-      {!leads.error && (
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)}>
-          <TabsList aria-label="Filter lead" className="h-auto max-w-full justify-start overflow-x-auto">
-            <TabsTrigger value="semua" className={`shrink-0 ${TOUCH_H}`}>Semua ({list.length})</TabsTrigger>
-            <TabsTrigger value="active" className={`shrink-0 ${TOUCH_H}`}>Aktif ({count("active")})</TabsTrigger>
-            <TabsTrigger value="inactive" className={`shrink-0 ${TOUCH_H}`}>Tidak aktif ({count("inactive")})</TabsTrigger>
-            <TabsTrigger value="registered" className={`shrink-0 ${TOUCH_H}`}>Sudah daftar ({count("registered")})</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      )}
-
-      {leads.isPending ? (
-        <div className="flex justify-center rounded-lg border py-10" role="status" aria-label="Memuat"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
-      ) : leads.error ? null : shown.length === 0 ? (
-        <EmptyState
-          icon={Target}
-          title={list.length === 0 ? "Belum ada lead" : "Tidak ada lead di kategori ini"}
-          action={list.length === 0 ? <Button type="button" className="h-11" onClick={() => setAdding(true)}>Tambah lead pertamamu</Button> : undefined}
-        >
-          {list.length === 0 ? "Setiap calon jamaah dicatat dulu di sini supaya nomornya terlindungi atas namamu." : undefined}
-        </EmptyState>
-      ) : (
+    <>
+    <AgentPage
+      title="Lead saya."
+      hero={
         <>
-          <ul className="space-y-3 lg:hidden" aria-label="Daftar lead">
-            {shown.map((l) => <LeadCard key={l.id} lead={l} h={handlers} />)}
-          </ul>
-          <div className="hidden overflow-hidden rounded-lg border bg-card lg:block">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Calon jamaah</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Perlindungan</TableHead>
-                  <TableHead>Follow-up terakhir</TableHead>
-                  <TableHead><span className="sr-only">Aksi</span></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {shown.map((l) => (
-                  <TableRow key={l.id}>
-                    <TableCell>
-                      <button type="button" className="text-left" onClick={() => handlers.onOpen(l)}>
-                        <span className="block font-semibold hover:underline">{l.name}</span>
-                        <span className="block text-[13px] text-muted-foreground">+{l.whatsapp}</span>
-                        <span className="block text-[13px] text-muted-foreground">{l.package_name ?? "Paket belum dipilih"}</span>
-                      </button>
-                    </TableCell>
-                    <TableCell><StatusChip status={l.status} /></TableCell>
-                    <TableCell><Protection lead={l} /></TableCell>
-                    <TableCell className="text-sm">{followupText(l.last_followup_at)}</TableCell>
-                    <TableCell><RowActions lead={l} h={handlers} /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          {!leads.error && (
+            <Figures
+              items={[
+                { value: String(count("active")), label: "Aktif" },
+                { value: String(count("inactive")), label: "Tidak aktif" },
+                { value: String(count("registered")), label: "Sudah daftar" },
+              ]}
+            />
+          )}
+          <button type="button" className={`${agentPrimary} mt-8`} onClick={() => setAdding(true)}>
+            <UserPlus className="h-5 w-5" aria-hidden /> Tambah lead
+          </button>
         </>
-      )}
+      }
+    >
+      <AgentPanel last>
+        {leads.error && <LoadError what="Daftar lead" error={leads.error} onRetry={() => leads.refetch()} retrying={leads.isFetching} />}
+
+        {!leads.error && (
+          <Chips<Filter>
+            label="Filter lead"
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { value: "semua", label: `Semua ${list.length}` },
+              { value: "active", label: `Aktif ${count("active")}` },
+              { value: "inactive", label: `Tidak aktif ${count("inactive")}` },
+              { value: "registered", label: `Sudah daftar ${count("registered")}` },
+            ]}
+          />
+        )}
+
+        {leads.isPending ? (
+          <div className="flex justify-center py-12" role="status" aria-label="Memuat"><Loader2 className="h-5 w-5 animate-spin text-pkg-fg-3" /></div>
+        ) : leads.error ? null : shown.length === 0 ? (
+          <AgentEmpty
+            icon={Target}
+            text={list.length === 0 ? "Belum ada lead" : "Tidak ada di sini"}
+            action={list.length === 0 ? <button type="button" className={agentGlass} onClick={() => setAdding(true)}>Tambah lead</button> : undefined}
+          />
+        ) : (
+          <ul className="mt-2 divide-y divide-pkg-hair" aria-label="Daftar lead">
+            {shown.map((l) => <LeadRow key={l.id} lead={l} h={handlers} />)}
+          </ul>
+        )}
+      </AgentPanel>
+    </AgentPage>
 
       <AddLeadDialog open={adding} onOpenChange={setAdding} />
       <FollowupDialog lead={followupFor} onClose={() => setFollowupFor(null)} />
       <StatusDialog target={statusFor} onClose={() => setStatusFor(null)} />
       <LeadDetail lead={opened} onClose={() => setOpenId(null)} onFollowup={setFollowupFor} />
-    </div>
+    </>
   );
 }

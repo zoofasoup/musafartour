@@ -1,31 +1,30 @@
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Award, Clock, Copy, MessageCircle, Share2, Sparkles, Target, Trophy, UserPlus, Users, Wallet } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clock, Copy, Share2, UserPlus, Users } from "lucide-react";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { useAgentLeaderboard } from "@/hooks/useAgentLeaderboard";
-import { AGENT_STATE_CLASS, AGENT_STATE_LABEL, byUrgency, deadlineText, needsPayment, useAgentIntakes, useAgentJamaah } from "@/hooks/useAgentJamaah";
-import { AgentStatCard } from "@/components/agent/AgentStatCard";
+import { AGENT_STATE_LABEL, byUrgency, deadlineText, needsPayment, useAgentIntakes, useAgentJamaah } from "@/hooks/useAgentJamaah";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
-import { TOUCH_H } from "@/components/admin/jamaah/touch";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
+import { AgentEmpty } from "@/components/agent/AgentPage";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AGENT_LEVEL_COLORS, AGENT_LEVEL_LABELS, AGENT_LEVEL_PROGRESSION, type AgentLevel } from "@/lib/agentLevels";
+import { AGENT_LEVEL_LABELS, AGENT_LEVEL_PROGRESSION, type AgentLevel } from "@/lib/agentLevels";
 import { juta, reminderWhatsAppUrl, rupiah } from "@/lib/jamaah";
 import { formatCurrency } from "@/lib/utils";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
+import "@/styles/pkg-v2.css";
 
 const FOLLOW_UP_LIMIT = 5;
+const focus = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream focus-visible:ring-offset-2 focus-visible:ring-offset-pkg-ink";
 
-/** What an agent needs on landing: who still owes money, what is waiting on CS, and what commission is coming. */
+/** What an agent needs on landing: money first, the one action they do most, then who still owes and how they are doing. */
 const AgentDashboard = () => {
   const { agent } = useAgentAuth();
   const jamaah = useAgentJamaah(!!agent?.id);
   const intakes = useAgentIntakes(!!agent?.id);
 
-  // Rank among the active agents, from the same function as the Peringkat page (an agent can only read their own agents row).
+  // Rank among the active agents, from the same function as the Peringkat page.
   const ranking = useAgentLeaderboard(!!agent?.id);
-  const leaderboardLoading = ranking.isLoading;
   const leaderboard = (() => {
     if (!ranking.data || !agent) return undefined;
     const rank = ranking.data.findIndex((a) => a.id === agent.id);
@@ -34,11 +33,9 @@ const AgentDashboard = () => {
 
   if (!agent) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-40 w-full rounded-3xl" />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-32 w-full rounded-3xl" />)}
-        </div>
+      <div className="space-y-4">
+        <Skeleton className="h-56 w-full rounded-[32px]" />
+        <Skeleton className="h-32 w-full rounded-[32px]" />
       </div>
     );
   }
@@ -49,12 +46,13 @@ const AgentDashboard = () => {
   const followUp = [...owing].sort(byUrgency).slice(0, FOLLOW_UP_LIMIT);
   const held = list.filter((j) => j.commission_status === "waiting").reduce((s, j) => s + j.commission_amount, 0);
   const owed = owing.reduce((s, j) => s + Math.max(0, j.outstanding), 0);
-  const waitingCs = (intakes.data ?? []).filter((i) => i.status === "new").length;
+  const waitingUc = (intakes.data ?? []).filter((i) => i.status === "new").length;
 
   // Unknown/legacy level values fall back to the starting level instead of crashing the page.
   const level = (agent.level in AGENT_LEVEL_PROGRESSION ? agent.level : "silver") as AgentLevel;
   const levelInfo = AGENT_LEVEL_PROGRESSION[level];
   const salesLeft = Math.max(0, levelInfo.salesNeeded - agent.total_sales);
+  const progress = levelInfo.salesNeeded > 0 ? Math.min(1, agent.total_sales / levelInfo.salesNeeded) : 1;
 
   const copy = (text: string, done: string) => {
     navigator.clipboard.writeText(text).then(() => toast.success(done), () => toast.error("Belum bisa menyalin. Coba lagi."));
@@ -64,130 +62,146 @@ const AgentDashboard = () => {
   const canSell = agent.status === "active" && (agent.registration_fee_status ?? "unpaid") !== "unpaid";
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
-      <Card className="border-0 bg-gradient-to-r from-primary to-primary text-white">
-        <CardContent className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold">Halo, {firstName}</h1>
-              <Badge className={`${AGENT_LEVEL_COLORS[level]} gap-1 text-white`}><Award className="h-3.5 w-3.5" aria-hidden />{AGENT_LEVEL_LABELS[level]}</Badge>
-            </div>
-            <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-primary-foreground">
-              <span>Agent ID kamu:</span>
-              <span className="inline-flex items-center gap-1">
-                <code className="rounded bg-white/15 px-1.5 py-0.5 font-mono font-bold">{agent.referral_code}</code>
-                <button type="button" aria-label="Salin Agent ID" className={`inline-flex h-8 w-8 items-center justify-center rounded hover:bg-white/15 ${TOUCH_H} [@media(pointer:coarse)]:w-11`} onClick={() => copy(agent.referral_code, "Agent ID disalin.")}>
-                  <Copy className="h-4 w-4" aria-hidden />
-                </button>
-              </span>
-            </div>
+    // The shell pads its content; the panels run edge to edge on the phone, so cancel that padding here.
+    <div className="pkg-v2 pkg-float -mx-4 -mt-4 -mb-24 md:mx-0 md:mt-0 md:mb-0 md:overflow-hidden md:rounded-[32px]">
+      <PkgPanel tone="ink" top className="!pb-14 !pt-9">
+        <div className="mx-auto max-w-3xl">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="pkg-title !text-[40px] md:!text-[52px]">Halo, {firstName}</h1>
+            <span className="pkg-glass pkg-label inline-flex h-8 items-center rounded-full px-3 text-[13px]">{AGENT_LEVEL_LABELS[level]}</span>
           </div>
-          <div className="flex flex-wrap gap-2">
+
+          <button
+            type="button"
+            onClick={() => copy(agent.referral_code, "Agent ID disalin.")}
+            aria-label={`Salin Agent ID ${agent.referral_code}`}
+            className={`pkg-press mt-4 inline-flex min-h-11 items-center gap-2.5 rounded-full text-[15px] text-pkg-fg-2 ${focus}`}
+          >
+            <span>Agent ID</span>
+            <span className="rounded-full bg-pkg-cream/10 px-3 py-1 font-mono text-[14px] text-pkg-cream">{agent.referral_code}</span>
+            <Copy className="h-4 w-4" aria-hidden />
+          </button>
+
+          <p className="pkg-caption mt-8 text-pkg-fg-3">Saldo komisi</p>
+          <p className="mt-1 text-[48px] font-light leading-none tracking-[-0.04em] text-pkg-fg">{formatCurrency(Number(agent.available_balance))}</p>
+          <Link to="/agent/commission" className={`pkg-label mt-3 inline-flex min-h-11 items-center gap-1.5 text-pkg-cream underline underline-offset-4 ${focus}`}>
+            Lihat komisi <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             {canSell ? (
-              <Button asChild className={`h-11 gap-2 bg-white font-semibold text-foreground hover:bg-muted`}>
-                <Link to="/agent/daftar-jamaah"><UserPlus className="h-4 w-4" aria-hidden /> Daftarkan jamaah</Link>
-              </Button>
+              <Link to="/agent/daftar-jamaah" className={`pkg-press pkg-glass-red pkg-label inline-flex h-14 items-center justify-center gap-2.5 rounded-full px-7 ${focus}`}>
+                <UserPlus className="h-5 w-5" aria-hidden /> Daftarkan jamaah
+              </Link>
             ) : (
-              <Button type="button" disabled title="Bayar biaya registrasi dulu" className="h-11 gap-2 bg-white font-semibold text-foreground"><UserPlus className="h-4 w-4" aria-hidden /> Daftarkan jamaah</Button>
+              <button type="button" disabled title="Bayar biaya registrasi dulu" className="pkg-glass pkg-label inline-flex h-14 items-center justify-center gap-2.5 rounded-full px-7 opacity-60">
+                <UserPlus className="h-5 w-5" aria-hidden /> Daftarkan jamaah
+              </button>
             )}
-            <Button type="button" variant="outline" disabled={!canSell} title={canSell ? undefined : "Bayar biaya registrasi dulu"} className="h-11 gap-2 border-white/40 bg-transparent text-white hover:bg-white/15 hover:text-white" onClick={() => copy(`${window.location.origin}/r/${agent.referral_code}`, "Link disalin. Kirim ke calon jamaah, pendaftarannya tercatat atas namamu.")}>
-              <Share2 className="h-4 w-4" aria-hidden /> Salin link untuk calon jamaah
-            </Button>
+            <button
+              type="button"
+              disabled={!canSell}
+              title={canSell ? undefined : "Bayar biaya registrasi dulu"}
+              onClick={() => copy(`${window.location.origin}/r/${agent.referral_code}`, "Link disalin. Pendaftaran lewat link ini tercatat atas namamu.")}
+              className={`pkg-press pkg-glass pkg-label inline-flex h-14 items-center justify-center gap-2.5 rounded-full px-7 disabled:opacity-60 ${focus}`}
+            >
+              <Share2 className="h-5 w-5" aria-hidden /> Salin link
+            </button>
           </div>
-        </CardContent>
-      </Card>
 
-      {jamaah.error && <LoadError what="Data jamaah" error={jamaah.error} onRetry={() => jamaah.refetch()} retrying={jamaah.isFetching} />}
+          {!agent.bank_name && (
+            <Link to="/agent/profile" className={`pkg-label mt-6 inline-flex min-h-11 items-center gap-1.5 text-pkg-red-bright underline underline-offset-4 ${focus}`}>
+              Isi rekening supaya komisi bisa cair <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          )}
+        </div>
+      </PkgPanel>
 
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <AgentStatCard icon={Users} label="Jamaah aktif" value={jamaah.isPending ? "…" : active.length} helper={<span className="text-muted-foreground">{list.filter((j) => j.pay_state === "lunas").length} sudah lunas</span>} />
-        <AgentStatCard icon={Clock} label="Belum lunas" value={jamaah.isPending ? "…" : owing.length} helper={<span className="text-muted-foreground">Sisa {juta(owed)}</span>} />
-        <AgentStatCard icon={Sparkles} label="Komisi menunggu (perkiraan)" value={jamaah.isPending ? "…" : juta(held)} helper={<span className="text-muted-foreground">Besaran final mengikuti tingkat dan SOP.</span>} />
-        <AgentStatCard icon={Wallet} label="Saldo komisi" value={formatCurrency(Number(agent.available_balance))} helper={<Link to="/agent/commission" className="inline-block py-2 font-medium text-foreground underline-offset-2 hover:underline">Lihat dan tarik komisi</Link>} />
-      </div>
+      <PkgPanel tone="cream" className="!pb-12 !pt-14">
+        <div className="mx-auto max-w-3xl">
+          {jamaah.error && <LoadError what="Data jamaah" error={jamaah.error} onRetry={() => jamaah.refetch()} retrying={jamaah.isFetching} />}
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              { value: jamaah.isPending ? "…" : String(active.length), label: "Jamaah aktif", note: `${list.filter((j) => j.pay_state === "lunas").length} lunas` },
+              { value: jamaah.isPending ? "…" : String(owing.length), label: "Belum lunas", note: `Sisa ${juta(owed)}` },
+              { value: jamaah.isPending ? "…" : juta(held), label: "Komisi menunggu", note: "Perkiraan" },
+            ].map((s) => (
+              <div key={s.label} className="min-w-0">
+                <p className="text-[30px] font-light leading-none tracking-[-0.03em] text-pkg-fg">{s.value}</p>
+                <p className="mt-2 text-[14px] leading-tight text-pkg-fg">{s.label}</p>
+                <p className="mt-0.5 text-[13px] leading-tight text-pkg-fg-3">{s.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </PkgPanel>
 
-      <Card>
-        <CardHeader className="flex-row items-center justify-between gap-3 space-y-0 pb-3">
-          <CardTitle className="text-lg">Perlu ditindaklanjuti</CardTitle>
-          {owing.length > FOLLOW_UP_LIMIT && <Button asChild variant="ghost" size="sm"><Link to="/agent/jamaah">Lihat semua ({owing.length})</Link></Button>}
-        </CardHeader>
-        <CardContent>
+      <PkgPanel tone="cream-2" className="!pb-12">
+        <div className="mx-auto max-w-3xl">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="pkg-h3">Perlu ditindaklanjuti</h2>
+            {owing.length > FOLLOW_UP_LIMIT && <Link to="/agent/jamaah" className="pkg-label text-pkg-red-deep underline underline-offset-4">Semua ({owing.length})</Link>}
+          </div>
+
           {jamaah.isPending ? (
-            <Skeleton className="h-20 w-full" />
+            <Skeleton className="mt-6 h-20 w-full rounded-3xl" />
           ) : list.length === 0 ? (
-            <div className="flex flex-col items-start gap-3 rounded-lg bg-muted/50 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-muted-foreground">Belum ada jamaah atas namamu. Daftarkan jamaah pertamamu, atau kirim link supaya jamaah mengisi sendiri.</p>
-              <Button asChild className="h-11 shrink-0"><Link to="/agent/daftar-jamaah">Daftarkan jamaah</Link></Button>
-            </div>
+            <AgentEmpty icon={Users} text="Belum ada jamaah" />
           ) : followUp.length === 0 ? (
-            <p className="rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground">Tidak ada yang perlu ditagih. Semua jamaahmu sudah lunas.</p>
+            <AgentEmpty icon={CheckCircle2} text="Semua sudah lunas" />
           ) : (
-            <ul className="divide-y">
+            <ul className="mt-4 divide-y divide-pkg-hair">
               {followUp.map((j) => (
-                <li key={j.registration_id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <li key={j.registration_id} className="flex items-center justify-between gap-3 py-4">
                   <div className="min-w-0">
-                    <p className="font-semibold">{j.full_name}</p>
-                    <p className="text-[13px] text-muted-foreground">{rupiah(Math.max(0, j.outstanding))} lagi · {deadlineText(j.due_date)}</p>
+                    <p className="truncate text-[17px] text-pkg-fg">{j.full_name}</p>
+                    <p className="mt-0.5 text-[14px] text-pkg-fg-3">{rupiah(Math.max(0, j.outstanding))} lagi · {deadlineText(j.due_date)}</p>
+                    <p className="mt-0.5 text-[13px] text-pkg-fg-3">{AGENT_STATE_LABEL[j.pay_state]}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={`shrink-0 whitespace-nowrap ${AGENT_STATE_CLASS[j.pay_state]}`}>{AGENT_STATE_LABEL[j.pay_state]}</Badge>
-                    {j.phone && (
-                      <Button asChild variant="outline" size="icon" aria-label="Chat WhatsApp" className={`h-9 w-9 ${TOUCH_H} [@media(pointer:coarse)]:w-11`}>
-                        <a aria-label={`Ingatkan ${j.full_name} lewat WhatsApp`} target="_blank" rel="noopener noreferrer" href={reminderWhatsAppUrl({ phone: j.phone, name: j.full_name, packageName: j.package_name, departureDate: j.departure_date, outstanding: j.outstanding, dueDate: j.due_date })}>
-                          <MessageCircle className="h-4 w-4" aria-hidden />
-                        </a>
-                      </Button>
-                    )}
-                  </div>
+                  {j.phone && (
+                    <a
+                      aria-label={`Ingatkan ${j.full_name} lewat WhatsApp`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href={reminderWhatsAppUrl({ phone: j.phone, name: j.full_name, packageName: j.package_name, departureDate: j.departure_date, outstanding: j.outstanding, dueDate: j.due_date })}
+                      className="pkg-press pkg-glass grid h-12 w-12 shrink-0 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink"
+                    >
+                      <WhatsAppIcon className="h-5 w-5" />
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
           )}
-          {waitingCs > 0 && (
-            <p className="mt-3 text-sm text-muted-foreground">
-              {waitingCs} pendaftaran masih menunggu dicek CS. <Link to="/agent/jamaah" className="inline-block py-3 font-medium text-foreground underline-offset-2 hover:underline">Lihat statusnya</Link>
-            </p>
-          )}
-          <Button asChild variant="outline" className={`mt-4 ${TOUCH_H}`}><Link to="/agent/jamaah">Semua jamaah saya</Link></Button>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg"><Trophy className="h-5 w-5 text-status-warn-fg" aria-hidden />Level dan peringkat</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-lg border p-3">
-            {leaderboardLoading ? <Skeleton className="h-10 w-full" /> : leaderboard?.rank ? (
-              <p className="font-semibold">Peringkat <span className="text-xl text-foreground">#{leaderboard.rank}</span> <span className="text-sm font-normal text-muted-foreground">dari {leaderboard.totalAgents} agen</span></p>
-            ) : (
-              <p className="text-muted-foreground">Belum ada peringkat</p>
-            )}
-            <p className="mt-1 text-[13px] text-muted-foreground">Tingkat dihitung dari jumlah jamaah per tahun.</p>
-          </div>
+          {waitingUc > 0 && (
+            <Link to="/agent/jamaah" className="pkg-label mt-4 inline-flex min-h-11 items-center gap-2 text-pkg-red-deep underline underline-offset-4"><Clock className="h-4 w-4" aria-hidden /> {waitingUc} menunggu UC</Link>
+          )}
+          <Link to="/agent/jamaah" className="pkg-press pkg-glass pkg-label mt-6 inline-flex h-12 items-center justify-center rounded-full px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink">
+            Semua jamaah saya
+          </Link>
+        </div>
+      </PkgPanel>
+
+      <PkgPanel tone="cream" last>
+        <div className="mx-auto max-w-3xl">
+          <h2 className="pkg-h3">Level dan peringkat</h2>
+          <p className="mt-4 text-[17px] text-pkg-fg">
+            {ranking.isLoading ? "…" : leaderboard?.rank ? <>Peringkat <span className="text-[28px] font-light tracking-[-0.03em]">#{leaderboard.rank}</span> <span className="text-pkg-fg-3">dari {leaderboard.totalAgents} agen</span></> : <span className="text-pkg-fg-3">Belum ada peringkat</span>}
+          </p>
           {levelInfo.next && (
-            <div className="flex items-center gap-3 rounded-lg border border-status-warn-border bg-status-warn-bg p-3 text-status-warn-text">
-              <Target className="h-6 w-6 shrink-0" aria-hidden />
-              <div>
-                <p className="font-medium">{salesLeft} jamaah lagi</p>
-                <p className="text-sm">{AGENT_LEVEL_LABELS[level]} → {levelInfo.next}</p>
+            <div className="mt-6">
+              <div className="flex items-baseline justify-between gap-3 text-[15px] text-pkg-fg">
+                <span>{salesLeft} jamaah lagi ke {levelInfo.next}</span>
+                <span className="text-pkg-fg-3">{AGENT_LEVEL_LABELS[level]}</span>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-pkg-hair" role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="Menuju level berikutnya">
+                <div className="h-full rounded-full bg-pkg-red transition-[width] duration-500" style={{ width: `${Math.max(4, progress * 100)}%` }} />
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {!agent.bank_name && (
-        <Card className="border-status-warn-border bg-status-warn-bg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg text-status-warn-text"><Wallet className="h-5 w-5" aria-hidden />Lengkapi data rekening</CardTitle>
-            <p className="text-sm text-status-warn-text">Komisi hanya bisa dicairkan setelah rekening bank kamu terisi.</p>
-          </CardHeader>
-          <CardContent>
-            <Button asChild className="h-11"><Link to="/agent/profile">Lengkapi data</Link></Button>
-          </CardContent>
-        </Card>
-      )}
+        </div>
+      </PkgPanel>
     </div>
   );
 };

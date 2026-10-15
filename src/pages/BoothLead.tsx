@@ -8,6 +8,7 @@ import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { supabase } from "@/integrations/supabase/client";
 import musafarLogo from "@/assets/musafar-logo-dark.svg";
 import { z } from "zod";
+import { formatPhone } from "@/lib/phone";
 
 const leadSchema = z.object({
   name: z.string().trim().min(2, "Nama minimal 2 karakter").max(100),
@@ -126,7 +127,7 @@ const BoothLead = () => {
     e.preventDefault();
     setErrors({});
 
-    const result = leadSchema.safeParse({ name, whatsapp });
+    const result = leadSchema.safeParse({ name, whatsapp: whatsapp.replace(/\s/g, "") });
     if (!result.success) {
       const fieldErrors: typeof errors = {};
       result.error.issues.forEach((issue) => {
@@ -212,7 +213,7 @@ const BoothLead = () => {
               <CheckCircle className="w-16 h-16 text-primary" />
               <p className="text-center text-muted-foreground text-sm">
                 {isOnline
-                  ? "Pesan otomatis telah dikirim ke tim CS kami."
+                  ? "Pesan otomatis telah dikirim ke tim UC kami."
                   : "Data tersimpan offline. Akan otomatis terkirim saat ada koneksi internet."}
               </p>
               <Button onClick={handleReset} variant="outline" className="gap-2 w-full">
@@ -250,7 +251,7 @@ const BoothLead = () => {
                   type="tel"
                   placeholder="08123456789"
                   value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
+                  onChange={(e) => setWhatsapp(formatPhone(e.target.value))}
                   autoComplete="tel"
                   className="h-12 text-base"
                 />

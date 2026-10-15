@@ -32,7 +32,7 @@ type Status = {
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const secret = env.TURNSTILE_SECRET_KEY;
   const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!secret || !serviceKey) return json({ ok: false, error: "Cek status belum aktif. Silakan hubungi CS lewat WhatsApp." }, 503);
+  if (!secret || !serviceKey) return json({ ok: false, error: "Cek status belum aktif. Silakan hubungi UC lewat WhatsApp." }, 503);
 
   if (!ALLOWED_HOST.test(hostOf(request.headers.get("origin")) ?? "")) return json({ ok: false, error: "Permintaan ditolak." }, 403);
   if (Number(request.headers.get("content-length") || 0) > 2_000) return json({ ok: false, error: "Data terlalu besar." }, 413);
@@ -62,10 +62,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   if (!rpc.ok) {
     const detail = ((await rpc.json().catch(() => ({}))) as { message?: string }).message ?? "";
     if (detail.includes("rate_limited")) {
-      return json({ ok: false, error: "Terlalu banyak percobaan untuk kode ini. Coba lagi satu jam lagi, atau hubungi CS lewat WhatsApp." }, 429);
+      return json({ ok: false, error: "Terlalu banyak percobaan untuk kode ini. Coba lagi satu jam lagi, atau hubungi UC lewat WhatsApp." }, 429);
     }
     console.error("get_intake_status failed", rpc.status, detail.slice(0, 200));
-    return json({ ok: false, error: "Status belum bisa dicek. Coba lagi sebentar lagi atau hubungi CS lewat WhatsApp." }, 502);
+    return json({ ok: false, error: "Status belum bisa dicek. Coba lagi sebentar lagi atau hubungi UC lewat WhatsApp." }, 502);
   }
 
   const s = (await rpc.json().catch(() => null)) as Status | null;

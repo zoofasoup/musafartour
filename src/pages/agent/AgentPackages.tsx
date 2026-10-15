@@ -1,448 +1,170 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  Star,
-  Plane,
-  Calendar,
-  MapPin,
-  Share2,
-  UserPlus,
-  FileText,
-  Eye,
-  Search,
-  Filter,
-  Package as PackageIcon,
-} from "lucide-react";
-import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
-import { MyCommission } from "@/components/agent/MyCommission";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { id } from "date-fns/locale";
-import { formatCurrency, getSlotsTaken, todayJakarta } from "@/lib/utils";
-import { AGENT_PACKAGE_COLUMNS } from "@/hooks/usePackages";
+import { id as localeId } from "date-fns/locale";
+import { FileText, Search, Share2, SlidersHorizontal, UserPlus } from "lucide-react";
+import { useAgentAuth } from "@/hooks/useAgentAuth";
+import { usePublishedPackages } from "@/hooks/usePackages";
+import { AgentEmpty, AgentPage, AgentPanel, agentGlass } from "@/components/agent/AgentPage";
+import { MyCommission } from "@/components/agent/MyCommission";
+import { PkgListCard } from "@/components/package-list/PkgListCard";
+import { PkgCardSkeleton } from "@/components/package-list/PkgSkeletons";
+import { PackageFilterSheet } from "@/components/package-list/PackageFilterSheet";
+import { usePackageFilters } from "@/components/package-list/usePackageFilters";
 import PackageShareModal from "@/components/package-detail/PackageShareModal";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
+import { formatPriceJuta, getSlotsTaken, getTierPrice, isPackageUnavailable, cn } from "@/lib/utils";
+import { resolveTierHotels } from "@/lib/roomCombos";
+import type { PublishedPackage } from "@/hooks/usePackages";
 
-interface PackagePrice {
-  quad: number;
-  double: number;
-  triple: number;
-}
-
-interface Package {
-  id: string;
-  package_name: string;
-  departure_date: string;
-  duration_days: number;
-  flight: string;
-  flight_type: string;
-  madinah_hotel_name: string | null;
-  madinah_hotel_star: number | null;
-  madinah_distance: string | null;
-  makkah_hotel_name: string | null;
-  makkah_hotel_star: number | null;
-  makkah_distance: string | null;
-  package_price: PackagePrice;
-  hemat_package_price?: PackagePrice | null;
-  five_star_package_price?: PackagePrice | null;
-  pelataran_package_price?: PackagePrice | null;
-  banner_image: string | null;
-  status: string;
-  slots_total: number | null;
-  slots_filled: number | null;
-  slots_booked_online: number | null;
-  catalog_link: string | null;
-  available_tiers?: string[] | null;
-}
-
-/** Lowest quad price across whichever tier(s) this package actually has set. */
-const getLowestQuad = (pkg: Package): number => {
-  const prices = [
-    pkg.package_price,
-    pkg.hemat_package_price,
-    pkg.five_star_package_price,
-    pkg.pelataran_package_price,
-  ]
-    .map((p) => p?.quad)
-    .filter((q): q is number => typeof q === "number" && q > 0);
-  return prices.length ? Math.min(...prices) : 0;
-};
-
+/**
+ * The agent's package list: the same list, filters and order as the public Paket Umroh page (same hook, same card, same
+ * filter sheet), with the agent's own actions under each card: share with their Agent ID, register a jamaah, the catalog.
+ */
 const AgentPackages = () => {
   const { agent } = useAgentAuth();
   const navigate = useNavigate();
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<string>("departure_asc");
-  const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
-
-  const { data: packages, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ["agent-packages"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("packages")
-        .select(AGENT_PACKAGE_COLUMNS)
-        .eq("status", "published")
-        .gte("departure_date", todayJakarta())
-        .order("departure_date", { ascending: true });
-
-      if (error) throw error;
-      return data as unknown as Package[];
-    },
-  });
-
-  const formatPrice = (price: number) => formatCurrency(price);
-
-  const getAvgHotelStars = (pkg: Package) => {
-    const stars = [
-      pkg.makkah_hotel_star,
-      pkg.madinah_hotel_star
-    ].filter(Boolean) as number[];
-    if (stars.length === 0) return 0;
-    return Math.round(stars.reduce((a, b) => a + b, 0) / stars.length);
-  };
-
-  const getSlotStatus = (pkg: Package) => {
-    const total = pkg.slots_total || 40;
-    // Seats taken: sheet number or registered jamaah, depending on the package (see getSlotsTaken).
-    const filled = getSlotsTaken(pkg);
-    const remaining = total - filled;
-
-    if (remaining <= 0) {
-      return { status: "full", label: "Penuh", color: "destructive" };
-    }
-    if (remaining <= 5) {
-      return { status: "almost", label: `Hampir penuh (${remaining} kursi)`, color: "warning" };
-    }
-    return { status: "open", label: `Tersedia (${remaining} kursi)`, color: "success" };
-  };
-
-  const getCategory = (pkg: Package) => {
-    const avgStars = getAvgHotelStars(pkg);
-    if (avgStars >= 5) return "premium";
-    if (avgStars >= 4) return "standard";
-    return "ekonomis";
-  };
-
-  const filteredPackages = packages?.filter((pkg) => {
-    // Category filter
-    if (categoryFilter !== "all") {
-      const category = getCategory(pkg);
-      if (category !== categoryFilter) return false;
-    }
-
-    // Status filter
-    if (statusFilter !== "all") {
-      const slotStatus = getSlotStatus(pkg);
-      if (statusFilter === "open" && slotStatus.status !== "open") return false;
-      if (statusFilter === "almost" && slotStatus.status !== "almost") return false;
-      if (statusFilter === "full" && slotStatus.status !== "full") return false;
-    }
-
-    return true;
-  });
-
-  const sortedPackages = filteredPackages?.sort((a, b) => {
-    switch (sortBy) {
-      case "departure_asc":
-        return new Date(a.departure_date).getTime() - new Date(b.departure_date).getTime();
-      case "price_asc":
-        return getLowestQuad(a) - getLowestQuad(b);
-      case "price_desc":
-        return getLowestQuad(b) - getLowestQuad(a);
-      default:
-        return 0;
-    }
-  });
-
-  const handleShare = (pkg: Package) => {
-    setSelectedPackage(pkg);
-    setShareModalOpen(true);
-  };
-
-  const renderStars = (count: number) => {
-    return Array.from({ length: 5 }).map((_, i) => (
-      <Star
-        key={i}
-        className={`h-4 w-4 ${
-          i < count ? "fill-amber text-amber" : "text-muted-foreground"
-        }`}
-      />
-    ));
-  };
+  const { data: packages = [], isLoading, error, refetch, isFetching } = usePublishedPackages();
+  const { category, setCategory, filterConfigs, categoryChips, sortedPackages, isFiltered, activeFilterCount, resetFilters } = usePackageFilters(packages);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [sharePackage, setSharePackage] = useState<PublishedPackage | null>(null);
 
   if (error) {
     return (
-      <div className="mx-auto w-full max-w-6xl">
-        <LoadError what="Daftar paket" error={error} onRetry={() => refetch()} retrying={isFetching} />
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6 max-w-7xl mx-auto w-full pb-20 md:pb-6">
-        <Skeleton className="h-8 w-64" />
-        <div className="grid gap-4 md:grid-cols-3">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-        </div>
-        <div className="space-y-4">
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-48 w-full" />
-        </div>
-      </div>
+      <AgentPage title="Paket umroh.">
+        <AgentPanel last><LoadError what="Daftar paket" error={error} onRetry={() => refetch()} retrying={isFetching} /></AgentPanel>
+      </AgentPage>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto w-full pb-20 md:pb-6">
-      <AgentPageHeader
-        title="Paket Umroh"
-        description="Browse dan share paket ke prospek kamu"
-        icon={PackageIcon}
-      />
-
-      <div className="space-y-6">
-        {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Filter className="h-5 w-5 text-muted-foreground" />
-              <span className="font-medium">Filter dan urutan</span>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Kategori" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Kategori</SelectItem>
-                  <SelectItem value="ekonomis">Ekonomis</SelectItem>
-                  <SelectItem value="standard">Standar</SelectItem>
-                  <SelectItem value="premium">Premium</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="open">Tersedia</SelectItem>
-                  <SelectItem value="almost">Hampir penuh</SelectItem>
-                  <SelectItem value="full">Penuh</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Urutkan" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="departure_asc">Keberangkatan Terdekat</SelectItem>
-                  <SelectItem value="price_asc">Harga Terendah</SelectItem>
-                  <SelectItem value="price_desc">Harga Tertinggi</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Results count */}
-        <div className="text-sm text-muted-foreground">
-          Menampilkan {sortedPackages?.length || 0} paket
-        </div>
-
-        {/* Package Cards */}
-        <div className="space-y-4">
-          {sortedPackages?.map((pkg) => {
-            const slotStatus = getSlotStatus(pkg);
-            const avgStars = getAvgHotelStars(pkg);
-            const lowestPrice = getLowestQuad(pkg);
-
-            return (
-              <Card key={pkg.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="flex flex-col md:flex-row">
-                  {/* Left Side - Info */}
-                  <div className="flex-1 p-4 md:p-6 space-y-4">
-                    {/* Header */}
+    <>
+    <AgentPage
+      title="Paket umroh."
+      hero={
+        <>
+          <div className="-mx-6 -mb-4 mt-7 flex gap-2 overflow-x-auto px-6 py-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <button
+              type="button"
+              onClick={() => setFilterOpen(true)}
+              className="pkg-press pkg-glass-deep pkg-label inline-flex h-11 shrink-0 items-center gap-2 rounded-full px-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream"
+            >
+              <SlidersHorizontal className="h-4 w-4" aria-hidden /> Filter
+              {activeFilterCount > 0 && <span className="pkg-glass-red inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs">{activeFilterCount}</span>}
+            </button>
+            {categoryChips.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                aria-pressed={category === c.value}
+                onClick={() => setCategory(c.value)}
+                className={cn(
+                  "pkg-press pkg-label h-11 shrink-0 rounded-full px-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream",
+                  category === c.value ? "pkg-glass-red !text-pkg-on-red" : "pkg-glass"
+                )}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+        </>
+      }
+    >
+      <AgentPanel last>
+        {isLoading ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{[...Array(4)].map((_, i) => <PkgCardSkeleton key={i} />)}</div>
+        ) : sortedPackages.length === 0 ? (
+          <AgentEmpty icon={Search} text="Tidak ada paket" action={isFiltered ? <button type="button" className={agentGlass} onClick={resetFilters}>Reset filter</button> : undefined} />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-8">
+            {sortedPackages.map((pkg, idx) => {
+              const primaryTier = pkg.available_tiers?.[0] || "nyaman";
+              const hotels = resolveTierHotels(pkg, primaryTier);
+              const unavailable = isPackageUnavailable(pkg);
+              const price = getTierPrice(pkg).quad;
+              const date = new Date(`${pkg.departure_date.slice(0, 10)}T00:00:00`);
+              return (
+                <PkgListCard
+                  key={pkg.id}
+                  id={pkg.id}
+                  slug={pkg.slug ?? undefined}
+                  hrefOverride={`/agent/packages/${pkg.id}`}
+                  hideCart
+                  image={pkg.banner_image || "/placeholder.svg"}
+                  title={pkg.package_name}
+                  price={formatPriceJuta(price)}
+                  priceValue={price}
+                  date={format(date, "d MMMM yyyy", { locale: localeId })}
+                  dateShort={format(date, "d MMM yyyy", { locale: localeId })}
+                  duration={`${pkg.duration_days} Hari`}
+                  airline={pkg.flight}
+                  hotelMakkah={hotels.makkah.name || undefined}
+                  hotelMakkahRating={hotels.makkah.star || undefined}
+                  hotelMadinah={hotels.madinah.name || undefined}
+                  hotelMadinahRating={hotels.madinah.star || undefined}
+                  isSoldOut={unavailable}
+                  waitlistCount={pkg.waitlist_count || 0}
+                  slotsTotal={pkg.slots_total}
+                  slotsFilled={getSlotsTaken(pkg)}
+                  index={idx}
+                  footer={
                     <div>
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="text-lg md:text-xl font-bold">{pkg.package_name}</h3>
-                        <Badge
-                          variant="outline"
-                          className={
-                            slotStatus.color === "success"
-                              ? "bg-muted text-foreground border-border"
-                              : slotStatus.color === "warning"
-                              ? "bg-status-warn-bg text-status-warn-fg border-status-warn-border"
-                              : "bg-status-bad-bg text-status-bad-fg border-status-bad-border"
-                          }
+                      <MyCommission packageId={pkg.id} variant="compact" />
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSharePackage(pkg)}
+                          className="pkg-press pkg-glass-red pkg-label inline-flex h-12 items-center justify-center gap-2 rounded-full px-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
                         >
-                          {slotStatus.label}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-1 mt-1">
-                        {renderStars(avgStars)}
-                        <span className="text-sm text-muted-foreground ml-1">Hotel {avgStars} Bintang</span>
-                      </div>
-                    </div>
-
-                    {/* Date & Duration */}
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          {format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: id })}
-                        </span>
-                      </div>
-                      <div>{pkg.duration_days} Hari</div>
-                    </div>
-
-                    {/* Price & Commission */}
-                    <div className="space-y-1">
-                      <div className="text-2xl font-bold text-primary">
-                        {formatPrice(lowestPrice)}
-                        <span className="text-sm font-normal text-muted-foreground">/pax</span>
-                      </div>
-                      <MyCommission packageId={pkg.id} />
-                    </div>
-
-                    {/* Hotel Info */}
-                    <div className="grid gap-2 text-sm">
-                      {pkg.makkah_hotel_name && (
-                        <div className="flex items-start gap-2">
-                          <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                          <div>
-                            <span className="font-medium">Makkah:</span> {pkg.makkah_hotel_name}
-                            {pkg.makkah_hotel_star && (
-                              <span className="text-status-warn-fg"> ({pkg.makkah_hotel_star}⭐)</span>
-                            )}
-                            {pkg.makkah_distance && (
-                              <span className="text-muted-foreground"> - {pkg.makkah_distance}</span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      {pkg.madinah_hotel_name && (
-                        <div className="flex items-start gap-2">
-                          <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                          <div>
-                            <span className="font-medium">Madinah:</span> {pkg.madinah_hotel_name}
-                            {pkg.madinah_hotel_star && (
-                              <span className="text-status-warn-fg"> ({pkg.madinah_hotel_star}⭐)</span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Airline */}
-                    <div className="flex items-center gap-2 text-sm">
-                      <Plane className="h-4 w-4 text-muted-foreground" />
-                      <span>{pkg.flight}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {pkg.flight_type}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  {/* Right Side - Image & Actions */}
-                  <div className="md:w-[280px] bg-muted/30 p-4 flex flex-col gap-3">
-                    {/* Thumbnail */}
-                    <div className="aspect-video rounded-lg bg-muted overflow-hidden">
-                      {pkg.banner_image ? (
-                        <img
-                          src={pkg.banner_image}
-                          alt={pkg.package_name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                          <PackageIcon className="h-10 w-10" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="space-y-2">
-                      <Button
-                        className="w-full"
-                        onClick={() => navigate(`/agent/packages/${pkg.id}`)}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Lihat Detail
-                      </Button>
-                      <Button variant="outline" className="w-full" onClick={() => navigate(`/agent/daftar-jamaah?paket=${pkg.id}`)}>
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Daftarkan Jamaah
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full border-foreground text-foreground hover:bg-muted"
-                        onClick={() => handleShare(pkg)}
-                      >
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Bagikan Paket
-                      </Button>
-                      {pkg.catalog_link && (
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          asChild
-                        >
-                          <a href={pkg.catalog_link} target="_blank" rel="noopener noreferrer">
-                            <FileText className="h-4 w-4 mr-2" />
-                            Katalog PDF
+                          <Share2 className="h-5 w-5" aria-hidden /> Bagikan
+                        </button>
+                        <button type="button" onClick={() => navigate(`/agent/daftar-jamaah?paket=${pkg.id}`)} className={agentGlass}>
+                          <UserPlus className="h-5 w-5" aria-hidden /> Daftarkan
+                        </button>
+                        {pkg.catalog_link && (
+                          <a href={pkg.catalog_link} target="_blank" rel="noopener noreferrer" aria-label="Katalog PDF" className="pkg-press pkg-glass grid h-12 w-12 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2">
+                            <FileText className="h-5 w-5" aria-hidden />
                           </a>
-                        </Button>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
+                  }
+                />
+              );
+            })}
+          </div>
+        )}
+      </AgentPanel>
+    </AgentPage>
 
-          {sortedPackages?.length === 0 && (
-            <Card className="p-12 text-center">
-              <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Tidak ada paket ditemukan</h3>
-              <p className="text-muted-foreground">
-                Coba ubah filter untuk melihat paket lainnya
-              </p>
-            </Card>
-          )}
-        </div>
-      </div>
+    <PackageFilterSheet open={filterOpen} onOpenChange={setFilterOpen} filterConfigs={filterConfigs} isFiltered={isFiltered} onReset={resetFilters} count={sortedPackages.length} />
 
-      {/* Share Modal */}
-      {selectedPackage && (
-        <PackageShareModal
-          open={shareModalOpen}
-          onOpenChange={setShareModalOpen}
-          package={selectedPackage}
-          agentCode={agent?.referral_code || ""}
-        />
-      )}
-    </div>
+    {sharePackage && (
+      <PackageShareModal
+        open={!!sharePackage}
+        onOpenChange={(open) => !open && setSharePackage(null)}
+        package={{
+          id: sharePackage.id,
+          slug: sharePackage.slug,
+          package_name: sharePackage.package_name,
+          departure_date: sharePackage.departure_date,
+          duration_days: sharePackage.duration_days,
+          flight: sharePackage.flight,
+          flight_type: sharePackage.flight_type || "Direct",
+          madinah_hotel_name: sharePackage.madinah_hotel_name ?? null,
+          madinah_hotel_star: sharePackage.madinah_hotel_star,
+          makkah_hotel_name: sharePackage.makkah_hotel_name ?? null,
+          makkah_hotel_star: sharePackage.makkah_hotel_star,
+          package_price: sharePackage.package_price as { quad: number; double: number; triple: number },
+          hemat_package_price: sharePackage.hemat_package_price,
+          five_star_package_price: sharePackage.five_star_package_price,
+          pelataran_package_price: sharePackage.pelataran_package_price,
+          available_tiers: sharePackage.available_tiers,
+        }}
+        agentCode={agent?.referral_code || ""}
+      />
+    )}
+    </>
   );
 };
 

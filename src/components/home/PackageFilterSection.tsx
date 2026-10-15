@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package, SlidersHorizontal, X, MessageCircle } from "lucide-react";
+import { Package, SlidersHorizontal, X } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -25,6 +25,7 @@ import type { PackageData } from "@/hooks/useHomepageData";
 import { formatPriceJuta, getTierPrice, isPackageUnavailable, getSlotsTaken } from "@/lib/utils";
 import { resolveTierHotels } from "@/lib/roomCombos";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 interface PackageFilterSectionProps {
   packages: PackageData[];
@@ -255,7 +256,7 @@ export const PackageFilterSection = ({
               className="gap-2"
               onClick={() => redirectToWhatsApp("Halo Musafar Tour, saya mencari paket umroh yang belum tersedia di website. Bisa dibantu?", "home_package_request")}
             >
-              <MessageCircle className="h-4 w-4" />
+              <WhatsAppIcon className="h-4 w-4" />
               Hubungi via WhatsApp
             </Button>
           </div>

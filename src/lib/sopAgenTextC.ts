@@ -134,7 +134,7 @@ export const SOP_SECTIONS_C: readonly SopSection[] = [
           ["Reward tahunan", "Grand Prize"],
         ],
       },
-      { t: "p", text: "Bonus hanya berlaku apabila agen membawa jamaah secara langsung, bukan dalam periode (dalam 1 invoice). Dan nominal tagihan jamaah mengikuti harga resmi musafar (bukan promo)." },
+      { t: "p", text: "Bonus closing (5, 10, dan 40 jamaah) berlaku untuk 1 invoice, atau sekali transaksi, bukan akumulasi dalam periode. Bonus hanya berlaku apabila agen membawa jamaah secara langsung, dan nominal tagihan jamaah mengikuti harga resmi Musafar (bukan promo)." },
     ],
   },
   {

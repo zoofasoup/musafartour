@@ -28,7 +28,6 @@ import {
   DollarSign,
   FileText
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,10 +52,22 @@ import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { formatCurrency } from "@/lib/utils";
-import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
+import { AgentPage, AgentPanel, Chips, Figures } from "@/components/agent/AgentPage";
+import { AvatarCropper } from "@/components/agent/AvatarCropper";
+import { ImageLightbox } from "@/components/ImageLightbox";
+import { agentAvatarUrl } from "@/lib/agentAvatar";
 import { AgentIdCard } from "@/components/agent/AgentIdCard";
 import { agentStatusLabel } from "@/lib/agentSupport";
 import { AGENT_LEVEL_COLORS as levelColors, AGENT_LEVEL_LABELS as levelLabels, type AgentLevel } from "@/lib/agentLevels";
+
+// The old Card structure is kept but drawn as flat sections (a heading, then the content, a hairline between them).
+const Card = ({ children }: { children: React.ReactNode; className?: string }) => <section className="py-8 first:pt-0 last:pb-0">{children}</section>;
+const CardHeader = ({ children }: { children: React.ReactNode; className?: string }) => <div className="mb-5">{children}</div>;
+const CardTitle = ({ children }: { children: React.ReactNode; className?: string }) => (
+  <h2 className="pkg-h3 flex items-center gap-3 text-pretty [&_svg]:h-5 [&_svg]:w-5 [&_svg]:shrink-0 [&_svg]:text-pkg-fg-3">{children}</h2>
+);
+const CardDescription = ({ children }: { children: React.ReactNode; className?: string }) => <p className="mt-1.5 text-[14px] text-pkg-fg-3">{children}</p>;
+const CardContent = ({ children }: { children: React.ReactNode; className?: string }) => <div className="space-y-4">{children}</div>;
 
 const BANK_LIST = [
   "Bank BCA",
@@ -83,7 +94,14 @@ const AgentProfile = () => {
   const { agent, refreshAgent, signOut } = useAgentAuth();
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(agent?.id ? agentAvatarUrl(agent.id) : null);
+  const [hasAvatar, setHasAvatar] = useState(false);
+  useEffect(() => {
+    if (agent?.id && !avatarUrl) setAvatarUrl(agentAvatarUrl(agent.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agent?.id]);
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [viewAvatar, setViewAvatar] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -209,39 +227,37 @@ const AgentProfile = () => {
     },
   });
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Choosing a photo opens the cropper; what the person frames there is what gets saved.
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !agent?.id) return;
-
-    // Validate file
+    e.target.value = "";
+    if (!file) return;
     if (!file.type.startsWith('image/')) {
       toast.error("File harus berupa gambar");
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Ukuran file maksimal 2MB");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("Ukuran foto maksimal 15 MB");
       return;
     }
+    setCropFile(file);
+  };
 
+  const saveAvatar = async (blob: Blob) => {
+    if (!agent?.id) return;
     setUploadingAvatar(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${agent.id}/avatar.${fileExt}`;
-      
       const { error: uploadError } = await supabase.storage
         .from('marketing-materials')
-        .upload(fileName, file, { upsert: true });
-
+        .upload(`${agent.id}/avatar.jpg`, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '60' });
       if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from('marketing-materials')
-        .getPublicUrl(fileName);
-
-      setAvatarUrl(urlData.publicUrl + `?t=${Date.now()}`);
-      toast.success("Foto profil berhasil diupload");
+      setAvatarUrl(agentAvatarUrl(agent.id, Date.now()));
+      setHasAvatar(true);
+      setCropFile(null);
+      toast.success("Foto terpasang");
     } catch (error) {
-      toast.error("Gagal mengupload foto: " + (error as Error).message);
+      toast.error("Foto belum bisa dipasang. Coba lagi.");
+      console.error("Avatar upload failed:", error);
     } finally {
       setUploadingAvatar(false);
     }
@@ -316,129 +332,89 @@ const AgentProfile = () => {
 
   if (!agent) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <AgentPage title="Profil.">
+        <AgentPanel last><div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-pkg-fg-3" aria-label="Memuat" /></div></AgentPanel>
+      </AgentPage>
     );
   }
 
   const agentLevel = agent.level as AgentLevel;
 
   return (
-    <div className="pb-24 md:pb-6">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <AgentPageHeader title="Profil Saya" description="Kelola akun dan pengaturan kamu" icon={User} />
-
-        {/* Profile Header Card */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              <div className="relative">
-                <Avatar className="h-24 w-24">
-                  {avatarUrl ? (
-                    <AvatarImage src={avatarUrl} alt={agent.name} />
-                  ) : null}
-                  <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
-                    {getInitials(agent.name)}
-                  </AvatarFallback>
+    <>
+    <AgentPage
+      title="Profil."
+      hero={
+        <>
+          <div className="mt-7 flex items-center gap-5">
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => (hasAvatar ? setViewAvatar(true) : fileInputRef.current?.click())}
+                aria-label={hasAvatar ? "Lihat foto profil" : "Pasang foto profil"}
+                className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream focus-visible:ring-offset-2 focus-visible:ring-offset-pkg-ink"
+              >
+                <Avatar className="h-20 w-20">
+                  {avatarUrl ? <AvatarImage src={avatarUrl} alt={agent.name} onLoadingStatusChange={(st) => setHasAvatar(st === "loaded")} /> : null}
+                  <AvatarFallback className="bg-pkg-red text-2xl font-light text-pkg-on-red">{getInitials(agent.name)}</AvatarFallback>
                 </Avatar>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  className="hidden"
-                />
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full shadow-md [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingAvatar}
-                  aria-label="Ganti foto profil"
-                >
-                  {uploadingAvatar ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Camera className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              
-              <div className="text-center sm:text-left flex-1">
-                <div className="flex items-center gap-2 justify-center sm:justify-start flex-wrap">
-                  <h2 className="text-xl font-bold">{agent.name}</h2>
-                  <Badge className={`${levelColors[agentLevel]} text-white`}>
-                    <Award className="h-3 w-3 mr-1" />
-                    {levelLabels[agentLevel]}
-                  </Badge>
-                  <Badge variant={agent.status === 'active' ? 'default' : 'secondary'}>
-                    {agentStatusLabel(agent.status)}
-                  </Badge>
-                </div>
-                <p className="text-muted-foreground">{agent.email}</p>
-                
-                {/* Referral Code */}
-                <div className="mt-3 flex items-center gap-2 justify-center sm:justify-start">
-                  <div className="bg-muted px-3 py-1.5 rounded-lg flex items-center gap-2">
-                    <Share2 className="h-4 w-4 text-muted-foreground" />
-                    <code className="font-mono font-medium">{agent.referral_code}</code>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
-                      onClick={copyReferralCode}
-                      aria-label="Salin Agent ID"
-                    >
-                      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+              <button
+                type="button"
+                className="pkg-press pkg-glass absolute -bottom-1 -right-1 grid h-10 w-10 place-items-center rounded-full"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                aria-label="Ganti foto profil"
+              >
+                {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+              </button>
             </div>
-
-            <Separator className="my-6" />
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-2xl font-bold text-foreground">{agent.total_sales}</p>
-                <p className="text-sm text-muted-foreground">Jamaah lunas</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{formatCurrency(agent.total_commission)}</p>
-                <p className="text-sm text-muted-foreground">Total Komisi</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-primary">{formatCurrency(agent.available_balance)}</p>
-                <p className="text-sm text-muted-foreground">Saldo Tersedia</p>
-              </div>
+            <div className="min-w-0">
+              <p className="truncate text-[22px] font-light tracking-[-0.02em] text-pkg-fg">{agent.name}</p>
+              <p className="truncate text-[14px] text-pkg-fg-3">{agent.email}</p>
+              <p className="mt-2 flex flex-wrap items-center gap-2 text-[13px] text-pkg-fg-2">
+                <span className="pkg-glass pkg-label inline-flex h-7 items-center rounded-full px-3">{levelLabels[agentLevel]}</span>
+                <span>{agentStatusLabel(agent.status)}</span>
+              </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
+          <button
+            type="button"
+            onClick={copyReferralCode}
+            aria-label="Salin Agent ID"
+            className="pkg-press mt-5 inline-flex min-h-11 items-center gap-2.5 rounded-full text-[15px] text-pkg-fg-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream"
+          >
+            <span>Agent ID</span>
+            <span className="rounded-full bg-pkg-cream/10 px-3 py-1 font-mono text-[14px] text-pkg-cream">{agent.referral_code}</span>
+            {copied ? <Check className="h-4 w-4" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
+          </button>
+
+          <Figures
+            items={[
+              { value: String(agent.total_sales), label: "Jamaah lunas" },
+              { value: formatCurrency(agent.total_commission), label: "Total komisi" },
+              { value: formatCurrency(agent.available_balance), label: "Saldo" },
+            ]}
+          />
+        </>
+      }
+    >
+      <AgentPanel last>
         <AgentIdCard name={agent.name} agentId={agent.referral_code} level={agent.level} status={agent.status} since={agent.approved_at} />
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile" className="text-xs sm:text-sm">
-              <User className="h-4 w-4 mr-1 hidden sm:block" />
-              Profil
-            </TabsTrigger>
-            <TabsTrigger value="security" className="text-xs sm:text-sm">
-              <Shield className="h-4 w-4 mr-1 hidden sm:block" />
-              Keamanan
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="text-xs sm:text-sm">
-              <Bell className="h-4 w-4 mr-1 hidden sm:block" />
-              Notifikasi
-            </TabsTrigger>
-            <TabsTrigger value="activity" className="text-xs sm:text-sm">
-              <History className="h-4 w-4 mr-1 hidden sm:block" />
-              Aktivitas
-            </TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="pkg-form mt-8 space-y-6">
+          <Chips
+            label="Bagian profil"
+            value={activeTab}
+            onChange={setActiveTab}
+            options={[
+              { value: "profile", label: "Profil" },
+              { value: "security", label: "Keamanan" },
+              { value: "activity", label: "Aktivitas" },
+            ]}
+          />
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
@@ -727,89 +703,6 @@ const AgentProfile = () => {
           </TabsContent>
 
           {/* Notifications Tab */}
-          <TabsContent value="notifications" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Mail className="h-5 w-5" />
-                  Notifikasi Email
-                </CardTitle>
-                <CardDescription>Kelola notifikasi yang dikirim ke email kamu</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Penjualan Baru</p>
-                    <p className="text-sm text-muted-foreground">Notifikasi saat ada penjualan terkonfirmasi</p>
-                  </div>
-                  <Switch
-                    checked={notifications.emailSales}
-                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, emailSales: checked }))}
-                  />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Status Penarikan</p>
-                    <p className="text-sm text-muted-foreground">Update status pencairan komisi</p>
-                  </div>
-                  <Switch
-                    checked={notifications.emailWithdrawal}
-                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, emailWithdrawal: checked }))}
-                  />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Promo & Update</p>
-                    <p className="text-sm text-muted-foreground">Info paket baru dan promosi</p>
-                  </div>
-                  <Switch
-                    checked={notifications.emailPromo}
-                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, emailPromo: checked }))}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Bell className="h-5 w-5" />
-                  Notifikasi Push
-                </CardTitle>
-                <CardDescription>Notifikasi real-time di browser</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Penjualan Dikonfirmasi</p>
-                    <p className="text-sm text-muted-foreground">Saat penjualan kamu diverifikasi admin</p>
-                  </div>
-                  <Switch
-                    checked={notifications.pushSales}
-                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, pushSales: checked }))}
-                  />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Penarikan Diproses</p>
-                    <p className="text-sm text-muted-foreground">Saat pencairan selesai diproses</p>
-                  </div>
-                  <Switch
-                    checked={notifications.pushWithdrawal}
-                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, pushWithdrawal: checked }))}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Button className="w-full" onClick={() => toast.success("Pengaturan notifikasi disimpan")}>
-              <Save className="mr-2 h-4 w-4" />
-              Simpan Pengaturan
-            </Button>
-          </TabsContent>
 
           {/* Activity Tab */}
           <TabsContent value="activity" className="space-y-6">
@@ -889,8 +782,11 @@ const AgentProfile = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </div>
+      </AgentPanel>
+    </AgentPage>
+    <AvatarCropper file={cropFile} onCancel={() => setCropFile(null)} onSave={saveAvatar} />
+    <ImageLightbox images={avatarUrl ? [avatarUrl] : []} currentIndex={0} isOpen={viewAvatar} onClose={() => setViewAvatar(false)} />
+    </>
   );
 };
 

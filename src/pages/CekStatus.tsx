@@ -1,17 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertCircle, CalendarDays, Loader2, MessageCircle, Search, Users } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { StatusBadge, type StatusKind } from "@/components/ui/status-badge";
+import { AlertCircle, CalendarDays, Loader2, Search, Users } from "lucide-react";
+import { PkgPage, pkgFocus, pkgInput, pkgLabel } from "@/components/PkgPage";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
+import type { StatusKind } from "@/components/ui/status-badge";
 import { Turnstile, turnstileSiteKey } from "@/components/daftar/Turnstile";
 import { useHomepageData } from "@/hooks/useHomepageData";
 import { DP_MIN_PER_PAX, LUNAS_DAYS_BEFORE_DEPARTURE, PT_ACCOUNT_HOLDER, rupiah } from "@/lib/jamaah";
 import { normalizePhone } from "@/lib/intakeForm";
 import { formatWhatsAppUrl } from "@/lib/utils";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
+import { formatPhone } from "@/lib/phone";
 
 const FALLBACK_WHATSAPP = "6281917403797";
 const CODE_RE = /^MSF-?[A-Z2-9]{5}$/;
@@ -41,14 +40,14 @@ const lunasDeadline = (d: string) => {
 const STAGE: Record<Stage, { kind: StatusKind; title: string; text: (s: StatusResult) => string }> = {
   waiting_cs: {
     kind: "warn",
-    title: "Menunggu CS",
-    text: () => "Pendaftaranmu sudah masuk. CS sedang memeriksa data dan seat, lalu akan menghubungi kamu lewat WhatsApp di nomor yang kamu isi.",
+    title: "Menunggu UC",
+    text: () => "Pendaftaranmu sudah masuk. Umroh Consultant (UC) sedang memeriksa data dan seat, lalu akan menghubungi kamu lewat WhatsApp di nomor yang kamu isi.",
   },
   accepted: {
     kind: "warn",
-    title: "Diterima CS, menunggu DP",
+    title: "Diterima UC, menunggu DP",
     text: () =>
-      `CS sudah menerima pendaftaranmu. Langkah berikutnya: transfer DP ${rupiah(DP_MIN_PER_PAX)} per orang ke rekening ${PT_ACCOUNT_HOLDER}. Setelah DP, kamu mendapat link untuk melengkapi data paspor dan dokumen.`,
+      `UC sudah menerima pendaftaranmu. Langkah berikutnya: transfer DP ${rupiah(DP_MIN_PER_PAX)} per orang ke rekening ${PT_ACCOUNT_HOLDER}. Setelah DP, kamu mendapat link untuk melengkapi data paspor dan dokumen.`,
   },
   dp_received: {
     kind: "info",
@@ -59,17 +58,17 @@ const STAGE: Record<Stage, { kind: StatusKind; title: string; text: (s: StatusRe
   lunas: {
     kind: "ok",
     title: "Lunas",
-    text: () => "Pembayaran sudah lunas. Terima kasih. Kalau ada pertanyaan soal keberangkatan, hubungi CS lewat WhatsApp.",
+    text: () => "Pembayaran sudah lunas. Terima kasih. Kalau ada pertanyaan soal keberangkatan, hubungi UC lewat WhatsApp.",
   },
   rejected: {
     kind: "bad",
     title: "Belum bisa diproses",
-    text: () => "CS belum bisa memproses pendaftaran ini. Hubungi CS lewat WhatsApp untuk tahu alasannya dan langkah berikutnya.",
+    text: () => "UC belum bisa memproses pendaftaran ini. Hubungi UC lewat WhatsApp untuk tahu alasannya dan langkah berikutnya.",
   },
   cancelled: {
     kind: "mute",
     title: "Dibatalkan",
-    text: () => "Pendaftaran ini sudah dibatalkan. Hubungi CS lewat WhatsApp kalau kamu butuh rinciannya.",
+    text: () => "Pendaftaran ini sudah dibatalkan. Hubungi UC lewat WhatsApp kalau kamu butuh rinciannya.",
   },
 };
 
@@ -113,7 +112,7 @@ export default function CekStatus() {
       const data = (await res.json().catch(() => null)) as { ok?: boolean; status?: StatusResult; error?: string } | null;
       if (!res.ok || !data?.ok || !data.status) {
         setResult(null);
-        setServerError(data?.error || "Status belum bisa dicek. Coba lagi sebentar lagi atau hubungi CS lewat WhatsApp.");
+        setServerError(data?.error || "Status belum bisa dicek. Coba lagi sebentar lagi atau hubungi UC lewat WhatsApp.");
       } else {
         setResult(data.status);
       }
@@ -136,20 +135,12 @@ export default function CekStatus() {
     : "Halo Musafar Tour, saya mau tanya soal pendaftaran umroh saya.";
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main id="main" className="mx-auto max-w-xl px-4 pb-16 pt-28 sm:px-6">
-        <header className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Cek status pendaftaran</h1>
-          <p className="mt-2 text-muted-foreground">
-            Isi kode pendaftaran dan nomor WhatsApp yang kamu pakai saat mendaftar. Kode dikirim di layar setelah kamu mengirim form, dan bentuknya seperti MSF-7K3QX.
-          </p>
-        </header>
-
-        <form onSubmit={onSubmit} noValidate className="space-y-4 rounded-2xl border bg-white p-5 shadow-sm sm:p-6">
+    <PkgPage title="Cek status pendaftaran." intro="Masukkan kode pendaftaran dan nomor WhatsAppmu.">
+      <PkgPanel tone="cream" last={!result}>
+        <form onSubmit={onSubmit} noValidate className="mx-auto max-w-xl space-y-5">
           <div>
-            <Label htmlFor="cek-code">Kode pendaftaran</Label>
-            <Input
+            <label htmlFor="cek-code" className={pkgLabel}>Kode pendaftaran</label>
+            <input
               id="cek-code"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
@@ -160,23 +151,23 @@ export default function CekStatus() {
               maxLength={10}
               aria-invalid={!!errors.code}
               aria-describedby={errors.code ? "cek-code-err" : undefined}
-              className="mt-1.5 uppercase tracking-wider"
+              className={`${pkgInput} uppercase tracking-wider`}
             />
             {errors.code && <FieldError id="cek-code-err" message={errors.code} />}
           </div>
           <div>
-            <Label htmlFor="cek-phone">Nomor WhatsApp</Label>
-            <Input
+            <label htmlFor="cek-phone" className={pkgLabel}>Nomor WhatsApp</label>
+            <input
               id="cek-phone"
               type="tel"
               inputMode="tel"
               autoComplete="tel"
               placeholder="0812 3456 7890"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(formatPhone(e.target.value))}
               aria-invalid={!!errors.phone}
               aria-describedby={errors.phone ? "cek-phone-err" : undefined}
-              className="mt-1.5"
+              className={pkgInput}
             />
             {errors.phone && <FieldError id="cek-phone-err" message={errors.phone} />}
           </div>
@@ -185,72 +176,75 @@ export default function CekStatus() {
 
           {serverError && <FieldError id="cek-server-err" message={serverError} />}
 
-          <Button type="submit" variant="brand" className="h-12 w-full gap-2 text-base font-bold" disabled={sending || siteKeyMissing}>
+          <button type="submit" disabled={sending || siteKeyMissing} className={`pkg-press pkg-glass-red pkg-label inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-full px-7 disabled:opacity-50 ${pkgFocus}`}>
             {sending ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> : <Search className="h-5 w-5" aria-hidden />}
             {sending ? "Memeriksa..." : "Cek status"}
-          </Button>
+          </button>
+          <p className="text-[15px] text-pkg-fg-2">
+            Belum mendaftar? <Link to="/paket-umroh" className="font-medium text-pkg-fg underline underline-offset-4">Lihat paket umroh</Link>
+          </p>
         </form>
+      </PkgPanel>
 
-        {result && stage && (
-          <section className="mt-6 rounded-2xl border bg-white p-5 shadow-sm sm:p-6" aria-live="polite" aria-labelledby="cek-hasil">
-            <p className="text-sm text-muted-foreground">Kode {result.code}</p>
-            <h2 id="cek-hasil" className="mt-1 text-2xl font-bold text-foreground">{result.package_name}</h2>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <StatusBadge kind={stage.kind}>{stage.title}</StatusBadge>
-              {dataPending && <StatusBadge kind="warn">Data belum lengkap</StatusBadge>}
-              {result.payment_checking && <StatusBadge kind="info">Pembayaran sedang diperiksa</StatusBadge>}
+      {result && stage && (
+        <PkgPanel tone="cream-2" last>
+          <section className="mx-auto max-w-xl" aria-live="polite" aria-labelledby="cek-hasil">
+            <p className="pkg-caption text-pkg-fg-3">Kode {result.code}</p>
+            <h2 id="cek-hasil" className="pkg-h2 mt-1">{result.package_name}</h2>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <Pill kind={stage.kind}>{stage.title}</Pill>
+              {dataPending && <Pill>Data belum lengkap</Pill>}
+              {result.payment_checking && <Pill>Pembayaran sedang diperiksa</Pill>}
             </div>
-            <p className="mt-4 text-foreground">{stage.text(result)}</p>
+            <p className="mt-5 text-[17px] leading-[1.55] text-pkg-fg-2">{stage.text(result)}</p>
 
             {dataPending && (
-              <div className="mt-4 rounded-xl bg-status-warn-bg p-4 text-status-warn-fg">
-                <p className="font-bold">Data paspor dan dokumen belum lengkap</p>
-                <p className="mt-1 text-sm">
-                  Buka link pribadi untuk melengkapi data yang dikirim CS lewat WhatsApp. Link hilang atau belum menerima? Minta CS mengirim ulang.
+              <div className="mt-5">
+                <p className="text-[17px] text-pkg-fg">Data paspor dan dokumen belum lengkap</p>
+                <p className="mt-1 text-[15px] leading-[1.5] text-pkg-fg-2">
+                  Buka link pribadi untuk melengkapi data yang dikirim UC lewat WhatsApp. Link hilang atau belum menerima? Minta UC mengirim ulang.
                 </p>
               </div>
             )}
 
-            <dl className="mt-5 space-y-2 border-t pt-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
+            <dl className="mt-6 space-y-2 text-[15px] text-pkg-fg-2">
+              <div className="flex items-center gap-2.5">
                 <CalendarDays className="h-4 w-4 shrink-0" aria-hidden />
                 <dt className="sr-only">Berangkat</dt>
                 <dd>Berangkat {fmtDate(result.departure_date)}</dd>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <Users className="h-4 w-4 shrink-0" aria-hidden />
                 <dt className="sr-only">Peserta</dt>
                 <dd>{result.people_count} orang</dd>
               </div>
             </dl>
 
-            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <Button variant="brand" asChild className="h-12 gap-2 px-6 text-base font-bold">
-                <a href={formatWhatsAppUrl(whatsapp, waMessage)} target="_blank" rel="noopener noreferrer">
-                  <MessageCircle className="h-5 w-5" aria-hidden /> Chat CS
-                </a>
-              </Button>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <a href={formatWhatsAppUrl(whatsapp, waMessage)} target="_blank" rel="noopener noreferrer" className={`pkg-press pkg-glass-red pkg-label inline-flex h-14 items-center justify-center gap-2.5 rounded-full px-7 ${pkgFocus}`}>
+                <WhatsAppIcon className="h-5 w-5" /> Chat UC
+              </a>
               {(result.stage === "accepted" || result.stage === "dp_received") && (
-                <Button variant="outline" asChild className="h-12 px-6 text-base">
-                  <Link to="/cara-bayar">Lihat cara bayar</Link>
-                </Button>
+                <Link to="/cara-bayar" className={`pkg-press pkg-glass pkg-label inline-flex h-14 items-center justify-center rounded-full px-7 ${pkgFocus}`}>
+                  Lihat cara bayar
+                </Link>
               )}
             </div>
           </section>
-        )}
-
-        <p className="mt-6 text-sm text-muted-foreground">
-          Belum mendaftar? <Link to="/paket-umroh" className="font-semibold text-foreground underline underline-offset-4">Lihat paket umroh</Link>
-        </p>
-      </main>
-      <Footer />
-    </div>
+        </PkgPanel>
+      )}
+    </PkgPage>
   );
+}
+
+/** Small status label: neutral cream, dark red for a problem, never a loud colour. */
+function Pill({ kind, children }: { kind?: StatusKind; children: React.ReactNode }) {
+  return <span className={`pkg-label inline-block rounded-full bg-pkg-cream px-3 py-1 ${kind === "bad" ? "text-pkg-red-deep" : "text-pkg-fg"}`}>{children}</span>;
 }
 
 function FieldError({ id, message }: { id: string; message: string }) {
   return (
-    <p id={id} role="alert" className="mt-1.5 flex items-start gap-1.5 text-sm text-destructive">
+    <p id={id} role="alert" className="mt-2 flex items-start gap-1.5 text-[14px] leading-[1.4] text-pkg-red-deep">
       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {message}
     </p>
   );

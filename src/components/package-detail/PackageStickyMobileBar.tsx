@@ -3,10 +3,11 @@ import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Bell, ChevronUp, ClipboardList } from "lucide-react";
+import { ChevronUp, ClipboardList } from "lucide-react";
 import { formatCurrency, isPackageUnavailable, isPackageDeparted } from "@/lib/utils";
 import { PackagePricingBody, type PackagePricingBodyProps } from "./PackagePricing";
 import { PackageUrgencyBar } from "./PackageUrgencyBar";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 /**
  * Mobile-only sticky bottom bar replacing the desktop sticky sidebar. Opens the
@@ -46,7 +47,7 @@ export function PackageStickyMobileBar(props: PackagePricingBodyProps) {
                 </Button>
               ) : unavailable ? (
                 <Button onClick={handleNotifyMe} className="w-full gap-2" variant="outline">
-                  <Bell className="h-4 w-4" /> Gabung Waitlist
+                  <WhatsAppIcon className="h-4 w-4" /> Gabung Waitlist
                 </Button>
               ) : (
                 <div className="flex items-center gap-3">

@@ -3,28 +3,10 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
-import {
-  Star,
-  Plane,
-  Calendar,
-  MapPin,
-  Share2,
-  FileText,
-  Copy,
-  Palette,
-  Check,
-  X,
-  Clock,
-  Hotel,
-  Route,
-  UserPlus,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar, Check, Copy, FileText, Hotel, MapPin, Package, Plane, Route, Share2, Star, UserPlus, X } from "lucide-react";
+import { AgentEmpty, AgentPage, AgentPanel, agentGlass, agentPrimary } from "@/components/agent/AgentPage";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import { MyCommission } from "@/components/agent/MyCommission";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
@@ -168,432 +150,164 @@ ${agent?.referral_code ? `Agent ID: ${agent.referral_code}` : ""}`;
 
   if (error) {
     return (
-      <div className="mx-auto w-full max-w-6xl">
-        <LoadError what="Detail paket" error={error} onRetry={() => refetch()} retrying={isFetching} />
-      </div>
+      <AgentPage title="Paket." back={{ to: "/agent/packages", label: "Semua paket" }}>
+        <AgentPanel last><LoadError what="Detail paket" error={error} onRetry={() => refetch()} retrying={isFetching} /></AgentPanel>
+      </AgentPage>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-64 rounded-3xl" />
-        <div className="grid gap-4 md:grid-cols-4">
-          <Skeleton className="h-12" />
-          <Skeleton className="h-12" />
-          <Skeleton className="h-12" />
-          <Skeleton className="h-12" />
-        </div>
-        <Skeleton className="h-96" />
-      </div>
+      <AgentPage title="Paket." back={{ to: "/agent/packages", label: "Semua paket" }}>
+        <AgentPanel last><div className="space-y-4"><Skeleton className="h-20 w-full rounded-3xl" /><Skeleton className="h-40 w-full rounded-3xl" /></div></AgentPanel>
+      </AgentPage>
     );
   }
 
   if (!pkg) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Card className="p-8 text-center">
-          <h2 className="text-xl font-semibold mb-2">Paket tidak ditemukan</h2>
-          <p className="text-muted-foreground mb-4">
-            Paket yang kamu cari tidak tersedia
-          </p>
-          <Button onClick={() => navigate("/agent/packages")}>
-            Kembali ke Katalog
-          </Button>
-        </Card>
-      </div>
+      <AgentPage title="Paket." back={{ to: "/agent/packages", label: "Semua paket" }}>
+        <AgentPanel last><AgentEmpty icon={Package} text="Paket tidak ditemukan" /></AgentPanel>
+      </AgentPage>
     );
   }
 
   const slotStatus = getSlotStatus(pkg);
   const tierPrice = getTierPrice(pkg);
-  const lowestPrice = tierPrice.quad;
 
   const includedItems = pkg.included_items?.split("\n").filter(Boolean) || [];
   const excludedItems = pkg.excluded_items?.split("\n").filter(Boolean) || [];
 
+  const hotels = [
+    { city: "Makkah", name: pkg.makkah_hotel_name, star: pkg.makkah_hotel_star, distance: pkg.makkah_distance, walk: pkg.makkah_duration_walk },
+    { city: "Madinah", name: pkg.madinah_hotel_name, star: pkg.madinah_hotel_star, distance: pkg.madinah_distance, walk: pkg.madinah_duration_walk },
+  ].filter((h) => h.name);
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <Button
-        variant="ghost"
-        className="text-muted-foreground hover:text-foreground -ml-2"
-        onClick={() => navigate("/agent/packages")}
-      >
-        ← Kembali ke Katalog
-      </Button>
-
-      {/* Header */}
-      <div className="rounded-3xl bg-gradient-to-r from-primary to-primary text-white p-6 md:p-8">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">{pkg.package_name}</h1>
-            <div className="flex items-center gap-4 mt-2 text-primary-foreground">
-              <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                <span>
-                  {format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: id })}
-                </span>
-              </div>
-              <span>•</span>
-              <span>{pkg.duration_days} Hari</span>
-            </div>
+    <>
+    <AgentPage
+      title={pkg.package_name}
+      back={{ to: "/agent/packages", label: "Semua paket" }}
+      hero={
+        <>
+          <p className="mt-4 flex flex-wrap items-center gap-x-2 text-[15px] text-pkg-fg-2">
+            <Calendar className="h-4 w-4" aria-hidden />
+            <span>{format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: id })}</span>
+            <span aria-hidden>·</span>
+            <span>{pkg.duration_days} hari</span>
+            <span aria-hidden>·</span>
+            <span>{slotStatus.status === "full" ? "Penuh" : slotStatus.status === "almost" ? "Hampir penuh" : "Tersedia"}</span>
+          </p>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <button type="button" onClick={shareToWhatsApp} className={agentPrimary}>
+              <WhatsAppIcon className="h-5 w-5" /> Kirim via WhatsApp
+            </button>
+            <Link to={`/agent/daftar-jamaah?paket=${pkg.id}`} className="pkg-press pkg-glass pkg-label inline-flex h-14 items-center justify-center gap-2.5 rounded-full px-7 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream focus-visible:ring-offset-2 focus-visible:ring-offset-pkg-ink">
+              <UserPlus className="h-5 w-5" aria-hidden /> Daftarkan jamaah
+            </Link>
           </div>
-          <Badge className="bg-white/20 backdrop-blur text-white border border-white/30">
-            {slotStatus.label}
-          </Badge>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button type="button" onClick={copySalesScript} className="pkg-press pkg-glass pkg-label inline-flex h-11 items-center gap-2 rounded-full px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream">
+              {copiedScript ? <Check className="h-4 w-4" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />} {copiedScript ? "Tersalin" : "Salin teks"}
+            </button>
+            <button type="button" onClick={() => setShareModalOpen(true)} className="pkg-press pkg-glass pkg-label inline-flex h-11 items-center gap-2 rounded-full px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream">
+              <Share2 className="h-4 w-4" aria-hidden /> Lainnya
+            </button>
+          </div>
+        </>
+      }
+    >
+      <AgentPanel>
+        <h2 className="pkg-h3">Harga dan komisi</h2>
+        <ul className="mt-5 divide-y divide-pkg-hair">
+          {[
+            ["Quad", tierPrice.quad],
+            ["Triple", tierPrice.triple],
+            ["Double", tierPrice.double],
+          ].map(([label, price]) => (
+            <li key={label as string} className="flex items-baseline justify-between gap-4 py-4">
+              <span className="text-[16px] text-pkg-fg-2">{label}</span>
+              <span className="text-[22px] font-light tracking-[-0.02em] text-pkg-fg">{formatPrice(price as number)}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-6"><MyCommission packageId={pkg.id} variant="detail" /></div>
+      </AgentPanel>
+
+      <AgentPanel tone="cream-2">
+        <h2 className="pkg-h3">Penerbangan dan hotel</h2>
+        <div className="mt-5 flex items-center gap-3 text-[17px] text-pkg-fg">
+          <Plane className="h-5 w-5 shrink-0 text-pkg-fg-3" aria-hidden />
+          <span>{pkg.flight}</span>
+          <span className="pkg-label rounded-full bg-pkg-cream px-3 py-1 text-[13px]">{pkg.flight_type}</span>
         </div>
-      </div>
-
-      <div className="space-y-6">
-        {/* Quick Actions */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Button asChild className="bg-primary">
-                <Link to={`/agent/daftar-jamaah?paket=${pkg.id}`}>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Daftarkan Jamaah
-                </Link>
-              </Button>
-              <Button
-                className="bg-primary hover:bg-primary/85"
-                onClick={shareToWhatsApp}
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                Kirim via WhatsApp
-              </Button>
-              {pkg.catalog_link && (
-                <Button variant="outline" asChild>
-                  <a href={pkg.catalog_link} target="_blank" rel="noopener noreferrer">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Katalog
-                  </a>
-                </Button>
-              )}
-              <Button variant="outline" onClick={copySalesScript}>
-                {copiedScript ? (
-                  <>
-                    <Check className="h-4 w-4 mr-2" />
-                    Tersalin!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Salin teks promosi
-                  </>
+        {hotels.length === 0 ? (
+          <AgentEmpty icon={Hotel} text="Belum ada data hotel" />
+        ) : (
+          <ul className="mt-4 divide-y divide-pkg-hair">
+            {hotels.map((h) => (
+              <li key={h.city} className="py-5">
+                <p className="pkg-caption text-pkg-fg-3">{h.city}</p>
+                <p className="mt-1 flex items-center gap-2 text-[19px] text-pkg-fg">
+                  {h.name}
+                  {h.star ? <span className="inline-flex items-center gap-1 text-[14px] text-pkg-fg-3"><Star className="h-3.5 w-3.5 fill-current" aria-hidden />{h.star}</span> : null}
+                </p>
+                {(h.distance || h.walk) && (
+                  <p className="mt-1 flex items-center gap-1.5 text-[14px] text-pkg-fg-3"><MapPin className="h-3.5 w-3.5" aria-hidden />{[h.distance, h.walk && `${h.walk} jalan kaki`].filter(Boolean).join(" · ")}</p>
                 )}
-              </Button>
-              <Button variant="outline" onClick={() => setShareModalOpen(true)}>
-                <Palette className="h-4 w-4 mr-2" />
-                Bagikan lainnya
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              </li>
+            ))}
+          </ul>
+        )}
+      </AgentPanel>
 
-        {/* Price & Commission Card */}
-        <Card className="bg-muted border-border">
-          <CardContent className="p-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <p className="text-sm text-muted-foreground">Harga Mulai Dari</p>
-                <p className="text-3xl font-bold text-primary">{formatPrice(lowestPrice)}</p>
-                <p className="text-sm text-muted-foreground">/pax (Quad)</p>
-              </div>
-              <MyCommission packageId={pkg.id} variant="detail" />
-            </div>
-          </CardContent>
-        </Card>
+      <AgentPanel>
+        <h2 className="pkg-h3">Termasuk</h2>
+        {includedItems.length > 0 ? (
+          <ul className="mt-5 space-y-3">
+            {includedItems.map((item, i) => (
+              <li key={i} className="flex items-start gap-3 text-[16px] leading-[1.4] text-pkg-fg"><Check className="mt-0.5 h-5 w-5 shrink-0 text-pkg-ok" aria-hidden />{item}</li>
+            ))}
+          </ul>
+        ) : (
+          <AgentEmpty icon={Check} text="Belum ada data" />
+        )}
+        {excludedItems.length > 0 && (
+          <>
+            <h2 className="pkg-h3 mt-12">Belum termasuk</h2>
+            <ul className="mt-5 space-y-3">
+              {excludedItems.map((item, i) => (
+                <li key={i} className="flex items-start gap-3 text-[16px] leading-[1.4] text-pkg-fg-2"><X className="mt-0.5 h-5 w-5 shrink-0 text-pkg-red-deep" aria-hidden />{item}</li>
+              ))}
+            </ul>
+          </>
+        )}
+      </AgentPanel>
 
-        {/* Tabs Content */}
-        <Tabs defaultValue="detail" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="detail">Detail Paket</TabsTrigger>
-            <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
-            <TabsTrigger value="hotel">Hotel</TabsTrigger>
-            <TabsTrigger value="materials">Sales Materials</TabsTrigger>
-          </TabsList>
+      <AgentPanel tone="cream-2" last>
+        <h2 className="pkg-h3">Materi</h2>
+        <div className="mt-5 flex flex-wrap gap-3">
+          {pkg.catalog_link && (
+            <a href={pkg.catalog_link} target="_blank" rel="noopener noreferrer" className={agentGlass}><FileText className="h-5 w-5" aria-hidden /> Katalog PDF</a>
+          )}
+          {pkg.itinerary_link && (
+            <a href={pkg.itinerary_link} target="_blank" rel="noopener noreferrer" className={agentGlass}><Route className="h-5 w-5" aria-hidden /> Itinerary PDF</a>
+          )}
+        </div>
+        <details className="mt-6">
+          <summary className="pkg-label inline-flex min-h-11 cursor-pointer items-center text-pkg-red-deep underline underline-offset-4">Lihat teks promosi</summary>
+          <pre className="mt-3 whitespace-pre-wrap rounded-[20px] bg-pkg-cream p-4 font-mono text-[13px] leading-[1.5] text-pkg-fg-2">{generateSalesScript()}</pre>
+        </details>
+      </AgentPanel>
+    </AgentPage>
 
-          <TabsContent value="detail" className="space-y-4">
-            {/* Price Breakdown */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Breakdown Harga</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-3">
-                  <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                    <span>Paket Quad (4 orang/kamar)</span>
-                    <span className="font-bold">{formatPrice(tierPrice.quad)}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                    <span>Paket Triple (3 orang/kamar)</span>
-                    <span className="font-bold">{formatPrice(tierPrice.triple)}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                    <span>Paket Double (2 orang/kamar)</span>
-                    <span className="font-bold">{formatPrice(tierPrice.double)}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Flight Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Plane className="h-5 w-5" />
-                  Penerbangan
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4">
-                  <div>
-                    <p className="font-semibold">{pkg.flight}</p>
-                    <Badge variant="outline">{pkg.flight_type}</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Include/Exclude */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2 text-foreground">
-                    <Check className="h-5 w-5" />
-                    Termasuk
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {includedItems.length > 0 ? (
-                    <ul className="space-y-2">
-                      {includedItems.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <Check className="h-4 w-4 text-foreground shrink-0 mt-0.5" />
-                          <span className="text-sm">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Belum ada data</p>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2 text-destructive">
-                    <X className="h-5 w-5" />
-                    Tidak Termasuk
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {excludedItems.length > 0 ? (
-                    <ul className="space-y-2">
-                      {excludedItems.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <X className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-                          <span className="text-sm">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Belum ada data</p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="itinerary">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Route className="h-5 w-5" />
-                  Jadwal Perjalanan
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {pkg.itinerary_link ? (
-                  <div className="space-y-4">
-                    <p className="text-muted-foreground">
-                      Unduh itinerary lengkap untuk melihat jadwal perjalanan hari per hari.
-                    </p>
-                    <Button asChild>
-                      <a href={pkg.itinerary_link} target="_blank" rel="noopener noreferrer">
-                        <FileText className="h-4 w-4 mr-2" />
-                        Unduh Itinerary PDF
-                      </a>
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Route className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Itinerary belum tersedia</p>
-                    <p className="text-sm">Hubungi admin untuk informasi lebih lanjut</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="hotel" className="space-y-4">
-            {/* Makkah Hotel */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Hotel className="h-5 w-5" />
-                  Hotel Makkah
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {pkg.makkah_hotel_name ? (
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-lg">{pkg.makkah_hotel_name}</h4>
-                      <div className="flex items-center gap-1 mt-1">
-                        {renderStars(pkg.makkah_hotel_star)}
-                      </div>
-                    </div>
-                    <div className="grid gap-3">
-                      {pkg.makkah_distance && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span>Jarak ke Masjidil Haram: {pkg.makkah_distance}</span>
-                        </div>
-                      )}
-                      {pkg.makkah_duration_walk && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span>Waktu jalan kaki: {pkg.makkah_duration_walk}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">Belum ada data hotel</p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Madinah Hotel */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Hotel className="h-5 w-5" />
-                  Hotel Madinah
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {pkg.madinah_hotel_name ? (
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-lg">{pkg.madinah_hotel_name}</h4>
-                      <div className="flex items-center gap-1 mt-1">
-                        {renderStars(pkg.madinah_hotel_star)}
-                      </div>
-                    </div>
-                    <div className="grid gap-3">
-                      {pkg.madinah_distance && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span>Jarak ke Masjid Nabawi: {pkg.madinah_distance}</span>
-                        </div>
-                      )}
-                      {pkg.madinah_duration_walk && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span>Waktu jalan kaki: {pkg.madinah_duration_walk}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">Belum ada data hotel</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="materials">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Unduh Materi Promosi</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-3">
-                  {pkg.catalog_link && (
-                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-primary" />
-                        <div>
-                          <p className="font-medium">Katalog PDF</p>
-                          <p className="text-sm text-muted-foreground">Brosur lengkap paket</p>
-                        </div>
-                      </div>
-                      <Button size="sm" asChild>
-                        <a href={pkg.catalog_link} target="_blank" rel="noopener noreferrer">
-                          Unduh
-                        </a>
-                      </Button>
-                    </div>
-                  )}
-
-                  {pkg.itinerary_link && (
-                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Route className="h-5 w-5 text-primary" />
-                        <div>
-                          <p className="font-medium">Itinerary PDF</p>
-                          <p className="text-sm text-muted-foreground">Jadwal perjalanan</p>
-                        </div>
-                      </div>
-                      <Button size="sm" asChild>
-                        <a href={pkg.itinerary_link} target="_blank" rel="noopener noreferrer">
-                          Unduh
-                        </a>
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                <Separator />
-
-                <div>
-                  <h4 className="font-medium mb-3">Sales Script</h4>
-                  <div className="bg-muted p-4 rounded-lg text-sm whitespace-pre-wrap font-mono">
-                    {generateSalesScript()}
-                  </div>
-                  <Button className="mt-3" onClick={copySalesScript}>
-                    {copiedScript ? (
-                      <>
-                        <Check className="h-4 w-4 mr-2" />
-                        Tersalin!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy Sales Script
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* Share Modal */}
-      <PackageShareModal
-        open={shareModalOpen}
-        onOpenChange={setShareModalOpen}
-        package={pkg}
-        agentCode={agent?.referral_code || ""}
-      />
-    </div>
+    <PackageShareModal
+      open={shareModalOpen}
+      onOpenChange={setShareModalOpen}
+      package={pkg}
+      agentCode={agent?.referral_code || ""}
+    />
+    </>
   );
 };
 

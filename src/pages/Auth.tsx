@@ -12,6 +12,7 @@ import musafarLogo from "@/assets/musafar-logo.svg";
 import { getSafeErrorMessage } from "@/lib/errorHandler";
 import { z } from "zod";
 import { AuthLayout } from "@/components/layout/AuthLayout";
+import { accountExists, ACCOUNT_NOT_FOUND } from "@/lib/accountExists";
 
 // Schema untuk login - hanya validasi dasar (tidak enforce aturan password baru)
 const loginSchema = z.object({
@@ -83,7 +84,13 @@ const Auth = () => {
         password: validatedData.password,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (/invalid login credentials/i.test(error.message) && (await accountExists(validatedData.email)) === false) {
+          toast({ title: "Login gagal", description: ACCOUNT_NOT_FOUND, variant: "destructive" });
+          return;
+        }
+        throw error;
+      }
 
       if (data.session && data.user) {
         // Check if user has admin role first

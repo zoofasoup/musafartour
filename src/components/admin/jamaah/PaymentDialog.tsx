@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { MoneyInput } from "./MoneyInput";
 import { DocUpload } from "./DocUpload";
+import { uuid } from "@/lib/uuid";
 import {
   BANK_LABELS,
   DP_MIN_PER_PAX,
@@ -114,7 +115,7 @@ export function PaymentDialog({ open, onOpenChange, registrations, payments, gro
     }
     setSaving(true);
     try {
-      const transferId = rows.length > 1 ? crypto.randomUUID() : null;
+      const transferId = rows.length > 1 ? uuid() : null;
       const { error } = await supabase.from("jamaah_payments").insert(
         rows.map((r) => ({
           registration_id: r.id,

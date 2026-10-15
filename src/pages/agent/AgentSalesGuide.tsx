@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AgentPage, AgentPanel } from "@/components/agent/AgentPage";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,16 @@ import { CHILD_PRICE, INFANT_PRICE } from "@/lib/roomCombos";
 import { Link } from "react-router-dom";
 import { COMMISSION_PAYOUT_TEXT } from "@/lib/sopAgen";
 import { useHomepageData } from "@/hooks/useHomepageData";
+
+// The page's sections keep their old Card structure, drawn as flat sections of one panel: a heading, then the content,
+// with a hairline between sections (no boxes).
+const Card = ({ children }: { children: React.ReactNode; className?: string }) => <section className="py-8 first:pt-0 last:pb-0">{children}</section>;
+const CardHeader = ({ children }: { children: React.ReactNode; className?: string }) => <div className="mb-5">{children}</div>;
+const CardTitle = ({ children }: { children: React.ReactNode; className?: string }) => (
+  <h2 className="pkg-h3 flex items-center gap-3 text-pretty [&_svg]:h-5 [&_svg]:w-5 [&_svg]:shrink-0 [&_svg]:text-pkg-fg-3">{children}</h2>
+);
+const CardDescription = ({ children }: { children: React.ReactNode; className?: string }) => <p className="mt-1.5 text-[14px] text-pkg-fg-3">{children}</p>;
+const CardContent = ({ children }: { children: React.ReactNode; className?: string }) => <div className="space-y-4 text-pkg-fg">{children}</div>;
 
 const fmt = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
 
@@ -94,16 +104,9 @@ const AgentSalesGuide = () => {
   const officePhone = websiteSettings?.phone_number || "021-38312137";
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto w-full pb-20 md:pb-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <BookOpen className="h-6 w-6 text-primary" /> Panduan Penjualan
-        </h1>
-        <p className="text-muted-foreground">
-          Kebijakan, syarat, perbandingan paket, dan script tambahan - semua yang perlu kamu tahu sebelum ngobrol dengan calon jamaah.
-        </p>
-      </div>
-
+    <AgentPage title="Panduan.">
+      <AgentPanel last>
+        <div className="divide-y divide-pkg-hair">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -327,7 +330,9 @@ const AgentSalesGuide = () => {
           </Accordion>
         </CardContent>
       </Card>
-    </div>
+        </div>
+      </AgentPanel>
+    </AgentPage>
   );
 };
 

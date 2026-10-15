@@ -1,3 +1,4 @@
+import { uuid } from "./uuid";
 // URL Template Manager for WhatsApp Rotation
 
 const TEMPLATES_KEY = 'musafar_url_templates';
@@ -23,7 +24,7 @@ export interface URLTemplate {
 
 // Generate UUID
 export const generateId = (): string => {
-  return crypto.randomUUID();
+  return uuid();
 };
 
 // Get all templates

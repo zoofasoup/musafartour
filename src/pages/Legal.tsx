@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { PkgPage } from "@/components/PkgPage";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
 import { SEO } from "@/components/SEO";
 
 const COMPANY = "PT Musa Amanah Wisata (Musafar Tour & Travel)";
@@ -22,34 +22,32 @@ const LegalLayout = ({
   description: string;
   sections: Section[];
 }) => (
-  <div className="min-h-screen bg-background">
+  <>
     <SEO title={`${title} - Musafar Tour`} description={description} canonicalUrl={`https://musafartour.com${path}`} />
-    <Navbar />
-    <main className="container mx-auto px-6 md:px-8 py-16 max-w-3xl">
-      <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-2">{title}</h1>
-      <p className="text-sm text-muted-foreground mb-10">Terakhir diperbarui: {UPDATED}</p>
-      <div className="space-y-10">
-        {sections.map((s) => (
-          <section key={s.title}>
-            <h2 className="text-xl font-semibold text-foreground mb-3">{s.title}</h2>
-            <div className="space-y-3 text-foreground/80 leading-relaxed">
-              {s.body.map((b, i) =>
-                Array.isArray(b) ? (
-                  <ul key={i} className="list-disc pl-5 space-y-1.5">
-                    {b.map((li) => (
-                      <li key={li}>{li}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p key={i}>{b}</p>
-                )
-              )}
-            </div>
-          </section>
-        ))}
+    <PkgPage title={title} intro={`Terakhir diperbarui: ${UPDATED}`}>
+      <PkgPanel tone="cream" last>
+        <div className="mx-auto max-w-3xl space-y-10">
+          {sections.map((s) => (
+            <section key={s.title}>
+              <h2 className="mb-3 text-[24px] font-normal leading-[1.15] tracking-[-0.02em] text-pkg-fg">{s.title}</h2>
+              <div className="space-y-3 text-[17px] leading-[1.6] text-pkg-fg-2">
+                {s.body.map((b, i) =>
+                  Array.isArray(b) ? (
+                    <ul key={i} className="list-disc space-y-2 pl-5 marker:text-pkg-fg-3">
+                      {b.map((li) => (
+                        <li key={li} className="pl-1">{li}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p key={i}>{b}</p>
+                  )
+                )}
+              </div>
+            </section>
+          ))}
         <section>
-          <h2 className="text-xl font-semibold text-foreground mb-3">Hubungi Kami</h2>
-          <p className="text-foreground/80 leading-relaxed">
+          <h2 className="mb-3 text-[24px] font-normal leading-[1.15] tracking-[-0.02em] text-pkg-fg">Hubungi Kami</h2>
+          <p className="text-[17px] leading-[1.6] text-pkg-fg-2">
             {COMPANY}
             <br />
             {ADDRESS}
@@ -57,16 +55,16 @@ const LegalLayout = ({
             Telepon/WhatsApp: {PHONE}
             <br />
             Atau melalui halaman{" "}
-            <Link to="/kontak" className="text-primary underline underline-offset-4">
+            <Link to="/kontak" className="font-medium text-pkg-fg underline underline-offset-4">
               Kontak
             </Link>
             .
           </p>
         </section>
-      </div>
-    </main>
-    <Footer />
-  </div>
+        </div>
+      </PkgPanel>
+    </PkgPage>
+  </>
 );
 
 export const KebijakanPrivasi = () => (

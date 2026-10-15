@@ -2,11 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { BedDouble, Users, PersonStanding, Baby, Sparkles, Crown, MessageCircle, Bell, Minus, Plus } from "lucide-react";
+import { BedDouble, Users, PersonStanding, Baby, Sparkles, Crown, Minus, Plus } from "lucide-react";
 import { cn, isPackageUnavailable, isPackageDeparted, formatCurrency } from "@/lib/utils";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackagePrice } from "@/lib/packageSchema";
 import type { RoomCombo } from "@/lib/roomCombos";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 function CounterInput({ value, onChange, min = 0, max = 99 }: { value: number; onChange: (v: number) => void; min?: number; max?: number }) {
   return (
@@ -215,7 +216,7 @@ export function PackagePricingBody({
               className="text-base h-10"
             />
             <Button variant="brand" onClick={handleWhatsApp} className="w-full gap-2 bg-brand hover:bg-brand-press text-brand-foreground text-sm font-bold">
-              <MessageCircle className="h-4 w-4" /> Kirim via WhatsApp
+              <WhatsAppIcon className="h-4 w-4" /> Kirim via WhatsApp
             </Button>
           </div>
         </>
@@ -225,7 +226,7 @@ export function PackagePricingBody({
         <>
           <Separator />
           <Button onClick={handleNotifyMe} className="w-full gap-2 text-sm font-bold" variant="outline">
-            <Bell className="h-4 w-4" /> Gabung Waitlist
+            <WhatsAppIcon className="h-4 w-4" /> Gabung Waitlist
           </Button>
         </>
       )}

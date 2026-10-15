@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { ArrowRight, Bell, Bus, CalendarCheck, CalendarDays, Calculator, ChevronDown, ChevronRight, Clock, Plane, PlaneLanding, PlaneTakeoff, Share2, Users, X } from "lucide-react";
+import { ArrowRight, Bus, Check, CalendarCheck, CalendarDays, Calculator, ChevronDown, ChevronRight, Clock, Plane, PlaneLanding, PlaneTakeoff, Share2, Users, X } from "lucide-react";
 import { PkgCartButton } from "@/components/package-list/PkgCartButton";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { PkgPanel } from "./PkgPanel";
@@ -27,6 +27,7 @@ import { id as localeId } from "date-fns/locale";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackagePrice } from "@/lib/packageSchema";
 import { AIRLINE_TRANSIT_HUB, AIRPORT_CITY } from "./PackageHeader";
+import { ImageLightbox } from "@/components/ImageLightbox";
 import { ItineraryDialog } from "./ItineraryDialog";
 import type { PackagePricingBodyProps } from "./PackagePricing";
 import { PkgPricingBody } from "./PkgCalculator";
@@ -54,132 +55,6 @@ const BTN =
   "pkg-press inline-flex items-center justify-center gap-2 rounded-full font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-45";
 
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-/**
- * Full-screen image viewer: only the image on a dimmed page (no boxed black dialog around it).
- * Swipe sideways between images; tap anywhere, the close button, or Esc to close.
- */
-function ImageViewer({ images, index, alt, origin, ratio, firstSrc, onClose }: { images: string[]; index: number; alt: string; origin: DOMRect | null; ratio: number | null; firstSrc: string | null; onClose: () => void }) {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const closingRef = useRef(false);
-  const closeRef = useRef<HTMLButtonElement>(null);
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const [current, setCurrent] = useState(index);
-  const currentRef = useRef(index);
-  // The flyer's 900px file is already cached, so the viewer opens on it at once and swaps to the sharp one when it lands.
-  const [sharp, setSharp] = useState<Set<number>>(() => new Set());
-  const requested = useRef<Set<number>>(new Set());
-  useEffect(() => {
-    // Sharp file for the open image and its neighbours only, not the whole gallery.
-    [current, current - 1, current + 1].forEach((i) => {
-      if (i < 0 || i >= images.length || requested.current.has(i)) return;
-      requested.current.add(i);
-      const im = new Image();
-      im.onload = () => setSharp((prev) => new Set(prev).add(i));
-      im.src = getOptimizedImageUrl(images[i], 1600);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current]);
-  currentRef.current = current;
-
-  // Frames that map the full-screen image back onto the flyer it came from (same image only).
-  const flipFrames = () => {
-    const root = scrollerRef.current;
-    const el = root?.children[currentRef.current]?.querySelector("img") as HTMLImageElement | null;
-    if (!el || !origin || currentRef.current !== index) return null;
-    const t = el.getBoundingClientRect();
-    if (!t.width || !t.height) return null;
-    const scale = origin.width / t.width;
-    const crop = Math.max(0, t.height - origin.height / scale);
-    return {
-      el,
-      frames: [
-        { transformOrigin: "top left", transform: `translate(${origin.left - t.left}px, ${origin.top - t.top}px) scale(${scale})`, clipPath: `inset(0 0 ${crop}px 0 round 0px)` },
-        { transformOrigin: "top left", transform: "translate(0, 0) scale(1)", clipPath: "inset(0 0 0 0 round 16px)" },
-      ] as Keyframe[],
-    };
-  };
-
-  const requestClose = () => {
-    if (closingRef.current) return;
-    closingRef.current = true;
-    if (reducedMotion()) return onClose();
-    const img = flipFrames();
-    rootRef.current?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, easing: "ease-in", fill: "forwards" });
-    if (img) img.el.animate([...img.frames].reverse(), { duration: 280, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" });
-    window.setTimeout(onClose, 260);
-  };
-
-  useEffect(() => {
-    const opener = document.activeElement as HTMLElement | null;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    closeRef.current?.focus();
-    const el = scrollerRef.current;
-    if (el) el.scrollLeft = el.clientWidth * index;
-    // Grow from the tapped flyer to full screen: image from its on-page rect, backdrop fades in.
-    if (!reducedMotion()) {
-      rootRef.current?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: "ease-out" });
-      // The box has its size from the flyer's aspect ratio, so the grow-from-flyer runs at once, before the file lands.
-      const img = flipFrames();
-      if (img) img.el.animate(img.frames, { duration: 320, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" });
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") requestClose();
-      // The close button is the only control: keep Tab from leaving the dialog.
-      if (e.key === "Tab") {
-        e.preventDefault();
-        closeRef.current?.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = overflow;
-      opener?.focus?.();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return createPortal(
-    <div ref={rootRef} role="dialog" aria-modal="true" aria-label={`Gambar ${alt}`} className="fixed inset-0 z-[70] bg-black/75">
-      <div
-        ref={scrollerRef}
-        onScroll={() => {
-          const el = scrollerRef.current;
-          if (el) setCurrent(Math.round(el.scrollLeft / el.clientWidth));
-        }}
-        className="flex h-full snap-x snap-mandatory overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-      >
-        {images.map((src, i) => (
-          <div key={src} onClick={requestClose} className="flex h-full w-full shrink-0 snap-center items-center justify-center">
-            <img
-              src={sharp.has(i) ? getOptimizedImageUrl(src, 1600) : i === index && firstSrc ? firstSrc : getOptimizedImageUrl(src, 900)}
-              style={i === index && ratio ? { width: `min(100vw, calc((100svh - 24px) * ${ratio}))`, aspectRatio: String(ratio) } : undefined}
-              alt={i === 0 ? alt : `${alt} ${i + 1}`}
-              className="max-h-[calc(100svh-24px)] max-w-full rounded-2xl object-contain shadow-[0_16px_40px_rgb(0_0_0/0.4)]"
-            />
-          </div>
-        ))}
-      </div>
-      <button
-        ref={closeRef}
-        type="button"
-        onClick={requestClose}
-        aria-label="Tutup gambar"
-        className="absolute right-4 top-[max(16px,env(safe-area-inset-top))] flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-      >
-        <X className="h-5 w-5" aria-hidden />
-      </button>
-      {images.length > 1 && (
-        <p className="pointer-events-none absolute inset-x-0 bottom-[max(16px,env(safe-area-inset-bottom))] text-center text-sm font-semibold text-white">
-          {current + 1} / {images.length}
-        </p>
-      )}
-    </div>,
-    document.body
-  );
-}
 
 interface PackageMobileViewProps {
   packageData: PublishedPackage;
@@ -251,6 +126,11 @@ export function PackageMobileView({ packageData, price, transport, onBookWhatsAp
 
   const rootRef = useRef<HTMLDivElement>(null);
   const firstImage = images[0];
+  const sellingPoints = useMemo(
+    () => (packageData.selling_points || "").split(/[\n;]+|,(?!\d)/).map((t) => t.replace(/^[\s\-•*]+/, "").trim()).filter(Boolean),
+    [packageData.selling_points]
+  );
+  const lightboxImages = useMemo(() => images.map((u) => getOptimizedImageUrl(u, 1600)), [images]);
   usePkgNav(rootRef, firstImage);
 
   // Bottom bar appears once the in-sheet CTA has scrolled out of view.
@@ -441,7 +321,7 @@ export function PackageMobileView({ packageData, price, transport, onBookWhatsAp
           </p>
         )}
         {availableTiers.length > 1 && (
-          <div role="group" aria-label="Pilih jenis paket" className="-mx-6 mt-6 flex gap-2 overflow-x-auto px-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div role="group" aria-label="Pilih jenis paket" className="-mx-6 -mb-4 mt-2 flex gap-2 overflow-x-auto px-6 py-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {availableTiers.map((t) => (
               <button
                 key={t}
@@ -503,7 +383,7 @@ export function PackageMobileView({ packageData, price, transport, onBookWhatsAp
           ) : unavailable ? (
             <>
               <button type="button" onClick={handleNotifyMe} className={cn(BTN, "pkg-glass h-14 w-full text-[17px] focus-visible:ring-pkg-on-red focus-visible:ring-offset-pkg-red")}>
-                <Bell className="h-5 w-5" aria-hidden /> Gabung waitlist
+                <WhatsAppIcon className="h-5 w-5" /> Gabung waitlist
               </button>
               <p className="pkg-label">Kami kabari via WhatsApp bila ada seat.</p>
             </>
@@ -545,6 +425,25 @@ export function PackageMobileView({ packageData, price, transport, onBookWhatsAp
           </div>
         </div>
       </PkgPanel>
+
+      {/* Selling points and bonuses, one per line (the admin often saves them as one comma-separated line). */}
+      {sellingPoints.length > 0 && (
+        <PkgPanel tone="cream-2">
+          <section aria-labelledby="keunggulan-heading">
+            <h2 id="keunggulan-heading" className="pkg-h2">Keunggulan paket</h2>
+            <ul className="mt-6 space-y-4">
+              {sellingPoints.map((point) => (
+                <li key={point} className="flex items-start gap-3.5">
+                  <span className="pkg-glass mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full">
+                    <Check className="h-[18px] w-[18px] text-pkg-ok" aria-hidden />
+                  </span>
+                  <span className="pt-1 text-[17px] leading-[1.4] text-pkg-fg">{point}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </PkgPanel>
+      )}
 
       {/* 3. Dates, flight, route */}
       <PkgPanel tone="cream">
@@ -635,7 +534,7 @@ export function PackageMobileView({ packageData, price, transport, onBookWhatsAp
               </Link>
             ) : unavailable ? (
               <button type="button" onClick={handleNotifyMe} className={cn(BTN, "pkg-glass-deep h-14 w-full text-[17px] focus-visible:ring-pkg-ink")} tabIndex={ctaInView ? -1 : 0}>
-                <Bell className="h-5 w-5" aria-hidden /> Gabung waitlist
+                <WhatsAppIcon className="h-5 w-5" /> Gabung waitlist
               </button>
             ) : (
               <div className="flex items-center gap-3">
@@ -646,7 +545,7 @@ export function PackageMobileView({ packageData, price, transport, onBookWhatsAp
                   </span>
                 </div>
                 <PkgCartButton isFav={isFav} onClick={handleWishlist} tabIndex={ctaInView ? -1 : 0} />
-                <button type="button" onClick={bookWhatsApp} className={cn(BTN, "pkg-glass-red h-14 shrink-0 px-5 text-[15px] focus-visible:ring-pkg-ink [@media(hover:hover)_and_(pointer:fine)]:hover:bg-pkg-red-press")} tabIndex={ctaInView ? -1 : 0}>
+                <button type="button" onClick={bookWhatsApp} className={cn(BTN, "pkg-nudge pkg-glass-red h-14 shrink-0 px-5 text-[15px] focus-visible:ring-pkg-ink [@media(hover:hover)_and_(pointer:fine)]:hover:bg-pkg-red-press")} tabIndex={ctaInView ? -1 : 0}>
                   <WhatsAppIcon className="h-5 w-5 shrink-0" /> Tanya / Daftar
                 </button>
               </div>
@@ -700,7 +599,12 @@ export function PackageMobileView({ packageData, price, transport, onBookWhatsAp
         agentCode=""
       />
 
-      {lightbox !== null && <ImageViewer images={images} index={lightbox.index} origin={lightbox.rect} ratio={lightbox.ratio} firstSrc={lightbox.src} alt={packageData.package_name} onClose={() => setLightbox(null)} />}
+      <ImageLightbox
+        images={lightboxImages}
+        currentIndex={lightbox?.index ?? 0}
+        isOpen={lightbox !== null}
+        onClose={() => setLightbox(null)}
+      />
     </div>
   );
 }

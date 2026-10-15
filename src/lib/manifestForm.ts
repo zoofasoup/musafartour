@@ -119,7 +119,7 @@ export function passportWarning(expiry: string, departure: string): string | nul
   const need = new Date(`${departure.slice(0, 10)}T00:00:00`);
   need.setMonth(need.getMonth() + 12);
   return new Date(`${expiry}T00:00:00`) < need
-    ? "Syarat PT: paspor berlaku minimal 12 bulan dari tanggal berangkat. Paspor ini kurang dari itu. Hubungi CS untuk solusinya."
+    ? "Syarat PT: paspor berlaku minimal 12 bulan dari tanggal berangkat. Paspor ini kurang dari itu. Hubungi UC untuk solusinya."
     : null;
 }
 

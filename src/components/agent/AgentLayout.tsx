@@ -1,34 +1,44 @@
+import { useEffect } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import {
-  LayoutDashboard, Package, Calendar, Wallet,
-  Palette, Trophy, BookOpen, UserPlus, Users, LifeBuoy, Target,
+  House, Luggage, CalendarDays, HandCoins,
+  Megaphone, Medal, BookOpenText, UserRoundPlus, UsersRound, LifeBuoy, Target,
 } from "lucide-react";
 import { AppShell, type ShellNavGroup, type ShellNavItem } from "@/components/shell";
 import { agentLevelLabel } from "@/lib/agentLevels";
 import { agentCsWhatsAppUrl } from "@/lib/agentSupport";
+import { agentAvatarUrl } from "@/lib/agentAvatar";
 
 const navItems: ShellNavItem[] = [
-  { title: "Dashboard", url: "/agent/dashboard", icon: LayoutDashboard },
-  { title: "Daftarkan Jamaah", url: "/agent/daftar-jamaah", icon: UserPlus },
+  { title: "Dashboard", url: "/agent/dashboard", icon: House },
+  { title: "Daftarkan Jamaah", url: "/agent/daftar-jamaah", icon: UserRoundPlus },
   { title: "Lead Saya", url: "/agent/leads", icon: Target },
-  { title: "Jamaah Saya", url: "/agent/jamaah", icon: Users },
-  { title: "Paket", url: "/agent/packages", icon: Package },
-  { title: "Jadwal", url: "/agent/schedule", icon: Calendar },
-  { title: "Komisi", url: "/agent/commission", icon: Wallet },
-  { title: "Peringkat", url: "/agent/leaderboard", icon: Trophy },
-  { title: "Marketing", url: "/agent/marketing-kit", icon: Palette },
-  { title: "Panduan", url: "/agent/guide", icon: BookOpen },
+  { title: "Jamaah Saya", url: "/agent/jamaah", icon: UsersRound },
+  { title: "Paket", url: "/agent/packages", icon: Luggage },
+  { title: "Jadwal", url: "/agent/schedule", icon: CalendarDays },
+  { title: "Komisi", url: "/agent/commission", icon: HandCoins },
+  { title: "Peringkat", url: "/agent/leaderboard", icon: Medal },
+  { title: "Marketing", url: "/agent/marketing-kit", icon: Megaphone },
+  { title: "Panduan", url: "/agent/guide", icon: BookOpenText },
 ];
 
 const nav: ShellNavGroup[] = [{ items: navItems }];
 
 // DESIGN.md: four main pages on the phone bar, everything else behind "Lainnya".
+const SHORT_TITLE: Record<string, string> = { "/agent/dashboard": "Beranda", "/agent/jamaah": "Jamaah" };
 const bottomNav: ShellNavItem[] = ["/agent/dashboard", "/agent/jamaah", "/agent/packages", "/agent/commission"]
-  .map((url) => navItems.find((i) => i.url === url)!);
+  .map((url) => navItems.find((i) => i.url === url)!)
+  .map((i) => ({ ...i, title: SHORT_TITLE[i.url] ?? i.title }));
+const bottomAction = navItems.find((i) => i.url === "/agent/daftar-jamaah")!;
 
 const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
   const { user, agent, loading, signOut } = useAgentAuth();
+  // Marks the portal so dialogs, sheets, menus and selects (which render outside the page) take its look.
+  useEffect(() => {
+    document.documentElement.classList.add("pkg-agent");
+    return () => document.documentElement.classList.remove("pkg-agent");
+  }, []);
 
   if (loading) {
     return (
@@ -54,9 +64,11 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
       titleFallback="Portal Agen"
       extraTitles={[{ path: "/agent/profile", title: "Profil" }]}
       documentTitleSuffix="Portal Agen Musafar Tour"
-      profile={{ name: agent.name, subtitle: `Level ${agentLevelLabel(agent.level)}`, profileUrl: "/agent/profile" }}
+      profile={{ name: agent.name, subtitle: `Level ${agentLevelLabel(agent.level)}`, profileUrl: "/agent/profile", avatarUrl: agentAvatarUrl(agent.id) }}
       onSignOut={signOut}
       bottomNav={bottomNav}
+      bottomAction={bottomAction}
+      inkHeaderOnPhone
       sidebarExtra={
         <div className="rounded-md bg-card p-3 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Agent ID</p>

@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User, Users, ChevronUp, ShoppingCart, Share2, Bell, ClipboardList } from "lucide-react";
+import { User, Users, ChevronUp, ShoppingCart, Share2, ClipboardList } from "lucide-react";
 import { cn, isPackageUnavailable, isPackageDeparted, formatPriceJuta } from "@/lib/utils";
 import { useFavorites } from "@/hooks/useFavorites";
 import { PackageUrgencyBar } from "./PackageUrgencyBar";
 import PackageShareModal from "./PackageShareModal";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackagePrice } from "@/lib/packageSchema";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 interface PackageCtaButtonsProps {
   packageData: PublishedPackage;
@@ -59,7 +60,7 @@ export function PackageCtaButtons({ packageData, price, onSoloWhatsApp, calculat
       ) : unavailable ? (
         <div className="space-y-1">
           <Button onClick={handleNotifyMe} className="w-full h-12 text-base font-bold gap-2" variant="outline">
-            <Bell className="h-4 w-4" /> Gabung Waitlist
+            <WhatsAppIcon className="h-4 w-4" /> Gabung Waitlist
           </Button>
           <p className="text-center text-xs text-muted-foreground">Kami kabari via WhatsApp jika ada seat kosong</p>
         </div>

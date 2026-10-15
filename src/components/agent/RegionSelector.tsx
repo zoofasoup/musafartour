@@ -39,6 +39,8 @@ export function RegionSelector({
   const [open, setOpen] = useState(false);
   const [regions, setRegions] = useState<Region[]>([]);
   const [loading, setLoading] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -50,6 +52,7 @@ export function RegionSelector({
       }
 
       setLoading(true);
+      setFailed(false);
       try {
         const url =
           type === "province"
@@ -65,6 +68,7 @@ export function RegionSelector({
         }
       } catch (error) {
         console.error("Error fetching regions:", error);
+        if (isMounted) setFailed(true);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -75,7 +79,7 @@ export function RegionSelector({
     return () => {
       isMounted = false;
     };
-  }, [type, provinceId]);
+  }, [type, provinceId, attempt]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -99,6 +103,11 @@ export function RegionSelector({
               {loading ? (
                 <div className="flex items-center justify-center p-4">
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : failed ? (
+                <div className="space-y-2 p-4 text-center text-sm">
+                  <p>Daftar wilayah belum bisa dimuat.</p>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setAttempt((n) => n + 1)}>Coba lagi</Button>
                 </div>
               ) : (
                 "Tidak ditemukan."

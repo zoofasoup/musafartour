@@ -4,6 +4,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { Clock, ArrowLeft } from "lucide-react";
+import { redirectToWhatsApp } from "@/lib/chatRedirect";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { PkgPanel } from "@/components/package-detail/PkgPanel";
 import { Skel } from "@/components/package-list/PkgSkeletons";
 import { usePkgNav } from "@/hooks/usePkgNav";
@@ -213,6 +215,21 @@ const ArtikelDetail = () => {
                 })
               }}
             />
+            <div className="mt-12 border-t border-pkg-hair pt-8">
+              <p className="text-[22px] font-normal leading-[1.2] tracking-[-0.02em] text-pkg-fg">Siap merencanakan umrohmu?</p>
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => redirectToWhatsApp(`Halo Musafar Tour, saya baru membaca artikel "${article.title}" dan ingin bertanya soal paket umroh.`, "artikel_detail_cta")}
+                  className="pkg-press pkg-glass-red pkg-label inline-flex h-14 items-center justify-center gap-2.5 rounded-full px-7 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2"
+                >
+                  <WhatsAppIcon className="h-5 w-5" /> Tanya UC
+                </button>
+                <Link to="/paket-umroh" className="pkg-press pkg-glass pkg-label inline-flex h-14 items-center justify-center rounded-full px-7 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2">
+                  Lihat paket
+                </Link>
+              </div>
+            </div>
           </article>
         </PkgPanel>
 

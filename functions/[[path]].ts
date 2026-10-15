@@ -42,6 +42,11 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, next }) => {
     }
   }
 
+  // Retired pages (jadwal keberangkatan, kalkulator tabungan): send visitors and search engines to the package list.
+  if (/^\/(jadwal-umroh|kalkulator)(\/.*)?$/.test(normalizePath(url.pathname))) {
+    return Response.redirect(new URL("/paket-umroh", url.origin).toString(), 301);
+  }
+
   const response = await next();
   const type = response.headers.get("content-type") ?? "";
   if (!type.includes("text/html") || response.status >= 300) return response;

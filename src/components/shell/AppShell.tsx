@@ -34,6 +34,10 @@ export interface AppShellProps {
   searchable?: boolean;
   /** Four main pages for a bottom bar on phones; "Lainnya" opens the drawer. */
   bottomNav?: ShellNavItem[];
+  /** The raised round action in the middle of the phone bar. */
+  bottomAction?: ShellNavItem;
+  /** Dark header bar with the logo on phones. */
+  inkHeaderOnPhone?: boolean;
   /** "full" fills the width (admin tables); "page" caps the content at 1200 (DESIGN.md). */
   contentWidth?: "full" | "page";
   children: ReactNode;
@@ -65,6 +69,8 @@ export const AppShell = ({
   headerActions,
   searchable,
   bottomNav,
+  bottomAction,
+  inkHeaderOnPhone,
   contentWidth = "page",
   children,
 }: AppShellProps) => {
@@ -114,7 +120,8 @@ export const AppShell = ({
             title={title}
             profile={profile}
             onSignOut={onSignOut}
-            mobileTrigger={!bottomNav}
+            mobileTrigger={!bottomNav || !!inkHeaderOnPhone}
+            inkOnPhone={inkHeaderOnPhone}
             actions={headerActions}
             onOpenSearch={searchable ? () => setSearchOpen(true) : undefined}
           />
@@ -125,7 +132,7 @@ export const AppShell = ({
           </div>
         </main>
       </div>
-      {bottomNav && <ShellBottomNav items={bottomNav} pathname={pathname} />}
+      {bottomNav && <ShellBottomNav items={bottomNav} pathname={pathname} action={bottomAction} />}
       {searchable && <ShellCommandPalette groups={nav} open={searchOpen} onOpenChange={setSearchOpen} />}
     </SidebarProvider>
   );

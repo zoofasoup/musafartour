@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, Heart, ChevronLeft, ChevronRight, Bell, Users, ShieldCheck, CheckCircle2, ShoppingCart, Armchair } from "lucide-react";
+import { Star, Heart, ChevronLeft, ChevronRight, Users, ShieldCheck, CheckCircle2, ShoppingCart, Armchair } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toRupiah } from "@/lib/tracking";
@@ -9,6 +9,7 @@ import { LazyImage } from "@/components/ui/lazy-image";
 import { getPriceBadgeStyle, getOptimizedImageUrl } from "@/lib/utils";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import { airlineLogos } from "@/lib/airlineLogos";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 interface PackageCardProps {
   id?: string;
@@ -312,7 +313,7 @@ export const PackageCard = ({
                 className="relative z-20 w-full gap-2 rounded-full h-10 text-sm font-semibold"
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleNotifyMe(e); }}
               >
-                <Bell className="w-4 h-4" />
+                <WhatsAppIcon className="w-4 h-4" />
                 Gabung Waitlist
               </Button>
             </div>

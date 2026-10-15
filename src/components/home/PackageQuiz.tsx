@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, MessageCircle, RotateCcw } from "lucide-react";
+import { ArrowLeft, RotateCcw } from "lucide-react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import type { PackageData } from "@/hooks/useHomepageData";
@@ -11,6 +11,7 @@ import { PkgCardSkeleton } from "@/components/package-list/PkgSkeletons";
 import { getTierPrice, isPackageUnavailable, getSlotsTaken } from "@/lib/utils";
 import { resolveTierHotels } from "@/lib/roomCombos";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 type Who = "solo" | "parents" | "kids" | "group";
 type Focus = "price" | "hotel" | "direct" | "balanced";
@@ -210,7 +211,7 @@ export const PackageQuiz = ({ packages, loading }: { packages: PackageData[] | n
               <>
                 <h2 className="pkg-h2 mt-5">Belum ada paket yang cocok.</h2>
                 <button type="button" onClick={ask} className={`${btn} pkg-glass-red mt-6 h-14 px-7`}>
-                  <MessageCircle className="h-5 w-5" aria-hidden /> Tanya CS
+                  <WhatsAppIcon className="h-5 w-5" /> Tanya UC
                 </button>
               </>
             ) : (
@@ -232,7 +233,7 @@ export const PackageQuiz = ({ packages, loading }: { packages: PackageData[] | n
                 )}
                 <div className="mt-8 flex flex-wrap gap-3">
                   <button type="button" onClick={ask} className={`${btn} pkg-glass-red h-14 px-7`}>
-                    <MessageCircle className="h-5 w-5" aria-hidden /> Tanya CS soal ini
+                    <WhatsAppIcon className="h-5 w-5" /> Tanya UC soal ini
                   </button>
                   <button type="button" onClick={reset} className={`${btn} pkg-glass h-14 px-6`}>
                     <RotateCcw className="h-4 w-4" aria-hidden /> Ulangi

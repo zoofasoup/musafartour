@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { AgentPageHeader } from "@/components/agent/AgentPageHeader";
+import { AgentEmpty, AgentPage, AgentPanel, Figures, agentGlass } from "@/components/agent/AgentPage";
 import { AGENT_LEVEL_COLORS as levelColors, AGENT_LEVEL_ICONS as levelIcons, agentLevelLabel } from "@/lib/agentLevels";
 
 // Icon mapping
@@ -174,470 +174,179 @@ export default function AgentLeaderboard() {
     cash: <DollarSign className="h-5 w-5" />,
   };
 
+  const lvlLabel = agentLevelLabel(agent?.level);
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto w-full pb-20 md:pb-6">
-      <AgentPageHeader
-        title="Peringkat Agen"
-        description="Raih prestasi dan kumpulkan badge!"
-        icon={Trophy}
-      />
+    <AgentPage
+      title="Peringkat."
+      hero={
+        agent && (
+          <>
+            <Figures
+              items={[
+                { value: myRank >= 0 ? `#${myRank + 1}` : '-', label: 'Peringkat' },
+                { value: String(agent.total_sales || 0), label: 'Jamaah' },
+                { value: lvlLabel, label: 'Level' },
+              ]}
+            />
+            {myRank > 9 && leaderboard?.[9] && (
+              <p className="mt-6 flex items-center gap-2 text-[15px] text-pkg-fg-2"><Target className="h-4 w-4" aria-hidden /> {leaderboard[9].total_sales - (agent.total_sales || 0)} jamaah lagi ke 10 besar</p>
+            )}
+          </>
+        )
+      }
+    >
+      <AgentPanel>
+        <h2 className="pkg-h3">10 teratas</h2>
+        {loadingLeaderboard ? (
+          <div className="mt-5 space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-2xl" />)}</div>
+        ) : (
+          <ul className="mt-4">
+            {leaderboard?.slice(0, 10).map((item, index) => (
+              <li key={item.id} className={`flex items-center gap-4 rounded-2xl px-3 py-3.5 ${item.id === agent?.id ? 'bg-pkg-cream-2' : ''}`}>
+                <span className="w-9 shrink-0 text-center text-[22px] font-light tracking-[-0.02em] text-pkg-fg">{index + 1}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[17px] text-pkg-fg">{item.name}{item.id === agent?.id && <span className="text-pkg-fg-3"> · kamu</span>}</p>
+                  <p className="text-[13px] text-pkg-fg-3">{agentLevelLabel(item.level)}</p>
+                </div>
+                <span className="shrink-0 text-[15px] text-pkg-fg-2">{item.total_sales} jamaah</span>
+              </li>
+            ))}
+          </ul>
+        )}
 
-      {/* Your Ranking Widget - not sticky, since the shell header above already sticks to the same scroll container and would collide with it */}
-      {agent && (
-        <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/20">
-                  {myRank >= 0 && myRank < 3 ? (
-                    myRank === 0 ? <Trophy className="h-6 w-6 text-status-warn-fg" /> :
-                    myRank === 1 ? <Medal className="h-6 w-6 text-muted-foreground" /> :
-                    <Medal className="h-6 w-6 text-status-warn-fg" />
-                  ) : (
-                    <span className="text-lg font-bold text-primary">#{myRank >= 0 ? myRank + 1 : '--'}</span>
-                  )}
-                </div>
-                <div>
-                  <p className="font-semibold">Ranking Kamu: #{myRank >= 0 ? myRank + 1 : '--'}</p>
-                  <p className="text-sm text-muted-foreground">{agent.total_sales} penjualan</p>
-                </div>
-              </div>
-              {myRank > 9 && (
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Target Top 10:</p>
-                  <p className="text-sm font-medium text-primary">
-                    {leaderboard && leaderboard[9] 
-                      ? `${leaderboard[9].total_sales - (agent.total_sales || 0)} sales lagi!`
-                      : 'Ayo mulai jualan!'}
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        <Dialog>
+          <DialogTrigger asChild>
+            <button type="button" className={`${agentGlass} mt-5`}>Lihat semua <ChevronRight className="h-4 w-4" aria-hidden /></button>
+          </DialogTrigger>
+          <DialogContent className="max-h-[80vh] max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>100 teratas</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="h-[60vh]">
+              <ul className="divide-y pr-4">
+                {leaderboard?.map((item, index) => (
+                  <li key={item.id} className={`flex items-center gap-4 py-3 ${item.id === agent?.id ? 'font-semibold' : ''}`}>
+                    <span className="w-8 text-center text-muted-foreground">{index + 1}</span>
+                    <span className="min-w-0 flex-1 truncate">{item.name}</span>
+                    <span className="text-sm text-muted-foreground">{item.total_sales} jamaah · {agentLevelLabel(item.level)}</span>
+                  </li>
+                ))}
+              </ul>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+      </AgentPanel>
 
-      {/* Leaderboard Section */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-status-warn-fg" />
-                Leaderboard
-              </CardTitle>
-              <CardDescription>Agen dengan jamaah lunas terbanyak</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {loadingLeaderboard ? (
-            <div className="space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {leaderboard?.slice(0, 10).map((item, index) => (
-                <div 
-                  key={item.id}
-                  className={`flex items-center gap-4 p-3 rounded-lg transition-colors ${
-                    item.id === agent?.id ? 'bg-primary/10 border border-primary/20' : 'bg-muted/50 hover:bg-muted'
-                  }`}
-                >
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full shrink-0">
-                    {index === 0 ? (
-                      <div className="w-10 h-10 rounded-full bg-amber/20 flex items-center justify-center">
-                        <Trophy className="h-5 w-5 text-status-warn-fg" />
-                      </div>
-                    ) : index === 1 ? (
-                      <div className="w-10 h-10 rounded-full bg-muted-foreground/20 flex items-center justify-center">
-                        <Medal className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                    ) : index === 2 ? (
-                      <div className="w-10 h-10 rounded-full bg-status-warn-fg/20 flex items-center justify-center">
-                        <Medal className="h-5 w-5 text-status-warn-fg" />
-                      </div>
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                        <span className="font-bold text-muted-foreground">#{index + 1}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium truncate">{item.name}</p>
-                      <Badge variant="outline" className="shrink-0 text-xs">
-                        {levelIcons[item.level]}
-                        <span className="ml-1">{agentLevelLabel(item.level)}</span>
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <TrendingUp className="h-3 w-3" />
-                        {item.total_sales} paket
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Full Leaderboard Modal */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full mt-4">
-                Lihat Semua Ranking
-                <ChevronRight className="h-4 w-4 ml-2" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[80vh]">
-              <DialogHeader>
-                <DialogTitle>Peringkat lengkap, 100 teratas</DialogTitle>
-              </DialogHeader>
-              <ScrollArea className="h-[60vh]">
-                <div className="space-y-2 pr-4">
-                  {leaderboard?.map((item, index) => (
-                    <div 
-                      key={item.id}
-                      className={`flex items-center gap-4 p-3 rounded-lg ${
-                        item.id === agent?.id ? 'bg-primary/10 border border-primary/20' : 'bg-muted/50'
-                      }`}
-                    >
-                      <span className="w-8 text-center font-bold text-muted-foreground">
-                        {index + 1}
-                      </span>
-                      <div className="flex-1">
-                        <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-muted-foreground">{item.total_sales} penjualan</p>
-                      </div>
-                      <Badge variant="outline">{agentLevelLabel(item.level)}</Badge>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </DialogContent>
-          </Dialog>
-        </CardContent>
-      </Card>
-
-      {/* Challenges Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-status-warn-fg" />
-            Challenges Bulan Ini
-          </CardTitle>
-          <CardDescription>Selesaikan tantangan dan dapatkan reward ekstra!</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            {challenges?.map((challenge) => {
+      <AgentPanel tone="cream-2">
+        <h2 className="pkg-h3">Tantangan bulan ini</h2>
+        {(!challenges || challenges.length === 0) ? (
+          <AgentEmpty icon={Target} text="Belum ada tantangan" />
+        ) : (
+          <ul className="mt-4 divide-y divide-pkg-hair">
+            {challenges.map((challenge) => {
               const progress = getProgressForChallenge(challenge.id);
-              const progressPercent = Math.min(
-                ((progress?.current_progress || 0) / challenge.target_value) * 100,
-                100
-              );
-              const isCompleted = progress?.completed_at != null;
-
+              const pct = Math.min(((progress?.current_progress || 0) / challenge.target_value) * 100, 100);
+              const done = progress?.completed_at != null;
               return (
-                <Card key={challenge.id} className={isCompleted ? 'border-status-ok-border bg-status-ok-bg/50' : ''}>
-                  <CardContent className="pt-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h4 className="font-semibold flex items-center gap-2">
-                          {challenge.title}
-                          {isCompleted && <CheckCircle2 className="h-4 w-4 text-status-ok-fg" />}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">{challenge.description}</p>
-                      </div>
-                      <Badge variant={
-                        challenge.reward_type === 'cash' ? 'default' :
-                        challenge.reward_type === 'points' ? 'secondary' : 'outline'
-                      }>
-                        {challenge.reward_type === 'cash' && formatCurrency(Number(challenge.reward_value))}
-                        {challenge.reward_type === 'points' && `${challenge.reward_value} poin`}
-                        {challenge.reward_type === 'badge' && challenge.reward_value}
-                      </Badge>
+                <li key={challenge.id} className="py-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="flex items-center gap-2 text-[18px] leading-tight text-pkg-fg">{challenge.title}{done && <CheckCircle2 className="h-4 w-4 text-pkg-ok" aria-label="Selesai" />}</p>
+                      {challenge.description && <p className="mt-1 text-[14px] text-pkg-fg-3">{challenge.description}</p>}
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Progress</span>
-                        <span className="font-medium">{progress?.current_progress || 0}/{challenge.target_value}</span>
-                      </div>
-                      <Progress value={progressPercent} className="h-2" />
-                      <p className="text-xs text-muted-foreground">
-                        Berakhir: {format(new Date(challenge.end_date), 'dd MMMM yyyy', { locale: id })}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                    <span className="pkg-label shrink-0 rounded-full bg-pkg-cream px-3 py-1 text-[13px] text-pkg-fg">
+                      {challenge.reward_type === 'cash' && formatCurrency(Number(challenge.reward_value))}
+                      {challenge.reward_type === 'points' && `${challenge.reward_value} poin`}
+                      {challenge.reward_type === 'badge' && challenge.reward_value}
+                    </span>
+                  </div>
+                  <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-pkg-hair" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label={challenge.title}>
+                    <div className="h-full rounded-full bg-pkg-red" style={{ width: `${pct}%` }} />
+                  </div>
+                  <p className="mt-2 flex justify-between text-[13px] text-pkg-fg-3"><span>{progress?.current_progress || 0} dari {challenge.target_value}</span><span>Sampai {format(new Date(challenge.end_date), 'd MMM yyyy', { locale: id })}</span></p>
+                </li>
               );
             })}
-            {(!challenges || challenges.length === 0) && (
-              <div className="col-span-2 text-center py-8 text-muted-foreground">
-                Belum ada challenge aktif saat ini
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          </ul>
+        )}
+      </AgentPanel>
 
-      {/* Badges Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Award className="h-5 w-5 text-status-over-fg" />
-            Badges & Achievements
-          </CardTitle>
-          <CardDescription>
-            Koleksi badge kamu: {earnedBadges?.length || 0}/{badges?.length || 0}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
-            {badges?.slice(0, 12).map((badge) => {
-              const isEarned = earnedBadgeIds.has(badge.id);
-              const IconComponent = iconMap[badge.icon] || Award;
-              
-              return (
-                <div
-                  key={badge.id}
-                  className={`relative flex flex-col items-center p-3 rounded-lg border transition-all ${
-                    isEarned 
-                      ? 'bg-primary/10 border-primary/30' 
-                      : 'bg-muted/30 border-transparent opacity-50 grayscale'
-                  }`}
-                >
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                    isEarned ? 'bg-primary/20' : 'bg-muted'
-                  }`}>
-                    {isEarned ? (
-                      <IconComponent className="h-6 w-6 text-primary" />
-                    ) : (
-                      <Lock className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </div>
-                  <p className="mt-2 text-xs font-medium text-center line-clamp-2">{badge.name}</p>
-                  <p className="text-xs text-muted-foreground">+{badge.points_reward} poin</p>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* All Badges Modal */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full mt-4">
-                Lihat Semua Badge ({badges?.length || 0})
-                <ChevronRight className="h-4 w-4 ml-2" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[80vh]">
-              <DialogHeader>
-                <DialogTitle>Semua Badge</DialogTitle>
-              </DialogHeader>
-              <ScrollArea className="h-[60vh]">
-                <div className="grid grid-cols-2 gap-4 pr-4">
-                  {badges?.map((badge) => {
-                    const isEarned = earnedBadgeIds.has(badge.id);
-                    const IconComponent = iconMap[badge.icon] || Award;
-                    
-                    return (
-                      <div
-                        key={badge.id}
-                        className={`flex items-center gap-3 p-3 rounded-lg border ${
-                          isEarned 
-                            ? 'bg-primary/10 border-primary/30' 
-                            : 'bg-muted/30 opacity-60'
-                        }`}
-                      >
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
-                          isEarned ? 'bg-primary/20' : 'bg-muted'
-                        }`}>
-                          {isEarned ? (
-                            <IconComponent className="h-6 w-6 text-primary" />
-                          ) : (
-                            <Lock className="h-5 w-5 text-muted-foreground" />
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm">{badge.name}</p>
-                          <p className="text-xs text-muted-foreground line-clamp-2">{badge.description}</p>
-                          <p className="text-xs text-primary mt-1">+{badge.points_reward} poin</p>
-                        </div>
+      <AgentPanel>
+        <h2 className="pkg-h3">Badge</h2>
+        <p className="mt-1 text-[14px] text-pkg-fg-3">{earnedBadges?.length || 0} dari {badges?.length || 0}</p>
+        <ul className="mt-5 grid grid-cols-3 gap-x-3 gap-y-6">
+          {badges?.slice(0, 12).map((badge) => {
+            const isEarned = earnedBadgeIds.has(badge.id);
+            const IconComponent = iconMap[badge.icon] || Award;
+            return (
+              <li key={badge.id} className={`flex flex-col items-center text-center ${isEarned ? '' : 'opacity-45'}`}>
+                <span className={`grid h-14 w-14 place-items-center rounded-full ${isEarned ? 'bg-pkg-red text-pkg-on-red' : 'bg-pkg-cream-2 text-pkg-fg-3'}`}>
+                  {isEarned ? <IconComponent className="h-6 w-6" /> : <Lock className="h-5 w-5" />}
+                </span>
+                <p className="mt-2 line-clamp-2 text-[13px] leading-tight text-pkg-fg">{badge.name}</p>
+              </li>
+            );
+          })}
+        </ul>
+        <Dialog>
+          <DialogTrigger asChild>
+            <button type="button" className={`${agentGlass} mt-6`}>Semua badge <ChevronRight className="h-4 w-4" aria-hidden /></button>
+          </DialogTrigger>
+          <DialogContent className="max-h-[80vh] max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Semua badge</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="h-[60vh]">
+              <ul className="divide-y pr-4">
+                {badges?.map((badge) => {
+                  const isEarned = earnedBadgeIds.has(badge.id);
+                  const IconComponent = iconMap[badge.icon] || Award;
+                  return (
+                    <li key={badge.id} className={`flex items-center gap-3 py-3 ${isEarned ? '' : 'opacity-60'}`}>
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-muted">{isEarned ? <IconComponent className="h-5 w-5" /> : <Lock className="h-4 w-4" />}</span>
+                      <div className="min-w-0">
+                        <p className="font-medium">{badge.name}</p>
+                        <p className="line-clamp-2 text-sm text-muted-foreground">{badge.description}</p>
                       </div>
-                    );
-                  })}
-                </div>
-              </ScrollArea>
-            </DialogContent>
-          </Dialog>
-        </CardContent>
-      </Card>
-
-      {/* Levels Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-status-warn-fg" />
-            Tingkat Agen
-          </CardTitle>
-          <CardDescription>Naikkan tingkatmu untuk benefit yang lebih besar</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Current Level Card */}
-          <div className={`p-4 rounded-lg ${levelColors[agent?.level || 'silver']} text-white`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-90">Tingkat saat ini</p>
-                <p className="text-2xl font-bold">{agentLevelLabel(agent?.level)}</p>
-              </div>
-              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
-                {agent?.level === 'platinum' ? <Crown className="h-8 w-8" /> :
-                 agent?.level === 'gold' ? <Trophy className="h-8 w-8" /> :
-                 agent?.level === 'silver' ? <Medal className="h-8 w-8" /> :
-                 <Award className="h-8 w-8" />}
-              </div>
-            </div>
-            <p className="mt-2 text-sm opacity-90">{agent?.total_sales || 0} jamaah</p>
-          </div>
-
-          {/* Level Progression */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              {levels?.map((level, index) => (
-                <div 
-                  key={level.level_name}
-                  className={`flex flex-col items-center ${
-                    level.level_name === agent?.level ? 'scale-110' : 'opacity-60'
-                  }`}
-                >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${levelColors[level.level_name]}`}>
-                    {levelIcons[level.level_name]}
-                  </div>
-                  <p className="text-xs mt-1 font-medium">{agentLevelLabel(level.level_name)}</p>
-                  <p className="text-xs text-muted-foreground">{level.min_sales}+ jamaah/tahun</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Progress to Next Level */}
-            {nextLevel && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Progress ke {agentLevelLabel(nextLevel.level_name)}</span>
-                  <span className="font-medium">{agent?.total_sales || 0}/{nextLevel.min_sales}</span>
-                </div>
-                <Progress 
-                  value={((agent?.total_sales || 0) / nextLevel.min_sales) * 100} 
-                  className="h-3" 
-                />
-                <p className="text-sm text-center text-muted-foreground">
-                  {salesNeeded} jamaah lagi untuk naik tingkat.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Level Benefits */}
-          <div className="grid gap-3 md:grid-cols-2">
-            {levels?.map((level) => (
-              <div
-                key={level.level_name}
-                className={`p-4 rounded-lg border ${
-                  level.level_name === agent?.level ? 'border-primary bg-primary/5' : 'bg-muted/30'
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  {levelIcons[level.level_name]}
-                  <span className="font-semibold">{agentLevelLabel(level.level_name)}</span>
-                  {level.level_name === agent?.level && (
-                    <Badge variant="default" className="ml-auto text-xs">Tingkatmu</Badge>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Mulai {level.min_sales} jamaah per tahun
-                </p>
-                <ul className="space-y-1">
-                  {level.benefits?.map((benefit, i) => (
-                    <li key={i} className="text-xs text-muted-foreground flex items-start gap-1">
-                      <CheckCircle2 className="h-3 w-3 text-foreground mt-0.5 shrink-0" />
-                      {benefit}
                     </li>
+                  );
+                })}
+              </ul>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+      </AgentPanel>
+
+      <AgentPanel tone="cream-2" last>
+        <h2 className="pkg-h3">Level</h2>
+        {nextLevel && (
+          <div className="mt-5">
+            <p className="flex justify-between text-[15px] text-pkg-fg"><span>{salesNeeded} jamaah lagi ke {agentLevelLabel(nextLevel.level_name)}</span><span className="text-pkg-fg-3">{agent?.total_sales || 0}/{nextLevel.min_sales}</span></p>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-pkg-hair" role="progressbar" aria-valuenow={Math.round(((agent?.total_sales || 0) / nextLevel.min_sales) * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="Menuju level berikutnya">
+              <div className="h-full rounded-full bg-pkg-red" style={{ width: `${Math.max(4, Math.min(100, ((agent?.total_sales || 0) / nextLevel.min_sales) * 100))}%` }} />
+            </div>
+          </div>
+        )}
+        <ul className="mt-6 divide-y divide-pkg-hair">
+          {levels?.map((level) => (
+            <li key={level.level_name} className="py-5">
+              <p className="flex items-center gap-2 text-[19px] text-pkg-fg">
+                {agentLevelLabel(level.level_name)}
+                {level.level_name === agent?.level && <span className="pkg-label rounded-full bg-pkg-red px-3 py-0.5 text-[12px] text-pkg-on-red">Levelmu</span>}
+              </p>
+              <p className="mt-1 text-[14px] text-pkg-fg-3">Mulai {level.min_sales} jamaah per tahun</p>
+              {level.benefits && level.benefits.length > 0 && (
+                <ul className="mt-3 space-y-1.5">
+                  {level.benefits.map((benefit, i) => (
+                    <li key={i} className="flex items-start gap-2 text-[14px] text-pkg-fg-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-pkg-ok" aria-hidden />{benefit}</li>
                   ))}
                 </ul>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Rewards Store Section: hidden until redeeming and awarding points are built (AGT-114) */}
-      {SHOW_REWARDS_STORE && (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Gift className="h-5 w-5 text-status-over-fg" />
-                Rewards Store
-              </CardTitle>
-              <CardDescription>Tukarkan poin kamu dengan hadiah menarik</CardDescription>
-            </div>
-            <Badge variant="secondary" className="text-lg px-4 py-1">
-              {agentPoints?.available_points || 0} pts
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {rewards?.map((reward) => {
-              const canRedeem = (agentPoints?.available_points || 0) >= reward.points_cost;
-              const outOfStock = reward.stock !== null && reward.stock <= 0;
-
-              return (
-                <Card key={reward.id} className={`overflow-hidden ${outOfStock ? 'opacity-50' : ''}`}>
-                  <div className="aspect-video bg-muted flex items-center justify-center">
-                    {rewardCategoryIcons[reward.category] || <Gift className="h-12 w-12 text-muted-foreground" />}
-                  </div>
-                  <CardContent className="pt-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h4 className="font-semibold">{reward.name}</h4>
-                        <p className="text-sm text-muted-foreground line-clamp-2">{reward.description}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-3">
-                      <Badge variant="outline">{reward.points_cost} pts</Badge>
-                      <Button 
-                        size="sm" 
-                        disabled={!canRedeem || outOfStock}
-                        variant={canRedeem && !outOfStock ? "default" : "outline"}
-                      >
-                        {outOfStock ? 'Habis' : 'Redeem'}
-                      </Button>
-                    </div>
-                    {reward.stock !== null && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Stok: {reward.stock}
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-          {(!rewards || rewards.length === 0) && (
-            <div className="text-center py-8 text-muted-foreground">
-              Belum ada rewards tersedia
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      )}
-    </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </AgentPanel>
+    </AgentPage>
   );
 }

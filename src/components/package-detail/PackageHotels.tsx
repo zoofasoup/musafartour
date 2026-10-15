@@ -6,6 +6,7 @@ import { MapPin, Footprints, Hotel, Star, ImageIcon, ExternalLink } from "lucide
 import { supabase } from "@/integrations/supabase/client";
 import { cn, getOptimizedImageUrl } from "@/lib/utils";
 import { ImageLightbox } from "@/components/ImageLightbox";
+import { GoogleMapsIcon } from "@/components/icons/GoogleMapsIcon";
 import { LazyImage } from "@/components/ui/lazy-image";
 import type { PublishedPackage } from "@/hooks/usePackages";
 import type { PackageHotels as PackageHotelsType } from "@/lib/packageSchema";
@@ -120,16 +121,16 @@ function HotelSwipe({ photos, mapsUrl, onOpen }: { photos: { label: string; url:
           </button>
         ))}
       </div>
-      <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-pkg-ink/60 px-2.5 py-1 text-xs font-semibold text-pkg-cream backdrop-blur-sm">{photos[active]?.label}</span>
+      <span className="pkg-glass-deep pkg-label pointer-events-none absolute left-3 top-3 rounded-full px-3 py-1.5">{photos[active]?.label}</span>
       {mapsUrl && (
         <a
           href={mapsUrl}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Lihat di Google Maps"
-          className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-pkg-cream/90 text-pkg-ink shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
+          className="pkg-press pkg-glass-deep absolute bottom-3 right-3 flex h-12 w-12 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream"
         >
-          <MapPin className="h-5 w-5" aria-hidden />
+          <GoogleMapsIcon className="h-6 w-6 object-contain" />
         </a>
       )}
       {photos.length > 1 && (

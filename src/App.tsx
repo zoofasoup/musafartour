@@ -36,7 +36,6 @@ const Galeri = lazy(() => import("./pages/Galeri"));
 const Artikel = lazy(() => import("./pages/Artikel"));
 const ArtikelDetail = lazy(() => import("./pages/ArtikelDetail"));
 const Kontak = lazy(() => import("./pages/Kontak"));
-const JadwalUmroh = lazy(() => import("./pages/JadwalUmroh"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const KebijakanPrivasi = lazy(() => import("./pages/Legal").then((m) => ({ default: m.KebijakanPrivasi })));
 const SyaratKetentuan = lazy(() => import("./pages/Legal").then((m) => ({ default: m.SyaratKetentuan })));
@@ -73,8 +72,6 @@ const URLShortener = lazy(() => import("./pages/admin/URLShortener"));
 const ShortLinkRedirect = lazy(() => import("./pages/ShortLinkRedirect"));
 const AgentShortLinkRedirect = lazy(() => import("./pages/AgentShortLinkRedirect"));
 const BoothLead = lazy(() => import("./pages/BoothLead"));
-const UmrohCalculator = lazy(() => import("./pages/UmrohCalculator"));
-const UmrohCalculatorResult = lazy(() => import("./pages/UmrohCalculatorResult"));
 const PublicMarketingKit = lazy(() => import("./pages/PublicMarketingKit"));
 
 // Agent Portal
@@ -83,6 +80,7 @@ const AgentRegister = lazy(() => import("./pages/agent/AgentRegister"));
 const JadiAgen = lazy(() => import("./pages/JadiAgen"));
 const SopAgen = lazy(() => import("./pages/SopAgen"));
 const AgentForgotPassword = lazy(() => import("./pages/agent/AgentForgotPassword"));
+const AgentSop = lazy(() => import("./pages/agent/AgentSop"));
 const AgentOnboarding = lazy(() => import("./pages/agent/AgentOnboarding"));
 const AgentDashboard = lazy(() => import("./pages/agent/AgentDashboard"));
 const AgentPackages = lazy(() => import("./pages/agent/AgentPackages"));
@@ -208,7 +206,7 @@ const ROUTE_META: { match: (p: string) => boolean; title: string; description?: 
   {
     match: (p) => p === "/cek-status",
     title: "Cek Status Pendaftaran - Musafar Tour",
-    description: "Cek status pendaftaran umrohmu dengan kode pendaftaran: menunggu CS, diterima, DP, atau lunas.",
+    description: "Cek status pendaftaran umrohmu dengan kode pendaftaran: menunggu UC, diterima, DP, atau lunas.",
     canonical: "https://musafartour.com/cek-status",
     noindex: true,
   },
@@ -220,12 +218,6 @@ const ROUTE_META: { match: (p: string) => boolean; title: string; description?: 
   },
   { match: (p) => p === "/syarat-umroh", title: "Persyaratan dan Term of Service Umroh - Musafar Tour" },
   { match: (p) => p === "/packages", title: "Marketing Kit - Musafar Tour", noindex: true },
-  {
-    match: (p) => p === "/kalkulator",
-    title: "Kalkulator Tabungan Umroh - Musafar Tour",
-    description: "Hitung berapa yang perlu ditabung per hari dan per bulan untuk berangkat umroh bersama keluarga.",
-  },
-  { match: (p) => p.startsWith("/kalkulator/hasil"), title: "Hasil Kalkulator Umroh - Musafar Tour", noindex: true },
 ];
 
 const RouteMeta = () => {
@@ -235,7 +227,7 @@ const RouteMeta = () => {
   return <SeoTags title={meta.title} description={meta.description} canonicalUrl={meta.canonical} noindex={meta.noindex} useDefaults={false} />;
 };
 
-// ?ref={agentCode} can land on any page (home, articles, calculator), not just package detail.
+// ?ref={agentCode} can land on any page (home, articles), not just package detail.
 const ReferralCaptureListener = () => {
   useReferralCapture();
   return null;
@@ -308,11 +300,10 @@ const ConditionalFloatingWhatsApp = () => {
   const isAdminPage = location.pathname.startsWith('/admin');
   const isAgentPage = location.pathname.startsWith('/agent');
   const isBoothPage = location.pathname === '/booth';
-  const isCalcPage = location.pathname.startsWith('/kalkulator');
   const isPackageDetailPage = location.pathname.startsWith('/paket-umroh/');
   const isFlyerPrintPage = location.pathname === '/flyer-print';
 
-  if (isAdminPage || isAgentPage || isBoothPage || isCalcPage || isPackageDetailPage || isFlyerPrintPage) {
+  if (isAdminPage || isAgentPage || isBoothPage || isPackageDetailPage || isFlyerPrintPage) {
     return null;
   }
 
@@ -367,7 +358,7 @@ const App = () => (
                   <Route path="/artikel" element={<Artikel />} />
                   <Route path="/artikel/:slug" element={<ArtikelDetail />} />
                   <Route path="/kontak" element={<Kontak />} />
-                  <Route path="/jadwal-umroh" element={<JadwalUmroh />} />
+                  <Route path="/jadwal-umroh" element={<Navigate to="/paket-umroh" replace />} />
                   <Route path="/kebijakan-privasi" element={<KebijakanPrivasi />} />
                   <Route path="/syarat-ketentuan" element={<SyaratKetentuan />} />
                   <Route path="/chat" element={<Chat />} />
@@ -375,8 +366,7 @@ const App = () => (
                   <Route path="/l/:code" element={<AgentShortLinkRedirect />} />
                   <Route path="/r/:code" element={<AgentReferralRedirect />} />
                   <Route path="/booth" element={<BoothLead />} />
-                  <Route path="/kalkulator" element={<UmrohCalculator />} />
-                  <Route path="/kalkulator/hasil/:id" element={<UmrohCalculatorResult />} />
+                  <Route path="/kalkulator/*" element={<Navigate to="/paket-umroh" replace />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/admin/setup" element={<AdminSetup />} />
                   <Route path="/set-password" element={<SetPassword />} />
@@ -400,6 +390,16 @@ const App = () => (
                       <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
                         <AgentProtectedRoute>
                           <AgentOnboarding />
+                        </AgentProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/agent/onboarding/sop"
+                    element={
+                      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+                        <AgentProtectedRoute>
+                          <AgentSop />
                         </AgentProtectedRoute>
                       </Suspense>
                     }

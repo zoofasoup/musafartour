@@ -5,7 +5,9 @@ import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { Loader2 } from "lucide-react";
 import AgentLayout from "./AgentLayout";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/ui/status-badge";
+import musafarLogo from "@/assets/musafar-logo.svg";
+import { PkgPanel } from "@/components/package-detail/PkgPanel";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { AGENT_CS_WHATSAPP } from "@/lib/agentSupport";
 import { AgentSetupChecklist } from "@/components/agent/AgentSetupChecklist";
 
@@ -39,11 +41,16 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
   }
 
   const isFullyOnboarded = !!(agent.ktp_number && agent.ktp_image_url && agent.address);
-  const isOnboardingPage = location.pathname === '/agent/onboarding';
+  const isOnboardingPage = location.pathname.startsWith('/agent/onboarding');
 
   // If not fully onboarded, force redirect to onboarding page
   if (!isFullyOnboarded && !isOnboardingPage) {
     return <Navigate to="/agent/onboarding" replace />;
+  }
+
+  // Data sent but the SOP not accepted yet: step 2 is its own page
+  if (isFullyOnboarded && agent.status === 'pending' && !agent.sop_accepted_at && location.pathname !== '/agent/onboarding/sop') {
+    return <Navigate to="/agent/onboarding/sop" replace />;
   }
 
   // Agent not active
@@ -55,31 +62,42 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
         : `Halo PIC Agen Musafar, saya ${agent.name} (Agent ID ${agent.referral_code}). Akun agen saya dinonaktifkan, mohon info lebih lanjut.`
     );
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="w-full max-w-lg space-y-4">
-        <div className="rounded-lg border border-border bg-card p-6 text-center shadow-sm">
-          <div className="mx-auto mb-4">
-            <StatusBadge kind={pending ? "warn" : "bad"}>{pending ? "Calon Agen" : "Dinonaktifkan"}</StatusBadge>
+      <div className="pkg-v2 min-h-screen">
+        <PkgPanel tone="ink" top>
+          <div className="mx-auto max-w-2xl">
+            <div className="flex items-center justify-between gap-4">
+              <Link to="/" aria-label="Musafar Tour, ke beranda"><img src={musafarLogo} alt="Musafar Tour" className="h-8 brightness-0 invert" /></Link>
+              <button
+                type="button"
+                className="pkg-press pkg-glass pkg-label inline-flex h-11 items-center rounded-full px-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream"
+                onClick={() => signOut()}
+              >
+                Keluar
+              </button>
+            </div>
+            <p className="pkg-label mt-10 inline-flex items-center gap-2 text-pkg-fg-2">
+              <span className={`h-2 w-2 rounded-full ${pending ? "bg-[#f0b429]" : "bg-pkg-red-bright"}`} aria-hidden />
+              {pending ? "Calon agen" : "Dinonaktifkan"}
+            </p>
+            <h1 className="pkg-title mt-3 text-balance !text-[40px] md:!text-[56px]">{pending ? "Menunggu persetujuan." : "Akun dinonaktifkan."}</h1>
+            <p className="mt-5 text-[17px] leading-[1.5] text-pkg-fg-2">
+              {pending ? "Admin sedang memeriksa datamu, biasanya 1-2 hari kerja. Kami kabari lewat WhatsApp." : "Hubungi PIC Agen untuk info lebih lanjut."}
+            </p>
+            <a
+              href={`https://wa.me/${AGENT_CS_WHATSAPP}?text=${waText}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pkg-press pkg-glass pkg-label mt-8 inline-flex h-12 items-center gap-2 rounded-full px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream"
+            >
+              <WhatsAppIcon className="h-5 w-5" /> Hubungi PIC Agen
+            </a>
           </div>
-          <h1 className="mb-2 text-2xl font-bold">{pending ? "Menunggu Persetujuan" : "Akun Dinonaktifkan"}</h1>
-          <p className="mb-6 text-sm text-muted-foreground">
-            {pending
-              ? "Data kamu sudah kami terima dan sedang diperiksa admin, biasanya 1-2 hari kerja. Pastikan dua langkah di bawah selesai supaya verifikasi tidak tertunda. Setelah disetujui, kamu tinggal membayar biaya registrasi dan kami kabari lewat WhatsApp."
-              : "Akun agen kamu sedang dinonaktifkan. Hubungi PIC Agen untuk informasi lebih lanjut."}
-          </p>
-          <div className="flex flex-col gap-2">
-            <Button asChild variant="brand" className="w-full">
-              <a href={`https://wa.me/${AGENT_CS_WHATSAPP}?text=${waText}`} target="_blank" rel="noopener noreferrer">
-                Hubungi PIC Agen via WhatsApp
-              </a>
-            </Button>
-            <Button variant="outline" className="w-full" onClick={() => signOut()}>
-              Keluar
-            </Button>
-          </div>
-        </div>
-        {pending && <AgentSetupChecklist />}
-        </div>
+        </PkgPanel>
+        {pending && (
+          <PkgPanel tone="cream" last>
+            <div className="mx-auto max-w-2xl"><AgentSetupChecklist bare /></div>
+          </PkgPanel>
+        )}
       </div>
     );
   }
