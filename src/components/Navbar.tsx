@@ -10,8 +10,9 @@ import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { redirectToWhatsApp } from "@/lib/chatRedirect";
 import "@/styles/pkg-v2.css";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useAgentAuth } from "@/hooks/useAgentAuth";
 
-const navLinks = [
+const baseNavLinks = [
   { href: "/paket-umroh", label: "Paket Umroh" },
   { href: "/artikel", label: "Artikel" },
   { href: "/galeri", label: "Galeri" },
@@ -33,6 +34,9 @@ const Navbar = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
   const { favorites } = useFavorites();
+  const { agent } = useAgentAuth();
+  // A signed-in agent goes straight to the portal; everyone else sees the recruiting page.
+  const navLinks = baseNavLinks.map((l) => (l.href === "/jadi-agen" && agent ? { href: "/agent/dashboard", label: "Dashboard Agen" } : l));
 
   useEffect(() => {
     const handleScroll = () => {

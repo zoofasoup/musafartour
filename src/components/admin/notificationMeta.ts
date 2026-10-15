@@ -33,6 +33,12 @@ export const NOTIFICATION_TYPES: Record<string, TypeMeta> = {
     label: "Penarikan agen",
     groupTitle: n => `${n} permintaan penarikan`,
   },
+  agent_fee_proof: {
+    icon: Banknote,
+    tone: "info",
+    label: "Bukti transfer agen",
+    groupTitle: n => `${n} bukti transfer agen`,
+  },
   commission_eligible: {
     icon: Banknote,
     tone: "info",

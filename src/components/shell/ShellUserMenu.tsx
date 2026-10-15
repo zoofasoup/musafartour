@@ -30,7 +30,7 @@ export const ShellUserMenu = ({ profile, onSignOut }: { profile: ShellProfile; o
       <button
         type="button"
         aria-label={`Menu akun ${profile.name}`}
-        className="flex h-10 items-center gap-2 rounded-full pl-0.5 pr-2 outline-none transition-colors hover:bg-field-hover focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-field-hover [@media(pointer:coarse)]:h-11"
+        className="flex h-10 w-10 items-center justify-center gap-2 rounded-full p-0 outline-none sm:w-auto sm:justify-start sm:pl-0.5 sm:pr-2 transition-colors hover:bg-field-hover focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-field-hover [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11 sm:[@media(pointer:coarse)]:w-auto"
       >
         <ShellAvatar profile={profile} />
         <span className="hidden min-w-0 text-left leading-tight sm:block">

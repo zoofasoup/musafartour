@@ -43,6 +43,31 @@ function Row({ label, children }: { label: React.ReactNode; children: React.Reac
   );
 }
 
+/** Transfer proof the agent uploaded: a 5 minute signed link, opened full size in a new tab. */
+function FeeProof({ agent, open }: { agent: Agent; open: boolean }) {
+  const path = agent.fee_proof_path ?? null;
+  const q = useQuery({
+    queryKey: ["agent-fee-proof-signed", path],
+    enabled: open && !!path,
+    retry: false,
+    staleTime: 4 * 60_000,
+    gcTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.storage.from("agent-documents").createSignedUrl(path!, 300);
+      if (error || !data?.signedUrl) throw error ?? new Error("no url");
+      return data.signedUrl;
+    },
+  });
+  if (!path) return null;
+  if (q.isLoading) return <div className="flex h-32 items-center justify-center rounded-md bg-muted"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden /></div>;
+  if (q.isError || !q.data) return <p className="text-sm text-status-bad-fg" role="alert">Bukti transfer belum bisa dimuat.</p>;
+  return (
+    <a href={q.data} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-lg border bg-muted">
+      <img src={q.data} alt="Bukti transfer biaya registrasi" className="max-h-72 w-full object-contain" />
+    </a>
+  );
+}
+
 /** KTP photo from the private bucket: a 5 minute signed link, fetched only while the dialog is open. Never logged. */
 function KtpPhoto({ agent, open }: { agent: Agent; open: boolean }) {
   const path = ktpStoragePath(agent.ktp_image_url);
@@ -245,6 +270,9 @@ export function AgentDetailDialog({
                   <Row label={`Biaya registrasi ${rupiah(AGENT_REGISTRATION_FEE)}`}>
                     <StatusBadge kind={fee === "unpaid" ? "warn" : fee === "paid" ? "ok" : "info"}>{fee === "unpaid" && agent.status === "active" ? "Menunggu pembayaran biaya" : REGISTRATION_FEE_LABELS[fee]}</StatusBadge>
                   </Row>
+                  {agent.fee_proof_sent_at && (
+                    <Row label="Bukti transfer dikirim">{format(new Date(agent.fee_proof_sent_at), "d MMM yyyy, HH:mm", { locale: idLocale })}</Row>
+                  )}
                   {agent.registration_fee_paid_at && (
                     <Row label="Diterima pada">{format(new Date(agent.registration_fee_paid_at), "d MMM yyyy, HH:mm", { locale: idLocale })}</Row>
                   )}
@@ -254,8 +282,9 @@ export function AgentDetailDialog({
                       : <span className="font-normal text-muted-foreground">Belum disetujui</span>}
                   </Row>
                 </div>
+                {fee === "unpaid" && <FeeProof agent={agent} open={open} />}
                 {fee === "unpaid" && agent.status === "pending" && (
-                  <p className="text-sm text-muted-foreground">Biaya registrasi dibayar setelah agen disetujui. Tandai diterima setelah bukti transfer masuk.</p>
+                  <p className="text-sm text-muted-foreground">Biaya registrasi adalah langkah ke-3 pendaftaran. Tandai diterima setelah bukti transfer masuk.</p>
                 )}
                 {fee === "unpaid" && (
                   <div className="flex flex-col gap-2 sm:flex-row">

@@ -33,7 +33,7 @@ const FAQS = [
   { q: "Kapan komisi dibayar?", a: "Hari H sampai H+2 setelah jamaah landing, bila syarat terpenuhi." },
   { q: "Apa syarat jadi agen?", a: "Minimal 17 tahun, WNI, punya KTP, WhatsApp dan rekening bank aktif, bukan karyawan Musafar atau mitra travel lain." },
   { q: "Ada bonus?", a: "Closing 5 jamaah Rp500.000, 10 jamaah Rp1.500.000, 40 jamaah motor listrik atau tunai, dalam 1 invoice (sekali transaksi). Hanya untuk jamaah yang kamu bawa langsung." },
-  { q: "Registrasi dibayar ke mana?", a: `${rupiah(AGENT_REGISTRATION_FEE)}, sekali, setelah disetujui, ke rekening PT Musa Amanah Wisata. Jika mundur, biaya hangus karena ditukar perlengkapan dan welcome kit.` },
+  { q: "Registrasi dibayar ke mana?", a: `${rupiah(AGENT_REGISTRATION_FEE)}, sekali, bersama data diri dan SOP saat mendaftar, ke rekening PT Musa Amanah Wisata. Jika mundur, biaya hangus karena ditukar perlengkapan dan welcome kit.` },
   { q: "Kalau jamaah batal atau refund?", a: "Tidak ada komisi. Komisi yang sudah dibayar dipotong dari komisi berikutnya atau dikembalikan." },
   { q: "Apakah agen menerima uang jamaah?", a: "Tidak. Semua pembayaran hanya ke rekening resmi Musafar." },
   { q: "Berapa lama persetujuan akun?", a: "Biasanya 1 sampai 2 hari kerja setelah data dan SOP lengkap." },

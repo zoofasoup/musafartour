@@ -23,6 +23,8 @@ export interface Agent {
   approved_at: string | null;
   registration_fee_status?: "unpaid" | "paid" | "waived";
   registration_fee_paid_at?: string | null;
+  fee_proof_path?: string | null;
+  fee_proof_sent_at?: string | null;
   sop_accepted_at?: string | null;
   sop_version?: string | null;
   ktp_number: string | null;
@@ -111,13 +113,14 @@ export function missingFields(agent: Pick<Agent, "ktp_number" | "ktp_image_url" 
 
 /**
  * Everything worth a second look before approving: missing identity data and the SOP not accepted. The registration
- * fee is NOT checked here: it is paid after approval (owner decision, Virna). Approving anyway stays possible.
+ * The registration fee is the third onboarding step: approving before it is received is allowed but warned about.
  */
 export function approvalWarnings(
   agent: Pick<Agent, "ktp_number" | "ktp_image_url" | "address" | "phone" | "wa_number" | "registration_fee_status" | "sop_accepted_at">
 ): string[] {
   const out = missingFields(agent).map((k) => MISSING_LABEL[k]);
   if (!agent.sop_accepted_at) out.push("SOP belum disetujui");
+  if ((agent.registration_fee_status ?? "unpaid") === "unpaid") out.push("Biaya registrasi belum diterima");
   return out;
 }
 

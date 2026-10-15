@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { copyText } from "@/lib/copy";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -133,12 +134,8 @@ ${agent?.referral_code ? `Agent ID: ${agent.referral_code}` : ""}`;
 
   const copySalesScript = async () => {
     const script = generateSalesScript();
-    await navigator.clipboard.writeText(script);
+    if (!(await copyText(script, "Teks promosi disalin."))) return;
     setCopiedScript(true);
-    toast({
-      title: "Teks promosi disalin!",
-      description: "Paste ke WhatsApp atau platform lainnya",
-    });
     setTimeout(() => setCopiedScript(false), 2000);
   };
 

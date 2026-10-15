@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { copyText } from "@/lib/copy";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -225,9 +226,8 @@ const AgentMarketingKit = () => {
   };
 
   const handleCopy = async (text: string, id: string) => {
-    await navigator.clipboard.writeText(text);
+    if (!(await copyText(text, "Teks disalin."))) return;
     setCopiedId(id);
-    toast.success('Berhasil disalin!');
     setTimeout(() => setCopiedId(null), 2000);
   };
 

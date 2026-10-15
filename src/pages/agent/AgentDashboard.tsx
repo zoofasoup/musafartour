@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { copyText } from "@/lib/copy";
 import { toast } from "sonner";
 import { ArrowRight, CheckCircle2, Clock, Copy, Share2, UserPlus, Users } from "lucide-react";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
@@ -55,7 +56,7 @@ const AgentDashboard = () => {
   const progress = levelInfo.salesNeeded > 0 ? Math.min(1, agent.total_sales / levelInfo.salesNeeded) : 1;
 
   const copy = (text: string, done: string) => {
-    navigator.clipboard.writeText(text).then(() => toast.success(done), () => toast.error("Belum bisa menyalin. Coba lagi."));
+    void copyText(text, done);
   };
   const firstName = agent.name.split(" ")[0];
   // Approved but the registration fee is not received yet: the database refuses leads, jamaah and promo-link attribution.

@@ -150,7 +150,7 @@ const URLTemplateManager = () => {
     navigator.clipboard.writeText(url);
     recordTemplateUse(template.id);
     loadTemplates();
-    toast.success('✓ URL copied to clipboard!');
+    toast.success('URL disalin.');
   };
 
   const handlePreview = (template: URLTemplate) => {

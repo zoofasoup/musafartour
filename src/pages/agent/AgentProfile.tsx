@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { copyText } from "@/lib/copy";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -295,9 +296,8 @@ const AgentProfile = () => {
 
   const copyReferralCode = async () => {
     if (agent?.referral_code) {
-      await navigator.clipboard.writeText(agent.referral_code);
+      if (!(await copyText(agent.referral_code, "Agent ID disalin."))) return;
       setCopied(true);
-      toast.success("Agent ID disalin!");
       setTimeout(() => setCopied(false), 2000);
     }
   };

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { copyText } from "@/lib/copy";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { Check, Copy, IdCard, Printer } from "lucide-react";
@@ -22,14 +23,11 @@ export function AgentIdCard({ name, agentId, level, status, since }: Props) {
   const sinceLabel = since ? format(new Date(since), "d MMMM yyyy", { locale: localeId }) : "Belum aktif";
 
   const copy = () => {
-    navigator.clipboard.writeText(agentId).then(
-      () => {
-        setCopied(true);
-        toast.success("Agent ID disalin!");
-        setTimeout(() => setCopied(false), 2000);
-      },
-      () => toast.error("Belum bisa menyalin. Coba lagi.")
-    );
+    void copyText(agentId, "Agent ID disalin.").then((ok) => {
+      if (!ok) return;
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   return (

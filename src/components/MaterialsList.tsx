@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { copyText } from "@/lib/copy";
 import { AssetItem, Campaign, ParsedItem, ItineraryDay } from '../marketing-types';
 import { parseFilename } from '../marketing-utils';
 import { Download, Copy, FileText, Image as ImageIcon, Map, FileSpreadsheet, CheckCircle2, Clock, CalendarDays, Search, ArrowDown } from 'lucide-react';
@@ -37,9 +38,11 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({ campaign, searchQu
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+    void copyText(text, "Teks disalin.").then((ok) => {
+      if (!ok) return;
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    });
   };
 
   const renderCard = (item: ParsedItem, icon: React.ReactNode, hideThumbnail = false, customAspect = 'aspect-[4/5]', objectFit = 'object-cover') => (

@@ -102,6 +102,10 @@ const AgentManagement = () => {
   // Fetch agents
   const { data: agents = [], isLoading, error: agentsError, refetch: refetchAgents, isRefetching: agentsRefetching } = useQuery({
     queryKey: ['admin-agents'],
+    // Agents fill in their data while the admin has this page open: always show the latest.
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('agents')

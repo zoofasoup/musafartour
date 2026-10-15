@@ -82,24 +82,24 @@ const AgentLogin = () => {
       subtitle="Masukkan email dan password untuk melanjutkan ke dasbor kamu."
     >
       {linkExpired && !unconfirmedEmail && (
-        <div role="alert" className="mb-6 rounded-lg border border-status-warn-border bg-status-warn-bg p-4 text-status-warn-fg">
+        <div role="alert" className="mb-6 rounded-[24px] bg-pkg-cream-2 p-5 text-pkg-fg">
           <p className="flex items-start gap-2 text-sm font-semibold">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-            Tautan konfirmasi sudah kedaluwarsa atau sudah pernah dipakai.
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-pkg-red-deep" aria-hidden />
+            Tautan sudah kedaluwarsa atau pernah dipakai.
           </p>
-          <p className="mt-1 text-sm">Kalau akunmu sudah aktif, langsung masuk di bawah. Kalau belum, minta email konfirmasi baru.</p>
-          <ResendConfirmation className="mt-3 rounded-md bg-card p-3 text-foreground" />
+          <p className="mt-1 text-sm text-pkg-fg-2">Sudah aktif? Langsung masuk. Belum? Kirim ulang.</p>
+          <ResendConfirmation compact className="mt-3" />
         </div>
       )}
 
       {unconfirmedEmail && (
-        <div role="alert" className="mb-6 rounded-lg border border-status-warn-border bg-status-warn-bg p-4 text-status-warn-fg">
+        <div role="alert" className="mb-6 rounded-[24px] bg-pkg-cream-2 p-5 text-pkg-fg">
           <p className="flex items-start gap-2 text-sm font-semibold">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-            Email {unconfirmedEmail} belum dikonfirmasi.
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-pkg-red-deep" aria-hidden />
+            <span className="break-all">{unconfirmedEmail} belum dikonfirmasi.</span>
           </p>
-          <p className="mt-1 text-sm">Buka email konfirmasi yang kami kirim saat kamu mendaftar, lalu klik tautannya. Belum ada atau tautannya mati? Kirim ulang di bawah.</p>
-          <ResendConfirmation email={unconfirmedEmail} className="mt-3 rounded-md bg-card p-3 text-foreground" />
+          <p className="mt-1 text-sm text-pkg-fg-2">Buka emailnya, klik tautannya.</p>
+          <ResendConfirmation compact email={unconfirmedEmail} className="mt-3" />
         </div>
       )}
 

@@ -152,37 +152,30 @@ const AgentRegister = () => {
 
   if (success) {
     const steps = [
-      { icon: Mail, title: "Konfirmasi email", text: `Buka email yang kami kirim ke ${formData.email.trim()}, lalu klik tautan konfirmasi. Cek folder spam jika belum ada.` },
-      { icon: LogIn, title: "Masuk ke portal agen", text: "Setelah email dikonfirmasi, masuk dengan email dan password yang baru kamu buat." },
-      { icon: IdCard, title: "Lengkapi data identitas", text: "Isi KTP, foto KTP, dan alamat domisili. Data ini dipakai admin untuk verifikasi." },
-      { icon: Clock, title: "Tunggu persetujuan admin", text: "Admin memeriksa data kamu, biasanya 1-2 hari kerja. Setelah disetujui, akun kamu aktif." },
+      { icon: Mail, title: "Konfirmasi email", text: formData.email.trim() },
+      { icon: LogIn, title: "Masuk ke portal", text: "Pakai email dan password tadi." },
+      { icon: IdCard, title: "Lengkapi pendaftaran", text: "Data diri, SOP, dan biaya registrasi." },
+      { icon: Clock, title: "Tunggu admin", text: "Biasanya 1-2 hari kerja." },
     ];
     return (
-      <AuthLayout
-        title="Pendaftaran Berhasil"
-        subtitle="Satu langkah lagi: konfirmasi email kamu, lalu lanjutkan sesuai urutan di bawah."
-      >
+      <AuthLayout title="Pendaftaran Berhasil" subtitle="Ikuti 4 langkah ini.">
         <ol className="space-y-3">
           {steps.map((step, i) => (
             <li key={step.title} className="flex gap-3 rounded-lg border bg-muted/50 p-4">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-card border text-sm font-semibold">
                 {i + 1}
               </span>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
                   <step.icon className="h-4 w-4 text-muted-foreground" aria-hidden />
                   {step.title}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">{step.text}</p>
+                <p className="mt-1 break-all text-sm text-muted-foreground">{step.text}</p>
+                {i === 0 && <ResendConfirmation compact email={formData.email.trim()} className="mt-3" />}
               </div>
             </li>
           ))}
         </ol>
-
-        <section aria-labelledby="resend-heading" className="mt-6 rounded-lg border bg-card p-4">
-          <h2 id="resend-heading" className="mb-3 text-sm font-semibold text-foreground">Email belum masuk?</h2>
-          <ResendConfirmation email={formData.email.trim()} />
-        </section>
 
         <Button className="mt-6 w-full" onClick={() => navigate("/agent/login")}>
           <LogIn className="mr-2 h-4 w-4" />

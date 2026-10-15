@@ -119,8 +119,8 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
           {onDashboard ? (
             <AgentSetupChecklist />
           ) : (
-            <div role="status" className="flex flex-col gap-2 rounded-xl border border-status-warn-border bg-status-warn-bg p-4 text-sm text-status-warn-text sm:flex-row sm:items-center sm:justify-between">
-              <p>Akunmu sudah disetujui. Bayar biaya registrasi dulu supaya bisa mencatat lead dan mendaftarkan jamaah.</p>
+            <div role="status" className="flex flex-col gap-2 pkg-v2 rounded-[24px] bg-pkg-cream-2 p-5 text-[15px] text-pkg-fg sm:flex-row sm:items-center sm:justify-between">
+              <p>Bayar biaya registrasi dulu untuk mulai jualan.</p>
               <Button asChild size="sm" className="h-10 shrink-0">
                 <Link to="/agent/dashboard">Bayar biaya registrasi</Link>
               </Button>

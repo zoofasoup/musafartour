@@ -33,7 +33,7 @@ const URLTemplatePreview = ({ open, onOpenChange, template }: URLTemplatePreview
 
   const copyUrl = () => {
     navigator.clipboard.writeText(fullUrl);
-    toast.success('✓ URL copied to clipboard!');
+    toast.success('URL disalin.');
   };
 
   const downloadQR = () => {

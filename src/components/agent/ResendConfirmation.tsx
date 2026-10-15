@@ -13,6 +13,8 @@ interface ResendConfirmationProps {
   /** Known from the form the person just filled in. When missing, the person types it here. */
   email?: string;
   className?: string;
+  /** Short version: just the button, a one-line answer and a help link. */
+  compact?: boolean;
 }
 
 /**
@@ -21,7 +23,7 @@ interface ResendConfirmationProps {
  * The email lives in component state only (never stored). The answer is the same whether or not the
  * address is registered, so this cannot be used to find out who has an account.
  */
-export const ResendConfirmation = ({ email: knownEmail, className }: ResendConfirmationProps) => {
+export const ResendConfirmation = ({ email: knownEmail, className, compact }: ResendConfirmationProps) => {
   const [typedEmail, setTypedEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -100,13 +102,18 @@ export const ResendConfirmation = ({ email: knownEmail, className }: ResendConfi
         {error && <p className="text-status-bad-fg">{error}</p>}
         {sent && !error && (
           <p className="text-muted-foreground">
-            Kalau email itu terdaftar dan belum dikonfirmasi, email baru sudah kami kirim. Buka yang paling baru, lalu cek folder spam kalau belum terlihat.
+            {compact ? "Terkirim. Pakai email yang terbaru." : "Kalau email itu terdaftar dan belum dikonfirmasi, email baru sudah kami kirim. Buka yang paling baru, lalu cek folder spam kalau belum terlihat."}
           </p>
         )}
       </div>
 
       <p className="mt-3 text-sm text-muted-foreground">
-        Tautan konfirmasi hanya berlaku sebentar. Kalau tautannya sudah kedaluwarsa atau tidak bisa dibuka, kirim ulang di sini lalu pakai tautan di email terbaru; tautan lama tidak berlaku lagi. Sudah dicoba tapi email tidak datang?{" "}
+        {compact ? <>Belum masuk juga?{" "}<a
+          href={`https://wa.me/${AGENT_CS_WHATSAPP}?text=${encodeURIComponent("Halo PIC Agen Musafar, email konfirmasi akun agen saya belum masuk. Mohon dibantu.")}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-foreground underline underline-offset-2"
+        >Hubungi PIC</a></> : <>Tautan konfirmasi hanya berlaku sebentar. Kalau tautannya sudah kedaluwarsa atau tidak bisa dibuka, kirim ulang di sini lalu pakai tautan di email terbaru; tautan lama tidak berlaku lagi. Sudah dicoba tapi email tidak datang?{" "}
         <a
           href={`https://wa.me/${AGENT_CS_WHATSAPP}?text=${encodeURIComponent("Halo PIC Agen Musafar, email konfirmasi akun agen saya belum masuk. Mohon dibantu.")}`}
           target="_blank"
@@ -115,7 +122,7 @@ export const ResendConfirmation = ({ email: knownEmail, className }: ResendConfi
         >
           Hubungi PIC Agen lewat WhatsApp
         </a>
-        .
+        .</>}
       </p>
     </div>
   );

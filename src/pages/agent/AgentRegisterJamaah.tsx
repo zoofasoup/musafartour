@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { copyText } from "@/lib/copy";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -67,12 +68,7 @@ export default function AgentRegisterJamaah() {
 
   const copyLink = async () => {
     if (!pkg || !agent) return;
-    try {
-      await navigator.clipboard.writeText(`${window.location.origin}/daftar/${pkg.slug}?ref=${agent.referral_code}`);
-      toast.success("Link pendaftaran disalin. Kirim ke calon jamaah, pendaftarannya tercatat atas namamu.");
-    } catch {
-      toast.error("Link belum bisa disalin. Coba lagi.");
-    }
+    await copyText(`${window.location.origin}/daftar/${pkg.slug}?ref=${agent.referral_code}`, "Link pendaftaran disalin.");
   };
 
   return (

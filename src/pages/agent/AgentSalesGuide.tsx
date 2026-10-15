@@ -41,9 +41,9 @@ const fmt = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
 /** Anything not yet defined anywhere in the site's own content - flagged instead of guessed, so an agent never repeats a made-up number to a jamaah. */
 function TbdCallout({ children }: { children: React.ReactNode }) {
   return (
-    <Alert className="border-status-warn-border bg-status-warn-bg text-status-warn-fg [&>svg]:text-status-warn-fg">
+    <Alert className="rounded-[24px] border-0 bg-pkg-cream-2 text-pkg-fg [&>svg]:text-pkg-red-deep">
       <AlertTriangle className="h-4 w-4" />
-      <AlertDescription className="text-status-warn-fg">{children}</AlertDescription>
+      <AlertDescription className="text-pkg-fg">{children}</AlertDescription>
     </Alert>
   );
 }
