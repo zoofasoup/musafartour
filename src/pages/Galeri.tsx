@@ -138,7 +138,7 @@ const Galeri = () => {
 
       <PkgPanel tone="red" className="!pb-24">
         <div className="mx-auto max-w-6xl">
-          <h2 className="pkg-h2 text-pkg-on-red text-balance">Jadi bagian dari Musafriends.</h2>
+          <h2 className="pkg-h2 text-pkg-on-red text-balance">Jadi bagian dari Musafriends</h2>
           <Link
             to="/paket-umroh"
             className="pkg-press pkg-glass-deep pkg-label mt-6 inline-flex h-14 items-center rounded-full px-7 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-on-red focus-visible:ring-offset-2"

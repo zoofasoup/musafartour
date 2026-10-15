@@ -147,7 +147,7 @@ ${agent?.referral_code ? `Agent ID: ${agent.referral_code}` : ""}`;
 
   if (error) {
     return (
-      <AgentPage title="Paket." back={{ to: "/agent/packages", label: "Semua paket" }}>
+      <AgentPage title="Paket" back={{ to: "/agent/packages", label: "Semua paket" }}>
         <AgentPanel last><LoadError what="Detail paket" error={error} onRetry={() => refetch()} retrying={isFetching} /></AgentPanel>
       </AgentPage>
     );
@@ -155,7 +155,7 @@ ${agent?.referral_code ? `Agent ID: ${agent.referral_code}` : ""}`;
 
   if (isLoading) {
     return (
-      <AgentPage title="Paket." back={{ to: "/agent/packages", label: "Semua paket" }}>
+      <AgentPage title="Paket" back={{ to: "/agent/packages", label: "Semua paket" }}>
         <AgentPanel last><div className="space-y-4"><Skeleton className="h-20 w-full rounded-3xl" /><Skeleton className="h-40 w-full rounded-3xl" /></div></AgentPanel>
       </AgentPage>
     );
@@ -163,7 +163,7 @@ ${agent?.referral_code ? `Agent ID: ${agent.referral_code}` : ""}`;
 
   if (!pkg) {
     return (
-      <AgentPage title="Paket." back={{ to: "/agent/packages", label: "Semua paket" }}>
+      <AgentPage title="Paket" back={{ to: "/agent/packages", label: "Semua paket" }}>
         <AgentPanel last><AgentEmpty icon={Package} text="Paket tidak ditemukan" /></AgentPanel>
       </AgentPage>
     );

@@ -209,14 +209,14 @@ export const PackageQuiz = ({ packages, loading }: { packages: PackageData[] | n
               <div className="mt-6"><PkgCardSkeleton /></div>
             ) : results.length === 0 ? (
               <>
-                <h2 className="pkg-h2 mt-5">Belum ada paket yang cocok.</h2>
+                <h2 className="pkg-h2 mt-5">Belum ada paket yang cocok</h2>
                 <button type="button" onClick={ask} className={`${btn} pkg-glass-red mt-6 h-14 px-7`}>
                   <WhatsAppIcon className="h-5 w-5" /> Tanya UC
                 </button>
               </>
             ) : (
               <>
-                <h2 className="pkg-h2 mt-5 text-balance">Paket ini paling cocok.</h2>
+                <h2 className="pkg-h2 mt-5 text-balance">Paket ini paling cocok</h2>
                 {results[0].reasons.length > 0 && (
                   <ul className="mt-4 flex flex-wrap gap-2">
                     {results[0].reasons.map((r) => (

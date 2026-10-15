@@ -581,3 +581,37 @@ html.pkg-agent .pkg-menu [role="group"] > div:first-child:not([role]) { font-siz
   caret-color: var(--pkg-fg);
   transition: background-color 9999s ease-out 0s;
 }
+
+/* Badge celebration: the card rises, the picture pops in with a small overshoot, a ring of light pulses behind it. */
+@keyframes pkg-cel-card { from { opacity: 0; transform: translateY(24px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes pkg-cel-pop { 0% { opacity: 0; transform: scale(0.4) rotate(-8deg); } 60% { opacity: 1; transform: scale(1.08) rotate(2deg); } 100% { opacity: 1; transform: none; } }
+@keyframes pkg-cel-ring { 0% { opacity: 0.7; transform: scale(0.6); } 100% { opacity: 0; transform: scale(1.7); } }
+@keyframes pkg-cel-spark { 0% { opacity: 0; transform: translate(0, 0) scale(0.4); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1); } }
+.pkg-cel-card { animation: pkg-cel-card 420ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.pkg-cel-art { animation: pkg-cel-pop 700ms 140ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.pkg-cel-ring { animation: pkg-cel-ring 1400ms 300ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.pkg-cel-spark { animation: pkg-cel-spark 1100ms var(--delay, 400ms) cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .pkg-cel-card, .pkg-cel-art, .pkg-cel-ring, .pkg-cel-spark { animation-duration: 1ms; animation-delay: 0ms; }
+}
+
+/* Badge reveal, more ways in (one per badge group) and one way out for all. */
+@keyframes pkg-cel-drop { 0% { opacity: 0; transform: translateY(-190px) scale(0.9); } 55% { opacity: 1; transform: translateY(12px) scale(1.02, 0.96); } 75% { transform: translateY(-6px) scale(0.99, 1.02); } 100% { opacity: 1; transform: none; } }
+@keyframes pkg-cel-flip { 0% { opacity: 0; transform: perspective(700px) rotateY(-100deg) scale(0.7); } 60% { opacity: 1; transform: perspective(700px) rotateY(14deg) scale(1.05); } 100% { opacity: 1; transform: perspective(700px) none; } }
+@keyframes pkg-cel-rise { 0% { opacity: 0; transform: translateY(70px) scale(0.8); filter: blur(8px); } 100% { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes pkg-cel-scrim-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pkg-cel-scrim-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes pkg-cel-card-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(18px) scale(0.95); } }
+@keyframes pkg-cel-art-out { from { transform: none; } to { transform: scale(0.7) rotate(4deg); } }
+.pkg-cel-scrim { animation: pkg-cel-scrim-in 260ms ease-out both; }
+.pkg-cel-art[data-variant="drop"] { animation: pkg-cel-drop 800ms 120ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.pkg-cel-art[data-variant="flip"] { animation: pkg-cel-flip 800ms 140ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.pkg-cel-art[data-variant="rise"] { animation: pkg-cel-rise 700ms 140ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.pkg-cel-scrim[data-closing] { animation: pkg-cel-scrim-out 240ms cubic-bezier(0.4, 0, 0.6, 1) both; }
+.pkg-cel-scrim[data-closing] .pkg-cel-card { animation: pkg-cel-card-out 240ms cubic-bezier(0.4, 0, 0.6, 1) both; }
+.pkg-cel-scrim[data-closing] .pkg-cel-art { animation: pkg-cel-art-out 240ms cubic-bezier(0.4, 0, 0.6, 1) both; }
+.pkg-cel-scrim[data-closing] .pkg-cel-ring, .pkg-cel-scrim[data-closing] .pkg-cel-spark { opacity: 0; animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .pkg-cel-scrim, .pkg-cel-art[data-variant] { animation-duration: 1ms; animation-delay: 0ms; }
+  .pkg-cel-scrim[data-closing], .pkg-cel-scrim[data-closing] .pkg-cel-card, .pkg-cel-scrim[data-closing] .pkg-cel-art { animation-duration: 1ms; }
+}

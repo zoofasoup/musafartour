@@ -1,687 +1,347 @@
-import { useState } from "react";
-import { copyText } from "@/lib/copy";
-import { useAgentAuth } from "@/hooks/useAgentAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { 
-  Download, 
-  Copy, 
-  Check, 
-  FileText, 
-  Image as ImageIcon, 
-  Video, 
-  Globe, 
-  Link2,
-  BarChart3,
-  Loader2,
-  ExternalLink,
-  Trash2,
-  MessageSquare,
-  Palette,
-  Package
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ChevronRight, Copy, Download, FileText, ImageIcon, Map as MapIcon, MessageSquareQuote, Package, Share2, Star, UserPlus } from "lucide-react";
+import { useAgentAuth } from "@/hooks/useAgentAuth";
+import { usePublishedPackages, type PublishedPackage } from "@/hooks/usePackages";
+import { useTestimonials } from "@/hooks/useHomepageData";
+import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AgentEmpty, AgentPage, AgentPanel, Chips, agentGlass } from "@/components/agent/AgentPage";
+import { LoadError } from "@/components/admin/jamaah/LoadError";
+import { agentCsWhatsAppUrl } from "@/lib/agentSupport";
+import { buildPackageTexts } from "@/lib/marketingText";
+import { copyText } from "@/lib/copy";
+import { PT_ACCOUNT_HOLDER } from "@/lib/jamaah";
+import { getSlotsTaken } from "@/lib/utils";
 import { toast } from "sonner";
-import { AgentPage, AgentPanel } from "@/components/agent/AgentPage";
 
-interface NativeMaterial {
-  id: string;
-  package_id: string | null;
-  category: string;
-  title: string;
-  file_url: string;
-  format: string | null;
-}
+type Side = "travel" | "paket";
 
-interface ShortLink {
-  id: string;
-  short_code: string;
-  original_url: string;
-  title: string | null;
-  click_count: number;
-  created_at: string;
-}
+const rowCls =
+  "pkg-press flex min-h-14 w-full items-center gap-3 border-b border-pkg-hair py-3 text-left text-[17px] text-pkg-fg last:border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2";
 
-interface PackageOption {
-  id: string;
-  package_name: string;
-  banner_image: string | null;
-  catalog_link: string | null;
-  itinerary_link: string | null;
-}
-
-// Sales scripts data (placeholder until database has content)
-// Sections keep their old Card structure, drawn flat: a heading, then the content, a hairline between sections.
-const Card = ({ children }: { children: React.ReactNode; className?: string }) => <section className="py-8 first:pt-0 last:pb-0">{children}</section>;
-const CardHeader = ({ children }: { children: React.ReactNode; className?: string }) => <div className="mb-5">{children}</div>;
-const CardTitle = ({ children }: { children: React.ReactNode; className?: string }) => (
-  <h2 className="pkg-h3 flex items-center gap-3 text-pretty [&_svg]:h-5 [&_svg]:w-5 [&_svg]:shrink-0 [&_svg]:text-pkg-fg-3">{children}</h2>
-);
-const CardDescription = ({ children }: { children: React.ReactNode; className?: string }) => <p className="mt-1.5 text-[14px] text-pkg-fg-3">{children}</p>;
-const CardContent = ({ children }: { children: React.ReactNode; className?: string }) => <div className="space-y-4">{children}</div>;
-
-const SALES_SCRIPTS = {
-  opening: [
-    { id: 1, title: "Opening WA - Prospek Baru", content: "Assalamu'alaikum Bapak/Ibu [Nama] 🙏\n\nPerkenalkan saya [Nama Agent] dari Musafar Tour.\n\nKami sedang ada promo spesial untuk paket umroh keberangkatan [Bulan]. Apakah Bapak/Ibu berencana umroh dalam waktu dekat?\n\nJika berkenan, saya bisa kirimkan informasi lengkapnya 😊" },
-    { id: 2, title: "Opening WA - Follow Up", content: "Assalamu'alaikum Bapak/Ibu [Nama] 🙏\n\nSemoga dalam keadaan sehat. Ini [Nama] dari Musafar Tour.\n\nMelanjutkan percakapan kita kemarin mengenai umroh, apakah ada pertanyaan yang ingin ditanyakan?\n\nSaya siap membantu 😊" },
-    { id: 3, title: "Opening WA - Referensi", content: "Assalamu'alaikum Bapak/Ibu [Nama] 🙏\n\nSaya [Nama Agent] dari Musafar Tour.\n\nSaya mendapat kontak Bapak/Ibu dari [Nama Referensi] yang baru saja pulang umroh dengan kami.\n\nBeliau merekomendasikan Bapak/Ibu karena sedang berencana umroh. Apakah benar? 😊" },
-    { id: 4, title: "Opening WA - Ramadhan", content: "Assalamu'alaikum Bapak/Ibu [Nama] 🙏\n\nMenyambut bulan suci Ramadhan, kami dari Musafar Tour ingin menawarkan paket umroh spesial Ramadhan!\n\nBeribadah di tanah suci saat Ramadhan, insya Allah amalnya berlipat ganda. Tertarik untuk info lengkapnya? 😊" },
-    { id: 5, title: "Opening WA - Re-engagement", content: "Assalamu'alaikum Bapak/Ibu [Nama] 🙏\n\nSemoga sehat selalu. Ini [Nama] dari Musafar Tour.\n\nSudah beberapa waktu kita tidak berkomunikasi. Saya ingin mengabarkan ada paket baru dengan harga spesial.\n\nApakah masih berencana umroh? 😊" },
-  ],
-  followup: [
-    { id: 1, title: "Follow Up - Belum Respon", content: "Assalamu'alaikum Bapak/Ibu 🙏\n\nMaaf mengganggu, saya [Nama] dari Musafar Tour.\n\nSaya ingin follow up mengenai info paket umroh yang sudah saya kirimkan kemarin.\n\nApakah ada pertanyaan atau ada yang bisa saya bantu jelaskan? 😊" },
-    { id: 2, title: "Follow Up - After Katalog", content: "Assalamu'alaikum Bapak/Ibu 🙏\n\nSemoga katalog umrohnya sudah sempat dibaca ya.\n\nBagaimana, ada paket yang menarik perhatian? Kalau ada pertanyaan soal hotel, penerbangan, atau harga, silakan tanyakan ya 😊" },
-    { id: 3, title: "Follow Up - Closing", content: "Assalamu'alaikum Bapak/Ibu 🙏\n\nKabar baik! Untuk paket [Nama Paket] keberangkatan [Tanggal], slot-nya tinggal [X] lagi.\n\nJika Bapak/Ibu sudah siap, bisa langsung daftar dengan DP Rp 5 juta per orang ya (pelunasan paling lambat 30 hari sebelum berangkat).\n\nMau saya bantu prosesnya sekarang? 😊" },
-  ],
-  objection: [
-    { id: 1, title: "Objection - Harga Mahal", content: "Saya paham Bapak/Ibu 🙏\n\nMemang harga kami sedikit lebih tinggi, tapi sudah termasuk:\n✅ Hotel [Nama Hotel Makkah], [Jarak] dari Masjidil Haram\n✅ Penerbangan [Maskapai]\n✅ Visa dan handling\n✅ [Fasilitas lain sesuai paket]\n\n(Isi sesuai paket yang ditawarkan.) Semua yang tercantum sudah termasuk di harga paket. Mau saya jelaskan lebih detail?" },
-    { id: 2, title: "Objection - Belum Ada Uang", content: "Baik Bapak/Ibu, saya mengerti 🙏\n\nPembayarannya bisa dicicil kapan saja dan berapa saja lho.\n\nCukup DP Rp 5 juta per orang untuk mengamankan seat, lalu sisanya dicicil sampai lunas paling lambat 30 hari sebelum keberangkatan.\n\nMau saya bantu hitung rencana pembayarannya?" },
-    { id: 3, title: "Objection - Pikir-pikir Dulu", content: "Silakan Bapak/Ibu, memang keputusan umroh perlu dipikirkan matang 🙏\n\nSebagai informasi, harga paket ini berlaku sampai [Tanggal] dan slot juga terbatas.\n\nKalau ada pertanyaan lain, jangan ragu hubungi saya ya. Saya doakan dimudahkan rezekinya untuk berangkat umroh 😊" },
-  ],
-};
-
-const IG_CAPTIONS = [
-  "🕌 Rindu dengan panggilan-Nya? Yuk wujudkan mimpi umrohmu bersama Musafar Tour! ✨\n\nDapatkan:\n✅ Hotel [NAMA HOTEL], [JARAK] dari Masjidil Haram\n✅ Penerbangan [MASKAPAI]\n✅ Pendampingan ibadah\n\nInfo & pendaftaran:\n📱 [NOMOR WA]\n\n#umroh2026 #paketumroh #musafartour",
-  "Ya Allah, satukanlah kami dengan Baitullah-Mu 🤲🏻\n\nMusafar Tour siap menemani perjalanan sucimu!\n\n📅 Keberangkatan: [BULAN TAHUN]\n💰 Mulai Rp [HARGA] juta\n\nDaftar sekarang!\n📱 [NOMOR WA]\n\n#umroh #baitullah #makkah #madinah",
-  "🌙 Umroh di bulan Ramadhan = pahala berlipat ganda!\n\nAyo daftar sekarang untuk keberangkatan Ramadhan 2027 🕋\n\n✨ Fasilitas terbaik\n✨ Harga terjangkau\n✨ Pelayanan prima\n\nInfo lengkap:\n📱 [NOMOR WA]\n\n#umrohramadhan #ramadhan2027 #musafartour",
-];
-
-const generateShortCode = () => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-  let result = '';
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+/** Saves a file from a link: fetched and saved when the host allows it, opened in a new tab when it does not. */
+async function downloadFile(url: string, name: string) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("download failed");
+    const blob = await res.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast.success("Gambar diunduh.");
+  } catch {
+    window.open(url, "_blank", "noopener,noreferrer");
   }
-  return result;
-};
+}
 
-const AgentMarketingKit = () => {
-  const { agent } = useAgentAuth();
-  const queryClient = useQueryClient();
-  
-  const [selectedPackage, setSelectedPackage] = useState<string>('all');
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [showScriptModal, setShowScriptModal] = useState(false);
-  const [selectedScripts, setSelectedScripts] = useState<typeof SALES_SCRIPTS.opening>([]);
-  const [scriptCategory, setScriptCategory] = useState('');
-  
-  // Link shortener
-  const [newLinkUrl, setNewLinkUrl] = useState('');
-  const [newLinkTitle, setNewLinkTitle] = useState('');
-
-
-  // Fetch packages for dropdown and materials
-  const { data: packages = [], isLoading: packagesLoading } = useQuery({
-    queryKey: ['packages-for-marketing'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('packages')
-        .select('id, package_name, banner_image, catalog_link, itinerary_link')
-        .eq('status', 'published')
-        .order('departure_date', { ascending: true });
-      
-      if (error) throw error;
-      return data as PackageOption[];
-    },
-  });
-
-  // Synthesize materials from packages
-  const materials: NativeMaterial[] = [];
-  packages.forEach(pkg => {
-    if (pkg.banner_image) {
-      materials.push({ id: `${pkg.id}-banner`, package_id: pkg.id, category: 'visual', title: 'Flyer Paket', file_url: pkg.banner_image, format: 'Image' });
-    }
-    if (pkg.catalog_link) {
-      materials.push({ id: `${pkg.id}-catalog`, package_id: pkg.id, category: 'visual', title: 'Katalog Paket', file_url: pkg.catalog_link, format: 'PDF' });
-    }
-    if (pkg.itinerary_link) {
-      materials.push({ id: `${pkg.id}-itinerary`, package_id: pkg.id, category: 'visual', title: 'Itinerary Perjalanan', file_url: pkg.itinerary_link, format: 'PDF' });
-    }
-  });
-
-  // Fetch agent's short links
-  const { data: shortLinks = [], isLoading: linksLoading } = useQuery({
-    queryKey: ['agent-short-links', agent?.id],
-    queryFn: async () => {
-      if (!agent?.id) return [];
-      const { data, error } = await supabase
-        .from('agent_short_links')
-        .select('*')
-        .eq('agent_id', agent.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as ShortLink[];
-    },
-    enabled: !!agent?.id,
-  });
-
-  // Create short link mutation
-  const createLinkMutation = useMutation({
-    mutationFn: async ({ url, title }: { url: string; title: string }) => {
-      if (!agent?.id) throw new Error('Agent not found');
-      
-      const shortCode = generateShortCode();
-      const { error } = await supabase
-        .from('agent_short_links')
-        .insert({
-          agent_id: agent.id,
-          short_code: shortCode,
-          original_url: url,
-          title: title || null,
-        });
-      
-      if (error) throw error;
-      return shortCode;
-    },
-    onSuccess: (shortCode) => {
-      toast.success(`Link berhasil dibuat: ${shortCode}`);
-      setNewLinkUrl('');
-      setNewLinkTitle('');
-      queryClient.invalidateQueries({ queryKey: ['agent-short-links'] });
-    },
-    onError: (error) => {
-      toast.error('Gagal membuat link: ' + (error as Error).message);
-    },
-  });
-
-  // Delete short link mutation
-  const deleteLinkMutation = useMutation({
-    mutationFn: async (linkId: string) => {
-      const { error } = await supabase
-        .from('agent_short_links')
-        .delete()
-        .eq('id', linkId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success('Link berhasil dihapus');
-      queryClient.invalidateQueries({ queryKey: ['agent-short-links'] });
-    },
-    onError: (error) => {
-      toast.error('Gagal menghapus link: ' + (error as Error).message);
-    },
-  });
-
-  // Filter materials by category and package
-  const filterMaterials = (category: string) => {
-    return materials.filter(m => {
-      const categoryMatch = m.category === category;
-      const packageMatch = selectedPackage === 'all' 
-        ? m.package_id === null 
-        : m.package_id === selectedPackage;
-      return categoryMatch && packageMatch;
-    });
-  };
-
-  const handleCopy = async (text: string, id: string) => {
-    if (!(await copyText(text, "Teks disalin."))) return;
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const handleDownload = (url: string, filename: string) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('Unduhan dimulai...');
-  };
-
-  const handleCreateLink = () => {
-    if (!newLinkUrl.trim()) {
-      toast.error('URL tidak boleh kosong');
-      return;
-    }
+/** The phone's own share menu where it exists (needs https); anywhere else the link is copied. */
+async function shareLink(url: string, title: string) {
+  if (navigator.share) {
     try {
-      new URL(newLinkUrl);
+      await navigator.share({ title, url });
     } catch {
-      toast.error('URL tidak valid');
-      return;
+      /* closed without sharing */
     }
-    createLinkMutation.mutate({ url: newLinkUrl, title: newLinkTitle });
-  };
-
-  const openScriptModal = (category: string, scripts: typeof SALES_SCRIPTS.opening) => {
-    setScriptCategory(category);
-    setSelectedScripts(scripts);
-    setShowScriptModal(true);
-  };
-
-  const agentPageUrl = `${window.location.origin}/r/${agent?.referral_code || ''}`;
-
-  if (packagesLoading) {
-    return (
-      <AgentPage title="Marketing.">
-        <AgentPanel last><div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-pkg-fg-3" aria-label="Memuat" /></div></AgentPanel>
-      </AgentPage>
-    );
+    return;
   }
+  void copyText(url, "Link disalin.");
+}
+
+function Sheet({ onClose, title, children }: { onClose: () => void; title: string; children: ReactNode }) {
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription className="sr-only">{title}</DialogDescription>
+        </DialogHeader>
+        <div className="pkg-v2 pkg-form min-w-0 !bg-transparent">{children}</div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function TextBlock({ label, text }: { label: string; text: string }) {
+  return (
+    <section className="mt-6">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="pkg-label text-pkg-fg-2">{label}</h3>
+        <button type="button" data-plain onClick={() => void copyText(text, `${label} disalin.`)} className="pkg-press pkg-glass-red pkg-label inline-flex h-11 items-center gap-2 rounded-full px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2">
+          <Copy className="h-4 w-4" aria-hidden /> Salin
+        </button>
+      </div>
+      <pre className="mt-3 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-[20px] bg-pkg-cream-2 p-4 font-sans text-[14px] leading-[1.5] text-pkg-fg">{text}</pre>
+    </section>
+  );
+}
+
+function PackageSheet({ pkg, agentCode, onClose }: { pkg: PublishedPackage; agentCode: string; onClose: () => void }) {
+  const texts = useMemo(() => buildPackageTexts(pkg, agentCode, window.location.origin), [pkg, agentCode]);
+  const date = format(new Date(pkg.departure_date), "d MMMM yyyy", { locale: localeId });
+  return (
+    <Sheet onClose={onClose} title={pkg.package_name}>
+      <p className="-mt-1 text-[16px] text-pkg-fg-2">{date}, {pkg.duration_days} hari</p>
+      <div className="mt-5 grid grid-cols-2 gap-2">
+        <Link to={`/agent/daftar-jamaah?paket=${pkg.id}`} className="pkg-press pkg-glass-red pkg-label inline-flex h-12 items-center justify-center gap-2 rounded-full px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2">
+          <UserPlus className="h-4 w-4" aria-hidden /> Daftarkan
+        </Link>
+        <Link to={`/agent/packages/${pkg.id}`} className={agentGlass}>Detail paket</Link>
+      </div>
+
+      {pkg.banner_image && (
+        <section className="mt-6">
+          <img src={pkg.banner_image} alt={`Flyer ${pkg.package_name}`} className="max-h-72 w-full rounded-[24px] bg-pkg-cream-2 object-contain" />
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button type="button" data-plain onClick={() => void downloadFile(pkg.banner_image!, `${pkg.package_name}.jpg`)} className={agentGlass}>
+              <Download className="h-4 w-4" aria-hidden /> Unduh
+            </button>
+            <button type="button" data-plain onClick={() => void shareLink(texts.link, pkg.package_name)} className={agentGlass}>
+              <Share2 className="h-4 w-4" aria-hidden /> Bagikan ke...
+            </button>
+          </div>
+        </section>
+      )}
+
+      <TextBlock label="WA singkat" text={texts.wa_short} />
+      <TextBlock label="WA lengkap" text={texts.wa_full} />
+      <TextBlock label="Instagram" text={texts.instagram} />
+
+      <section className="mt-6">
+        <h3 className="pkg-label text-pkg-fg-2">Link kamu</h3>
+        <div className="mt-3 flex items-center gap-2">
+          <p className="pkg-glass min-w-0 flex-1 truncate rounded-full px-5 py-3.5 text-[15px]">{texts.link}</p>
+          <button type="button" data-plain aria-label="Salin link" onClick={() => void copyText(texts.link, "Link disalin.")} className="pkg-press pkg-glass grid h-12 w-12 shrink-0 place-items-center rounded-full">
+            <Copy className="h-5 w-5" aria-hidden />
+          </button>
+        </div>
+      </section>
+
+      {(pkg.catalog_link || pkg.itinerary_link) && (
+        <section className="mt-6">
+          {pkg.catalog_link && (
+            <a href={pkg.catalog_link} target="_blank" rel="noopener noreferrer" className={rowCls}>
+              <FileText className="h-5 w-5 text-pkg-fg-3" aria-hidden /> <span className="flex-1">Katalog PDF</span> <ChevronRight className="h-5 w-5 text-pkg-fg-3" aria-hidden />
+            </a>
+          )}
+          {pkg.itinerary_link && (
+            <a href={pkg.itinerary_link} target="_blank" rel="noopener noreferrer" className={rowCls}>
+              <MapIcon className="h-5 w-5 text-pkg-fg-3" aria-hidden /> <span className="flex-1">Itinerary</span> <ChevronRight className="h-5 w-5 text-pkg-fg-3" aria-hidden />
+            </a>
+          )}
+        </section>
+      )}
+    </Sheet>
+  );
+}
+
+const Heading = ({ children }: { children: ReactNode }) => <h2 className="pkg-h3 !text-[26px]">{children}</h2>;
+
+const Skeleton = () => (
+  <div className="space-y-3" role="status" aria-label="Memuat">
+    {[0, 1, 2].map((i) => <div key={i} className="h-16 animate-pulse rounded-[20px] bg-pkg-cream-2" />)}
+  </div>
+);
+
+function TravelSide({ agentCode }: { agentCode: string }) {
+  const { data: points = [] } = useQuery({
+    queryKey: ["marketing-selling-points"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("selling_points").select("id, title, description").eq("is_active", true).order("display_order", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const { data: gallery = [] } = useQuery({
+    queryKey: ["marketing-gallery"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("gallery_images").select("id, image_url, title").eq("is_active", true).order("display_order", { ascending: true }).limit(30);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const { data: testimonials = [] } = useTestimonials();
+  const [sheet, setSheet] = useState<{ title: string; text: string } | null>(null);
+  const [photo, setPhoto] = useState<{ url: string; title: string } | null>(null);
+  const site = `${window.location.origin}/r/${agentCode}`;
+
+  const profile = [
+    "Musafar Tour: travel umroh yang dirancang untuk keluarga, ramah lansia dan ramah anak.",
+    ...(points.length ? ["", ...points.map((p) => `• ${p.title}: ${p.description}`)] : []),
+    "",
+    `Kenalan lebih dekat: ${site}`,
+  ].join("\n");
+  const legal = [
+    `Musafar Tour berizin resmi PPIU Kemenag, dikelola ${PT_ACCOUNT_HOLDER}.`,
+    "",
+    `Pembayaran hanya ke rekening atas nama ${PT_ACCOUNT_HOLDER}. Waspada rekening pribadi.`,
+    "",
+    `Info resmi: ${site}`,
+  ].join("\n");
 
   return (
     <>
-    <AgentPage title="Marketing.">
+      <Heading>Profil dan legalitas</Heading>
+      <div className="mt-4">
+        <button type="button" data-plain className={rowCls} onClick={() => setSheet({ title: "Profil Musafar", text: profile })}>
+          <Package className="h-5 w-5 text-pkg-fg-3" aria-hidden /> <span className="flex-1">Profil dan keunggulan</span> <ChevronRight className="h-5 w-5 text-pkg-fg-3" aria-hidden />
+        </button>
+        <button type="button" data-plain className={rowCls} onClick={() => setSheet({ title: "Legalitas dan pembayaran", text: legal })}>
+          <Star className="h-5 w-5 text-pkg-fg-3" aria-hidden /> <span className="flex-1">Legalitas dan pembayaran</span> <ChevronRight className="h-5 w-5 text-pkg-fg-3" aria-hidden />
+        </button>
+      </div>
+
+      <div className="mt-12">
+        <Heading>Testimoni</Heading>
+        {testimonials.length === 0 ? (
+          <AgentEmpty icon={MessageSquareQuote} text="Belum ada testimoni" />
+        ) : (
+          <div className="mt-4">
+            {testimonials.slice(0, 8).map((t) => (
+              <button key={t.id} type="button" data-plain className={rowCls} onClick={() => setSheet({ title: t.name, text: `"${t.content}"\n\n${t.name}${t.location ? `, ${t.location}` : ""}\n\nMusafar Tour: ${site}` })}>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate">{t.name}</span>
+                  <span className="block truncate text-[14px] text-pkg-fg-3">{t.content}</span>
+                </span>
+                <ChevronRight className="h-5 w-5 shrink-0 text-pkg-fg-3" aria-hidden />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-12">
+        <Heading>Galeri</Heading>
+        {gallery.length === 0 ? (
+          <AgentEmpty icon={ImageIcon} text="Belum ada foto" />
+        ) : (
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            {gallery.map((g) => (
+              <button key={g.id} type="button" data-plain aria-label={g.title || "Foto"} onClick={() => setPhoto({ url: g.image_url, title: g.title || "Musafar Tour" })} className="pkg-press aspect-square overflow-hidden rounded-[18px] bg-pkg-cream-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2">
+                <img src={g.image_url} alt="" loading="lazy" className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {sheet && (
+        <Sheet onClose={() => setSheet(null)} title={sheet.title}>
+          <TextBlock label="Teks" text={sheet.text} />
+        </Sheet>
+      )}
+      {photo && (
+        <Sheet onClose={() => setPhoto(null)} title={photo.title}>
+          <img src={photo.url} alt={photo.title} className="max-h-96 w-full rounded-[24px] bg-pkg-cream-2 object-contain" />
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button type="button" data-plain onClick={() => void downloadFile(photo.url, `${photo.title}.jpg`)} className={agentGlass}>
+              <Download className="h-4 w-4" aria-hidden /> Unduh
+            </button>
+            <button type="button" data-plain onClick={() => void shareLink(photo.url, photo.title)} className={agentGlass}>
+              <Share2 className="h-4 w-4" aria-hidden /> Bagikan ke...
+            </button>
+          </div>
+        </Sheet>
+      )}
+    </>
+  );
+}
+
+function PaketSide({ agentCode }: { agentCode: string }) {
+  const { data: packages = [], isLoading, error, refetch, isFetching } = usePublishedPackages();
+  const [open, setOpen] = useState<PublishedPackage | null>(null);
+
+  const months = useMemo(() => {
+    const groups = new Map<string, PublishedPackage[]>();
+    for (const p of packages) {
+      const key = format(new Date(p.departure_date), "MMMM yyyy", { locale: localeId });
+      groups.set(key, [...(groups.get(key) ?? []), p]);
+    }
+    return [...groups.entries()];
+  }, [packages]);
+
+  if (isLoading) return <Skeleton />;
+  if (error) return <LoadError what="Daftar paket" error={error} onRetry={() => refetch()} retrying={isFetching} />;
+  if (packages.length === 0) return <AgentEmpty icon={Package} text="Belum ada paket" />;
+
+  return (
+    <>
+      {months.map(([month, list], i) => (
+        <section key={month} className={i ? "mt-10" : ""}>
+          <h2 className="pkg-label capitalize text-pkg-fg-3">{month}</h2>
+          <div className="mt-2">
+            {list.map((p) => {
+              const left = p.slots_total ? Math.max(0, p.slots_total - getSlotsTaken(p)) : null;
+              return (
+                <button key={p.id} type="button" data-plain className={rowCls} onClick={() => setOpen(p)}>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate">{p.package_name}</span>
+                    <span className="block text-[14px] text-pkg-fg-3">
+                      {format(new Date(p.departure_date), "d MMM", { locale: localeId })}, {p.duration_days} hari{left !== null ? (left === 0 ? ", penuh" : `, sisa ${left}`) : ""}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-5 w-5 shrink-0 text-pkg-fg-3" aria-hidden />
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ))}
+      {open && <PackageSheet pkg={open} agentCode={agentCode} onClose={() => setOpen(null)} />}
+    </>
+  );
+}
+
+const AgentMarketingKit = () => {
+  const { agent } = useAgentAuth();
+  const [side, setSide] = useState<Side>("travel");
+  const agentCode = agent?.referral_code ?? "";
+  const referral = `${window.location.origin}/r/${agentCode}`;
+
+  return (
+    <AgentPage
+      title="Marketing"
+      hero={
+        <>
+          <div className="pkg-glass-deep mt-7 flex items-center justify-between gap-3 rounded-full py-1.5 pl-5 pr-1.5">
+            <span className="min-w-0 truncate text-[15px]">{referral.replace(/^https?:\/\//, "")}</span>
+            <button type="button" data-plain onClick={() => void copyText(referral, "Link kamu disalin.")} className="pkg-press pkg-glass-red pkg-label inline-flex h-11 shrink-0 items-center gap-2 rounded-full px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream">
+              <Copy className="h-4 w-4" aria-hidden /> Salin
+            </button>
+          </div>
+          <div className="mt-6">
+            <Chips<Side>
+              label="Bagian"
+              value={side}
+              onChange={setSide}
+              options={[
+                { value: "travel", label: "Travel" },
+                { value: "paket", label: "Paket" },
+              ]}
+            />
+          </div>
+        </>
+      }
+    >
       <AgentPanel last>
-        <div className="divide-y divide-pkg-hair">
-        {/* General Marketing Kit */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Marketing Kit - Semua Paket
-            </CardTitle>
-            <CardDescription>Materi promosi yang bisa digunakan untuk semua paket</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="visual" className="pkg-form space-y-4">
-              <TabsList className="grid grid-cols-4 w-full">
-                <TabsTrigger value="visual" className="flex items-center gap-1">
-                  <Palette className="h-4 w-4" />
-                  <span className="hidden sm:inline">Visual</span>
-                </TabsTrigger>
-                <TabsTrigger value="copy" className="flex items-center gap-1">
-                  <MessageSquare className="h-4 w-4" />
-                  <span className="hidden sm:inline">Copywriting</span>
-                </TabsTrigger>
-                <TabsTrigger value="video" className="flex items-center gap-1">
-                  <Video className="h-4 w-4" />
-                  <span className="hidden sm:inline">Videos</span>
-                </TabsTrigger>
-                <TabsTrigger value="page" className="flex items-center gap-1">
-                  <Globe className="h-4 w-4" />
-                  <span className="hidden sm:inline">Landing</span>
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Visual Assets Tab */}
-              <TabsContent value="visual" className="space-y-4">
-                {filterMaterials('visual').length > 0 ? (
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {filterMaterials('visual').map((material) => (
-                      <div key={material.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium text-sm">{material.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {material.format}
-                            </p>
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => handleDownload(material.file_url, material.title)}>
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>Belum ada materi visual general</p>
-                    <p className="text-sm">Cek materi per paket di bawah</p>
-                  </div>
-                )}
-              </TabsContent>
-
-              {/* Copywriting Tab */}
-              <TabsContent value="copy" className="space-y-4">
-                {/* Sales Scripts */}
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="h-12 w-12 bg-status-info-bg rounded-lg flex items-center justify-center shrink-0">
-                        <MessageSquare className="h-6 w-6 text-status-info-fg" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">Sales Script WhatsApp</h3>
-                        <p className="text-sm text-muted-foreground mb-3">Template pesan untuk berbagai situasi</p>
-                        <div className="flex flex-wrap gap-2">
-                          <Button size="sm" variant="outline" onClick={() => openScriptModal('Opening WA', SALES_SCRIPTS.opening)}>
-                            Opening (5)
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => openScriptModal('Follow Up', SALES_SCRIPTS.followup)}>
-                            Follow Up (3)
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => openScriptModal('Objection Handling', SALES_SCRIPTS.objection)}>
-                            Objection (3)
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* IG/FB Captions */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4" />
-                      Caption IG/FB
-                      <Badge variant="secondary">{IG_CAPTIONS.length} caption</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {IG_CAPTIONS.map((caption, index) => (
-                      <div key={index} className="p-3 bg-muted/30 rounded-lg">
-                        <p className="text-sm whitespace-pre-line line-clamp-3">{caption}</p>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="mt-2"
-                          onClick={() => handleCopy(caption, `caption-${index}`)}
-                        >
-                          {copiedId === `caption-${index}` ? (
-                            <><Check className="h-4 w-4 mr-1" /> Disalin</>
-                          ) : (
-                            <><Copy className="h-4 w-4 mr-1" /> Salin</>
-                          )}
-                        </Button>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Videos Tab */}
-              <TabsContent value="video" className="space-y-4">
-                {filterMaterials('video').length > 0 ? (
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {filterMaterials('video').map((material) => (
-                      <div key={material.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Video className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium text-sm">{material.title}</p>
-                            <p className="text-xs text-muted-foreground">{material.format}</p>
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => handleDownload(material.file_url, material.title)}>
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Video className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>Video akan segera tersedia</p>
-                  </div>
-                )}
-              </TabsContent>
-
-              {/* Landing Page Tab */}
-              <TabsContent value="page" className="space-y-4">
-                <Card className="border-primary/20 bg-primary/5">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="h-12 w-12 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
-                        <Globe className="h-6 w-6 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">Your Personal Landing Page</h3>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          Halaman khusus dengan Agent ID kamu
-                        </p>
-                        <div className="flex items-center gap-2 p-2 bg-background rounded border mb-3">
-                          <Link2 className="h-4 w-4 text-muted-foreground shrink-0" />
-                          <code className="text-sm flex-1 truncate">{agentPageUrl}</code>
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            onClick={() => handleCopy(agentPageUrl, 'agent-page')}
-                          >
-                            {copiedId === 'agent-page' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" asChild>
-                            <a href={agentPageUrl} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-4 w-4 mr-1" />
-                              View Page
-                            </a>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-
-        {/* Per-Package Marketing Kit */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Marketing Kit per Paket</CardTitle>
-            <CardDescription>Materi khusus untuk paket tertentu</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="max-w-xs">
-              <Label>Pilih Paket</Label>
-              <Select value={selectedPackage} onValueChange={setSelectedPackage}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih paket" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Paket (General)</SelectItem>
-                  {packages.map((pkg) => (
-                    <SelectItem key={pkg.id} value={pkg.id}>
-                      {pkg.package_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {selectedPackage !== 'all' ? (
-              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {/* Package-specific materials */}
-                {materials.filter(m => m.package_id === selectedPackage).length > 0 ? (
-                  materials.filter(m => m.package_id === selectedPackage).map((material) => (
-                    <div key={material.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium text-sm">{material.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {material.format}
-                          </p>
-                        </div>
-                      </div>
-                      <Button size="sm" variant="outline" onClick={() => handleDownload(material.file_url, material.title)}>
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-8 text-muted-foreground">
-                    <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>Belum ada materi khusus untuk paket ini</p>
-                    <p className="text-sm">Gunakan materi general di atas</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Pilih paket untuk melihat materi spesifik</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Tools Section */}
-        <div className="grid gap-0 divide-y divide-pkg-hair">
-          {/* Link Shortener */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Link2 className="h-5 w-5" />
-                Link Shortener
-              </CardTitle>
-              <CardDescription>Buat link pendek dengan tracking</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="url">URL</Label>
-                <Input
-                  id="url"
-                  placeholder="https://musafartour.com/paket-umroh/..."
-                  value={newLinkUrl}
-                  onChange={(e) => setNewLinkUrl(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="title">Judul (opsional)</Label>
-                <Input
-                  id="title"
-                  placeholder="Promo Ramadhan"
-                  value={newLinkTitle}
-                  onChange={(e) => setNewLinkTitle(e.target.value)}
-                />
-              </div>
-              <Button 
-                onClick={handleCreateLink} 
-                disabled={createLinkMutation.isPending}
-                className="w-full"
-              >
-                {createLinkMutation.isPending ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Membuat...</>
-                ) : (
-                  <><Link2 className="h-4 w-4 mr-2" /> Generate Short Link</>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Link Analytics */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Link Analytics
-              </CardTitle>
-              <CardDescription>Statistik link yang sudah dibuat</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {linksLoading ? (
-                <div className="flex justify-center py-4">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : shortLinks.length === 0 ? (
-                <div className="text-center py-6 text-muted-foreground">
-                  <Link2 className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Belum ada link yang dibuat</p>
-                </div>
-              ) : (
-                <ScrollArea className="h-[200px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Link</TableHead>
-                        <TableHead className="text-center">Clicks</TableHead>
-                        <TableHead></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {shortLinks.map((link) => (
-                        <TableRow key={link.id}>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium text-sm">{link.title || link.short_code}</p>
-                              <p className="text-xs text-muted-foreground truncate max-w-[150px]">
-                                {link.original_url}
-                              </p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant="secondary">{link.click_count}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                className="h-8 w-8 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
-                                onClick={() => handleCopy(`${window.location.origin}/l/${link.short_code}`, link.id)}
-                                aria-label={`Salin tautan ${link.short_code}`}
-                              >
-                                {copiedId === link.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                              </Button>
-                              <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                className="h-8 w-8 text-destructive [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
-                                onClick={() => deleteLinkMutation.mutate(link.id)}
-                                aria-label={`Hapus tautan ${link.short_code}`}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-        </div>
+        {side === "travel" ? <TravelSide agentCode={agentCode} /> : <PaketSide agentCode={agentCode} />}
+        <p className="mt-12 text-[14px] text-pkg-fg-3">
+          Konten buatan sendiri? Kirim ke PIC dulu, dicek kurang dari 24 jam.{" "}
+          <a href={agentCsWhatsAppUrl(agent?.name ?? "", agentCode, "Saya mau kirim konten buatan sendiri untuk dicek.")} target="_blank" rel="noopener noreferrer" className="font-medium text-pkg-red-deep underline underline-offset-4">
+            Kirim ke PIC
+          </a>
+        </p>
       </AgentPanel>
     </AgentPage>
-
-      {/* Sales Script Modal */}
-      <Dialog open={showScriptModal} onOpenChange={setShowScriptModal}>
-        <DialogContent className="max-w-lg max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>{scriptCategory}</DialogTitle>
-            <DialogDescription>Pilih dan copy template yang sesuai</DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="max-h-[60vh]">
-            <div className="space-y-4 pr-4">
-              {selectedScripts.map((script) => (
-                <div key={script.id} className="p-4 bg-muted/30 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-sm">{script.title}</h4>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleCopy(script.content, `script-${script.id}`)}
-                    >
-                      {copiedId === `script-${script.id}` ? (
-                        <><Check className="h-4 w-4 mr-1" /> Disalin</>
-                      ) : (
-                        <><Copy className="h-4 w-4 mr-1" /> Salin</>
-                      )}
-                    </Button>
-                  </div>
-                  <p className="text-sm whitespace-pre-line text-muted-foreground">{script.content}</p>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowScriptModal(false)}>
-              Tutup
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
   );
 };
 

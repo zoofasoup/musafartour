@@ -55,3 +55,15 @@ export function agentLevelColor(level: string | null | undefined): string {
 export function agentLevelLabel(level: string | null | undefined): string {
   return AGENT_LEVEL_LABELS[(level as AgentLevel) || "silver"] || (level ?? "Silver");
 }
+
+/**
+ * What actually differs per level (SOP: skema komisi umroh reguler). The shared perks (marketing kit, welcome kit, training,
+ * PIC support) are the same for everyone, so they are listed once and not under each level.
+ */
+export const AGENT_LEVEL_INFO: Record<AgentLevel, { range: string; commission: string; perk: string }> = {
+  silver: { range: "Level awal, 1 sampai 15 jamaah per tahun", commission: "Rp1,0 - 1,5 juta", perk: "Bonus closing 5 dan 10 jamaah dalam satu invoice" },
+  gold: { range: "15 sampai 30 jamaah per tahun", commission: "Rp1,5 - 2,5 juta", perk: "Komisi lebih besar dari Silver" },
+  platinum: { range: "Minimal 30 jamaah per tahun", commission: "Rp2,0 - 3,0 juta", perk: "Komisi tertinggi dan insentif khusus" },
+};
+
+export const AGENT_LEVEL_SHARED_PERKS = "Semua level: marketing kit, welcome kit, pelatihan, dan dukungan PIC Agen.";

@@ -66,7 +66,7 @@ export const HeroSection = (_props: HeroSectionProps) => {
             </div>
           </div>
 
-          <h1 className="pkg-title mt-5 whitespace-nowrap !leading-[1.12] !text-[clamp(28px,9.4vw,72px)]">Umroh Nyaman,<br />Bukan Safar Biasa.</h1>
+          <h1 className="pkg-title mt-5 whitespace-nowrap !leading-[1.12] !text-[clamp(28px,9.4vw,72px)]">Umroh Nyaman,<br />Bukan Safar Biasa</h1>
           <p className="pkg-label mt-4 max-w-md text-pkg-fg-2">Teman perjalanan keluarga membangun memori di Tanah Suci.</p>
 
           <div className="mt-6 flex gap-3 sm:max-w-md">

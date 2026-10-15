@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -128,7 +129,13 @@ const AgentCommission = () => {
   const [tab, setTab] = useState("all");
 
   // Bank setup modal (the payout goes to this account)
-  const [showBankModal, setShowBankModal] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [showBankModal, setShowBankModal] = useState(searchParams.get("rekening") === "1");
+  useEffect(() => {
+    // Arrived from a badge mission ("Atur rekening"): the dialog is already open, drop the flag from the address.
+    if (searchParams.get("rekening")) setSearchParams({}, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [bankForm, setBankForm] = useState({
     bank_name: agent?.bank_name || "",
     bank_account: agent?.bank_account || "",
@@ -233,7 +240,7 @@ const AgentCommission = () => {
 
   if (isLoading) {
     return (
-      <AgentPage title="Komisi.">
+      <AgentPage title="Komisi">
         <AgentPanel last><div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-pkg-fg-3" aria-label="Memuat" /></div></AgentPanel>
       </AgentPage>
     );
@@ -241,7 +248,7 @@ const AgentCommission = () => {
 
   if (isError && commissionRows === undefined) {
     return (
-      <AgentPage title="Komisi.">
+      <AgentPage title="Komisi">
         <AgentPanel last>
           <AgentEmpty icon={AlertCircle} text="Komisi belum bisa dimuat" action={<button type="button" className={agentGlass} onClick={() => refetch()}>Coba lagi</button>} />
         </AgentPanel>
@@ -286,7 +293,7 @@ const AgentCommission = () => {
   return (
     <>
     <AgentPage
-      title="Komisi."
+      title="Komisi"
       hero={
         <>
           <Figures

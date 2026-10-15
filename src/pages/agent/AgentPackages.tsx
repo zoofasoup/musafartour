@@ -31,7 +31,7 @@ const AgentPackages = () => {
 
   if (error) {
     return (
-      <AgentPage title="Paket umroh.">
+      <AgentPage title="Paket umroh">
         <AgentPanel last><LoadError what="Daftar paket" error={error} onRetry={() => refetch()} retrying={isFetching} /></AgentPanel>
       </AgentPage>
     );
@@ -40,7 +40,7 @@ const AgentPackages = () => {
   return (
     <>
     <AgentPage
-      title="Paket umroh."
+      title="Paket umroh"
       hero={
         <>
           <div className="-mx-6 -mb-4 mt-7 flex gap-2 overflow-x-auto px-6 py-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">

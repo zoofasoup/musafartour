@@ -41,7 +41,7 @@ export default function AgentRegisterJamaah() {
 
   if (agent && agent.status !== "active") {
     return (
-      <AgentPage title="Daftarkan jamaah.">
+      <AgentPage title="Daftarkan jamaah">
         <AgentPanel last>
           <p className="text-[17px] leading-[1.5] text-pkg-fg-2">Akun agenmu belum aktif, jadi belum bisa mendaftarkan jamaah. Hubungi tim Musafar kalau ini keliru.</p>
         </AgentPanel>
@@ -72,7 +72,7 @@ export default function AgentRegisterJamaah() {
   };
 
   return (
-    <AgentPage title="Daftarkan jamaah.">
+    <AgentPage title="Daftarkan jamaah">
       <AgentPanel last={!(pkg && agent)}>
         <section aria-labelledby="pilih-paket" className="pkg-form">
           <h2 id="pilih-paket" className="pkg-h3">Pilih paket</h2>
@@ -99,7 +99,6 @@ export default function AgentRegisterJamaah() {
             </div>
           )}
         </section>
-        <Link to="/agent/leads" className="pkg-label mt-8 inline-flex min-h-11 items-center gap-2 text-pkg-red-deep underline underline-offset-4"><Target className="h-4 w-4" aria-hidden /> Catat sebagai lead dulu</Link>
       </AgentPanel>
 
       {pkg && agent && (

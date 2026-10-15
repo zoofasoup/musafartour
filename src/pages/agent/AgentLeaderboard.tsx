@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
@@ -18,7 +19,10 @@ import {
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { AgentEmpty, AgentPage, AgentPanel, Figures, agentGlass } from "@/components/agent/AgentPage";
-import { AGENT_LEVEL_COLORS as levelColors, AGENT_LEVEL_ICONS as levelIcons, agentLevelLabel } from "@/lib/agentLevels";
+import { FlowerDefs, RankAvatar } from "@/components/agent/RankAvatar";
+import { BadgeArt } from "@/components/agent/BadgeArt";
+import { useMyBadges } from "@/hooks/useMyBadges";
+import { AGENT_LEVEL_COLORS as levelColors, AGENT_LEVEL_ICONS as levelIcons, AGENT_LEVEL_INFO, AGENT_LEVEL_SHARED_PERKS, agentLevelLabel } from "@/lib/agentLevels";
 
 // Icon mapping
 /** The Rewards Store has no way to redeem and no points are awarded yet. Flip to true when both exist. */
@@ -160,6 +164,12 @@ export default function AgentLeaderboard() {
   const myRank = leaderboard?.findIndex(a => a.id === agent?.id) ?? -1;
   const currentLevel = levels?.find(l => l.level_name === agent?.level);
   const nextLevel = levels?.find(l => l.min_sales > (agent?.total_sales || 0));
+  const { data: myBadges } = useMyBadges();
+  const earnedMine = (myBadges ?? []).filter((b) => b.earned_at).sort((a, b) => (b.earned_at! > a.earned_at! ? 1 : -1));
+  const ranked = (leaderboard ?? []).map((r, i) => ({ ...r, rank: i + 1 }));
+  const top3 = ranked.slice(0, 3);
+  const rest = ranked.slice(3, 10);
+  const toTop10 = myRank > 9 && leaderboard?.[9] ? Math.max(1, leaderboard[9].total_sales - (agent?.total_sales || 0) + 1) : 0;
   const salesNeeded = nextLevel ? nextLevel.min_sales - (agent?.total_sales || 0) : 0;
   const earnedBadgeIds = new Set(earnedBadges?.map(eb => eb.badge_id) || []);
 
@@ -178,38 +188,46 @@ export default function AgentLeaderboard() {
 
   return (
     <AgentPage
-      title="Peringkat."
+      title="Peringkat"
       hero={
-        agent && (
-          <>
-            <Figures
-              items={[
-                { value: myRank >= 0 ? `#${myRank + 1}` : '-', label: 'Peringkat' },
-                { value: String(agent.total_sales || 0), label: 'Jamaah' },
-                { value: lvlLabel, label: 'Level' },
-              ]}
-            />
-            {myRank > 9 && leaderboard?.[9] && (
-              <p className="mt-6 flex items-center gap-2 text-[15px] text-pkg-fg-2"><Target className="h-4 w-4" aria-hidden /> {leaderboard[9].total_sales - (agent.total_sales || 0)} jamaah lagi ke 10 besar</p>
-            )}
-          </>
-        )
+        <>
+          <FlowerDefs />
+          {!loadingLeaderboard && top3.length > 0 && (
+            <div className="mt-8 grid grid-cols-3 items-end gap-3" role="list" aria-label="Tiga teratas">
+              {[1, 0, 2].map((i) => {
+                const r = top3[i];
+                if (!r) return <div key={i} />;
+                const first = i === 0;
+                return (
+                  <div key={r.id} role="listitem" className="flex min-w-0 flex-col items-center text-center">
+                    <RankAvatar id={r.id} name={r.name} size={first ? 96 : 72} ring={first ? "#f4efe6" : "rgb(244 239 230 / 0.3)"} />
+                    <p className="mt-2 w-full truncate text-[16px] font-medium text-pkg-fg">{r.name.split(" ")[0]}</p>
+                    <p className="text-[13px] text-pkg-fg-2 tabular-nums">{r.total_sales} jamaah</p>
+                    <div className={`pkg-glass${first ? "-red" : ""} mt-3 grid w-full place-items-start justify-items-center rounded-t-[22px] pt-4 ${first ? "h-28" : i === 1 ? "h-20" : "h-14"}`} aria-hidden>
+                      <span className="grid h-9 w-9 place-items-center rounded-full bg-pkg-cream text-[17px] font-medium text-pkg-ink">{i + 1}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
       }
     >
       <AgentPanel>
-        <h2 className="pkg-h3">10 teratas</h2>
+        <h2 className="pkg-h3">Peserta lain</h2>
         {loadingLeaderboard ? (
           <div className="mt-5 space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-2xl" />)}</div>
+        ) : rest.length === 0 ? (
+          <AgentEmpty icon={Trophy} text="Belum ada peserta lain" />
         ) : (
-          <ul className="mt-4">
-            {leaderboard?.slice(0, 10).map((item, index) => (
-              <li key={item.id} className={`flex items-center gap-4 rounded-2xl px-3 py-3.5 ${item.id === agent?.id ? 'bg-pkg-cream-2' : ''}`}>
-                <span className="w-9 shrink-0 text-center text-[22px] font-light tracking-[-0.02em] text-pkg-fg">{index + 1}</span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[17px] text-pkg-fg">{item.name}{item.id === agent?.id && <span className="text-pkg-fg-3"> · kamu</span>}</p>
-                  <p className="text-[13px] text-pkg-fg-3">{agentLevelLabel(item.level)}</p>
-                </div>
-                <span className="shrink-0 text-[15px] text-pkg-fg-2">{item.total_sales} jamaah</span>
+          <ul id="rank-list" className="mt-4">
+            {rest.map((item) => (
+              <li key={item.id} data-me={item.id === agent?.id ? "" : undefined} className={`flex items-center gap-4 rounded-2xl px-3 py-3 ${item.id === agent?.id ? 'bg-pkg-cream-2' : ''}`}>
+                <span className="w-6 shrink-0 text-center text-[15px] text-pkg-fg-3 tabular-nums">{item.rank}</span>
+                <RankAvatar id={item.id} name={item.name} size={44} />
+                <p className="min-w-0 flex-1 truncate text-[17px] text-pkg-fg">{item.name}{item.id === agent?.id && <span className="text-pkg-fg-3"> · kamu</span>}</p>
+                <span className="shrink-0 text-[15px] text-pkg-fg-2 tabular-nums">{item.total_sales} jamaah</span>
               </li>
             ))}
           </ul>
@@ -274,78 +292,56 @@ export default function AgentLeaderboard() {
 
       <AgentPanel>
         <h2 className="pkg-h3">Badge</h2>
-        <p className="mt-1 text-[14px] text-pkg-fg-3">{earnedBadges?.length || 0} dari {badges?.length || 0}</p>
-        <ul className="mt-5 grid grid-cols-3 gap-x-3 gap-y-6">
-          {badges?.slice(0, 12).map((badge) => {
-            const isEarned = earnedBadgeIds.has(badge.id);
-            const IconComponent = iconMap[badge.icon] || Award;
-            return (
-              <li key={badge.id} className={`flex flex-col items-center text-center ${isEarned ? '' : 'opacity-45'}`}>
-                <span className={`grid h-14 w-14 place-items-center rounded-full ${isEarned ? 'bg-pkg-red text-pkg-on-red' : 'bg-pkg-cream-2 text-pkg-fg-3'}`}>
-                  {isEarned ? <IconComponent className="h-6 w-6" /> : <Lock className="h-5 w-5" />}
-                </span>
-                <p className="mt-2 line-clamp-2 text-[13px] leading-tight text-pkg-fg">{badge.name}</p>
-              </li>
-            );
-          })}
-        </ul>
-        <Dialog>
-          <DialogTrigger asChild>
-            <button type="button" className={`${agentGlass} mt-6`}>Semua badge <ChevronRight className="h-4 w-4" aria-hidden /></button>
-          </DialogTrigger>
-          <DialogContent className="max-h-[80vh] max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Semua badge</DialogTitle>
-            </DialogHeader>
-            <ScrollArea className="h-[60vh]">
-              <ul className="divide-y pr-4">
-                {badges?.map((badge) => {
-                  const isEarned = earnedBadgeIds.has(badge.id);
-                  const IconComponent = iconMap[badge.icon] || Award;
-                  return (
-                    <li key={badge.id} className={`flex items-center gap-3 py-3 ${isEarned ? '' : 'opacity-60'}`}>
-                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-muted">{isEarned ? <IconComponent className="h-5 w-5" /> : <Lock className="h-4 w-4" />}</span>
-                      <div className="min-w-0">
-                        <p className="font-medium">{badge.name}</p>
-                        <p className="line-clamp-2 text-sm text-muted-foreground">{badge.description}</p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </ScrollArea>
-          </DialogContent>
-        </Dialog>
+        <p className="mt-1 text-[14px] text-pkg-fg-3 tabular-nums">{earnedMine.length} dari {myBadges?.length || 0}</p>
+        {earnedMine.length > 0 && (
+          <ul className="mt-5 grid grid-cols-4 gap-3">
+            {earnedMine.slice(0, 4).map((b) => (
+              <li key={b.code}><BadgeArt code={b.code} earned className="w-full" /></li>
+            ))}
+          </ul>
+        )}
+        <Link to="/agent/achievements" className={`${agentGlass} mt-6`}>{earnedMine.length > 4 ? `Lihat semua (+${earnedMine.length - 4})` : "Lihat pencapaian"} <ChevronRight className="h-4 w-4" aria-hidden /></Link>
       </AgentPanel>
 
       <AgentPanel tone="cream-2" last>
         <h2 className="pkg-h3">Level</h2>
         {nextLevel && (
           <div className="mt-5">
-            <p className="flex justify-between text-[15px] text-pkg-fg"><span>{salesNeeded} jamaah lagi ke {agentLevelLabel(nextLevel.level_name)}</span><span className="text-pkg-fg-3">{agent?.total_sales || 0}/{nextLevel.min_sales}</span></p>
+            <p className="flex justify-between text-[15px] text-pkg-fg"><span>{salesNeeded} jamaah lagi ke {agentLevelLabel(nextLevel.level_name)}</span><span className="text-pkg-fg-3 tabular-nums">{agent?.total_sales || 0}/{nextLevel.min_sales}</span></p>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-pkg-hair" role="progressbar" aria-valuenow={Math.round(((agent?.total_sales || 0) / nextLevel.min_sales) * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="Menuju level berikutnya">
               <div className="h-full rounded-full bg-pkg-red" style={{ width: `${Math.max(4, Math.min(100, ((agent?.total_sales || 0) / nextLevel.min_sales) * 100))}%` }} />
             </div>
           </div>
         )}
-        <ul className="mt-6 divide-y divide-pkg-hair">
-          {levels?.map((level) => (
-            <li key={level.level_name} className="py-5">
-              <p className="flex items-center gap-2 text-[19px] text-pkg-fg">
-                {agentLevelLabel(level.level_name)}
-                {level.level_name === agent?.level && <span className="pkg-label rounded-full bg-pkg-red px-3 py-0.5 text-[12px] text-pkg-on-red">Levelmu</span>}
-              </p>
-              <p className="mt-1 text-[14px] text-pkg-fg-3">Mulai {level.min_sales} jamaah per tahun</p>
-              {level.benefits && level.benefits.length > 0 && (
-                <ul className="mt-3 space-y-1.5">
-                  {level.benefits.map((benefit, i) => (
-                    <li key={i} className="flex items-start gap-2 text-[14px] text-pkg-fg-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-pkg-ok" aria-hidden />{benefit}</li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
-        </ul>
+        <ol className="relative mt-8 space-y-4">
+          {(["silver", "gold", "platinum"] as const).map((key, i, list) => {
+            const info = AGENT_LEVEL_INFO[key];
+            const mine = agent?.level === key;
+            const reached = list.indexOf((agent?.level as typeof key) ?? "silver") >= i;
+            return (
+              <li key={key} className={`relative rounded-[26px] p-5 ${mine ? "pkg-glass-red text-pkg-on-red" : "bg-pkg-cream"}`}>
+                <div className="flex items-center gap-4">
+                  <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-full ${mine ? "bg-pkg-cream text-pkg-red" : reached ? "bg-pkg-ink text-pkg-cream" : "bg-pkg-cream-2 text-pkg-fg-3"}`}>
+                    {key === "silver" ? <Medal className="h-6 w-6" aria-hidden /> : key === "gold" ? <Trophy className="h-6 w-6" aria-hidden /> : <Crown className="h-6 w-6" aria-hidden />}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="flex flex-wrap items-center gap-2 text-[21px] leading-tight">
+                      {agentLevelLabel(key)}
+                      {mine && <span className="rounded-full bg-pkg-cream px-3 py-0.5 text-[12px] font-medium text-pkg-red">Levelmu</span>}
+                    </p>
+                    <p className={`mt-0.5 text-[14px] ${mine ? "text-pkg-on-red/85" : "text-pkg-fg-3"}`}>{info.range}</p>
+                  </div>
+                </div>
+                <div className="mt-5">
+                  <p className={`text-[13px] ${mine ? "text-pkg-on-red/85" : "text-pkg-fg-3"}`}>Komisi per jamaah</p>
+                  <p className="mt-0.5 text-[26px] font-light leading-tight tracking-[-0.02em] tabular-nums">{info.commission}</p>
+                  <p className={`mt-3 text-[15px] ${mine ? "text-pkg-on-red" : "text-pkg-fg-2"}`}>{info.perk}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+        <p className="mt-6 text-[14px] text-pkg-fg-3">{AGENT_LEVEL_SHARED_PERKS}</p>
       </AgentPanel>
     </AgentPage>
   );

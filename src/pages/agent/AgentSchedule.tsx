@@ -274,7 +274,7 @@ const AgentSchedule = () => {
 
   if (error) {
     return (
-      <AgentPage title="Jadwal.">
+      <AgentPage title="Jadwal">
         <AgentPanel last><LoadError what="Jadwal keberangkatan" error={error} onRetry={() => refetch()} retrying={isFetching} /></AgentPanel>
       </AgentPage>
     );
@@ -282,7 +282,7 @@ const AgentSchedule = () => {
 
   if (isLoading) {
     return (
-      <AgentPage title="Jadwal.">
+      <AgentPage title="Jadwal">
         <AgentPanel last><div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-pkg-fg-3" aria-label="Memuat" /></div></AgentPanel>
       </AgentPage>
     );
@@ -291,7 +291,7 @@ const AgentSchedule = () => {
   return (
     <>
     <AgentPage
-      title="Jadwal."
+      title="Jadwal"
       hero={
         <div className="mt-7 flex flex-wrap items-center gap-2">
           {([['list', 'Daftar', List], ['calendar', 'Kalender', CalendarIcon]] as const).map(([mode, label, Icon]) => (

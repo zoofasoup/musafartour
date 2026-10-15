@@ -95,7 +95,7 @@ export const SOP_SECTIONS_A: readonly SopSection[] = [
       { t: "p", text: "Biaya registrasi: Rp1.500.000 (sekali seumur hidup)" },
       { t: "p", text: "**Mendapatkan:**" },
       { t: "p", text: "Welcome kit :" },
-      { t: "ul", items: ["Rompi Exclusive", "Tumbler Exclusive", "Id card agen", "Buku panduan agen"] },
+      { t: "ul", items: ["Rompi Exclusive", "Id card agen", "Buku panduan agen"] },
       { t: "p", text: "Perlengkapan :" },
       { t: "ul", items: ["Koper", "Ihram", "Mukena", "Koko", "abaya", "Tumbler"] },
       { t: "p", text: "Marketing kit :" },

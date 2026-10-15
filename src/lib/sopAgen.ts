@@ -39,7 +39,7 @@ export const AGENT_FEE_ACCOUNT_HOLDER = PT_ACCOUNT_HOLDER;
 
 /** What the registration fee includes. */
 export const AGENT_FEE_INCLUDES = [
-  "Welcome kit: rompi, tumbler, ID card, dan buku panduan",
+  "Welcome kit: rompi, ID card, dan buku panduan",
   "Perlengkapan: koper, ihram, mukena, koko, abaya, dan tumbler",
   "Marketing kit",
   "Grup WhatsApp agen",

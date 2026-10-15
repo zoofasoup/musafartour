@@ -56,7 +56,7 @@ const TentangKami = () => {
         <PkgPanel tone="ink" top>
           <div className="mx-auto max-w-3xl">
             <p className="pkg-glass pkg-label inline-flex h-8 items-center rounded-full px-3 text-[13px]">Bukan safar biasa</p>
-            <h1 className="pkg-title mt-5 text-balance !text-[46px] md:!text-[64px]">Umroh sekeluarga, tanpa cemas.</h1>
+            <h1 className="pkg-title mt-5 text-balance !text-[46px] md:!text-[64px]">Umroh sekeluarga, tanpa cemas</h1>
             <p className="mt-5 text-[17px] leading-[1.5] text-pkg-fg-2">
               Orang tua yang sepuh atau si kecil ikut ke Tanah Suci bukan hal sederhana. Musafar dirancang supaya semua bisa beribadah dengan tenang.
             </p>
@@ -73,7 +73,7 @@ const TentangKami = () => {
 
         <PkgPanel tone="cream">
           <div className="mx-auto max-w-3xl">
-            <h2 className="pkg-h2 text-balance">Kami urus ketenangan hatimu.</h2>
+            <h2 className="pkg-h2 text-balance">Kami urus ketenangan hatimu</h2>
             <p className="mt-5 text-[17px] leading-[1.55] text-pkg-fg-2">
               Cemas membawa orang tua, ragu membawa si kecil menempuh perjalanan jauh. Rasa khawatir itu sering memecah fokus ibadah. Kami tidak hanya mengurus tiket dan hotel.
             </p>
@@ -174,7 +174,7 @@ const TentangKami = () => {
 
         <PkgPanel tone="ink" last>
           <div className="mx-auto max-w-5xl">
-            <h2 className="pkg-h2 text-balance">Siapkan niat, kami siapkan sisanya.</h2>
+            <h2 className="pkg-h2 text-balance">Siapkan niat, kami siapkan sisanya</h2>
             <div className="mt-10 grid gap-10 md:grid-cols-3">
               <div>
                 <CheckCircle2 className="h-6 w-6 text-pkg-red-bright" aria-hidden />

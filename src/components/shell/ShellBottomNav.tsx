@@ -13,7 +13,7 @@ export const ShellBottomNav = ({ items, pathname, action }: { items: ShellNavIte
   // The middle action turns red like any other selected item while its own page is open.
   const actionActive = !!action && findActiveItem([{ items: [action] }], pathname)?.url === action.url;
   const cell =
-    "relative z-10 flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[12px] font-medium outline-none transition-colors duration-300 ease-out focus-visible:ring-2 focus-visible:ring-[#1a1512]";
+    "relative z-10 flex h-[52px] min-w-0 flex-1 items-center justify-center rounded-full px-1 outline-none transition-colors duration-300 ease-out focus-visible:ring-2 focus-visible:ring-[#1a1512]";
 
   // One red pill that glides to the selected item (instead of each item switching colour on its own).
   const barRef = useRef<HTMLDivElement>(null);
@@ -41,10 +41,10 @@ export const ShellBottomNav = ({ items, pathname, action }: { items: ShellNavIte
         key={item.url}
         to={item.url}
         aria-current={isActive ? "page" : undefined}
+        aria-label={item.title}
         className={`${cell} ${isActive ? "text-white" : "text-[#1a1512]/65 active:bg-black/5"}`}
       >
-        <Icon className="h-5 w-5" aria-hidden />
-        <span className="max-w-full truncate">{item.title}</span>
+        <Icon className="h-6 w-6" aria-hidden />
       </Link>
     );
   };

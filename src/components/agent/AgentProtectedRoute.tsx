@@ -79,7 +79,7 @@ const AgentProtectedRoute = ({ children }: AgentProtectedRouteProps) => {
               <span className={`h-2 w-2 rounded-full ${pending ? "bg-[#f0b429]" : "bg-pkg-red-bright"}`} aria-hidden />
               {pending ? "Calon agen" : "Dinonaktifkan"}
             </p>
-            <h1 className="pkg-title mt-3 text-balance !text-[40px] md:!text-[56px]">{pending ? "Menunggu persetujuan." : "Akun dinonaktifkan."}</h1>
+            <h1 className="pkg-title mt-3 text-balance !text-[40px] md:!text-[56px]">{pending ? "Menunggu persetujuan" : "Akun dinonaktifkan"}</h1>
             <p className="mt-5 text-[17px] leading-[1.5] text-pkg-fg-2">
               {pending ? "Admin sedang memeriksa datamu, biasanya 1-2 hari kerja. Kami kabari lewat WhatsApp." : "Hubungi PIC Agen untuk info lebih lanjut."}
             </p>

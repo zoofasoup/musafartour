@@ -97,7 +97,7 @@ export default function AgentMyJamaah() {
 
   return (
     <AgentPage
-      title="Jamaah saya."
+      title="Jamaah saya"
       hero={
         <>
           {!jamaah.error && (

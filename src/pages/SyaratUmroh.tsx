@@ -88,7 +88,7 @@ const REQUIREMENTS = [
 /** Persyaratan and Term of Service that people agree to on the registration form. */
 export default function SyaratUmroh() {
   return (
-    <PkgPage title="Persyaratan dan Term of Service." intro="PT Musa Amanah Wisata (izin PPIU Kemenag: 17102200953750002)">
+    <PkgPage title="Persyaratan dan Term of Service" intro="PT Musa Amanah Wisata (izin PPIU Kemenag: 17102200953750002)">
       <PkgPanel tone="cream">
         <section className="mx-auto max-w-3xl" aria-labelledby="persyaratan">
           <h2 id="persyaratan" className="pkg-h2">Persyaratan umroh</h2>

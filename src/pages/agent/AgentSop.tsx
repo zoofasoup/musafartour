@@ -65,7 +65,7 @@ const AgentSop = () => {
             </button>
           </div>
           <p className="pkg-label mt-10 text-pkg-fg-2">Langkah 2 dari 2</p>
-          <h1 className="pkg-title mt-3 text-balance !text-[40px] md:!text-[56px]">Setujui SOP.</h1>
+          <h1 className="pkg-title mt-3 text-balance !text-[40px] md:!text-[56px]">Setujui SOP</h1>
         </div>
       </PkgPanel>
 

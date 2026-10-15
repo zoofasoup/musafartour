@@ -104,7 +104,7 @@ const AgentSalesGuide = () => {
   const officePhone = websiteSettings?.phone_number || "021-38312137";
 
   return (
-    <AgentPage title="Panduan.">
+    <AgentPage title="Panduan">
       <AgentPanel last>
         <div className="divide-y divide-pkg-hair">
       <Card>

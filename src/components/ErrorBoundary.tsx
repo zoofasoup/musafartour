@@ -81,7 +81,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <div data-pkg-tone="ink" className="flex min-h-screen flex-col justify-center px-6 py-16 text-pkg-fg">
             <div className="mx-auto w-full max-w-xl">
               <p aria-hidden className="pkg-title !text-[min(calc((100vw-48px)/3),200px)] !leading-[0.85]">Oops</p>
-              <h1 className="pkg-h2 mt-8 text-balance">Ada yang tidak beres.</h1>
+              <h1 className="pkg-h2 mt-8 text-balance">Ada yang tidak beres</h1>
               <p className="mt-4 text-[17px] leading-[1.5] text-pkg-fg-2">Coba lagi, atau muat ulang halaman.</p>
               {this.state.error?.message && (
                 <p className="pkg-glass mt-6 break-words rounded-[16px] px-4 py-3 font-mono text-[12px] leading-[1.4] text-pkg-fg-2">{this.state.error.message}</p>

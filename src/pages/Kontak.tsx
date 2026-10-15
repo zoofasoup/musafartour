@@ -113,7 +113,7 @@ ${formData.message}`;
           }
         }}
       />
-      <PkgPage title="Hubungi kami." intro="Tanya paket, jadwal, atau cara daftar. Kami balas lewat WhatsApp.">
+      <PkgPage title="Hubungi kami" intro="Tanya paket, jadwal, atau cara daftar. Kami balas lewat WhatsApp.">
         <PkgPanel tone="cream">
           <div className="mx-auto max-w-5xl">
             <ul className="space-y-6">

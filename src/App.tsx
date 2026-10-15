@@ -90,6 +90,7 @@ const AgentSchedule = lazy(() => import("./pages/agent/AgentSchedule"));
 const AgentMarketingKit = lazy(() => import("./pages/agent/AgentMarketingKit"));
 const AgentProfile = lazy(() => import("./pages/agent/AgentProfile"));
 const AgentLeaderboard = lazy(() => import("./pages/agent/AgentLeaderboard"));
+const AgentAchievements = lazy(() => import("./pages/agent/AgentAchievements"));
 const AgentSalesGuide = lazy(() => import("./pages/agent/AgentSalesGuide"));
 const AgentRegisterJamaah = lazy(() => import("./pages/agent/AgentRegisterJamaah"));
 const AgentMyJamaah = lazy(() => import("./pages/agent/AgentMyJamaah"));
@@ -464,16 +465,7 @@ const App = () => (
                       </Suspense>
                     }
                   />
-                  <Route
-                    path="/agent/leads"
-                    element={
-                      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-                        <AgentProtectedRoute>
-                          <AgentLeads />
-                        </AgentProtectedRoute>
-                      </Suspense>
-                    }
-                  />
+                  <Route path="/agent/leads" element={<Navigate to="/agent/dashboard" replace />} />
                   <Route
                     path="/agent/daftar-jamaah"
                     element={
@@ -504,6 +496,17 @@ const App = () => (
                       </Suspense>
                     }
                   />
+                  <Route
+                    path="/agent/achievements"
+                    element={
+                      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+                        <AgentProtectedRoute>
+                          <AgentAchievements />
+                        </AgentProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+
                   <Route
                     path="/agent/guide"
                     element={

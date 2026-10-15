@@ -333,7 +333,7 @@ const AgentProfile = () => {
 
   if (!agent) {
     return (
-      <AgentPage title="Profil.">
+      <AgentPage title="Profil">
         <AgentPanel last><div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-pkg-fg-3" aria-label="Memuat" /></div></AgentPanel>
       </AgentPage>
     );
@@ -344,7 +344,7 @@ const AgentProfile = () => {
   return (
     <>
     <AgentPage
-      title="Profil."
+      title="Profil"
       hero={
         <>
           <div className="mt-7 flex items-center gap-5">

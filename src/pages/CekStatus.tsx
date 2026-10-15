@@ -135,7 +135,7 @@ export default function CekStatus() {
     : "Halo Musafar Tour, saya mau tanya soal pendaftaran umroh saya.";
 
   return (
-    <PkgPage title="Cek status pendaftaran." intro="Masukkan kode pendaftaran dan nomor WhatsAppmu.">
+    <PkgPage title="Cek status pendaftaran" intro="Masukkan kode pendaftaran dan nomor WhatsAppmu.">
       <PkgPanel tone="cream" last={!result}>
         <form onSubmit={onSubmit} noValidate className="mx-auto max-w-xl space-y-5">
           <div>

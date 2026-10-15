@@ -52,7 +52,7 @@ export default function JadiAgen() {
       <main id="main">
         <PkgPanel tone="ink" top>
           <div className="mx-auto max-w-3xl">
-            <h1 className="pkg-title text-balance !text-[46px] md:!text-[64px]">Jadi agen resmi umroh.</h1>
+            <h1 className="pkg-title text-balance !text-[46px] md:!text-[64px]">Jadi agen resmi umroh</h1>
             <p className="mt-5 text-[17px] leading-[1.5] text-pkg-fg-2">Ajak keluarga dan teman berangkat, dapat komisi per jamaah.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link to="/agent/register" className={`pkg-press pkg-glass-red pkg-label inline-flex h-14 items-center justify-center gap-2 rounded-full px-7 ${focus} focus-visible:ring-pkg-cream focus-visible:ring-offset-pkg-ink`}>

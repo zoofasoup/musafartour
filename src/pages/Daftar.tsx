@@ -39,7 +39,7 @@ export default function Daftar() {
 
   if (isLoading) {
     return (
-      <PkgPage title="Daftar umroh.">
+      <PkgPage title="Daftar umroh">
         <PkgPanel tone="cream" last>
           <div className="mx-auto max-w-2xl space-y-4" aria-busy="true">
             <Skeleton className="h-16 w-full rounded-full" />

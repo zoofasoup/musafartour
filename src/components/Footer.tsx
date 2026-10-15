@@ -73,7 +73,7 @@ const Footer = ({ variant }: { variant?: "pkg" }) => {
                   role="img"
                   aria-label="Musafar Tour"
                 />
-                <h2 className="pkg-h2 mt-10 max-w-md">Info promo paket umroh terbaru.</h2>
+                <h2 className="pkg-h2 mt-10 max-w-md">Info promo paket umroh terbaru</h2>
                 <div className="mt-8 flex flex-wrap gap-3">
                   <a
                     href={`https://wa.me/${whatsapp}?text=Halo%20Musamin,%20saya%20ingin%20mendapatkan%20info%20promo%20paket%20umroh%20terbaru`}

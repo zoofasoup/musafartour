@@ -106,6 +106,7 @@ export const AppShell = ({
       </Helmet>
       <ShellSidebar
         nav={nav}
+        hideOnPhone={[...(bottomNav ?? []), ...(bottomAction ? [bottomAction] : [])].map((i) => i.url)}
         pathname={pathname}
         brandTo={brandTo}
         brandBadge={brandBadge}

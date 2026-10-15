@@ -843,3 +843,5 @@ html.pkg-agent [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-
   background: linear-gradient(180deg, #d02029, #c4141b 45%, #a50f16); color: #fff; box-shadow: 0 8px 16px -6px rgb(196 20 27 / 0.55), inset 0 1px 0 rgb(255 228 231 / 0.4); font-weight: 500;
 }
 html.pkg-agent [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="header"] button { border-radius: 999px; }
+/* Only five pages are left in the phone drawer, so the group headings are noise there. */
+html.pkg-agent [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="group-label"] { display: none; }

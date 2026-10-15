@@ -20,7 +20,7 @@ const NotFound = () => {
         <PkgPanel tone="ink" top last className="min-h-[calc(100svh-120px)]">
           <div className="mx-auto max-w-3xl">
             <p aria-hidden className="pkg-title tabular-nums !leading-[0.85] !tracking-[-0.06em] !text-[min(calc((100vw-48px)/1.83),320px)]">404</p>
-            <h1 className="pkg-h2 mt-8 text-balance">Halaman tidak ditemukan.</h1>
+            <h1 className="pkg-h2 mt-8 text-balance">Halaman tidak ditemukan</h1>
             <p className="mt-4 max-w-md text-[17px] leading-[1.5] text-pkg-fg-2">Mungkin sudah dipindahkan atau tidak tersedia lagi.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link to="/paket-umroh" className={`pkg-press pkg-glass-red pkg-label inline-flex h-14 items-center justify-center rounded-full px-7 ${focus}`}>Lihat paket umroh</Link>

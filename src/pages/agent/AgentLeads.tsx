@@ -442,7 +442,7 @@ export default function AgentLeads() {
   return (
     <>
     <AgentPage
-      title="Lead saya."
+      title="Lead saya"
       hero={
         <>
           {!leads.error && (

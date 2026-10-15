@@ -67,7 +67,7 @@ export default function CaraBayar() {
   const proofMessage = "Halo Musafar Tour, saya mau kirim bukti transfer.\nKode pendaftaran: \nNama: \nNominal: ";
 
   return (
-    <PkgPage title="Cara bayar." intro="Tiga langkah, lewat transfer ke rekening PT. Mulai setelah Umroh Consultant (UC) menerima pendaftaranmu.">
+    <PkgPage title="Cara bayar" intro="Tiga langkah, lewat transfer ke rekening PT. Mulai setelah Umroh Consultant (UC) menerima pendaftaranmu.">
       <PkgPanel tone="cream">
         <ol className="mx-auto grid max-w-5xl gap-8 md:grid-cols-3">
           {STEPS.map(({ icon: Icon, title, text, ...rest }, i) => (

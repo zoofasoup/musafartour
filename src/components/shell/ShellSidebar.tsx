@@ -34,6 +34,8 @@ const LABEL_HIDE_IN_RAIL = "group-data-[collapsible=icon]:sr-only";
 
 interface ShellSidebarProps {
   nav: ShellNavGroup[];
+  /** Pages the phone bar already shows: left out of the drawer on a phone (a wide screen has no bar, so it keeps them). */
+  hideOnPhone?: string[];
   pathname: string;
   brandTo: string;
   brandBadge?: string;
@@ -48,7 +50,7 @@ const CollapseToggle = () => {
 
   if (isMobile) {
     return (
-      <Button variant="ghost" size="icon" onClick={() => setOpenMobile(false)} aria-label="Tutup menu" className="shrink-0 text-muted-foreground hover:bg-field-hover">
+      <Button variant="ghost" size="icon" onClick={() => setOpenMobile(false)} aria-label="Tutup menu" className="h-11 w-11 shrink-0 rounded-full bg-[#f4efe6]/10 text-[#f4efe6] shadow-[inset_0_1px_0_rgb(244_239_230/0.2)] hover:bg-[#f4efe6]/15 hover:text-[#f4efe6] focus-visible:ring-0">
         <X className="h-5 w-5" aria-hidden />
       </Button>
     );
@@ -102,9 +104,14 @@ const FooterLink = ({ link }: { link: ShellSidebarLink }) => {
 // between pages, and the open page is scrolled into view when it would be hidden.
 let savedMenuScroll = 0;
 
-export const ShellSidebar = ({ nav, pathname, brandTo, brandBadge, links, extra, onSignOut }: ShellSidebarProps) => {
+export const ShellSidebar = ({ nav: fullNav, hideOnPhone, pathname, brandTo, brandBadge, links, extra, onSignOut }: ShellSidebarProps) => {
   const { isMobile, setOpenMobile } = useSidebar();
-  const active = findActiveItem(nav, pathname);
+  // On a phone the drawer is one even list: the pages the bar already shows are left out and the groups are merged,
+  // so every row has the same spacing (headings are hidden there anyway).
+  const nav = isMobile && hideOnPhone?.length
+    ? [{ items: fullNav.flatMap((g) => g.items).filter((i) => !hideOnPhone.includes(i.url)) }]
+    : fullNav;
+  const active = findActiveItem(fullNav, pathname);
   const menuRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const el = menuRef.current;
