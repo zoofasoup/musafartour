@@ -257,7 +257,8 @@ const AgentProfile = () => {
       setCropFile(null);
       toast.success("Foto terpasang");
     } catch (error) {
-      toast.error("Foto belum bisa dipasang. Coba lagi.");
+      const reason = (error as { message?: string })?.message ?? "";
+      toast.error("Foto belum bisa dipasang.", { description: reason ? reason.slice(0, 140) : "Coba lagi." });
       console.error("Avatar upload failed:", error);
     } finally {
       setUploadingAvatar(false);

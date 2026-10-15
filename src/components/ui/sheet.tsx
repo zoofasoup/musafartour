@@ -57,7 +57,8 @@ interface SheetContentProps
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Content>, SheetContentProps>(
   ({ side = "right", className, overlayClassName, children, ...props }, ref) => {
-    const skin = useAgentSkin() && !className?.includes("pkg-v2");
+    // The navigation drawer (a sidebar sheet) has its own dark look, set in pkg-app.css.
+    const skin = useAgentSkin() && !className?.includes("pkg-v2") && !(props as Record<string, unknown>)["data-sidebar"];
     return (
     <SheetPortal>
       <SheetOverlay className={cn(skin && "pkg-dlg-overlay", overlayClassName)} />

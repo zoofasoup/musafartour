@@ -113,8 +113,9 @@ export function AvatarCropper({ file, onCancel, onSave }: { file: File | null; o
 
   if (!file) return null;
   return createPortal(
-    <div role="dialog" aria-modal="true" aria-label="Atur foto profil" className="pkg-v2 pkg-float fixed inset-0 z-[120] flex flex-col items-center justify-center bg-[#1a1512]/95 px-6 backdrop-blur-sm">
-      <p className="pkg-label mb-8 text-pkg-fg-2">Geser dan perbesar</p>
+    <div role="dialog" aria-modal="true" aria-label="Atur foto profil" className="pkg-v2 pkg-float fixed inset-0 z-[120]">
+     <div data-pkg-tone="ink" className="flex h-full w-full flex-col items-center justify-center !bg-[#0f0c0a] px-6">
+      <p className="mb-8 text-[17px] font-normal text-[#f4efe6]">Geser dan perbesar</p>
 
       <div
         className="relative touch-none select-none overflow-hidden rounded-full bg-[#2a2420] shadow-[0_0_0_2px_rgb(244_239_230/0.5)]"
@@ -149,6 +150,7 @@ export function AvatarCropper({ file, onCancel, onSave }: { file: File | null; o
           {saving ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> : null} Pasang
         </button>
       </div>
+     </div>
     </div>,
     document.body
   );

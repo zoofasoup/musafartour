@@ -834,3 +834,12 @@ html.pkg-app th { font-weight: 500; }
 html.pkg-app select { background-color: hsl(var(--field)); border-radius: 14px; border-color: transparent; color: hsl(var(--foreground)); }
 /* Translucent white bars follow the card colour. */
 html.pkg-app .bg-white\/95, html.pkg-app .bg-white\/90 { background-color: hsl(var(--card) / 0.95); }
+
+/* The agent menu drawer on the phone: the ink panel with a soft right edge, pill rows, and the selected row red like the bottom bar. */
+html.pkg-agent [data-sidebar="sidebar"][data-mobile="true"] { border: 0; border-radius: 0 32px 32px 0; background: #1a1512; }
+html.pkg-agent [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-button"] { height: 48px; border-radius: 999px; padding-inline: 16px; font-size: 16px; font-weight: 400; }
+html.pkg-agent [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-button"][data-active="true"],
+html.pkg-agent [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-button"].bg-card {
+  background: linear-gradient(180deg, #d02029, #c4141b 45%, #a50f16); color: #fff; box-shadow: 0 8px 16px -6px rgb(196 20 27 / 0.55), inset 0 1px 0 rgb(255 228 231 / 0.4); font-weight: 500;
+}
+html.pkg-agent [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="header"] button { border-radius: 999px; }

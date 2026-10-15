@@ -274,7 +274,7 @@ const AgentRegister = () => {
                   id="referral_code"
                   name="referral_code"
                   type="text"
-                  placeholder="MUS-XXXXXX"
+                  placeholder="AG0001"
                   value={formData.referral_code}
                   onChange={handleChange}
                   disabled={loading}

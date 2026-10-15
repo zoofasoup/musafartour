@@ -70,9 +70,9 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
       bottomAction={bottomAction}
       inkHeaderOnPhone
       sidebarExtra={
-        <div className="rounded-md bg-card p-3 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Agent ID</p>
-          <p className="mt-0.5 truncate text-sm font-semibold text-foreground">{agent.referral_code}</p>
+        <div className="rounded-[20px] bg-[#f4efe6]/10 px-4 py-3 shadow-[inset_0_1px_0_rgb(244_239_230/0.18)]">
+          <p className="text-[13px] text-[#f4efe6]/65">Agent ID</p>
+          <p className="mt-0.5 truncate text-[18px] font-medium tracking-wide text-[#f4efe6]">{agent.referral_code}</p>
         </div>
       }
       sidebarLinks={[
