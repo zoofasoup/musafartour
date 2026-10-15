@@ -20,3 +20,22 @@ CREATE POLICY "Agents replace own avatar" ON storage.objects FOR UPDATE TO authe
     AND name = (storage.foldername(name))[1] || '/avatar.jpg'
     AND (storage.foldername(name))[1] IN (SELECT a.id::text FROM public.agents a WHERE a.user_id = auth.uid())
   );
+
+-- An upload inserts the row and reads it back (RETURNING), which needs a SELECT policy too. The bucket's read policy is
+-- admin-only ("Admins can list marketing materials"; public URLs do not use it), so the agent needs one for their own file.
+DROP POLICY IF EXISTS "Agents read own avatar" ON storage.objects;
+CREATE POLICY "Agents read own avatar" ON storage.objects FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'marketing-materials'
+    AND name = (storage.foldername(name))[1] || '/avatar.jpg'
+    AND (storage.foldername(name))[1] IN (SELECT a.id::text FROM public.agents a WHERE a.user_id = auth.uid())
+  );
+
+-- Removing the photo.
+DROP POLICY IF EXISTS "Agents delete own avatar" ON storage.objects;
+CREATE POLICY "Agents delete own avatar" ON storage.objects FOR DELETE TO authenticated
+  USING (
+    bucket_id = 'marketing-materials'
+    AND name = (storage.foldername(name))[1] || '/avatar.jpg'
+    AND (storage.foldername(name))[1] IN (SELECT a.id::text FROM public.agents a WHERE a.user_id = auth.uid())
+  );

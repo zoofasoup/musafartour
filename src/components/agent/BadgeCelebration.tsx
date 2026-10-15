@@ -1,27 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { createPortal } from "react-dom";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { useMyBadges } from "@/hooks/useMyBadges";
 import { BadgeArt } from "@/components/agent/BadgeArt";
 import type { BadgeProgress } from "@/lib/badges";
 import "@/styles/pkg-v2.css";
-
-const key = (agentId: string) => `agent-badges-seen:${agentId}`;
-const read = (agentId: string): string[] | null => {
-  try {
-    const raw = localStorage.getItem(key(agentId));
-    return raw ? (JSON.parse(raw) as string[]) : null;
-  } catch {
-    return null;
-  }
-};
-const write = (agentId: string, codes: string[]) => {
-  try {
-    localStorage.setItem(key(agentId), JSON.stringify(codes));
-  } catch {
-    /* storage unavailable: the card may show again next time */
-  }
-};
 
 const SPARKS = [
   { dx: "-120px", dy: "-90px", delay: "420ms" }, { dx: "110px", dy: "-100px", delay: "480ms" },
@@ -81,40 +66,24 @@ export function BadgeReveal({ badge, hint, label = "Badge baru", onTap }: { badg
 }
 
 /**
- * Tells the agent when a new badge was earned: one reveal per badge, once. What was already seen is kept on this device.
- * The first time on a device only badges from the last day are announced, so old ones do not all pop up at once.
+ * Tells the agent when a new badge was earned: one reveal per badge, once per account. "Seen" is kept in the database
+ * (public.mark_badges_seen), so logging in again, or from another device, does not show it again.
  */
 export function BadgeCelebration() {
   const { agent } = useAgentAuth();
   const { data } = useMyBadges();
-  const [queue, setQueue] = useState<BadgeProgress[]>([]);
+  const queryClient = useQueryClient();
+  // Badges already shown in this session, so a slow refetch cannot bring one back before the database answers.
+  const [shown, setShown] = useState<string[]>([]);
 
-  const fresh = useMemo(() => {
-    if (!agent?.id || !data) return [] as BadgeProgress[];
-    const earned = data.filter((b) => b.earned_at);
-    const seen = read(agent.id);
-    if (seen) return earned.filter((b) => !seen.includes(b.code));
-    const dayAgo = Date.now() - 24 * 3600 * 1000;
-    return earned.filter((b) => new Date(b.earned_at!).getTime() > dayAgo);
-  }, [agent?.id, data]);
-
-  // First run on this device: everything not announced counts as seen.
-  useEffect(() => {
-    if (!agent?.id || !data) return;
-    if (!read(agent.id)) write(agent.id, data.filter((b) => b.earned_at && !fresh.some((f) => f.code === b.code)).map((b) => b.code));
-  }, [agent?.id, data, fresh]);
-
-  useEffect(() => {
-    if (fresh.length) setQueue((q) => [...q, ...fresh.filter((f) => !q.some((x) => x.code === f.code))]);
-  }, [fresh]);
-
+  const queue = useMemo(() => (data ?? []).filter((b) => b.earned_at && b.seen === false && !shown.includes(b.code)), [data, shown]);
   const current = queue[0];
-  const agentId = agent?.id;
-  if (!current || !agentId) return null;
+  if (!current || !agent?.id) return null;
 
   const next = () => {
-    write(agentId, [...new Set([...(read(agentId) ?? []), current.code])]);
-    setQueue((q) => q.slice(1));
+    setShown((s) => [...s, current.code]);
+    queryClient.setQueryData<BadgeProgress[]>(["my-badges", agent.id], (old) => old?.map((b) => (b.code === current.code ? { ...b, seen: true } : b)));
+    void supabase.rpc("mark_badges_seen" as never, { _codes: [current.code] } as never);
   };
 
   return <BadgeReveal key={current.code} badge={current} onTap={next} hint={queue.length > 1 ? `Ketuk untuk lanjut, masih ada ${queue.length - 1} badge baru` : "Ketuk untuk tutup"} />;

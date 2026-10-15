@@ -88,7 +88,7 @@ const AgentDashboard = () => {
                   <BadgeArt code={b.code} earned className="w-16 shrink-0" />
                   <span className="min-w-0 flex-1">
                     <span className="block text-[18px] leading-tight text-pkg-fg">{b.name}</span>
-                    <span className="mt-0.5 block text-[14px] leading-snug text-pkg-fg-3">{action?.how ?? b.description}</span>
+                    <span className="mt-0.5 line-clamp-2 block text-[14px] leading-snug text-pkg-fg-3">{action?.how ?? b.description}</span>
                     {b.target > 1 && (
                       <span className="mt-2 block">
                         <span className="block h-1.5 overflow-hidden rounded-full bg-pkg-hair" role="progressbar" aria-valuenow={b.current} aria-valuemin={0} aria-valuemax={b.target} aria-label={`Progres ${b.name}`}>

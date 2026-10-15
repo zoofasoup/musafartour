@@ -136,7 +136,7 @@ const AgentAchievements = () => {
                       <BadgeArt code={b.code} earned className="w-20 shrink-0" />
                       <span className="min-w-0 flex-1">
                         <span className="block text-[18px] leading-tight text-pkg-fg">{b.name}</span>
-                        <span className="mt-1 block text-[14px] leading-snug text-pkg-fg-3">{b.description}</span>
+                        <span className="mt-1 line-clamp-2 block text-[14px] leading-snug text-pkg-fg-3">{b.description}</span>
                         {b.target > 1 && (
                           <span className="mt-3 block">
                             <Bar value={b.current} max={b.target} label={`Progres ${b.name}`} />

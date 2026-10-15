@@ -8,7 +8,7 @@ import {
 import { AppShell, type ShellNavGroup, type ShellNavItem } from "@/components/shell";
 import { agentLevelLabel } from "@/lib/agentLevels";
 import { agentCsWhatsAppUrl } from "@/lib/agentSupport";
-import { agentAvatarUrl } from "@/lib/agentAvatar";
+import { agentAvatarUrl, useAvatarVersion } from "@/lib/agentAvatar";
 import { copyText } from "@/lib/copy";
 import { BadgeCelebration } from "@/components/agent/BadgeCelebration";
 
@@ -42,6 +42,7 @@ const bottomAction = navItems.find((i) => i.url === "/agent/jamaah")!;
 
 const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
   const { user, agent, loading, signOut } = useAgentAuth();
+  const avatarVersion = useAvatarVersion();
   // Marks the portal so dialogs, sheets, menus and selects (which render outside the page) take its look.
   useEffect(() => {
     document.documentElement.classList.add("pkg-agent");
@@ -74,7 +75,7 @@ const AgentLayout = ({ children }: { children?: React.ReactNode }) => {
       titleFallback="Portal Agen"
       extraTitles={[{ path: "/agent/profile", title: "Profil" }, { path: "/agent/daftar-jamaah", title: "Daftarkan Jamaah" }, { path: "/agent/packages", title: "Paket" }]}
       documentTitleSuffix="Portal Agen Musafar Tour"
-      profile={{ name: agent.name, subtitle: `Level ${agentLevelLabel(agent.level)}`, profileUrl: "/agent/profile", avatarUrl: agentAvatarUrl(agent.id) }}
+      profile={{ name: agent.name, subtitle: `Level ${agentLevelLabel(agent.level)}`, profileUrl: "/agent/profile", avatarUrl: agentAvatarUrl(agent.id, avatarVersion) }}
       onSignOut={signOut}
       bottomNav={bottomNav}
       bottomAction={bottomAction}

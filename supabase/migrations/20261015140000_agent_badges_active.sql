@@ -4,6 +4,7 @@
 -- Metrics come from data that already exists: agent_sales (counted = the same jamaah count as agents.total_sales and levels),
 -- jamaah_registrations.group_id (one invoice), agent_leads, agents (profile, SOP, fee, bank, referred_by_id).
 
+ALTER TABLE public.agent_earned_badges ADD COLUMN IF NOT EXISTS seen_at timestamptz;
 ALTER TABLE public.agent_badges ADD COLUMN IF NOT EXISTS code text;
 ALTER TABLE public.agent_badges ADD COLUMN IF NOT EXISTS group_key text NOT NULL DEFAULT 'persiapan';
 ALTER TABLE public.agent_badges ADD COLUMN IF NOT EXISTS sort_order integer NOT NULL DEFAULT 0;
@@ -179,9 +180,10 @@ CREATE TRIGGER badges_sale_change
 -- ---------------------------------------------------------------------------------------------------------------
 -- 5. The agent's own view: every badge with progress and the date earned
 -- ---------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.my_badge_progress();
 CREATE OR REPLACE FUNCTION public.my_badge_progress()
 RETURNS TABLE(code text, name text, description text, group_key text, sort_order integer, manual boolean,
-              target integer, current integer, earned_at timestamptz)
+              target integer, current integer, earned_at timestamptz, seen boolean)
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
@@ -198,7 +200,7 @@ BEGIN
   SELECT b.code, b.name, b.description, b.group_key, b.sort_order, b.manual,
          b.requirement_value,
          CASE WHEN b.manual THEN 0 ELSE least(coalesce((m ->> b.requirement_type)::integer, 0), b.requirement_value) END,
-         e.earned_at
+         e.earned_at, (e.seen_at IS NOT NULL)
     FROM public.agent_badges b
     LEFT JOIN public.agent_earned_badges e ON e.badge_id = b.id AND e.agent_id = v_agent
    WHERE b.code IS NOT NULL
@@ -241,3 +243,22 @@ BEGIN
   END LOOP;
 END;
 $$;
+
+
+-- The celebration shows once per account: the agent marks a badge as seen after the reveal.
+CREATE OR REPLACE FUNCTION public.mark_badges_seen(_codes text[])
+RETURNS void
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  UPDATE public.agent_earned_badges e
+     SET seen_at = now()
+    FROM public.agents a, public.agent_badges b
+   WHERE a.user_id = auth.uid() AND e.agent_id = a.id AND b.id = e.badge_id AND b.code = ANY(_codes) AND e.seen_at IS NULL;
+$$;
+REVOKE ALL ON FUNCTION public.mark_badges_seen(text[]) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.mark_badges_seen(text[]) TO authenticated;
+
+-- Badges earned before this existed count as seen, so nobody gets a pile of reveals at once.
+UPDATE public.agent_earned_badges SET seen_at = now() WHERE seen_at IS NULL;

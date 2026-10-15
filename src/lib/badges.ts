@@ -18,6 +18,8 @@ export interface BadgeProgress {
   target: number;
   current: number;
   earned_at: string | null;
+  /** The agent has seen the reveal of this badge (kept in the database, so once per account). */
+  seen: boolean;
 }
 
 /** The artwork of a badge: public/badges/<code>.webp. A missing file falls back to an icon in the page. */
@@ -58,10 +60,10 @@ export function nextBadges(all: BadgeProgress[], limit = 3): BadgeProgress[] {
 /** What an agent has to do for a badge, and where to start. `invite` copies the agent's recruiting link instead of opening a page. */
 export interface BadgeAction { how: string; label: string; to?: string; invite?: boolean }
 
-const SELL = { how: "Buka paket di Marketing, lalu daftarkan jamaah dari sheet paketnya.", label: "Buka paket", to: "/agent/marketing-kit" };
-const INVOICE = { how: "Daftarkan beberapa jamaah sekaligus dalam satu invoice, misalnya satu keluarga atau rombongan.", label: "Daftarkan jamaah", to: "/agent/daftar-jamaah" };
-const MONTHLY = { how: "Usahakan ada minimal 1 jamaah setiap bulan. Pakai materi promosi untuk mencari calon jamaah.", label: "Buka Marketing", to: "/agent/marketing-kit" };
-const INVITE = { how: "Kirim link ajakan ke calon agen. Agent ID kamu otomatis terisi saat mereka mendaftar.", label: "Salin link ajakan", invite: true };
+const SELL = { how: "Buka paket di Marketing, lalu daftarkan jamaah.", label: "Buka paket", to: "/agent/marketing-kit" };
+const INVOICE = { how: "Daftarkan beberapa jamaah sekaligus dalam satu invoice.", label: "Daftarkan jamaah", to: "/agent/daftar-jamaah" };
+const MONTHLY = { how: "Usahakan ada minimal 1 jamaah setiap bulan.", label: "Buka Marketing", to: "/agent/marketing-kit" };
+const INVITE = { how: "Kirim link ajakan ke calon agen. Agent ID kamu otomatis terisi.", label: "Salin link ajakan", invite: true };
 
 export const BADGE_ACTIONS: Record<string, BadgeAction> = {
   "paperwork-wizard": { how: "Isi KTP, foto KTP, dan alamat domisili.", label: "Lengkapi data", to: "/agent/onboarding" },
@@ -69,10 +71,10 @@ export const BADGE_ACTIONS: Record<string, BadgeAction> = {
   "golden-ticket": { how: "Transfer biaya registrasi, lalu unggah bukti transfernya.", label: "Bayar sekarang", to: "/agent/dashboard" },
   "wallet-ready": { how: "Isi nama bank, nomor rekening, dan nama pemilik rekening.", label: "Atur rekening", to: "/agent/commission?rekening=1" },
   "day-one-closer": SELL, "squad-goals": SELL, "full-house": SELL, "tour-bus-tycoon": SELL,
-  "gold-rush": { ...SELL, how: "Capai 15 jamaah dalam satu tahun kalender. Mulai dari paket yang masih punya seat." },
-  "sky-high": { ...SELL, how: "Capai 30 jamaah dalam satu tahun kalender. Mulai dari paket yang masih punya seat." },
+  "gold-rush": { ...SELL, how: "Capai 15 jamaah dalam satu tahun kalender." },
+  "sky-high": { ...SELL, how: "Capai 30 jamaah dalam satu tahun kalender." },
   "one-shot": INVOICE, "clean-sweep": INVOICE, "convoy-king": INVOICE,
   "warming-up": MONTHLY, "on-fire": MONTHLY, "never-miss-a-month": MONTHLY,
   "plus-one": INVITE, "crew-chief": INVITE, "whole-village": INVITE,
-  "pay-it-forward": { how: "Bantu agen yang kamu ajak sampai closing pertamanya, misalnya dengan berbagi materi promosi.", label: "Buka Marketing", to: "/agent/marketing-kit" },
+  "pay-it-forward": { how: "Bantu agen yang kamu ajak sampai closing pertamanya.", label: "Buka Marketing", to: "/agent/marketing-kit" },
 };

@@ -30,6 +30,7 @@ import {
   FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -56,7 +57,7 @@ import { formatCurrency } from "@/lib/utils";
 import { AgentPage, AgentPanel, Chips, Figures } from "@/components/agent/AgentPage";
 import { AvatarCropper } from "@/components/agent/AvatarCropper";
 import { ImageLightbox } from "@/components/ImageLightbox";
-import { agentAvatarUrl } from "@/lib/agentAvatar";
+import { agentAvatarPath, agentAvatarUrl, bumpAvatarVersion } from "@/lib/agentAvatar";
 import { AgentIdCard } from "@/components/agent/AgentIdCard";
 import { agentStatusLabel } from "@/lib/agentSupport";
 import { AGENT_LEVEL_COLORS as levelColors, AGENT_LEVEL_LABELS as levelLabels, type AgentLevel } from "@/lib/agentLevels";
@@ -103,6 +104,8 @@ const AgentProfile = () => {
   }, [agent?.id]);
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [viewAvatar, setViewAvatar] = useState(false);
+  const [avatarMenu, setAvatarMenu] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -252,7 +255,8 @@ const AgentProfile = () => {
         .from('marketing-materials')
         .upload(`${agent.id}/avatar.jpg`, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '60' });
       if (uploadError) throw uploadError;
-      setAvatarUrl(agentAvatarUrl(agent.id, Date.now()));
+      bumpAvatarVersion();
+      setAvatarUrl(agentAvatarUrl(agent.id));
       setHasAvatar(true);
       setCropFile(null);
       toast.success("Foto terpasang");
@@ -262,6 +266,26 @@ const AgentProfile = () => {
       console.error("Avatar upload failed:", error);
     } finally {
       setUploadingAvatar(false);
+    }
+  };
+
+  const removeAvatar = async () => {
+    if (!agent?.id) return;
+    setUploadingAvatar(true);
+    try {
+      const { error } = await supabase.storage.from('marketing-materials').remove([agentAvatarPath(agent.id)]);
+      if (error) throw error;
+      bumpAvatarVersion();
+      setAvatarUrl(agentAvatarUrl(agent.id));
+      setHasAvatar(false);
+      toast.success("Foto dihapus");
+    } catch (error) {
+      const reason = (error as { message?: string })?.message ?? "";
+      toast.error("Foto belum bisa dihapus.", { description: reason ? reason.slice(0, 140) : "Coba lagi." });
+      console.error("Avatar delete failed:", error);
+    } finally {
+      setUploadingAvatar(false);
+      setConfirmRemove(false);
     }
   };
 
@@ -351,8 +375,8 @@ const AgentProfile = () => {
             <div className="relative shrink-0">
               <button
                 type="button"
-                onClick={() => (hasAvatar ? setViewAvatar(true) : fileInputRef.current?.click())}
-                aria-label={hasAvatar ? "Lihat foto profil" : "Pasang foto profil"}
+                onClick={() => (hasAvatar ? setAvatarMenu(true) : fileInputRef.current?.click())}
+                aria-label={hasAvatar ? "Foto profil" : "Pasang foto profil"}
                 className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-cream focus-visible:ring-offset-2 focus-visible:ring-offset-pkg-ink"
               >
                 <Avatar className="h-20 w-20">
@@ -361,15 +385,20 @@ const AgentProfile = () => {
                 </Avatar>
               </button>
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
-              <button
-                type="button"
-                className="pkg-press pkg-glass absolute -bottom-1 -right-1 grid h-10 w-10 place-items-center rounded-full"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingAvatar}
-                aria-label="Ganti foto profil"
-              >
-                {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-              </button>
+              {!hasAvatar && (
+                <button
+                  type="button"
+                  className="pkg-press pkg-glass absolute -bottom-1 -right-1 grid h-10 w-10 place-items-center rounded-full"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  aria-label="Ganti foto profil"
+                >
+                  {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                </button>
+              )}
+              {hasAvatar && uploadingAvatar && (
+                <span className="pkg-glass absolute -bottom-1 -right-1 grid h-10 w-10 place-items-center rounded-full"><Loader2 className="h-4 w-4 animate-spin" aria-hidden /></span>
+              )}
             </div>
             <div className="min-w-0">
               <p className="truncate text-[22px] font-light tracking-[-0.02em] text-pkg-fg">{agent.name}</p>
@@ -785,6 +814,39 @@ const AgentProfile = () => {
         </Tabs>
       </AgentPanel>
     </AgentPage>
+    <Dialog open={avatarMenu} onOpenChange={setAvatarMenu}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Foto profil</DialogTitle>
+          <DialogDescription className="sr-only">Lihat, ganti, atau hapus foto profil</DialogDescription>
+        </DialogHeader>
+        <div className="pkg-v2 min-w-0 !bg-transparent">
+          {[
+            { label: "Lihat foto", onClick: () => { setAvatarMenu(false); setViewAvatar(true); } },
+            { label: "Ganti foto", onClick: () => { setAvatarMenu(false); fileInputRef.current?.click(); } },
+          ].map((o) => (
+            <button key={o.label} type="button" data-plain onClick={o.onClick} className="pkg-press flex min-h-14 w-full items-center border-b border-pkg-hair text-left text-[17px] text-pkg-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink">
+              {o.label}
+            </button>
+          ))}
+          <button type="button" data-plain onClick={() => { setAvatarMenu(false); setConfirmRemove(true); }} className="pkg-press flex min-h-14 w-full items-center text-left text-[17px] text-pkg-red-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink">
+            Hapus foto
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+    <AlertDialog open={confirmRemove} onOpenChange={setConfirmRemove}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Hapus foto profil</AlertDialogTitle>
+          <AlertDialogDescription>Foto kamu dihapus dan diganti inisial nama.</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction onClick={(e) => { e.preventDefault(); void removeAvatar(); }}>Hapus</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     <AvatarCropper file={cropFile} onCancel={() => setCropFile(null)} onSave={saveAvatar} />
     <ImageLightbox images={avatarUrl ? [avatarUrl] : []} currentIndex={0} isOpen={viewAvatar} onClose={() => setViewAvatar(false)} />
     </>
