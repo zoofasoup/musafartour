@@ -35,7 +35,7 @@ export function useAdminWorkCounts(enabled = true) {
 export function menuBadgeFor(path: string, c: AdminWorkCounts | undefined): number {
   if (!c) return 0;
   switch (path) {
-    case "/admin/jamaah": return c.intakes_new ?? 0;
+    case "/admin/jamaah/masuk": return c.intakes_new ?? 0;
     case "/admin/jamaah/pembayaran": return c.payments_pending?.count ?? 0;
     case "/admin/pembayaran-komisi": return c.commission_eligible ?? 0;
     case "/admin/agents": return c.agents_pending ?? 0;

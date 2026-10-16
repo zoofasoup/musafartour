@@ -29,7 +29,7 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const BADGE_LABEL: Record<string, string> = {
-  "/admin/jamaah": "pendaftaran baru menunggu",
+  "/admin/jamaah/masuk": "pendaftaran baru menunggu",
   "/admin/jamaah/pembayaran": "pembayaran menunggu verifikasi",
   "/admin/pembayaran-komisi": "komisi menunggu persetujuan",
   "/admin/agents": "agen menunggu persetujuan",
@@ -111,7 +111,7 @@ const AdminLayout = () => {
     await signOut();
   };
 
-  // Same menu, same roles; the shell wants it as title/url. "Semua jamaah" and "Masuk" are views inside Data Jamaah, not menu items of their own.
+  // Same menu, same roles; the shell wants it as title/url. "Semua jamaah" is a view inside Data Jamaah; "Masuk" has its own menu item.
   const nav: ShellNavGroup[] = menuSections.map(section => ({
     label: section.label,
     items: section.items.map(item => ({
@@ -121,7 +121,7 @@ const AdminLayout = () => {
       end: item.path === "/admin",
       badge: menuBadgeFor(item.path, workCounts),
       badgeLabel: BADGE_LABEL[item.path],
-      alsoActive: item.path === "/admin/jamaah" ? ["/admin/jamaah/semua", "/admin/jamaah/masuk"] : undefined,
+      alsoActive: item.path === "/admin/jamaah" ? ["/admin/jamaah/semua"] : undefined,
     })),
   }));
 

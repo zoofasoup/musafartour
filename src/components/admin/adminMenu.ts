@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard, Image, Target, MessageSquare,
   Images, Package, Hotel, Calendar, FileText, HelpCircle,
-  Settings, Users, TrendingUp, Search, UserCog, Trophy, ListChecks, Calculator, Backpack, Wallet, Download, CalendarCheck, PenTool, BarChart3, Coins, Banknote,
+  Settings, Users, TrendingUp, Search, UserCog, Trophy, ListChecks, Calculator, Backpack, Wallet, Download, CalendarCheck, PenTool, BarChart3, Coins, Banknote, Inbox,
 } from "lucide-react";
 
 /**
@@ -32,6 +32,7 @@ export const ADMIN_MENU_SECTIONS: AdminMenuSection[] = [
     // (enforced in the database, see 20261001090100_offline_jamaah_registrations.sql).
     label: "Jamaah & Keuangan",
     items: [
+      { icon: Inbox, label: "Pendaftaran Masuk", path: "/admin/jamaah/masuk", roles: ["admin", "superadmin", "cs_admin"] },
       { icon: CalendarCheck, label: "Data Jamaah", path: "/admin/jamaah", roles: ["admin", "superadmin", "cs_admin"] },
       { icon: Wallet, label: "Verifikasi Pembayaran", path: "/admin/jamaah/pembayaran", roles: ["admin", "superadmin", "cs_admin", "finance"] },
       { icon: BarChart3, label: "Laporan Keuangan", path: "/admin/jamaah/keuangan", roles: ["admin", "superadmin", "finance"] },
