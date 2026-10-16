@@ -384,7 +384,7 @@ export default function SalesCalculator() {
   };
 
   return (
-    <AdminPage title="Booth Optimizer" intro="Hitung komposisi kamar dan harga terbaik. Lebih nyaman di laptop">
+    <AdminPage title="Pengoptimal Booth" intro="Hitung komposisi kamar dan harga terbaik. Lebih nyaman di laptop">
       <AdminPanel last>
       <div className="mx-auto max-w-3xl space-y-6">
       {/* ─── Package Selection ─── */}

@@ -22,7 +22,7 @@ const roleOptions = [
   { value: "product_contributor", label: "Product Contributor (lihat & usul)" },
   { value: "cs_admin", label: "CS Administrasi (input jamaah & pembayaran)" },
   { value: "finance", label: "Finance (setujui & bayar komisi agen)" },
-  { value: "content_admin", label: "Admin Konten (marketing)" },
+  { value: "content_admin", label: "Admin Konten (pemasaran)" },
   { value: "agent_admin", label: "Admin Agen (dukungan mitra)" },
   { value: "sales", label: "Sales" },
   { value: "advertiser", label: "Advertiser (iklan berbayar)" },

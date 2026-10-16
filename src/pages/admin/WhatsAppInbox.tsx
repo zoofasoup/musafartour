@@ -127,7 +127,7 @@ export default function WhatsAppInbox() {
   });
 
   return (
-    <AdminPage title="WhatsApp Inbox"
+    <AdminPage title="Kotak Masuk WhatsApp"
       intro="Setiap klik &quot;Chat via WhatsApp&quot; di seluruh situs. Tandai yang berhasil jadi booking supaya conversion rate di Chat Rotation tercatat beneran."
     >
       <AdminPanel last>

@@ -232,7 +232,7 @@ const OwnerDashboard = () => {
 
       <AdminPanel
         last
-        title="Leaderboard agen"
+        title="Peringkat agen"
         description="Top 3 berdasarkan total penjualan"
         action={<Button variant="ghost" size="sm" onClick={() => navigate("/admin/gamification")} className="shrink-0 gap-1">Semua <ArrowRight className="h-4 w-4" aria-hidden /></Button>}
       >

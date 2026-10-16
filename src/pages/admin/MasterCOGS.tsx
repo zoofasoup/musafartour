@@ -29,7 +29,7 @@ export default function MasterCOGS() {
   }
 
   return (
-    <AdminPage title="Master COGS" intro="Template biaya dasar untuk semua paket. Lebih nyaman dikerjakan di laptop">
+    <AdminPage title="Master HPP" intro="Template biaya dasar untuk semua paket. Lebih nyaman dikerjakan di laptop">
       <AdminPanel last>
         <div className="overflow-x-auto">
           <CogsCalculator packageId="default" initialData={templateData} isTemplate={true} />

@@ -268,7 +268,7 @@ const ChatRotation = () => {
   }
 
   return (
-    <AdminPage title="WhatsApp Rotation"
+    <AdminPage title="Rotasi WhatsApp"
       intro="Kelola distribusi chat WhatsApp ke customer service"
       actions={<><div className="flex gap-2">
           <Button variant="outline" onClick={fetchData}>

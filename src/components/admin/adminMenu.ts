@@ -24,7 +24,7 @@ export interface AdminMenuSection {
 export const ADMIN_MENU_SECTIONS: AdminMenuSection[] = [
   {
     items: [
-      { icon: LayoutDashboard, label: "Dashboard", path: "/admin", roles: ["admin", "superadmin", "product_admin", "product_contributor", "content_admin", "agent_admin", "cs_admin"] },
+      { icon: LayoutDashboard, label: "Dasbor", path: "/admin", roles: ["admin", "superadmin", "product_admin", "product_contributor", "content_admin", "agent_admin", "cs_admin"] },
     ]
   },
   {
@@ -58,7 +58,7 @@ export const ADMIN_MENU_SECTIONS: AdminMenuSection[] = [
     label: "Alat & Keuangan",
     items: [
       { icon: Calculator, label: "Kalkulator Harga", path: "/admin/calculator", roles: ["admin", "superadmin", "product_admin"] },
-      { icon: Calculator, label: "Master COGS", path: "/admin/master-cogs", roles: ["admin", "superadmin", "product_admin"] },
+      { icon: Calculator, label: "Master HPP", path: "/admin/master-cogs", roles: ["admin", "superadmin", "product_admin"] },
     ]
   },
   {

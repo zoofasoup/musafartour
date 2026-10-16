@@ -69,7 +69,7 @@ export default function ProductDevelopment() {
   }, [filteredPackages]);
 
   return (
-    <AdminPage title="Product Development"
+    <AdminPage title="Pengembangan Produk"
       intro="Kelola Costing (HPP), komponen harga mentah, dan profit per paket."
     >
       <AdminPanel last>

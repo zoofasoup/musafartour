@@ -418,7 +418,7 @@ const PackageForm = () => {
   const steps = [
     { id: 1, title: "Paket In General", description: "Detail dasar & daftar fasilitas" },
     { id: 2, title: "Kalkulasi COGS", description: "Penentuan HPP, Hotel & Harga Jual" },
-    { id: 3, title: "Itinerary & Marketing", description: "Jadwal perjalanan & hasil Flyer" }
+    { id: 3, title: "Itinerary & Pemasaran", description: "Jadwal perjalanan & hasil Flyer" }
   ];
   const [loading, setLoading] = useState(false);
   const [savedPackageTitle, setSavedPackageTitle] = useState("");

@@ -465,8 +465,8 @@ const AgentManagement = () => {
       <Dialog open={!!logSaleAgent} onOpenChange={(open) => !open && resetSaleForm()}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Log Penjualan · {logSaleAgent?.name}</DialogTitle>
-            <DialogDescription>Catat penjualan yang sudah dikonfirmasi supaya komisi dan leaderboard agent ini ikut terupdate.</DialogDescription>
+            <DialogTitle>Catat Penjualan · {logSaleAgent?.name}</DialogTitle>
+            <DialogDescription>Catat penjualan yang sudah dikonfirmasi supaya komisi dan papan peringkat agen ini ikut diperbarui.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
@@ -510,9 +510,9 @@ const AgentManagement = () => {
               <Select value={saleStatus} onValueChange={setSaleStatus}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="confirmed">Confirmed (komisi langsung masuk)</SelectItem>
-                  <SelectItem value="pending">Pending (belum masuk komisi)</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="confirmed">Terkonfirmasi (komisi langsung masuk)</SelectItem>
+                  <SelectItem value="pending">Menunggu (belum masuk komisi)</SelectItem>
+                  <SelectItem value="cancelled">Dibatalkan</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -174,7 +174,7 @@ export default function CalculatorLeads() {
   }, [leads]);
 
   return (
-    <AdminPage title="Calculator Leads"
+    <AdminPage title="Lead Kalkulator"
       intro="Lead dari Umroh Financial Planner"
       actions={<><Button onClick={exportCSV} variant="outline" className="gap-2">
           <Download className="h-4 w-4" /> Ekspor CSV

@@ -184,7 +184,7 @@ export default function Analytics() {
   );
 
   return (
-    <AdminPage title="Analytics"
+    <AdminPage title="Analitik"
       intro="Pengunjung website, klik WhatsApp, lead, closing, dan belanja iklan di satu tempat."
       actions={<><div className="flex flex-wrap gap-2" role="group" aria-label="Rentang waktu">
           {RANGES.map((r) => (

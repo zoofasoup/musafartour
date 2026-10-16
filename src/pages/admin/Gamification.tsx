@@ -392,7 +392,7 @@ const Gamification = () => {
               <DialogTrigger asChild>
                 <Button onClick={resetChallengeForm}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Challenge
+                  Tambah Tantangan
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg">

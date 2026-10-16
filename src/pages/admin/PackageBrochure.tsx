@@ -713,7 +713,7 @@ export default function PackageBrochure() {
           <div className="p-4 space-y-4 sticky top-0">
             <div className="flex items-center gap-2 mb-1">
               <BedDouble className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-bold tracking-tighter">Booth Optimizer</h3>
+              <h3 className="text-sm font-bold tracking-tighter">Pengoptimal Booth</h3>
             </div>
 
             {/* Rate preview */}

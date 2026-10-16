@@ -88,7 +88,7 @@ export default function FlyerGenerator() {
   }
 
   return (
-    <AdminPage title="Flyer Generator"
+    <AdminPage title="Pembuat Flyer"
       intro="Pilih paket yang tampil di flyer, lalu unduh sebagai gambar. Preview di bawah adalah persis apa yang akan diunduh."
     >
       <AdminPanel last>

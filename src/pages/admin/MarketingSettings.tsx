@@ -120,7 +120,7 @@ const MarketingSettings = () => {
   }
 
   return (
-    <AdminPage title="Pengaturan Marketing" intro="Atur pixel pelacakan dan analitik untuk website">
+    <AdminPage title="Pengaturan Pemasaran" intro="Atur pixel pelacakan dan analitik untuk website">
       <AdminPanel last>
 
       <Form {...form}>
