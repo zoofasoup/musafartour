@@ -21,6 +21,8 @@ export function PackageFilterSheet({
   isFiltered,
   onReset,
   count,
+  title = "Filter paket",
+  unit = "paket",
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -28,6 +30,8 @@ export function PackageFilterSheet({
   isFiltered: boolean;
   onReset: () => void;
   count: number;
+  title?: string;
+  unit?: string;
 }) {
   const [filterPanel, setFilterPanel] = useState<HTMLDivElement | null>(null);
   useSwipeDownClose(filterPanel, () => onOpenChange(false));
@@ -35,7 +39,7 @@ export function PackageFilterSheet({
         <Sheet open={open} onOpenChange={onOpenChange}>
           <SheetContent side="bottom" overlayClassName="pkg-overlay" className="pkg-v2 pkg-float border-0 bg-transparent p-0 shadow-none [&>button]:hidden">
             <SheetHeader className="sr-only">
-              <SheetTitle>Filter paket</SheetTitle>
+              <SheetTitle>{title}</SheetTitle>
             </SheetHeader>
             <div ref={setFilterPanel} data-pkg-tone="cream" className="pkg-panel pkg-panel-sheet max-h-[88svh] overflow-y-auto">
               <span className="mx-auto mb-4 block h-1 w-10 rounded-full bg-pkg-hair" aria-hidden />
@@ -78,7 +82,7 @@ export function PackageFilterSheet({
                   </button>
                 )}
                 <button type="button" onClick={() => onOpenChange(false)} className="pkg-press pkg-glass-red pkg-label inline-flex h-14 min-w-0 flex-1 items-center justify-center rounded-full px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink focus-visible:ring-offset-2">
-                  Lihat {count} paket
+                  Lihat {count} {unit}
                 </button>
               </div>
             </div>

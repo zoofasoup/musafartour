@@ -12,6 +12,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isTod
 import { id } from "date-fns/locale";
 import { formatNumber, getTierPrice } from "@/lib/utils";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface Package {
   id: string;
   package_name: string;
@@ -129,15 +130,11 @@ const JadwalKeberangkatan = () => {
   if (!isAdmin) return null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Jadwal Keberangkatan</h1>
-          <p className="text-muted-foreground">Kalender keberangkatan paket umroh</p>
-        </div>
-      </div>
-
-      <Card>
+    <AdminPage title="Jadwal Keberangkatan"
+      intro="Kalender keberangkatan paket umroh"
+    >
+      <AdminPanel last>
+<Card>
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -244,9 +241,8 @@ const JadwalKeberangkatan = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Package list for current month */}
-      <Card>
+{/* Package list for current month */}
+<Card>
         <CardHeader>
           <CardTitle className="text-lg">
             Paket Bulan {months[currentMonth]} {currentYear}
@@ -296,7 +292,8 @@ const JadwalKeberangkatan = () => {
           )}
         </CardContent>
       </Card>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

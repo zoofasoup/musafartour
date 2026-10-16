@@ -1,6 +1,8 @@
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
+import { StatCard } from "@/components/admin/jamaah/StatCard";
+import { AgentEmpty } from "@/components/agent/AgentPage";
 import { Button } from "@/components/ui/button";
 import { Package, FileText, Plane, BarChart, AlertTriangle, Users, Calendar, ArrowRight } from "lucide-react";
 import { useEffect } from "react";
@@ -161,172 +163,102 @@ const OwnerDashboard = () => {
 
   const insights = getInsights();
 
-  const agentInitials = (name: string) =>
-    name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
-  const agentColors = ["bg-blue-100 text-blue-700", "bg-pink-100 text-pink-700", "bg-purple-100 text-purple-700"];
-
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-10">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dasbor</h1>
-          <p className="text-muted-foreground mt-1">Yang perlu ditangani hari ini dan ringkasan situs.</p>
-        </div>
-      </div>
-
+    <AdminPage title="Dasbor" intro="Yang perlu ditangani hari ini dan ringkasan situs">
       {/* Work queues: what needs a person today, each card opens the page where it is done */}
-      <WorkQueueCards />
+      <AdminPanel title="Perlu ditangani">
+        <WorkQueueCards />
+      </AdminPanel>
 
       {/* Insights derived from real upcoming-departure data - only renders when there's something real to flag */}
       {insights.length > 0 && (
-      <div className="grid gap-4 md:grid-cols-2">
-        {insights.map((insight) => {
-          const Icon = insight.icon;
-          return (
-            <div key={insight.id} className={`${insight.bg} ${insight.border} border rounded-2xl p-5 shadow-sm transition-transform hover:-translate-y-1 duration-300`}>
-              <div className="flex items-start gap-3">
-                <div className={`p-2 rounded-xl bg-white/60 backdrop-blur-sm shadow-sm`}>
-                  <Icon className={`w-5 h-5 ${insight.color}`} />
-                </div>
-                <div>
-                  <h3 className={`font-semibold text-sm ${insight.color} mb-1`}>{insight.title}</h3>
-                  <p className="text-slate-600 text-sm leading-relaxed">{insight.text}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+        <AdminPanel title="Perhatian">
+          <ul className="divide-y divide-pkg-hair">
+            {insights.map((insight) => {
+              const Icon = insight.icon;
+              return (
+                <li key={insight.id} className="flex items-start gap-3 py-4 first:pt-0 last:pb-0">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pkg-cream-2 text-pkg-red-deep"><Icon className="h-5 w-5" aria-hidden /></span>
+                  <div className="min-w-0">
+                    <h3 className="text-[16px] font-medium text-pkg-fg">{insight.title}</h3>
+                    <p className="mt-1 text-[14px] leading-relaxed text-pkg-fg-3">{insight.text}</p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </AdminPanel>
       )}
 
-      {/* KPI Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.title} className="hover:shadow-md transition-all duration-300 border-slate-200">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-slate-500">{stat.title}</CardTitle>
-                <div className="p-2 bg-primary/5 rounded-xl">
-                  <Icon className="h-4 w-4 text-primary" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-slate-800">{stat.value}</div>
-                <div className="mt-2 text-xs text-slate-400">{stat.description}</div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <AdminPanel title="Ringkasan">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {stats.map((stat) => (
+            <StatCard key={stat.title} label={stat.title} value={String(stat.value)} hint={stat.description} />
+          ))}
+        </div>
+      </AdminPanel>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Real-time Occupancy Gauge / Upcoming */}
-        <Card className="md:col-span-2 border-slate-200 shadow-sm flex flex-col">
-          <CardHeader className="border-b border-slate-100 bg-slate-50/50 rounded-t-xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg text-slate-800 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  Keberangkatan Terdekat
-                </CardTitle>
-                <CardDescription>Pantau sisa seat secara langsung</CardDescription>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/admin/jadwal')} className="text-primary hover:text-primary/80">
-                Lihat Semua <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0 flex-1">
-            <div className="divide-y divide-slate-100">
-              {upcomingPackages?.length === 0 ? (
-                <div className="p-8 text-center text-slate-500">Belum ada jadwal keberangkatan aktif.</div>
-              ) : (
-                upcomingPackages?.map((pkg) => {
-                  const slotsTotal = pkg.slots_total || 45;
-                  // Offline (sheet) + online bookings both consume seats.
-                  const slotsFilled = getSlotsTaken(pkg);
-                  const occupancyPercentage = Math.round((slotsFilled / slotsTotal) * 100);
-                  const isHighOccupancy = occupancyPercentage > 80;
-                  const sisaSeat = Math.max(0, slotsTotal - slotsFilled);
-                  
-                  return (
-                    <div key={pkg.id} className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-slate-900 text-base">{pkg.package_name}</h4>
-                        <p className="text-sm text-slate-500 mt-1 flex items-center gap-2">
-                          <Calendar className="w-3.5 h-3.5" />
-                          {format(new Date(pkg.departure_date), "dd MMMM yyyy", { locale: idLocale })}
-                        </p>
-                      </div>
-                      <div className="w-full sm:w-64 flex flex-col gap-2">
-                        <div className="flex justify-between text-sm font-medium">
-                          <span className="text-slate-600">Occupancy</span>
-                          <span className={isHighOccupancy ? "text-emerald-600" : "text-primary"}>{occupancyPercentage}%</span>
-                        </div>
-                        <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-1000 ease-out ${isHighOccupancy ? 'bg-emerald-500' : 'bg-primary'}`} 
-                            style={{ width: `${occupancyPercentage}%` }}
-                          />
-                        </div>
-                        <div className="text-xs text-slate-500 text-right">
-                          Estimasi sisa {sisaSeat} dari {slotsTotal} seat
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Agent Leaderboard */}
-        <Card className="border-slate-200 shadow-sm flex flex-col">
-          <CardHeader className="border-b border-slate-100 bg-slate-50/50 rounded-t-xl">
-            <CardTitle className="text-lg text-slate-800 flex items-center gap-2">
-              <Users className="w-5 h-5 text-indigo-500" />
-              Leaderboard Agen
-            </CardTitle>
-            <CardDescription>Top 3 agen berdasarkan total penjualan</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0 flex-1">
-            <div className="divide-y divide-slate-100">
-              {!topAgents || topAgents.length === 0 ? (
-                <div className="p-8 text-center text-sm text-slate-500">Belum ada agen aktif.</div>
-              ) : topAgents.map((agent, i) => (
-                <div key={agent.id} className="p-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${agentColors[i] || agentColors[agentColors.length - 1]}`}>
-                        {agentInitials(agent.name)}
-                      </div>
-                      {i === 0 && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-xl filter drop-shadow-sm">👑</div>
-                      )}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-slate-900 text-sm">{agent.name}</h4>
-                      <p className="text-xs text-slate-500 mt-0.5">{agent.total_sales} Closing</p>
-                    </div>
+      <AdminPanel
+        title="Keberangkatan terdekat"
+        description="Sisa seat langsung"
+        action={<Button variant="ghost" size="sm" onClick={() => navigate("/admin/jadwal")} className="shrink-0 gap-1">Semua <ArrowRight className="h-4 w-4" aria-hidden /></Button>}
+      >
+        {upcomingPackages?.length === 0 ? (
+          <AgentEmpty icon={Calendar} text="Belum ada jadwal aktif" />
+        ) : (
+          <ul className="divide-y divide-pkg-hair">
+            {upcomingPackages?.map((pkg) => {
+              const slotsTotal = pkg.slots_total || 45;
+              // Offline (sheet) + online bookings both consume seats.
+              const slotsFilled = getSlotsTaken(pkg);
+              const pct = Math.round((slotsFilled / slotsTotal) * 100);
+              const sisaSeat = Math.max(0, slotsTotal - slotsFilled);
+              return (
+                <li key={pkg.id} className="py-4 first:pt-0 last:pb-0">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <h4 className="min-w-0 truncate text-[17px] text-pkg-fg">{pkg.package_name}</h4>
+                    <span className="shrink-0 text-[15px] font-medium text-pkg-fg">{pct}%</span>
                   </div>
-                  <div className="text-right">
-                    <div className="font-bold text-indigo-600">Rp {(agent.total_commission || 0).toLocaleString('id-ID')}</div>
-                    <div className="text-[10px] text-slate-400 uppercase tracking-wider">Komisi</div>
+                  <p className="mt-0.5 text-[14px] text-pkg-fg-3">{format(new Date(pkg.departure_date), "d MMM yyyy", { locale: idLocale })} · sisa {sisaSeat} dari {slotsTotal} seat</p>
+                  <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-pkg-cream-2" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`Terisi ${pct}%`}>
+                    <div className="h-full rounded-full bg-pkg-ink" style={{ width: `${Math.min(100, pct)}%` }} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </AdminPanel>
+
+      <AdminPanel
+        last
+        title="Leaderboard agen"
+        description="Top 3 berdasarkan total penjualan"
+        action={<Button variant="ghost" size="sm" onClick={() => navigate("/admin/gamification")} className="shrink-0 gap-1">Semua <ArrowRight className="h-4 w-4" aria-hidden /></Button>}
+      >
+        {!topAgents || topAgents.length === 0 ? (
+          <AgentEmpty icon={Users} text="Belum ada agen aktif" />
+        ) : (
+          <ul className="divide-y divide-pkg-hair">
+            {topAgents.map((agent, i) => (
+              <li key={agent.id} className="flex items-center justify-between gap-3 py-4 first:pt-0 last:pb-0">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pkg-cream-2 text-[14px] font-medium text-pkg-fg">{i + 1}</span>
+                  <div className="min-w-0">
+                    <h4 className="truncate text-[16px] text-pkg-fg">{agent.name}</h4>
+                    <p className="text-[13px] text-pkg-fg-3">{agent.total_sales} closing</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-          <CardFooter className="p-4 border-t border-slate-100 bg-slate-50/50 rounded-b-xl">
-            <Button variant="outline" className="w-full text-slate-600 bg-white" onClick={() => navigate('/admin/gamification')}>
-              Lihat Gamifikasi <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
-    </div>
+                <div className="shrink-0 text-right">
+                  <div className="text-[16px] font-medium text-pkg-fg">Rp {(agent.total_commission || 0).toLocaleString("id-ID")}</div>
+                  <div className="text-[12px] text-pkg-fg-3">Komisi</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

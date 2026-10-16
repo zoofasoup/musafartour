@@ -19,6 +19,7 @@ import { compressAndConvertToWebP } from "@/lib/imageUtils";
 import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
 import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface Testimonial {
   id: string;
   name: string;
@@ -277,13 +278,9 @@ const Testimonials = () => {
   if (!isAdmin) return null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Testimoni</h1>
-          <p className="text-muted-foreground">Atur testimoni jamaah yang tampil di website</p>
-        </div>
-        <div className="flex items-center gap-2">
+    <AdminPage title="Testimoni"
+      intro="Atur testimoni jamaah yang tampil di website"
+      actions={<><div className="flex items-center gap-2">
           {selectionMode ? (
             <Button variant="outline" onClick={handleExitSelectionMode}>
               Batal
@@ -405,10 +402,10 @@ const Testimonials = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </div>
-      </div>
-
-      <Card>
+        </div></>}
+    >
+      <AdminPanel last>
+<Card>
         <CardHeader>
           <CardTitle>Daftar testimoni</CardTitle>
         </CardHeader>
@@ -477,8 +474,9 @@ const Testimonials = () => {
           </Table>
         </CardContent>
       </Card>
-      {dialog}
-    </div>
+{dialog}
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

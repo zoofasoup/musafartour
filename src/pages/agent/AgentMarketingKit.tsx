@@ -14,6 +14,7 @@ import { LoadError } from "@/components/admin/jamaah/LoadError";
 import { agentCsWhatsAppUrl } from "@/lib/agentSupport";
 import { buildPackageTexts } from "@/lib/marketingText";
 import { copyText } from "@/lib/copy";
+import { COMPANY_JAMAAH, PPIU_NUMBER } from "@/lib/company";
 import { PT_ACCOUNT_HOLDER } from "@/lib/jamaah";
 import { getSlotsTaken } from "@/lib/utils";
 import { toast } from "sonner";
@@ -176,12 +177,14 @@ function TravelSide({ agentCode }: { agentCode: string }) {
 
   const profile = [
     "Musafar Tour: travel umroh yang dirancang untuk keluarga, ramah lansia dan ramah anak.",
+    `Berdiri sejak 2022, sudah memberangkatkan ${COMPANY_JAMAAH} jamaah.`,
     ...(points.length ? ["", ...points.map((p) => `• ${p.title}: ${p.description}`)] : []),
     "",
     `Kenalan lebih dekat: ${site}`,
   ].join("\n");
   const legal = [
-    `Musafar Tour berizin resmi PPIU Kemenag, dikelola ${PT_ACCOUNT_HOLDER}.`,
+    `Musafar Tour berizin resmi PPIU Kemenag No. ${PPIU_NUMBER}, dikelola ${PT_ACCOUNT_HOLDER}.`,
+    `Berdiri sejak 2022, ${COMPANY_JAMAAH} jamaah sudah berangkat bersama kami.`,
     "",
     `Pembayaran hanya ke rekening atas nama ${PT_ACCOUNT_HOLDER}. Waspada rekening pribadi.`,
     "",

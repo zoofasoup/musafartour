@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, User, Mail, KeyRound, Eye, EyeOff, Shield, Save } from "lucide-react";
 import { z } from "zod";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 const passwordSchema = z.string()
   .min(8, { message: "Password minimal 8 karakter" })
   .max(100, { message: "Password terlalu panjang" })
@@ -124,13 +125,11 @@ const Profile = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Profil Admin</h1>
-        <p className="text-muted-foreground">Kelola informasi akunmu</p>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
+    <AdminPage title="Profil Admin"
+      intro="Kelola informasi akunmu"
+    >
+      <AdminPanel last>
+<div className="grid gap-6 md:grid-cols-2">
         {/* Account Info Card */}
         <Card>
           <CardHeader>
@@ -293,7 +292,8 @@ const Profile = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

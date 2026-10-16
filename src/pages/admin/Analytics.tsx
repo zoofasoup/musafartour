@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { todayJakarta } from "@/lib/utils";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 // Shape returned by public.get_analytics_summary (supabase/migrations/20260930120000_site_events_analytics.sql).
 interface Summary {
   tracking_since: string | null;
@@ -183,38 +184,30 @@ export default function Analytics() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight">Analytics</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Pengunjung website, klik WhatsApp, lead, closing, dan belanja iklan di satu tempat.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Rentang waktu">
+    <AdminPage title="Analytics"
+      intro="Pengunjung website, klik WhatsApp, lead, closing, dan belanja iklan di satu tempat."
+      actions={<><div className="flex flex-wrap gap-2" role="group" aria-label="Rentang waktu">
           {RANGES.map((r) => (
             <Button key={r.key} size="sm" variant={range === r.key ? "default" : "outline"} onClick={() => setRange(r.key)}>
               {r.label}
             </Button>
           ))}
-        </div>
-      </div>
-
-      {isLoading && (
+        </div></>}
+    >
+      <AdminPanel last>
+{isLoading && (
         <div className="flex justify-center py-20">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       )}
-
-      {error && (
+{error && (
         <Card>
           <CardContent className="py-10 text-center text-sm text-destructive">
             Data analytics belum bisa dimuat. {(error as Error).message.includes("akses") ? "Akun kamu tidak punya akses ke halaman ini." : "Coba muat ulang halaman."}
           </CardContent>
         </Card>
       )}
-
-      {data && k && (
+{data && k && (
         <>
           {trackingStartsLate && (
             <div className="flex items-start gap-2 rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
@@ -478,6 +471,7 @@ export default function Analytics() {
           </div>
         </>
       )}
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 }

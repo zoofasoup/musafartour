@@ -20,6 +20,7 @@ import {
   Medal, Crown, Flame, Heart, Sparkles
 } from "lucide-react";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 // Icon mapping for badges
 const iconMap: Record<string, React.ElementType> = {
   trophy: Trophy,
@@ -360,18 +361,11 @@ const Gamification = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Trophy className="h-8 w-8 text-primary" />
-          Gamifikasi
-        </h1>
-        <p className="text-muted-foreground">
-          Kelola tantangan, lencana, dan hadiah untuk agen
-        </p>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+    <AdminPage title="Gamifikasi"
+      intro="Kelola tantangan, lencana, dan hadiah untuk agen"
+    >
+      <AdminPanel last>
+<Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
           <TabsTrigger value="challenges" className="flex items-center gap-2">
             <Target className="h-4 w-4" />
@@ -990,8 +984,9 @@ const Gamification = () => {
           </Card>
         </TabsContent>
       </Tabs>
-      {dialog}
-    </div>
+{dialog}
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

@@ -3,45 +3,17 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { useAgentLeaderboard } from "@/hooks/useAgentLeaderboard";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Trophy, Medal, Award, Star, Crown, Users, Flame, Zap, Clock,
-  Target, Gift, ShoppingBag, Ticket, GraduationCap, DollarSign,
-  ChevronRight, Lock, CheckCircle2, TrendingUp, UserPlus
-} from "lucide-react";
+import { Trophy, Medal, Crown, Target, ChevronRight, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { AgentEmpty, AgentPage, AgentPanel, Figures, agentGlass } from "@/components/agent/AgentPage";
+import { AgentEmpty, AgentPage, AgentPanel, agentGlass } from "@/components/agent/AgentPage";
 import { FlowerDefs, RankAvatar } from "@/components/agent/RankAvatar";
 import { BadgeArt } from "@/components/agent/BadgeArt";
 import { useMyBadges } from "@/hooks/useMyBadges";
-import { AGENT_LEVEL_COLORS as levelColors, AGENT_LEVEL_ICONS as levelIcons, AGENT_LEVEL_INFO, AGENT_LEVEL_SHARED_PERKS, agentLevelLabel } from "@/lib/agentLevels";
-
-// Icon mapping
-/** The Rewards Store has no way to redeem and no points are awarded yet. Flip to true when both exist. */
-const SHOW_REWARDS_STORE = false;
-
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  'trophy': Trophy,
-  'medal': Medal,
-  'award': Award,
-  'star': Star,
-  'crown': Crown,
-  'users': Users,
-  'flame': Flame,
-  'zap': Zap,
-  'clock': Clock,
-  'target': Target,
-  'user-plus': UserPlus,
-  'network': Users,
-};
+import { AGENT_LEVEL_INFO, AGENT_LEVEL_SHARED_PERKS, agentLevelLabel } from "@/lib/agentLevels";
 
 import { formatCurrency } from "@/lib/utils";
 
@@ -64,36 +36,6 @@ export default function AgentLeaderboard() {
       if (error) throw error;
       return data || [];
     },
-  });
-
-  // Fetch badges
-  const { data: badges } = useQuery({
-    queryKey: ["agent-badges"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("agent_badges")
-        .select("*")
-        .order("requirement_value", { ascending: true });
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  // Fetch earned badges
-  const { data: earnedBadges } = useQuery({
-    queryKey: ["agent-earned-badges", agent?.id],
-    queryFn: async () => {
-      if (!agent?.id) return [];
-      const { data, error } = await supabase
-        .from("agent_earned_badges")
-        .select("*, badge:agent_badges(*)")
-        .eq("agent_id", agent.id);
-      
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!agent?.id,
   });
 
   // Fetch challenges
@@ -129,62 +71,18 @@ export default function AgentLeaderboard() {
     enabled: !!agent?.id,
   });
 
-  // Fetch rewards
-  const { data: rewards } = useQuery({
-    queryKey: ["agent-rewards"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("agent_rewards")
-        .select("*")
-        .eq("is_active", true)
-        .order("points_cost", { ascending: true });
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  // Fetch agent points
-  const { data: agentPoints } = useQuery({
-    queryKey: ["agent-points", agent?.id],
-    queryFn: async () => {
-      if (!agent?.id) return null;
-      const { data, error } = await supabase
-        .from("agent_points")
-        .select("*")
-        .eq("agent_id", agent.id)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
-    },
-    enabled: !!agent?.id,
-  });
-
-  const myRank = leaderboard?.findIndex(a => a.id === agent?.id) ?? -1;
-  const currentLevel = levels?.find(l => l.level_name === agent?.level);
   const nextLevel = levels?.find(l => l.min_sales > (agent?.total_sales || 0));
   const { data: myBadges } = useMyBadges();
   const earnedMine = (myBadges ?? []).filter((b) => b.earned_at).sort((a, b) => (b.earned_at! > a.earned_at! ? 1 : -1));
   const ranked = (leaderboard ?? []).map((r, i) => ({ ...r, rank: i + 1 }));
   const top3 = ranked.slice(0, 3);
   const rest = ranked.slice(3, 10);
-  const toTop10 = myRank > 9 && leaderboard?.[9] ? Math.max(1, leaderboard[9].total_sales - (agent?.total_sales || 0) + 1) : 0;
   const salesNeeded = nextLevel ? nextLevel.min_sales - (agent?.total_sales || 0) : 0;
-  const earnedBadgeIds = new Set(earnedBadges?.map(eb => eb.badge_id) || []);
 
   const getProgressForChallenge = (challengeId: string) => {
     return challengeProgress?.find(cp => cp.challenge_id === challengeId);
   };
 
-  const rewardCategoryIcons: Record<string, React.ReactNode> = {
-    merchandise: <ShoppingBag className="h-5 w-5" />,
-    voucher: <Ticket className="h-5 w-5" />,
-    training: <GraduationCap className="h-5 w-5" />,
-    cash: <DollarSign className="h-5 w-5" />,
-  };
-
-  const lvlLabel = agentLevelLabel(agent?.level);
 
   return (
     <AgentPage

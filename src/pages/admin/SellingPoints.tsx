@@ -13,6 +13,7 @@ import { Loader2, Plus, Edit, Trash2, Save } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface SellingPoint {
   id: string;
   title: string;
@@ -161,13 +162,9 @@ const SellingPoints = () => {
   if (!isAdmin) return null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Poin Keunggulan</h1>
-          <p className="text-muted-foreground">Atur keunggulan utama yang tampil di beranda</p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <AdminPage title="Poin Keunggulan"
+      intro="Atur keunggulan utama yang tampil di beranda"
+      actions={<><Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
               <Plus className="mr-2 h-4 w-4" />
@@ -227,10 +224,10 @@ const SellingPoints = () => {
               </Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
-      </div>
-
-      <Card>
+        </Dialog></>}
+    >
+      <AdminPanel last>
+<Card>
         <CardHeader>
           <CardTitle>Daftar poin keunggulan</CardTitle>
           <CardDescription>Semua poin keunggulan yang tampil di website</CardDescription>
@@ -273,8 +270,9 @@ const SellingPoints = () => {
           </Table>
         </CardContent>
       </Card>
-      {dialog}
-    </div>
+{dialog}
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

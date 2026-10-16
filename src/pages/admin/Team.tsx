@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 const roleOptions = [
   { value: "superadmin", label: "Super Admin (akses penuh)" },
   { value: "product_admin", label: "Product PIC (ubah & finalkan paket)" },
@@ -217,14 +218,9 @@ export default function Team() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Manajemen Tim</h1>
-          <p className="text-muted-foreground">Kelola anggota tim dan hak akses panel admin</p>
-        </div>
-        
-        <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+    <AdminPage title="Manajemen Tim"
+      intro="Kelola anggota tim dan hak akses panel admin"
+      actions={<><Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
@@ -280,10 +276,10 @@ export default function Team() {
               </DialogFooter>
             </form>
           </DialogContent>
-        </Dialog>
-      </div>
-
-      <Card>
+        </Dialog></>}
+    >
+      <AdminPanel last>
+<Card>
         <CardHeader>
           <CardTitle>Daftar Anggota</CardTitle>
           <CardDescription>Semua akun yang punya akses ke panel admin</CardDescription>
@@ -402,9 +398,8 @@ export default function Team() {
           )}
         </CardContent>
       </Card>
-
-      {/* Change Role Modal */}
-      <Dialog open={isChangeRoleOpen} onOpenChange={setIsChangeRoleOpen}>
+{/* Change Role Modal */}
+<Dialog open={isChangeRoleOpen} onOpenChange={setIsChangeRoleOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Ubah hak akses</DialogTitle>
@@ -436,9 +431,8 @@ export default function Team() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Remove access: takes the admin roles away; the login account is never deleted. */}
-      <ConfirmDialog
+{/* Remove access: takes the admin roles away; the login account is never deleted. */}
+<ConfirmDialog
         open={isRemoveOpen}
         onOpenChange={setIsRemoveOpen}
         title={`Cabut akses admin ${selectedMember?.full_name ?? ""}?`}
@@ -456,6 +450,7 @@ export default function Team() {
         confirmText={selectedMember?.role === "superadmin" ? confirmNameFor(selectedMember) : undefined}
         onConfirm={handleRemoveAccess}
       />
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 }

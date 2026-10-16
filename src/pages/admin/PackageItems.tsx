@@ -37,6 +37,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface PackageItem {
   id: string;
   name: string;
@@ -362,13 +363,11 @@ const PackageItems = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Fasilitas Paket</h1>
-        <p className="text-muted-foreground">Kelola item yang termasuk dan tidak termasuk dalam paket umroh. Seret untuk mengurutkan.</p>
-      </div>
-
-      <Tabs defaultValue="include">
+    <AdminPage title="Fasilitas Paket"
+      intro="Kelola item yang termasuk dan tidak termasuk dalam paket umroh. Seret untuk mengurutkan."
+    >
+      <AdminPanel last>
+<Tabs defaultValue="include">
         <TabsList>
           <TabsTrigger value="include">Termasuk ({includeItems.length})</TabsTrigger>
           <TabsTrigger value="exclude">Tidak Termasuk ({excludeItems.length})</TabsTrigger>
@@ -392,9 +391,7 @@ const PackageItems = () => {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Add/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{editItem ? "Ubah item" : "Tambah item"}</DialogTitle>
@@ -436,8 +433,9 @@ const PackageItems = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {dialog}
-    </div>
+{dialog}
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

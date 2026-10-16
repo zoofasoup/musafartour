@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { AlertCircle, Banknote, CalendarClock, Gavel, Inbox, UserCheck, Users, Wallet, type LucideIcon } from "lucide-react";
+import { AlertCircle, Banknote, ChevronRight, CalendarClock, Gavel, Inbox, UserCheck, Users, Wallet, type LucideIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
 import { useAdminWorkCounts } from "@/hooks/useAdminWorkCounts";
@@ -27,9 +27,9 @@ export function WorkQueueCards() {
 
   if (isPending || !data) {
     return (
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" role="status" aria-label="Memuat pekerjaan yang perlu ditangani">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 rounded-lg" />
+      <div className="space-y-2" role="status" aria-label="Memuat pekerjaan yang perlu ditangani">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-14 rounded-[14px]" />
         ))}
       </div>
     );
@@ -58,31 +58,24 @@ export function WorkQueueCards() {
   ];
 
   return (
-    <section aria-labelledby="work-queue-title" className="space-y-3">
-      <h2 id="work-queue-title" className="text-lg font-bold">Perlu ditangani</h2>
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {cards.map((c) => {
-          const Icon = c.icon;
-          const hot = c.urgent && c.value > 0;
-          return (
-            <li key={c.key}>
-              <Link
-                to={c.to}
-                className={`flex h-full min-h-24 flex-col justify-between gap-2 rounded-lg border bg-card p-4 shadow-sm outline-none transition-colors hover:bg-field-hover focus-visible:ring-2 focus-visible:ring-ring ${hot ? "border-status-warn-border" : ""}`}
-              >
-                <span className="flex items-start justify-between gap-2">
-                  <span className="text-[13px] font-medium text-muted-foreground">{c.label}</span>
-                  <Icon className={`h-4 w-4 shrink-0 ${hot ? "text-status-warn-fg" : "text-muted-foreground"}`} aria-hidden />
-                </span>
-                <span>
-                  <span className="block text-2xl font-bold leading-none">{c.value}</span>
-                  {c.hint && <span className="mt-1 block text-[13px] text-muted-foreground">{c.hint}</span>}
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+    <ul className="divide-y divide-pkg-hair md:grid md:grid-cols-2 md:gap-x-8 md:divide-y-0" aria-label="Perlu ditangani">
+      {cards.map((c) => {
+        const Icon = c.icon;
+        const hot = c.urgent && c.value > 0;
+        return (
+          <li key={c.key} className="md:border-b md:border-pkg-hair">
+            <Link to={c.to} className="pkg-press flex min-h-16 items-center gap-3 py-3 outline-none focus-visible:ring-2 focus-visible:ring-pkg-ink">
+              <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${hot ? "bg-pkg-red-deep/10 text-pkg-red-deep" : "bg-pkg-cream-2 text-pkg-fg-3"}`}><Icon className="h-5 w-5" aria-hidden /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[16px] leading-tight text-pkg-fg">{c.label}</span>
+                {c.hint && <span className="mt-0.5 block text-[13px] text-pkg-fg-3">{c.hint}</span>}
+              </span>
+              <span className={`shrink-0 text-[24px] font-light leading-none ${hot ? "text-pkg-red-deep" : "text-pkg-fg"}`}>{c.value}</span>
+              <ChevronRight className="h-5 w-5 shrink-0 text-pkg-fg-3" aria-hidden />
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

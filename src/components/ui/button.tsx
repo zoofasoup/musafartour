@@ -46,7 +46,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const Comp = asChild ? Slot : "button";
     // An icon-only button names itself in a hover tooltip too: the aria-label doubles as the title.
     const title = props.title ?? (size === "icon" ? (props["aria-label"] as string | undefined) : undefined);
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} title={title} {...props} />;
+    return <Comp className={cn(buttonVariants({ variant, size, className }))} data-variant={variant ?? "default"} ref={ref} title={title} {...props} />;
   },
 );
 Button.displayName = "Button";

@@ -86,7 +86,6 @@ const AgentDashboard = lazy(() => import("./pages/agent/AgentDashboard"));
 const AgentPackages = lazy(() => import("./pages/agent/AgentPackages"));
 const AgentPackageDetail = lazy(() => import("./pages/agent/AgentPackageDetail"));
 const AgentCommission = lazy(() => import("./pages/agent/AgentCommission"));
-const AgentSchedule = lazy(() => import("./pages/agent/AgentSchedule"));
 const AgentMarketingKit = lazy(() => import("./pages/agent/AgentMarketingKit"));
 const AgentProfile = lazy(() => import("./pages/agent/AgentProfile"));
 const AgentLeaderboard = lazy(() => import("./pages/agent/AgentLeaderboard"));
@@ -94,7 +93,6 @@ const AgentAchievements = lazy(() => import("./pages/agent/AgentAchievements"));
 const AgentSalesGuide = lazy(() => import("./pages/agent/AgentSalesGuide"));
 const AgentRegisterJamaah = lazy(() => import("./pages/agent/AgentRegisterJamaah"));
 const AgentMyJamaah = lazy(() => import("./pages/agent/AgentMyJamaah"));
-const AgentLeads = lazy(() => import("./pages/agent/AgentLeads"));
 const AdminAgentLeads = lazy(() => import("./pages/admin/AgentLeads"));
 const SalesCalculator = lazy(() => import("./pages/admin/SalesCalculator"));
 const PackageBrochure = lazy(() => import("./pages/admin/PackageBrochure"));
@@ -445,16 +443,7 @@ const App = () => (
                       </Suspense>
                     }
                   />
-                  <Route
-                    path="/agent/schedule"
-                    element={
-                      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-                        <AgentProtectedRoute>
-                          <AgentSchedule />
-                        </AgentProtectedRoute>
-                      </Suspense>
-                    }
-                  />
+                  <Route path="/agent/schedule" element={<Navigate to="/agent/marketing-kit" replace />} />
                   <Route
                     path="/agent/jamaah"
                     element={

@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -337,20 +338,8 @@ const HotelForm = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" aria-label="Kembali" onClick={() => navigate("/admin/hotels")}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">
-            {id ? "Ubah hotel" : "Tambah hotel baru"}
-          </h1>
-          <p className="text-muted-foreground">
-            {id ? "Perbarui informasi hotel" : "Tambahkan hotel baru ke database"}
-          </p>
-        </div>
-      </div>
+    <AdminPage title={id ? "Ubah hotel" : "Tambah hotel baru"} intro={id ? "Perbarui informasi hotel" : "Tambahkan hotel baru"} back={{ to: "/admin/hotels", label: "Kembali" }}>
+      <AdminPanel last>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Card>
@@ -517,7 +506,8 @@ const HotelForm = () => {
           </Button>
         </div>
       </form>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

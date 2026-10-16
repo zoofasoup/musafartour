@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CogsCalculator } from "@/components/admin/cogs/CogsCalculator";
 import { Loader2 } from "lucide-react";
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 
 export default function MasterCOGS() {
   const [templateData, setTemplateData] = useState<any>(null);
@@ -28,16 +29,12 @@ export default function MasterCOGS() {
   }
 
   return (
-    <div className="p-2 md:p-6 pb-20">
-      <div className="max-w-[1400px] mx-auto bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="p-6">
-          <CogsCalculator 
-            packageId="default" 
-            initialData={templateData} 
-            isTemplate={true} 
-          />
+    <AdminPage title="Master COGS" intro="Template biaya dasar untuk semua paket. Lebih nyaman dikerjakan di laptop">
+      <AdminPanel last>
+        <div className="overflow-x-auto">
+          <CogsCalculator packageId="default" initialData={templateData} isTemplate={true} />
         </div>
-      </div>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 }

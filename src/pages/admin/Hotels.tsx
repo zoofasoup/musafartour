@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface HotelData {
   id: string;
   name: string;
@@ -252,21 +253,15 @@ const Hotels = () => {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Manajemen Hotel</h1>
-          <p className="text-muted-foreground">
-            Kelola data hotel Makkah, Madinah, dan kota lainnya
-          </p>
-        </div>
-        <Button onClick={() => navigate("/admin/hotels/new")}>
+    <AdminPage title="Manajemen Hotel"
+      intro="Kelola data hotel Makkah, Madinah, dan kota lainnya"
+      actions={<><Button onClick={() => navigate("/admin/hotels/new")}>
           <Plus className="mr-2 h-4 w-4" />
           Tambah Hotel
-        </Button>
-      </div>
-
-      <Tabs defaultValue="makkah" className="w-full">
+        </Button></>}
+    >
+      <AdminPanel last>
+<Tabs defaultValue="makkah" className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="makkah" className="gap-2">
             <MapPin className="h-4 w-4" />
@@ -292,8 +287,7 @@ const Hotels = () => {
           {renderHotelGrid(lainnyaHotels)}
         </TabsContent>
       </Tabs>
-
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+<AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Hotel</AlertDialogTitle>
@@ -307,7 +301,8 @@ const Hotels = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

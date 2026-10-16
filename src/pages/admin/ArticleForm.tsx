@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -198,16 +199,8 @@ const ArticleForm = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate("/admin/articles")}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">{id ? "Ubah artikel" : "Tambah artikel"}</h1>
-          <p className="text-muted-foreground">Tulis artikel untuk blog</p>
-        </div>
-      </div>
+    <AdminPage title={id ? "Ubah artikel" : "Tambah artikel"} intro="Tulis artikel untuk blog" back={{ to: "/admin/articles", label: "Kembali" }}>
+      <AdminPanel last>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -466,7 +459,8 @@ const ArticleForm = () => {
           </div>
         </form>
       </Form>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

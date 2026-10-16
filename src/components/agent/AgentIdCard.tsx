@@ -3,7 +3,6 @@ import { copyText } from "@/lib/copy";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { Check, Copy, IdCard, Printer } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { agentLevelLabel } from "@/lib/agentLevels";

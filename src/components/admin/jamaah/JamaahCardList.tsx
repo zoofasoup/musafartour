@@ -1,8 +1,12 @@
-import { Loader2, Users } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PAY_STATE_CLASS, PAY_STATE_LABEL, STATUS_BADGE, rupiah, type PayState } from "@/lib/jamaah";
+import { Skeleton } from "@/components/ui/skeleton";
+import { StatusBadge as Pill, type StatusKind } from "@/components/ui/status-badge";
+import { AgentEmpty } from "@/components/agent/AgentPage";
+import { PAY_STATE_LABEL, rupiah, type PayState } from "@/lib/jamaah";
+
+const PAY_KIND: Record<PayState, StatusKind> = { belum_dp: "warn", dp: "info", lunas: "ok", lebih: "over" };
 
 /** What a phone card needs about one jamaah. Both Data Jamaah views map their rows to this. */
 export interface CardItem {
@@ -64,18 +68,14 @@ function toBlocks(items: CardItem[]): Block[] {
 }
 
 const StatusBadge = ({ item }: { item: CardItem }) =>
-  item.cancelled ? (
-    <Badge variant="outline" className={STATUS_BADGE.bad}>Batal</Badge>
-  ) : (
-    <Badge variant="outline" className={PAY_STATE_CLASS[item.state]}>{PAY_STATE_LABEL[item.state]}</Badge>
-  );
+  item.cancelled ? <Pill kind="bad">Batal</Pill> : <Pill kind={PAY_KIND[item.state]}>{PAY_STATE_LABEL[item.state]}</Pill>;
 
 function Money({ label, value, note }: { label: string; value: number; note?: string }) {
   return (
     <div>
-      <dt className="text-[13px] text-muted-foreground">{label}</dt>
-      <dd className="text-base font-semibold">{rupiah(value)}</dd>
-      {note && <dd className="text-[13px] text-status-warn-text">{note}</dd>}
+      <dt className="text-[13px] text-pkg-fg-3">{label}</dt>
+      <dd className="text-[17px] font-medium text-pkg-fg">{rupiah(value)}</dd>
+      {note && <dd className="text-[13px] text-pkg-red-deep">{note}</dd>}
     </div>
   );
 }
@@ -87,7 +87,7 @@ function NameButton({ item, onOpen }: { item: CardItem; onOpen: (id: string) => 
       type="button"
       onClick={() => onOpen(item.id)}
       aria-haspopup="dialog"
-      className="-my-2.5 rounded-sm py-2.5 text-left text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      className="-my-2.5 rounded-sm py-2.5 text-left text-[17px] font-medium text-pkg-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >
       {item.name}
     </button>
@@ -112,7 +112,7 @@ function Actions({ item, onPay, onEquipment }: { item: CardItem; onPay?: Props["
         <span />
       )}
       {onPay && (
-        <Button type="button" variant="outline" className="h-11 px-5" onClick={() => onPay(item.id)}>
+        <Button type="button" variant="outline" className="px-5" onClick={() => onPay(item.id)}>
           Bayar
         </Button>
       )}
@@ -122,14 +122,14 @@ function Actions({ item, onPay, onEquipment }: { item: CardItem; onPay?: Props["
 
 function SingleCard({ item, onOpen, onPay, onEquipment }: { item: CardItem } & Pick<Props, "onOpen" | "onPay" | "onEquipment">) {
   return (
-    <li className={`rounded-lg border bg-card p-4 ${item.cancelled ? "text-muted-foreground" : ""}`}>
+    <li className={`border-b border-pkg-hair py-4 last:border-0 ${item.cancelled ? "text-pkg-fg-3" : ""}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <NameButton item={item} onOpen={onOpen} />
-          <p className="text-[13px] text-muted-foreground">
+          <p className="text-[13px] text-pkg-fg-3">
             {[item.room, `Tagihan ${rupiah(item.agreed)}`, item.discount > 0 ? `diskon ${rupiah(item.discount)}` : null].filter(Boolean).join(" · ")}
           </p>
-          {item.packageLabel && <p className="text-[13px] text-muted-foreground">{item.packageLabel}</p>}
+          {item.packageLabel && <p className="text-[13px] text-pkg-fg-3">{item.packageLabel}</p>}
         </div>
         <StatusBadge item={item} />
       </div>
@@ -138,7 +138,7 @@ function SingleCard({ item, onOpen, onPay, onEquipment }: { item: CardItem } & P
         <Money label="Sisa" value={Math.max(0, item.outstanding)} />
       </dl>
       {(item.meta || item.phone || item.docs) && (
-        <p className="mt-3 text-[13px] text-muted-foreground">
+        <p className="mt-3 text-[13px] text-pkg-fg-3">
           {[item.phone, item.meta, item.docs ? `Dokumen ${item.docs.done}/${item.docs.total}` : null].filter(Boolean).join(" · ")}
         </p>
       )}
@@ -155,14 +155,14 @@ function FamilyCard({
   onEquipment,
 }: { block: Extract<Block, { kind: "family" }>; summary?: FamilySummary } & Pick<Props, "onOpen" | "onPay" | "onEquipment">) {
   return (
-    <li className="rounded-lg border bg-card">
+    <li className="my-3 rounded-[18px] bg-pkg-cream-2">
       {summary && (
-        <div className="border-b p-4">
+        <div className="border-b border-pkg-hair p-4">
           <div className="flex items-start justify-between gap-3">
-            <p className="min-w-0 text-base font-semibold">
-              {summary.name} <span className="font-normal text-muted-foreground">· {summary.count} orang</span>
+            <p className="min-w-0 text-[17px] font-medium text-pkg-fg">
+              {summary.name} <span className="font-normal text-pkg-fg-3">· {summary.count} orang</span>
             </p>
-            <Badge variant="outline" className={PAY_STATE_CLASS[summary.state]}>{PAY_STATE_LABEL[summary.state]}</Badge>
+            <Pill kind={PAY_KIND[summary.state]}>{PAY_STATE_LABEL[summary.state]}</Pill>
           </div>
           <dl className="mt-3 grid grid-cols-2 gap-3">
             <Money label="Masuk" value={summary.paid} note={summary.pending > 0 ? `+${rupiah(summary.pending)} menunggu` : undefined} />
@@ -170,15 +170,15 @@ function FamilyCard({
           </dl>
         </div>
       )}
-      <ul className="divide-y">
+      <ul className="divide-y divide-pkg-hair">
         {block.items.map((item) => (
           <li key={item.id} className="p-4">
             <div className="min-w-0">
               <NameButton item={item} onOpen={onOpen} />
-              <p className="text-[13px] text-muted-foreground">
+              <p className="text-[13px] text-pkg-fg-3">
                 {[item.room, `Tagihan ${rupiah(item.agreed)}`, item.phone, item.docs ? `Dokumen ${item.docs.done}/${item.docs.total}` : null].filter(Boolean).join(" · ")}
               </p>
-              {item.packageLabel && <p className="text-[13px] text-muted-foreground">{item.packageLabel}</p>}
+              {item.packageLabel && <p className="text-[13px] text-pkg-fg-3">{item.packageLabel}</p>}
             </div>
             <Actions item={item} onPay={onPay} onEquipment={onEquipment} />
           </li>
@@ -192,21 +192,16 @@ function FamilyCard({
 export function JamaahCardList({ items, family, loading, emptyText, onOpen, onPay, onEquipment }: Props) {
   if (loading) {
     return (
-      <div className="flex justify-center rounded-lg border py-10 md:hidden" role="status" aria-label="Memuat">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      <div className="space-y-3 md:hidden" role="status" aria-label="Memuat">
+        {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-24 w-full rounded-[18px]" />)}
       </div>
     );
   }
   if (!items.length) {
-    return (
-      <div className="flex flex-col items-center gap-2 rounded-lg border py-10 text-center text-sm text-muted-foreground md:hidden">
-        <Users className="h-6 w-6" aria-hidden />
-        {emptyText}
-      </div>
-    );
+    return <div className="md:hidden"><AgentEmpty icon={Users} text={emptyText} /></div>;
   }
   return (
-    <ul className="space-y-3 md:hidden" aria-label="Daftar jamaah">
+    <ul className="md:hidden" aria-label="Daftar jamaah">
       {toBlocks(items).map((block) =>
         block.kind === "family" ? (
           <FamilyCard key={block.items[0].id} block={block} summary={family(block.groupId)} onOpen={onOpen} onPay={onPay} onEquipment={onEquipment} />

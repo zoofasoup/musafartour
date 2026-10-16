@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Save } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 const WebsiteSettings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -134,13 +135,11 @@ const WebsiteSettings = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Pengaturan Website</h1>
-        <p className="text-muted-foreground">Atur identitas, kontak, dan link website</p>
-      </div>
-
-      <Card>
+    <AdminPage title="Pengaturan Website"
+      intro="Atur identitas, kontak, dan link website"
+    >
+      <AdminPanel last>
+<Card>
         <CardHeader>
           <CardTitle>Informasi umum</CardTitle>
           <CardDescription>Nama dan identitas dasar website</CardDescription>
@@ -167,8 +166,7 @@ const WebsiteSettings = () => {
           </div>
         </CardContent>
       </Card>
-
-      <Card>
+<Card>
         <CardHeader>
           <CardTitle>Kontak</CardTitle>
           <CardDescription>Kontak yang ditampilkan untuk calon jamaah</CardDescription>
@@ -223,8 +221,7 @@ const WebsiteSettings = () => {
           </div>
         </CardContent>
       </Card>
-
-      <Card>
+<Card>
         <CardHeader>
           <CardTitle>Media sosial dan link</CardTitle>
           <CardDescription>Akun media sosial dan link luar</CardDescription>
@@ -279,8 +276,7 @@ const WebsiteSettings = () => {
           </div>
         </CardContent>
       </Card>
-
-      <Button onClick={handleSave} disabled={saving} size="lg">
+<Button onClick={handleSave} disabled={saving} size="lg">
         {saving ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -293,7 +289,8 @@ const WebsiteSettings = () => {
           </>
         )}
       </Button>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

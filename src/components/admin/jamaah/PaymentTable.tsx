@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, ExternalLink, Trash2, X } from "lucide-react";
+import { Check, ExternalLink, Inbox, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { TOUCH_H } from "./touch";
-import { BANK_LABELS, PAYMENT_STATUS_CLASS, PAYMENT_STATUS_LABEL, docUrl, rupiah, type Payment } from "@/lib/jamaah";
+import { StatusBadge, type StatusKind } from "@/components/ui/status-badge";
+import { DataView } from "@/components/admin/DataView";
+import { BANK_LABELS, PAYMENT_STATUS_LABEL, docUrl, rupiah, type Payment } from "@/lib/jamaah";
 
 const fmtDate = (d: string) => new Date(`${d.slice(0, 10)}T00:00:00`).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+
+const STATUS_KIND: Record<string, StatusKind> = { pending: "warn", verified: "ok", rejected: "bad" };
+const StatusPill = ({ p }: { p: Payment }) => <StatusBadge kind={STATUS_KIND[p.status] ?? "mute"}>{p.status === "pending" ? "Menunggu" : PAYMENT_STATUS_LABEL[p.status]}</StatusBadge>;
 
 interface Props {
   payments: Payment[];
@@ -20,14 +22,17 @@ interface Props {
   currentUserId?: string;
   /** Extra label per payment (jamaah name + package), shown on the verification page. */
   describe?: (p: Payment) => React.ReactNode;
+  /** The same label as plain text, for a phone's list row. */
+  describeText?: (p: Payment) => string;
   /** Name the person must type before a payment is deleted (the jamaah name). Without it a plain confirmation is shown. */
   confirmName?: (p: Payment) => string | undefined;
   onChanged: () => void;
   empty?: string;
 }
 
-export function PaymentTable({ payments, isOwner, currentUserId, describe, confirmName, onChanged, empty = "Belum ada pembayaran." }: Props) {
+export function PaymentTable({ payments, isOwner, currentUserId, describe, describeText, confirmName, onChanged, empty = "Belum ada pembayaran." }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
+  const [open, setOpen] = useState<Payment | null>(null);
   const [rejecting, setRejecting] = useState<Payment | null>(null);
   const [reason, setReason] = useState("");
   const [deleting, setDeleting] = useState<Payment | null>(null);
@@ -43,8 +48,10 @@ export function PaymentTable({ payments, isOwner, currentUserId, describe, confi
     }
   };
 
-  const verify = (p: Payment) =>
-    act(p.id, () => supabase.from("jamaah_payments").update({ status: "verified" }).eq("id", p.id), "Pembayaran terverifikasi");
+  const verify = async (p: Payment) => {
+    await act(p.id, () => supabase.from("jamaah_payments").update({ status: "verified" }).eq("id", p.id), "Pembayaran terverifikasi");
+    setOpen(null);
+  };
 
   const reject = async () => {
     if (!rejecting) return;
@@ -71,114 +78,97 @@ export function PaymentTable({ payments, isOwner, currentUserId, describe, confi
     else toast.error("Bukti transfer tidak bisa dibuka.");
   };
 
-  if (!payments.length) return <p className="py-6 text-center text-sm text-muted-foreground">{empty}</p>;
-
   const canDelete = (p: Payment) => (isOwner && p.status !== "verified") || (p.status === "pending" && p.recorded_by === currentUserId);
 
-  /** Verify / reject / delete for one payment. Same buttons in the table and on a phone card. */
-  const actions = (p: Payment) => (
+  /** Verify / reject / delete for one payment: the buttons of a desktop row and of the detail sheet. */
+  const buttons = (p: Payment, big = false) => (
     <>
       {isOwner && p.status === "pending" && (
-        <Button type="button" size="sm" className={`h-8 gap-1 ${TOUCH_H}`} disabled={busy === p.id} onClick={() => verify(p)}>
-          <Check className="h-3.5 w-3.5" /> Verifikasi
+        <Button type="button" size={big ? "lg" : "sm"} className="gap-1.5" disabled={busy === p.id} onClick={() => verify(p)}>
+          <Check className="h-4 w-4" aria-hidden /> Verifikasi
+        </Button>
+      )}
+      {p.proof_path && (
+        <Button type="button" size={big ? "lg" : "sm"} variant="outline" className="gap-1.5" onClick={() => openProof(p.proof_path!)}>
+          <ExternalLink className="h-4 w-4" aria-hidden /> {big ? "Lihat bukti transfer" : "Bukti"}
         </Button>
       )}
       {isOwner && p.status !== "rejected" && (
-        <Button type="button" size="sm" variant="outline" className={`h-8 gap-1 ${TOUCH_H}`} disabled={busy === p.id} onClick={() => setRejecting(p)}>
-          <X className="h-3.5 w-3.5" /> Tolak
+        <Button type="button" size={big ? "lg" : "sm"} variant="outline" className="gap-1.5" disabled={busy === p.id} onClick={() => { setOpen(null); setRejecting(p); }}>
+          <X className="h-4 w-4" aria-hidden /> Tolak
         </Button>
       )}
       {canDelete(p) && (
-        <Button type="button" size="icon" variant="ghost" className={`h-8 w-8 ${TOUCH_H} [@media(pointer:coarse)]:w-11`} aria-label="Hapus catatan" disabled={busy === p.id} onClick={() => setDeleting(p)}>
-          <Trash2 className="h-4 w-4" />
+        <Button type="button" size={big ? "lg" : "icon"} variant="ghost" className="gap-1.5" aria-label="Hapus catatan" disabled={busy === p.id} onClick={() => { setOpen(null); setDeleting(p); }}>
+          <Trash2 className="h-4 w-4" aria-hidden /> {big && "Hapus catatan"}
         </Button>
       )}
     </>
   );
 
+  const line = (label: string, value: React.ReactNode) =>
+    value ? (
+      <div className="flex items-baseline justify-between gap-4 border-b border-pkg-hair py-3 last:border-0">
+        <dt className="text-[14px] text-pkg-fg-3">{label}</dt>
+        <dd className="min-w-0 text-right text-[16px] text-pkg-fg">{value}</dd>
+      </div>
+    ) : null;
+
   return (
     <>
-      <div className="hidden overflow-x-auto rounded-md border sm:block">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Tanggal</TableHead>
-              {describe && <TableHead>Jamaah</TableHead>}
-              <TableHead className="text-right">Nominal</TableHead>
-              <TableHead>Rekening</TableHead>
-              <TableHead>Bukti</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {payments.map((p) => {
-              return (
-                <TableRow key={p.id}>
-                  <TableCell className="whitespace-nowrap">
-                    {fmtDate(p.paid_on)}
-                    {p.payer_name && <span className="block text-xs text-muted-foreground">dari {p.payer_name}</span>}
-                  </TableCell>
-                  {describe && <TableCell>{describe(p)}</TableCell>}
-                  <TableCell className="whitespace-nowrap text-right font-medium">
-                    {rupiah(Number(p.amount))}
-                    {p.transfer_id && <span className="block text-xs font-normal text-muted-foreground">bagian transfer rombongan</span>}
-                  </TableCell>
-                  <TableCell>{BANK_LABELS[p.bank_account] ?? p.bank_account}</TableCell>
-                  <TableCell>
-                    {p.proof_path ? (
-                      <Button type="button" variant="ghost" size="sm" className={`h-8 gap-1 px-2 ${TOUCH_H}`} onClick={() => openProof(p.proof_path!)}>
-                        <ExternalLink className="h-3.5 w-3.5" /> Lihat
-                      </Button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">–</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={PAYMENT_STATUS_CLASS[p.status]}>{PAYMENT_STATUS_LABEL[p.status]}</Badge>
-                    {p.status === "rejected" && p.reject_reason && (
-                      <span className="mt-1 block max-w-[220px] text-xs text-muted-foreground">{p.reject_reason}</span>
-                    )}
-                    {p.notes && <span className="mt-1 block max-w-[220px] text-xs text-muted-foreground">{p.notes}</span>}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">{actions(p)}</div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
+      <DataView
+        rows={payments}
+        rowKey={(p) => p.id}
+        what="Daftar pembayaran"
+        empty={{ icon: Inbox, text: empty }}
+        onOpen={(p) => setOpen(p)}
+        columns={[
+          { key: "date", header: "Tanggal", cell: (p) => <span className="whitespace-nowrap">{fmtDate(p.paid_on)}{p.payer_name && <span className="block text-xs text-pkg-fg-3">dari {p.payer_name}</span>}</span> },
+          ...(describe ? [{ key: "jamaah", header: "Jamaah", cell: (p: Payment) => describe(p) }] : []),
+          { key: "amount", header: "Nominal", align: "right" as const, cell: (p) => <span className="whitespace-nowrap font-medium">{rupiah(Number(p.amount))}{p.transfer_id && <span className="block text-xs font-normal text-pkg-fg-3">bagian transfer rombongan</span>}</span> },
+          { key: "bank", header: "Rekening", cell: (p) => BANK_LABELS[p.bank_account] ?? p.bank_account },
+          { key: "status", header: "Status", cell: (p) => (
+            <span className="block">
+              <StatusPill p={p} />
+              {p.status === "rejected" && p.reject_reason && <span className="mt-1 block max-w-[220px] text-xs text-pkg-fg-3">{p.reject_reason}</span>}
+              {p.notes && <span className="mt-1 block max-w-[220px] text-xs text-pkg-fg-3">{p.notes}</span>}
+            </span>
+          ) },
+        ]}
+        card={{
+          title: (p) => rupiah(Number(p.amount)),
+          subtitle: (p) => describeText?.(p) ?? BANK_LABELS[p.bank_account] ?? p.bank_account,
+          meta: (p) => [fmtDate(p.paid_on), BANK_LABELS[p.bank_account] ?? p.bank_account].join(" · "),
+          status: (p) => <StatusPill p={p} />,
+        }}
+        inlineActions={(p) => buttons(p)}
+      />
 
-      <ul className="space-y-2 sm:hidden" aria-label="Daftar pembayaran">
-        {payments.map((p) => (
-          <li key={p.id} className="rounded-lg border bg-card p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-base font-semibold">{rupiah(Number(p.amount))}</p>
-                <p className="text-[13px] text-muted-foreground">
-                  {[fmtDate(p.paid_on), BANK_LABELS[p.bank_account] ?? p.bank_account, p.payer_name ? `dari ${p.payer_name}` : null].filter(Boolean).join(" · ")}
-                </p>
-                {describe && <div className="mt-1 text-sm">{describe(p)}</div>}
-                {p.transfer_id && <p className="text-[13px] text-muted-foreground">bagian transfer rombongan</p>}
+      <Dialog open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
+        <DialogContent className="sm:max-w-md">
+          {open && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{rupiah(Number(open.amount))}</DialogTitle>
+                <DialogDescription className="sr-only">Detail pembayaran</DialogDescription>
+              </DialogHeader>
+              <div className="pkg-v2 min-w-0 !bg-transparent">
+                <div className="mb-2"><StatusPill p={open} /></div>
+                <dl>
+                  {line("Jamaah", describeText?.(open))}
+                  {line("Tanggal", fmtDate(open.paid_on))}
+                  {line("Rekening", BANK_LABELS[open.bank_account] ?? open.bank_account)}
+                  {line("Dari", open.payer_name)}
+                  {line("Catatan", open.notes)}
+                  {line("Alasan ditolak", open.status === "rejected" ? open.reject_reason : null)}
+                  {line("Transfer", open.transfer_id ? "Bagian transfer rombongan" : null)}
+                </dl>
+                <div className="mt-6 flex flex-col gap-2">{buttons(open, true)}</div>
               </div>
-              <Badge variant="outline" className={PAYMENT_STATUS_CLASS[p.status]}>{PAYMENT_STATUS_LABEL[p.status]}</Badge>
-            </div>
-            {(p.reject_reason && p.status === "rejected") || p.notes ? (
-              <p className="mt-2 text-[13px] text-muted-foreground">{[p.status === "rejected" ? p.reject_reason : null, p.notes].filter(Boolean).join(" · ")}</p>
-            ) : null}
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              {p.proof_path && (
-                <Button type="button" variant="outline" size="sm" className={`h-8 gap-1 ${TOUCH_H}`} onClick={() => openProof(p.proof_path!)}>
-                  <ExternalLink className="h-3.5 w-3.5" /> Lihat bukti
-                </Button>
-              )}
-              {actions(p)}
-            </div>
-          </li>
-        ))}
-      </ul>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!rejecting} onOpenChange={(o) => { if (!o) { setRejecting(null); setReason(""); } }}>
         <DialogContent className="sm:max-w-md">

@@ -3,17 +3,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { EmptyState } from "@/components/ui/empty-state";
+import { Chips } from "@/components/agent/AgentPage";
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
+import { DataView, type RowAction } from "@/components/admin/DataView";
+import { FilterBar } from "@/components/admin/FilterBar";
+import type { FilterConfig } from "@/components/package-list/PackageFilterSheet";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
 import { AgentDetailDialog } from "@/components/admin/agents/AgentDetailDialog";
@@ -29,16 +28,10 @@ import {
 import { toast } from "sonner";
 import {
   Users,
-  Search,
-  CheckCircle,
-  XCircle,
-  Clock,
   UserCheck,
   UserX,
   Eye,
-  Loader2,
   Trash2,
-  MoreHorizontal,
   Receipt,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -321,221 +314,84 @@ const AgentManagement = () => {
 
   const approveMissing = approveTarget ? approvalWarnings(approveTarget) : [];
 
+  const filters: FilterConfig[] = [
+    {
+      key: "sort",
+      value: sortMode === "pending_first" ? "all" : sortMode,
+      onChange: (v) => setSortMode(v === "all" ? "pending_first" : (v as SortMode)),
+      placeholder: "Urutkan",
+      allLabel: "Menunggu dulu",
+      options: [{ value: "newest", label: "Terbaru" }],
+    },
+  ];
+  const actions: RowAction<Agent>[] = [
+    { label: "Setujui", icon: UserCheck, onSelect: handleApprove, hidden: (a) => a.status !== "pending" },
+    { label: "Lihat detail", icon: Eye, onSelect: openDetail },
+    { label: "Catat Penjualan", icon: Receipt, onSelect: (a) => setLogSaleAgent(a), hidden: (a) => a.status !== "active" },
+    { label: "Tangguhkan", icon: UserX, onSelect: handleSuspend, hidden: (a) => a.status !== "active" },
+    { label: "Aktifkan", icon: UserCheck, onSelect: handleReactivate, hidden: (a) => a.status !== "suspended" },
+    { label: "Hapus Permanen", icon: Trash2, onSelect: handleDelete, destructive: true },
+  ];
+  const notes = (a: Agent) =>
+    [
+      missingFields(a).length > 0 ? "Data belum lengkap" : null,
+      a.status === "active" && (a.registration_fee_status ?? "unpaid") === "unpaid" ? "Menunggu biaya" : null,
+    ].filter(Boolean).join(" · ");
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Users className="h-8 w-8" />
-          Kelola Agent
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Kelola pendaftaran, status, dan level agent Musafar Tour. Persetujuan dan pembayaran komisi ada di Pembayaran Komisi.
-        </p>
-      </div>
-
-      <Tabs value="agen" className="space-y-4">
-        <TabsContent value="agen" className="mt-0 space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter('pending')}>
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Menunggu Persetujuan
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{pendingCount}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter('active')}>
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              Agen Aktif
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{activeCount}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter('suspended')}>
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-2">
-              <XCircle className="h-4 w-4" />
-              Ditangguhkan
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{suspendedCount}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Daftar Agen</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                name="agent-search"
-                placeholder="Cari nama, email, telepon, atau Agent ID..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-                autoComplete="off"
-                spellCheck="false"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]" aria-label="Filter status">
-                <SelectValue placeholder="Filter status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Status</SelectItem>
-                <SelectItem value="pending">Menunggu</SelectItem>
-                <SelectItem value="active">Aktif</SelectItem>
-                <SelectItem value="suspended">Ditangguhkan</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
-              <SelectTrigger className="w-full sm:w-[180px]" aria-label="Urutkan">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending_first">Menunggu dulu</SelectItem>
-                <SelectItem value="newest">Terbaru</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {agentsError ? (
-            <LoadError what="Daftar agen" error={agentsError} onRetry={() => refetchAgents()} retrying={agentsRefetching} />
-          ) : isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : filteredAgents.length === 0 ? (
-            <EmptyState icon={Users} title={search || statusFilter !== "all" ? "Tidak ada agen yang sesuai filter" : "Belum ada agen terdaftar"} />
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-muted">
-                  <TableRow>
-                    <TableHead>Agen</TableHead>
-                    <TableHead>Agent ID</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Level</TableHead>
-                    <TableHead>Penjualan</TableHead>
-                    <TableHead>Terdaftar</TableHead>
-                    <TableHead className="text-right">Aksi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAgents.map((agent) => {
-                    const badge = STATUS_BADGE[agent.status];
-                    const incomplete = missingFields(agent).length > 0;
-                    return (
-                      <TableRow key={agent.id}>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <p className="font-semibold">{agent.name}</p>
-                            <p className="text-sm text-muted-foreground">{agent.email}</p>
-                            {incomplete && <StatusBadge kind="warn">Data belum lengkap</StatusBadge>}
-                            {agent.status === 'active' && (agent.registration_fee_status ?? 'unpaid') === 'unpaid' && <StatusBadge kind="warn">Menunggu pembayaran biaya</StatusBadge>}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <code className="text-sm bg-muted px-2 py-1 rounded-sm">
-                            {agent.referral_code}
-                          </code>
-                        </TableCell>
-                        <TableCell>
-                          <StatusBadge kind={badge.kind}>{badge.label}</StatusBadge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{LEVEL_LABEL[agent.level]}</Badge>
-                        </TableCell>
-                        <TableCell>{agent.total_sales} paket</TableCell>
-                        <TableCell>
-                          {format(new Date(agent.created_at), "dd MMM yyyy", { locale: id })}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label={`Lihat detail ${agent.name}`}
-                              onClick={() => openDetail(agent)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-
-                            {agent.status === 'pending' && (
-                              <Button
-                                size="sm"
-                                onClick={() => handleApprove(agent)}
-                                disabled={updateStatusMutation.isPending}
-                                className="gap-1"
-                              >
-                                <UserCheck className="h-4 w-4" />
-                                Setujui
-                              </Button>
-                            )}
-
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Aksi lain untuk ${agent.name}`}>
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                {agent.status === 'active' && (
-                                  <DropdownMenuItem onClick={() => setLogSaleAgent(agent)} className="cursor-pointer">
-                                    <Receipt className="mr-2 h-4 w-4" />
-                                    <span>Catat Penjualan</span>
-                                  </DropdownMenuItem>
-                                )}
-                                {agent.status === 'active' && (
-                                  <DropdownMenuItem onClick={() => handleSuspend(agent)} className="cursor-pointer">
-                                    <UserX className="mr-2 h-4 w-4" />
-                                    <span>Tangguhkan</span>
-                                  </DropdownMenuItem>
-                                )}
-                                {agent.status === 'suspended' && (
-                                  <DropdownMenuItem onClick={() => handleReactivate(agent)} className="cursor-pointer">
-                                    <UserCheck className="mr-2 h-4 w-4" />
-                                    <span>Aktifkan</span>
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem
-                                  onClick={() => handleDelete(agent)}
-                                  className="cursor-pointer text-destructive focus:bg-status-bad-bg focus:text-destructive"
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  <span>Hapus Permanen</span>
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-        </TabsContent>
-      </Tabs>
+    <AdminPage
+      title="Kelola Agen"
+      intro="Pendaftaran, status, dan level agen. Persetujuan dan pembayaran komisi ada di Pembayaran Komisi"
+      tabs={
+        <Chips<string>
+          label="Status agen"
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            { value: "all", label: `Semua ${agents.length}` },
+            { value: "pending", label: `Menunggu ${pendingCount}` },
+            { value: "active", label: `Aktif ${activeCount}` },
+            { value: "suspended", label: `Ditangguhkan ${suspendedCount}` },
+          ]}
+        />
+      }
+    >
+      <AdminPanel last>
+        <FilterBar search={search} onSearch={setSearch} searchPlaceholder="Cari nama, email, telepon, atau Agent ID" filters={filters} onReset={() => setSortMode("pending_first")} count={filteredAgents.length} title="Urutkan" unit="agen" />
+        <DataView
+          rows={filteredAgents}
+          rowKey={(a) => a.id}
+          loading={isLoading}
+          error={agentsError}
+          onRetry={() => refetchAgents()}
+          retrying={agentsRefetching}
+          what="Daftar agen"
+          empty={{ icon: Users, text: search || statusFilter !== "all" ? "Tidak ada agen yang sesuai" : "Belum ada agen terdaftar" }}
+          onOpen={openDetail}
+          actions={actions}
+          inlineActions={(a) =>
+            a.status === "pending" ? (
+              <Button size="sm" className="gap-1" onClick={() => handleApprove(a)} disabled={updateStatusMutation.isPending}>
+                <UserCheck className="h-4 w-4" aria-hidden /> Setujui
+              </Button>
+            ) : null
+          }
+          columns={[
+            { key: "agent", header: "Agen", cell: (a) => <><span className="font-medium">{a.name}</span><span className="block text-xs text-pkg-fg-3">{a.email}</span>{notes(a) && <span className="block text-xs text-pkg-red-deep">{notes(a)}</span>}</> },
+            { key: "code", header: "Agent ID", cell: (a) => <code className="text-sm">{a.referral_code}</code> },
+            { key: "status", header: "Status", cell: (a) => <StatusBadge kind={STATUS_BADGE[a.status].kind}>{STATUS_BADGE[a.status].label}</StatusBadge> },
+            { key: "level", header: "Level", cell: (a) => LEVEL_LABEL[a.level] },
+            { key: "sales", header: "Penjualan", cell: (a) => `${a.total_sales} paket` },
+            { key: "at", header: "Terdaftar", cell: (a) => format(new Date(a.created_at), "dd MMM yyyy", { locale: id }) },
+          ]}
+          card={{
+            title: (a) => a.name,
+            subtitle: (a) => `${a.referral_code} · ${LEVEL_LABEL[a.level]}`,
+            meta: (a) => notes(a) || `${a.total_sales} paket · ${format(new Date(a.created_at), "d MMM yyyy", { locale: id })}`,
+            status: (a) => <StatusBadge kind={STATUS_BADGE[a.status].kind}>{STATUS_BADGE[a.status].label}</StatusBadge>,
+          }}
+        />
+      </AdminPanel>
 
       <AgentDetailDialog
         agent={selectedAgent}
@@ -665,7 +521,7 @@ const AgentManagement = () => {
               <Textarea value={saleNotes} onChange={(e) => setSaleNotes(e.target.value)} rows={2} />
             </div>
             {saleAmount && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-pkg-fg-3">
                 Estimasi komisi: {formatCurrency(parseFloat(saleCommissionAmount) || publishedPackages.find((p) => p.id === salePackageId)?.agent_commission_amount || 0)}
               </p>
             )}
@@ -688,7 +544,7 @@ const AgentManagement = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminPage>
   );
 };
 

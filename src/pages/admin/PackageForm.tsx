@@ -1420,19 +1420,19 @@ const PackageForm = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSave, handleValidationError)} className="space-y-6 pb-12 bg-background min-h-[calc(100vh-4rem)] -m-6 p-6 md:-m-8 md:p-8">
+      <form onSubmit={form.handleSubmit(handleSave, handleValidationError)} className="space-y-6 pb-12 bg-background min-h-[calc(100vh-4rem)] -m-4 p-4 md:-m-8 md:p-8">
         {/* Sticky top action bar */}
         <div className="sticky top-0 z-40 -mx-4 -mt-4 px-4 py-3 md:-mx-6 md:-mt-6 md:px-6 bg-card border-b shadow-sm mb-8">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" type="button" onClick={() => safeNavigate("/admin/packages")} className="rounded-full">
+              <Button variant="ghost" size="sm" type="button" onClick={() => safeNavigate("/admin/packages")} className="rounded-full" aria-label="Kembali">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <span className="text-lg tracking-tight font-medium">
                 {!canEdit ? "Lihat paket" : id ? "Ubah paket" : "Tambah paket"}
               </span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
               {isExistingPackage && (
                 <Button type="button" variant="outline" size="sm" onClick={() => setHistoryOpen(true)} className="gap-2">
                   <History className="h-4 w-4" />
@@ -1453,7 +1453,7 @@ const PackageForm = () => {
                   </SelectContent>
                 </Select>
               )} />
-              <Button type="button" variant="outline" size="sm" onClick={() => safeNavigate("/admin/packages")}>
+              <Button type="button" variant="outline" size="sm" className="hidden sm:inline-flex" onClick={() => safeNavigate("/admin/packages")}>
                 {canEdit ? "Batal" : "Kembali"}
               </Button>
               {canEdit && (
@@ -1462,7 +1462,7 @@ const PackageForm = () => {
                   size="sm"
                   disabled={loading || uploadingImages}
                   data-save-btn
-                  className="bg-primary"
+                  className="ml-auto bg-primary sm:ml-0"
                 >
                   {uploadingImages ? "Mengunggah..." : loading ? "Menyimpan..." : "Simpan"}
                 </Button>
@@ -1472,8 +1472,8 @@ const PackageForm = () => {
         </div>
 
         <div className="w-full max-w-[1700px] mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">{!canEdit ? "Lihat paket" : id ? "Ubah paket" : "Tambah paket"}</h1>
+          <div className="mb-6">
+            <h1 className="text-2xl font-light tracking-tight md:text-3xl">{!canEdit ? "Lihat paket" : id ? "Ubah paket" : "Tambah paket"}</h1>
             <p className="text-muted-foreground mt-1">
               {canEdit
                 ? "Lengkapi informasi paket umroh langkah demi langkah"

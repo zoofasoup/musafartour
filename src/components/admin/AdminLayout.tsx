@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
 import { loginUrlFor } from "@/lib/adminNext";
 import { menuBadgeFor, useAdminWorkCounts } from "@/hooks/useAdminWorkCounts";
@@ -37,6 +38,11 @@ const BADGE_LABEL: Record<string, string> = {
 const AdminLayout = () => {
   const location = useLocation();
   const { user, loading, userRole, signOut } = useAuth();
+  // Marks the panel so dialogs, sheets, menus and selects (which render outside the page) take the app skin.
+  useEffect(() => {
+    document.documentElement.classList.add("pkg-admin");
+    return () => document.documentElement.classList.remove("pkg-admin");
+  }, []);
   // Work-queue counts for the menu badges: one light call every minute, only once a staff role is known
   const { data: workCounts } = useAdminWorkCounts(!!user && !!userRole);
 
@@ -135,6 +141,7 @@ const AdminLayout = () => {
       sidebarLinks={[{ title: "Kembali ke situs", icon: Home, to: "/" }]}
       headerActions={<NotificationDropdown />}
       searchable
+      inkHeaderOnPhone
       contentWidth="full"
     >
       <Outlet />

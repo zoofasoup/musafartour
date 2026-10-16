@@ -14,6 +14,7 @@ import { Download, MessageCircle, Copy, Search, UserCheck } from "lucide-react";
 import { STATUS_OPTIONS, type LeadStatus } from "@/lib/calcConfig";
 import { formatIDR } from "@/lib/umrohCalc";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface Lead {
   id: string;
   created_at: string;
@@ -173,28 +174,23 @@ export default function CalculatorLeads() {
   }, [leads]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight">Calculator Leads</h1>
-          <p className="text-sm text-muted-foreground mt-1">Lead dari Umroh Financial Planner</p>
-        </div>
-        <Button onClick={exportCSV} variant="outline" className="gap-2">
+    <AdminPage title="Calculator Leads"
+      intro="Lead dari Umroh Financial Planner"
+      actions={<><Button onClick={exportCSV} variant="outline" className="gap-2">
           <Download className="h-4 w-4" /> Ekspor CSV
-        </Button>
-      </div>
-
-      {/* Analytics */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        </Button></>}
+    >
+      <AdminPanel last>
+{/* Analytics */}
+<div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <StatCard label="Total Lead" value={stats.total.toString()} />
         <StatCard label="Hari Ini" value={stats.today.toString()} accent />
         <StatCard label="Mode A / B" value={`${stats.modeA} / ${stats.modeB}`} />
         <StatCard label="Avg Nabung" value={stats.avgSaving > 0 ? formatIDR(stats.avgSaving) : "—"} />
         <StatCard label="Paket Top" value={stats.topPackage} />
       </div>
-
-      {/* Filters */}
-      <Card>
+{/* Filters */}
+<Card>
         <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-6 gap-3">
           <div className="md:col-span-2 relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -228,9 +224,8 @@ export default function CalculatorLeads() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Table */}
-      <Card>
+{/* Table */}
+<Card>
         <CardHeader><CardTitle>Lead List · {filtered.length}</CardTitle></CardHeader>
         <CardContent>
           {isLoading ? (
@@ -312,8 +307,7 @@ export default function CalculatorLeads() {
           )}
         </CardContent>
       </Card>
-
-      <Sheet open={!!openLead} onOpenChange={(o) => !o && setOpenLead(null)}>
+<Sheet open={!!openLead} onOpenChange={(o) => !o && setOpenLead(null)}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
           <SheetHeader>
             <SheetTitle>{openLead?.name}</SheetTitle>
@@ -352,7 +346,8 @@ export default function CalculatorLeads() {
           )}
         </SheetContent>
       </Sheet>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 }
 

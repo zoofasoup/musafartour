@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { copyText } from "@/lib/copy";
-import { toast } from "sonner";
-import { ArrowRight, CheckCircle2, ChevronRight, Clock, Copy, Share2, UserPlus, Users } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronRight, Clock, Copy, Share2, UserPlus } from "lucide-react";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import { useAgentLeaderboard } from "@/hooks/useAgentLeaderboard";
 import { AGENT_STATE_LABEL, byUrgency, deadlineText, needsPayment, useAgentIntakes, useAgentJamaah } from "@/hooks/useAgentJamaah";
@@ -57,7 +56,6 @@ const AgentDashboard = () => {
   const level = (agent.level in AGENT_LEVEL_PROGRESSION ? agent.level : "silver") as AgentLevel;
   const levelInfo = AGENT_LEVEL_PROGRESSION[level];
   const salesLeft = Math.max(0, levelInfo.salesNeeded - agent.total_sales);
-  const progress = levelInfo.salesNeeded > 0 ? Math.min(1, agent.total_sales / levelInfo.salesNeeded) : 1;
 
   const copy = (text: string, done: string) => {
     void copyText(text, done);

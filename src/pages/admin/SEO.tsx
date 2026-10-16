@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 import { Loader2, Save, Home, Link as LinkIcon, Trash2 } from "lucide-react";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 const HOME_PATH = "/";
 const TITLE_MAX = 60;
 const DESC_MAX = 155;
@@ -157,13 +158,11 @@ const SEO = () => {
   const previewDesc = description.trim() || "Isi deskripsi di atas.";
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-medium">SEO</h1>
-        <p className="text-muted-foreground">Dua pengaturan yang benar-benar mengubah situs.</p>
-      </div>
-
-      <Tabs defaultValue="home" className="w-full">
+    <AdminPage title="SEO"
+      intro="Dua pengaturan yang benar-benar mengubah situs."
+    >
+      <AdminPanel last>
+<Tabs defaultValue="home" className="w-full">
         <TabsList>
           <TabsTrigger value="home">
             <Home className="mr-2 h-4 w-4" aria-hidden />
@@ -290,8 +289,9 @@ const SEO = () => {
           </Card>
         </TabsContent>
       </Tabs>
-      {dialog}
-    </div>
+{dialog}
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

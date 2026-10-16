@@ -12,7 +12,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Chips, AgentEmpty } from "@/components/agent/AgentPage";
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 import { Textarea } from "@/components/ui/textarea";
 import { JamaahViewSwitch } from "@/components/admin/jamaah/JamaahViewSwitch";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
@@ -205,11 +208,11 @@ function AcceptDialog({ intake, pkg, onClose, onDone }: { intake: Intake | null;
             </li>
           ))}
         </ul>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-pkg-fg-3">
           {included.length} orang, total tagihan <span className="font-semibold text-foreground">{rupiah(total)}</span>
         </p>
         {seatError && (
-          <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-status-warn-border bg-status-warn-bg p-3 text-sm text-status-warn-text">
+          <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-status-warn-border bg-status-warn-bg p-3 text-sm text-pkg-red-deep">
             <Checkbox checked={force} onCheckedChange={(c) => setForce(!!c)} className="mt-0.5" />
             Seat paket ini tidak cukup. Centang untuk tetap menerima (seat jadi melebihi kuota).
           </label>
@@ -294,43 +297,37 @@ export default function JamaahIntake() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Data Jamaah</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Pendaftaran yang dikirim jamaah atau agen lewat form. Periksa, lalu terima.</p>
+    <AdminPage title="Data Jamaah" intro="Pendaftaran dari jamaah atau agen. Periksa, lalu terima" tabs={<JamaahViewSwitch active="masuk" />}>
+      <AdminPanel last>
+      <div className="mb-5">
+        <Chips<IntakeStatus>
+          label="Status pendaftaran"
+          value={status}
+          onChange={(v) => {
+            setStatus(v);
+            if (targetId) setSearchParams({}, { replace: true }); // picking a tab ends "show me that one"
+          }}
+          options={[
+            { value: "new", label: "Menunggu" },
+            { value: "accepted", label: "Diterima" },
+            { value: "rejected", label: "Ditolak" },
+          ]}
+        />
       </div>
-      <JamaahViewSwitch active="masuk" />
-
-      <Tabs
-        value={status}
-        onValueChange={(v) => {
-          setStatus(v as IntakeStatus);
-          if (targetId) setSearchParams({}, { replace: true }); // picking a tab ends "show me that one"
-        }}
-      >
-        <TabsList aria-label="Status pendaftaran">
-          <TabsTrigger value="new">Menunggu</TabsTrigger>
-          <TabsTrigger value="accepted">Diterima</TabsTrigger>
-          <TabsTrigger value="rejected">Ditolak</TabsTrigger>
-        </TabsList>
-      </Tabs>
 
       {error && <LoadError what="Pendaftaran masuk" error={error} onRetry={() => refetch()} retrying={isFetching} />}
 
       {isPending && !error && (
-        <div className="flex justify-center rounded-lg border py-10" role="status" aria-label="Memuat">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <div className="space-y-3" role="status" aria-label="Memuat">
+          {[0, 1, 2].map((i) => <Skeleton key={i} className="h-40 w-full rounded-[18px]" />)}
         </div>
       )}
 
       {!isPending && !error && !intakes.length && (
-        <div className="flex flex-col items-center gap-2 rounded-lg border py-10 text-center text-sm text-muted-foreground">
-          <Inbox className="h-6 w-6" aria-hidden />
-          {status === "new" ? "Belum ada pendaftaran yang menunggu." : status === "accepted" ? "Belum ada yang diterima." : "Belum ada yang ditolak."}
-        </div>
+        <AgentEmpty icon={Inbox} text={status === "new" ? "Belum ada pendaftaran menunggu" : status === "accepted" ? "Belum ada yang diterima" : "Belum ada yang ditolak"} />
       )}
 
-      <ul className="space-y-4">
+      <ul>
         {intakes.map((intake) => {
           const pkg = pkgOf(intake.package_id);
           const flags = flagsFor(intake, pkg, known);
@@ -339,56 +336,56 @@ export default function JamaahIntake() {
             <li
               key={intake.id}
               id={`intake-${intake.id}`}
-              className={`rounded-lg border bg-card p-4 ${intake.id === targetId ? "ring-2 ring-sky-400" : ""}`}
+              className={`border-b border-pkg-hair py-5 last:border-0 ${intake.id === targetId ? "rounded-[18px] bg-pkg-cream-2 px-4 ring-2 ring-pkg-ink" : ""}`}
               onClick={() => intake.id === targetId && setSearchParams({}, { replace: true })}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-base font-semibold">
-                    {intake.contact_name} <span className="font-normal text-muted-foreground">· {intake.code}</span>
+                  <p className="text-[17px] font-medium text-pkg-fg">
+                    {intake.contact_name} <span className="font-normal text-pkg-fg-3">· {intake.code}</span>
                   </p>
-                  <p className="text-[13px] text-muted-foreground">
+                  <p className="text-[13px] text-pkg-fg-3">
                     {[`+${intake.contact_phone}`, intake.contact_city, stamp(intake.created_at)].filter(Boolean).join(" · ")}
                   </p>
-                  <p className="text-[13px] text-muted-foreground">
+                  <p className="text-[13px] text-pkg-fg-3">
                     {pkg ? `${format(new Date(`${pkg.departure_date.slice(0, 10)}T00:00:00`), "d MMM yyyy", { locale: localeId })} · ${pkg.package_name}` : "Paket tidak ditemukan"}
                   </p>
-                  <p className="text-[13px] text-muted-foreground">
+                  <p className="text-[13px] text-pkg-fg-3">
                     {by ? `Agen ${by}` : intake.heard_from ? `Tahu dari: ${intake.heard_from}` : intake.ref_code ? `Agent ID ${intake.ref_code}` : "Tanpa agen"}
                     {intake.source === "agent" ? " · lewat portal agen" : ""}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {flags.duplicate.length > 0 && <Badge variant="outline" className={STATUS_BADGE.warn}>Mungkin sudah terdaftar</Badge>}
-                  {flags.seat === "full" && <Badge variant="outline" className={STATUS_BADGE.bad}>Daftar tunggu</Badge>}
-                  {flags.seat === "short" && <Badge variant="outline" className={STATUS_BADGE.warn}>Seat kurang (sisa {flags.left})</Badge>}
-                  {intake.pay_together && intake.jamaah_intake_people.length > 1 && <Badge variant="outline" className={STATUS_BADGE.info}>Bayar bersama</Badge>}
+                  {flags.duplicate.length > 0 && <StatusBadge kind="warn">Mungkin sudah terdaftar</StatusBadge>}
+                  {flags.seat === "full" && <StatusBadge kind="bad">Daftar tunggu</StatusBadge>}
+                  {flags.seat === "short" && <StatusBadge kind="warn">Seat kurang (sisa {flags.left})</StatusBadge>}
+                  {intake.pay_together && intake.jamaah_intake_people.length > 1 && <StatusBadge kind="info">Bayar bersama</StatusBadge>}
                   {intake.status === "accepted" && (
                     intake.info_sent_at
-                      ? <Badge variant="outline" className={STATUS_BADGE.ok} title={stamp(intake.info_sent_at)}>Terkirim · {stamp(intake.info_sent_at)}</Badge>
-                      : <Badge variant="outline" className={STATUS_BADGE.warn}>Info DP belum dikirim</Badge>
+                      ? <StatusBadge kind="ok">Terkirim · {stamp(intake.info_sent_at)}</StatusBadge>
+                      : <StatusBadge kind="warn">Info DP belum dikirim</StatusBadge>
                   )}
                 </div>
               </div>
 
-              <ul className="mt-3 divide-y rounded-md border">
+              <ul className="mt-3 divide-y divide-pkg-hair rounded-[14px] bg-pkg-cream-2">
                 {intake.jamaah_intake_people.map((p) => (
                   <li key={p.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-3 py-2 text-sm">
                     <span className="font-medium">
                       {p.full_name}
-                      {flags.duplicate.includes(p.full_name) && <span className="ml-2 text-[13px] font-normal text-status-warn-text">sudah ada di paket ini</span>}
+                      {flags.duplicate.includes(p.full_name) && <span className="ml-2 text-[13px] font-normal text-pkg-red-deep">sudah ada di paket ini</span>}
                     </span>
-                    <span className="text-[13px] text-muted-foreground">
+                    <span className="text-[13px] text-pkg-fg-3">
                       {[p.gender === "L" ? "Laki-laki" : "Perempuan", ROOM_SHORT[p.room_type] ?? p.room_type, p.relation].filter(Boolean).join(" · ")}
                     </span>
                   </li>
                 ))}
               </ul>
-              {!intake.contact_attending && <p className="mt-2 text-[13px] text-muted-foreground">Pendaftar sendiri tidak ikut berangkat.</p>}
+              {!intake.contact_attending && <p className="mt-2 text-[13px] text-pkg-fg-3">Pendaftar sendiri tidak ikut berangkat.</p>}
               {intake.notes && <p className="mt-2 text-sm">Catatan: {intake.notes}</p>}
-              {intake.reject_reason && <p className="mt-2 text-sm text-status-bad-text">Ditolak: {intake.reject_reason}</p>}
+              {intake.reject_reason && <p className="mt-2 text-sm text-pkg-red-deep">Ditolak: {intake.reject_reason}</p>}
 
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                 {status === "accepted" && (
                   <Button
                     type="button"
@@ -459,6 +456,7 @@ export default function JamaahIntake() {
           refresh();
         }}
       />
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 }

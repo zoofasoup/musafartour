@@ -128,7 +128,10 @@ export const AppShell = ({
           />
           <div className={cn("flex-1 p-4 md:p-6", bottomNav && "pb-24 md:pb-6")}>
             <div className={cn("w-full", contentWidth === "page" && "mx-auto max-w-[1200px]")}>
-              <Suspense fallback={<Fallback />}>{children}</Suspense>
+              {/* pkg-v2 gives every page inside the tokens and glass classes; pkg-float keeps the page background. */}
+              <div className="pkg-v2 pkg-float">
+                <Suspense fallback={<Fallback />}>{children}</Suspense>
+              </div>
             </div>
           </div>
         </main>

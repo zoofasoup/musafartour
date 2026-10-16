@@ -2,12 +2,55 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+/** Copies each column's header text onto its cells (data-label), so the admin skin can stack a row as a card on a phone. */
+function labelCells(table: HTMLTableElement) {
+  const heads = Array.from(table.querySelectorAll("thead th")).map((th) => (th.textContent ?? "").trim());
+  if (!heads.length) return;
+  table.querySelectorAll("tbody tr").forEach((tr) => {
+    Array.from(tr.children).forEach((td, i) => {
+      if (td.tagName !== "TD" || (td as HTMLElement).hasAttribute("colspan")) return;
+      const label = heads[i] ?? "";
+      if (td.getAttribute("data-label") !== label) td.setAttribute("data-label", label);
+      const long = (td.textContent ?? "").length > 48 && !td.querySelector("button, a, input");
+      if (long !== td.hasAttribute("data-long")) td.toggleAttribute("data-long", long);
+    });
+  });
+}
+
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
-  ({ className, ...props }, ref) => (
-    <div className="relative w-full overflow-auto">
-      <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
-    </div>
-  ),
+  ({ className, ...props }, ref) => {
+    const inner = React.useRef<HTMLTableElement | null>(null);
+    React.useEffect(() => {
+      const el = inner.current;
+      if (!el || typeof MutationObserver === "undefined") return;
+      let frame = 0;
+      const run = () => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => labelCells(el));
+      };
+      run();
+      const mo = new MutationObserver(run);
+      mo.observe(el, { childList: true, subtree: true, characterData: true });
+      return () => {
+        mo.disconnect();
+        cancelAnimationFrame(frame);
+      };
+    }, []);
+    return (
+      <div className="relative w-full overflow-auto">
+        <table
+          ref={(node) => {
+            inner.current = node;
+            if (typeof ref === "function") ref(node);
+            else if (ref) (ref as React.MutableRefObject<HTMLTableElement | null>).current = node;
+          }}
+          data-stack=""
+          className={cn("w-full caption-bottom text-sm", className)}
+          {...props}
+        />
+      </div>
+    );
+  },
 );
 Table.displayName = "Table";
 

@@ -4,15 +4,18 @@ import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CreditCard, Download, FileSpreadsheet, Loader2, MoreHorizontal, Plus, Search, Users, Link2 } from "lucide-react";
+import { CreditCard, Download, FileSpreadsheet, Loader2, MoreHorizontal, Plus, Users, Link2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { AgentEmpty } from "@/components/agent/AgentPage";
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
+import { FilterBar } from "@/components/admin/FilterBar";
+import type { FilterConfig } from "@/components/package-list/PackageFilterSheet";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
@@ -250,46 +253,108 @@ export default function Jamaah() {
     };
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Data Jamaah</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Pendaftaran, pembayaran, dan kelengkapan dokumen per paket.</p>
-        </div>
-        <div className="w-full lg:w-[420px]">
-          <Select
-            value={packageId ?? ""}
-            onValueChange={(v) => {
-              setParams({ paket: v });
-              setQuery("");
-              setFilter("all");
-            }}
-          >
-            <SelectTrigger aria-label="Pilih paket">
-              <SelectValue placeholder={loadingPackages ? "Memuat paket..." : "Pilih paket"} />
-            </SelectTrigger>
-            <SelectContent>
-              {/* Newest departure first; the list opens on the next departure by default (see packageId above). */}
-              {[...packages].sort((a, b) => b.departure_date.localeCompare(a.departure_date)).map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {fmtDay(p.departure_date)} · {p.package_name} · {p.duration_days}H
-                  {p.departure_date < todayIso() ? " (sudah berangkat)" : ""}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+  const resetFilter = () => setFilter("all");
+  const filters: FilterConfig[] = [
+    {
+      key: "status",
+      value: filter,
+      onChange: (v) => setFilter(v as Filter),
+      placeholder: "Status bayar",
+      allLabel: "Semua jamaah aktif",
+      options: [
+        { value: "belum_dp", label: "Belum DP" },
+        { value: "dp", label: "Sudah DP" },
+        { value: "lunas", label: "Lunas" },
+        { value: "cancelled", label: "Batal" },
+      ],
+    },
+  ];
 
-      <JamaahViewSwitch active="paket" />
+  return (
+    <AdminPage
+      title="Data Jamaah"
+      intro="Pendaftaran, pembayaran, dan dokumen per paket"
+      tabs={<JamaahViewSwitch active="paket" />}
+      actions={
+        pkg && !jamaahError ? (
+          <>
+            <Button type="button" size="lg" className="gap-2" onClick={openNew}>
+              <Plus className="h-4 w-4" aria-hidden /> Tambah Jamaah
+            </Button>
+            <Button type="button" size="lg" variant="outline" className="gap-2" disabled={!active.length} onClick={() => openPay(null)}>
+              <CreditCard className="h-4 w-4" aria-hidden /> Catat Bayar
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" size="lg" variant="outline" className="gap-2">
+                  <MoreHorizontal className="h-4 w-4" aria-hidden /> Lainnya
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-60">
+                <DropdownMenuItem
+                  onSelect={async () => {
+                    try {
+                      await navigator.clipboard.writeText(`${window.location.origin}/daftar/${pkg.slug}`);
+                      toast.success("Link pendaftaran disalin");
+                    } catch {
+                      toast.error("Link belum bisa disalin. Salin manual dari /daftar/" + pkg.slug);
+                    }
+                  }}
+                >
+                  <Link2 className="mr-2 h-4 w-4" aria-hidden /> Salin link pendaftaran
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => setImportOpen(true)}>
+                  <FileSpreadsheet className="mr-2 h-4 w-4" aria-hidden /> Impor dari Sheet
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setImportAllOpen(true)}>
+                  <FileSpreadsheet className="mr-2 h-4 w-4" aria-hidden /> Impor semua tab
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  disabled={!active.length}
+                  onSelect={() =>
+                    exportJamaahWorkbook({ packageName: pkg.package_name, departureDate: pkg.departure_date, registrations, payments, groups, agents })
+                  }
+                >
+                  <Download className="mr-2 h-4 w-4" aria-hidden /> Ekspor Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        ) : undefined
+      }
+    >
+      <AdminPanel title="Paket">
+        <Select
+          value={packageId ?? ""}
+          onValueChange={(v) => {
+            setParams({ paket: v });
+            setQuery("");
+            setFilter("all");
+          }}
+        >
+          <SelectTrigger aria-label="Pilih paket">
+            <SelectValue placeholder={loadingPackages ? "Memuat paket..." : "Pilih paket"} />
+          </SelectTrigger>
+          <SelectContent>
+            {/* Newest departure first; the list opens on the next departure by default (see packageId above). */}
+            {[...packages].sort((a, b) => b.departure_date.localeCompare(a.departure_date)).map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {fmtDay(p.departure_date)} · {p.package_name} · {p.duration_days}H
+                {p.departure_date < todayIso() ? " (sudah berangkat)" : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </AdminPanel>
 
       {packagesError && !packages.length && (
         <LoadError what="Daftar paket" error={packagesError} onRetry={() => refetchPackages()} retrying={fetchingPackages} />
       )}
 
       {!pkg && !loadingPackages && !packagesError && (
-        <Card><CardContent className="py-10 text-center text-sm text-muted-foreground">Belum ada paket berstatus Final atau Tayang.</CardContent></Card>
+        <AdminPanel><AgentEmpty icon={Users} text="Belum ada paket Final atau Tayang" /></AdminPanel>
       )}
 
       {/* A failed load must not look like an empty package: zeros and "belum ada jamaah" would be a lie. */}
@@ -299,110 +364,43 @@ export default function Jamaah() {
 
       {pkg && !jamaahError && (
         <>
-          <section aria-label="Ringkasan" className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
-            {[
-              ["Jamaah aktif", `${active.length}`, pkg.slots_total ? `dari ${pkg.slots_total} seat` : undefined],
-              ["Belum DP", `${totals.belum_dp}`, `DP min. ${juta(DP_MIN_PER_PAX)} / pax`],
-              ["Lunas", `${totals.lunas}`, due ? `batas ${fmtDay(due)}` : undefined],
-              ["Total tagihan", juta(totals.agreed)],
-              ["Sudah masuk", juta(totals.paid), totals.pending ? `+${juta(totals.pending)} menunggu verifikasi` : undefined],
-              ["Sisa tagihan", juta(totals.outstanding), due ? (daysUntil(due) < 0 ? `lewat ${-daysUntil(due)} hari dari ${DUE_LABEL}` : `${daysUntil(due)} hari ke ${DUE_LABEL}`) : undefined],
-            ].map(([label, value, hint]) => (
-              <StatCard key={label} label={label} value={value} hint={hint} />
-            ))}
-          </section>
+          <AdminPanel title="Ringkasan">
+            <section aria-label="Ringkasan" className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
+              {[
+                ["Jamaah aktif", `${active.length}`, pkg.slots_total ? `dari ${pkg.slots_total} seat` : undefined],
+                ["Belum DP", `${totals.belum_dp}`, `DP min. ${juta(DP_MIN_PER_PAX)} / pax`],
+                ["Lunas", `${totals.lunas}`, due ? `batas ${fmtDay(due)}` : undefined],
+                ["Total tagihan", juta(totals.agreed)],
+                ["Sudah masuk", juta(totals.paid), totals.pending ? `+${juta(totals.pending)} menunggu verifikasi` : undefined],
+                ["Sisa tagihan", juta(totals.outstanding), due ? (daysUntil(due) < 0 ? `lewat ${-daysUntil(due)} hari dari ${DUE_LABEL}` : `${daysUntil(due)} hari ke ${DUE_LABEL}`) : undefined],
+              ].map(([label, value, hint]) => (
+                <StatCard key={label} label={label} value={value} hint={hint} />
+              ))}
+            </section>
 
-          <Card>
-            <CardContent className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
-              <div className="text-sm">
-                <div className="font-medium">
-                  Seat di website dihitung dari:{" "}
-                  <Badge variant="outline" className={pkg.seat_source === "website" ? "bg-status-ok-bg text-status-ok-fg border-status-ok-border" : "bg-muted"}>
+            <div className="mt-5 flex flex-col gap-3 border-t border-pkg-hair pt-5 md:flex-row md:items-center md:justify-between">
+              <div className="text-[14px]">
+                <div className="flex flex-wrap items-center gap-2 text-pkg-fg">
+                  Seat di website dihitung dari
+                  <StatusBadge kind={pkg.seat_source === "website" ? "ok" : "mute"}>
                     {pkg.seat_source === "website" ? "Data jamaah di sini" : "Google Sheet"}
-                  </Badge>
+                  </StatusBadge>
                 </div>
-                <p className="mt-1 text-muted-foreground">
+                <p className="mt-1 text-pkg-fg-3">
                   Google Sheet: {sheetSeats} terisi · Terdaftar di sini: {websiteSeats}
-                  {pkg.seat_source === "sheet" && sheetSeats !== websiteSeats && " · belum cocok, import/lengkapi dulu sebelum dipindah"}
+                  {pkg.seat_source === "sheet" && sheetSeats !== websiteSeats && " · belum cocok, lengkapi dulu sebelum dipindah"}
                 </p>
               </div>
               {isOwner && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSwitchTo(pkg.seat_source === "website" ? "sheet" : "website")}
-                >
+                <Button type="button" variant="outline" onClick={() => setSwitchTo(pkg.seat_source === "website" ? "sheet" : "website")}>
                   {pkg.seat_source === "website" ? "Kembalikan ke Google Sheet" : "Pakai data di sini untuk seat"}
                 </Button>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </AdminPanel>
 
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-1 flex-col gap-2 sm:flex-row">
-              <div className="relative sm:w-72">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input className="pl-9" placeholder="Cari nama / no. WA" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Cari jamaah" />
-              </div>
-              <Select value={filter} onValueChange={(v) => setFilter(v as Filter)}>
-                <SelectTrigger className="sm:w-48" aria-label="Filter status bayar"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua jamaah aktif</SelectItem>
-                  <SelectItem value="belum_dp">Belum DP</SelectItem>
-                  <SelectItem value="dp">Sudah DP</SelectItem>
-                  <SelectItem value="lunas">Lunas</SelectItem>
-                  <SelectItem value="cancelled">Batal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {/* Daily actions stay visible; the occasional ones (link, imports, export) sit in "Lainnya". */}
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-              <Button type="button" size="sm" className="order-first col-span-2 gap-1 sm:order-none sm:col-span-1 [@media(pointer:coarse)]:h-11" onClick={openNew}>
-                <Plus className="h-4 w-4" /> Tambah Jamaah
-              </Button>
-              <Button type="button" variant="outline" size="sm" className="gap-1 [@media(pointer:coarse)]:h-11" disabled={!active.length} onClick={() => openPay(null)}>
-                <CreditCard className="h-4 w-4" /> Catat Pembayaran
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="outline" size="sm" className="gap-1 [@media(pointer:coarse)]:h-11">
-                    <MoreHorizontal className="h-4 w-4" aria-hidden /> Lainnya
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-60">
-                  <DropdownMenuItem
-                    onSelect={async () => {
-                      try {
-                        await navigator.clipboard.writeText(`${window.location.origin}/daftar/${pkg.slug}`);
-                        toast.success("Link pendaftaran disalin. Kirim ke jamaah atau agen.");
-                      } catch {
-                        toast.error("Link belum bisa disalin. Salin manual dari /daftar/" + pkg.slug);
-                      }
-                    }}
-                  >
-                    <Link2 className="mr-2 h-4 w-4" aria-hidden /> Salin link pendaftaran
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => setImportOpen(true)}>
-                    <FileSpreadsheet className="mr-2 h-4 w-4" aria-hidden /> Impor dari Sheet
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setImportAllOpen(true)}>
-                    <FileSpreadsheet className="mr-2 h-4 w-4" aria-hidden /> Impor semua tab
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    disabled={!active.length}
-                    onSelect={() =>
-                      exportJamaahWorkbook({ packageName: pkg.package_name, departureDate: pkg.departure_date, registrations, payments, groups, agents })
-                    }
-                  >
-                    <Download className="mr-2 h-4 w-4" aria-hidden /> Ekspor Excel
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+          <AdminPanel last>
+          <FilterBar search={query} onSearch={setQuery} searchPlaceholder="Cari nama / no. WA" filters={filters} onReset={resetFilter} count={visible.length} title="Filter jamaah" unit="jamaah" />
 
           <div className="hidden overflow-x-auto rounded-md border md:block">
             <Table>
@@ -572,6 +570,7 @@ export default function Jamaah() {
               if (reg) toggleEquipment(reg, taken);
             }}
           />
+          </AdminPanel>
         </>
       )}
 
@@ -638,6 +637,6 @@ export default function Jamaah() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AdminPage>
   );
 }

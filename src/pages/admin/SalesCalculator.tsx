@@ -5,6 +5,7 @@ import { parsePackagePrice, type PackagePrice } from "@/lib/packageSchema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -383,18 +384,9 @@ export default function SalesCalculator() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-          <Calculator className="h-6 w-6 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tighter text-foreground">Booth Optimizer</h1>
-          <p className="text-sm text-muted-foreground tracking-tight">Hitung komposisi kamar & harga terbaik</p>
-        </div>
-      </div>
-
+    <AdminPage title="Booth Optimizer" intro="Hitung komposisi kamar dan harga terbaik. Lebih nyaman di laptop">
+      <AdminPanel last>
+      <div className="mx-auto max-w-3xl space-y-6">
       {/* ─── Package Selection ─── */}
       <Card>
         <CardHeader className="pb-3">
@@ -628,6 +620,8 @@ export default function SalesCalculator() {
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+      </AdminPanel>
+    </AdminPage>
   );
 }

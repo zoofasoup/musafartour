@@ -32,6 +32,7 @@ import { BulkFlyerUpload } from "@/components/admin/BulkFlyerUpload";
 import { formatNumber, getSlotsTaken, isPackageDeparted } from "@/lib/utils";
 import { ExpandedPackageDetails } from "@/components/admin/ExpandedPackageDetails";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface Package {
   id: string;
   slug: string;
@@ -365,15 +366,9 @@ const Packages = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-medium tracking-tight">Paket Umroh</h1>
-          <p className="text-muted-foreground">
-            {canEdit ? "Kelola paket umrohmu" : "Mode lihat saja: perubahan paket dilakukan oleh PIC produk"}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-3">
+    <AdminPage title="Paket Umroh"
+      intro={canEdit ? "Kelola paket umrohmu" : "Mode lihat saja: perubahan paket dilakukan oleh PIC produk"}
+      actions={<><div className="flex flex-wrap items-center justify-end gap-3">
           {/* One primary action, the selection mode, and everything occasional tucked into a menu. */}
           {canEdit && (
             <Button
@@ -423,10 +418,10 @@ const Packages = () => {
               Tambah Paket
             </Button>
           )}
-        </div>
-      </div>
-
-      <Card>
+        </div></>}
+    >
+      <AdminPanel last>
+<Card>
         <CardHeader>
           <CardTitle>Daftar Paket</CardTitle>
         </CardHeader>
@@ -687,8 +682,7 @@ const Packages = () => {
           </div>
         </CardContent>
       </Card>
-
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+<AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Paket?</AlertDialogTitle>
@@ -702,21 +696,18 @@ const Packages = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <BulkPackageUpload
+<BulkPackageUpload
         open={importOpen}
         onOpenChange={setImportOpen}
         onSuccess={fetchPackages}
       />
-
-      <BulkFlyerUpload
+<BulkFlyerUpload
         open={flyerOpen}
         onOpenChange={setFlyerOpen}
         packages={packages}
         onSuccess={fetchPackages}
       />
-
-      <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+<Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           <SheetHeader className="mb-4">
             <SheetTitle>Riwayat Perubahan Paket</SheetTitle>
@@ -725,7 +716,8 @@ const Packages = () => {
           {historyOpen && <PackageChangeLog />}
         </SheetContent>
       </Sheet>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

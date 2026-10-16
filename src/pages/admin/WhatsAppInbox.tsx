@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { toast } from "sonner";
 import { CheckCircle2, Search, UserCheck } from "lucide-react";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface Click {
   id: string;
   clicked_at: string;
@@ -126,15 +127,11 @@ export default function WhatsAppInbox() {
   });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-black tracking-tight">WhatsApp Inbox</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Setiap klik "Chat via WhatsApp" di seluruh situs. Tandai yang berhasil jadi booking supaya conversion rate di Chat Rotation tercatat beneran.
-        </p>
-      </div>
-
-      <Card>
+    <AdminPage title="WhatsApp Inbox"
+      intro="Setiap klik &quot;Chat via WhatsApp&quot; di seluruh situs. Tandai yang berhasil jadi booking supaya conversion rate di Chat Rotation tercatat beneran."
+    >
+      <AdminPanel last>
+<Card>
         <CardContent className="pt-6">
           <div className="relative max-w-sm">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -142,8 +139,7 @@ export default function WhatsAppInbox() {
           </div>
         </CardContent>
       </Card>
-
-      <Card>
+<Card>
         <CardHeader><CardTitle>Klik Terbaru · {filtered.length}</CardTitle></CardHeader>
         <CardContent>
           {isLoading ? (
@@ -209,8 +205,7 @@ export default function WhatsAppInbox() {
           )}
         </CardContent>
       </Card>
-
-      <Dialog open={!!convertClick} onOpenChange={(o) => !o && setConvertClick(null)}>
+<Dialog open={!!convertClick} onOpenChange={(o) => !o && setConvertClick(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Tandai sebagai Konversi</DialogTitle>
@@ -241,6 +236,7 @@ export default function WhatsAppInbox() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 }

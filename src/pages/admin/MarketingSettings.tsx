@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -119,13 +120,8 @@ const MarketingSettings = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Pengaturan Marketing</h1>
-        <p className="text-muted-foreground mt-2">
-          Atur pixel pelacakan dan analitik untuk website
-        </p>
-      </div>
+    <AdminPage title="Pengaturan Marketing" intro="Atur pixel pelacakan dan analitik untuk website">
+      <AdminPanel last>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -287,7 +283,8 @@ const MarketingSettings = () => {
           </Card>
         </form>
       </Form>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

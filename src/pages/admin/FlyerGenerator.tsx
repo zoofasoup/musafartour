@@ -7,6 +7,7 @@ import { FlyerPreview } from "@/components/admin/flyer/FlyerPreview";
 import { FlyerRowPicker } from "@/components/admin/flyer/FlyerRowPicker";
 import { FLYER_PACKAGE_COLUMNS, SAFE_ZONE_MAX_ROWS, type FlyerPackage } from "@/lib/flyer/flyerData";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 const PREVIEW_SCALE = 0.4;
 
 /** Replaces the manual Canva redesign of the seat-availability flyer - renders live from packages data (kept fresh by the existing 5-minute Google Sheet sync) and exports via a real headless-browser screenshot (functions/flyer-image.ts), so the download always matches the live preview exactly. */
@@ -87,15 +88,11 @@ export default function FlyerGenerator() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-black tracking-tight">Flyer Generator</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Pilih paket yang tampil di flyer, lalu unduh sebagai gambar. Preview di bawah adalah persis apa yang akan diunduh.
-        </p>
-      </div>
-
-      <div className="flex gap-6 flex-wrap lg:flex-nowrap">
+    <AdminPage title="Flyer Generator"
+      intro="Pilih paket yang tampil di flyer, lalu unduh sebagai gambar. Preview di bawah adalah persis apa yang akan diunduh."
+    >
+      <AdminPanel last>
+<div className="flex gap-6 flex-wrap lg:flex-nowrap">
         <div className="w-full lg:w-80 shrink-0 space-y-4">
           <div className="text-sm font-medium">
             Dipilih: {selectedIds.size}/{SAFE_ZONE_MAX_ROWS}
@@ -128,6 +125,7 @@ export default function FlyerGenerator() {
           </div>
         </div>
       </div>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 }

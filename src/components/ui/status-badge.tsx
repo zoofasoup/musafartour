@@ -22,7 +22,7 @@ export function StatusBadge({ kind, children, icon, className }: { kind: StatusK
   const Icon = icon ?? (kind === "warn" ? AlertTriangle : ICON[kind]);
   const Shown = kind === "info" && !icon ? Info : Icon;
   return (
-    <Badge variant={kind} className={cn("h-6 gap-1.5 whitespace-nowrap px-2 text-[12.5px] font-semibold", className)}>
+    <Badge variant={kind} className={cn("h-7 gap-1.5 whitespace-nowrap rounded-full px-3 text-[13px] font-medium", className)}>
       <Shown className="h-3.5 w-3.5 shrink-0" aria-hidden />
       {children}
     </Badge>

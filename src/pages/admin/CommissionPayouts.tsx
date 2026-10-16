@@ -2,17 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { AlertTriangle, Banknote, CheckCircle2, Download, FileText, Gavel, Hourglass, Search, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Banknote, CheckCircle2, Download, FileText, Gavel, Hourglass, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Chips } from "@/components/agent/AgentPage";
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
+import { FilterBar } from "@/components/admin/FilterBar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
 import { PayoutDialog } from "@/components/admin/commission/PayoutDialog";
@@ -50,7 +50,7 @@ const CommissionPayouts = () => {
   const { user, userRole } = useAuth();
   const [params, setParams] = useSearchParams();
   const tab: CommissionTab = isTab(params.get("tab")) ? (params.get("tab") as CommissionTab) : "layak";
-  const setTab = (v: string) => {
+  const setTab = (v: CommissionTab) => {
     setParams({ tab: v }, { replace: true });
     setSelected(new Set());
   };
@@ -193,13 +193,13 @@ const CommissionPayouts = () => {
   const rowAction = (r: CommissionRow) => {
     if (tab === "layak") {
       const why = canApproveRow(r);
-      if (!myApproval) return <span className="text-[13px] text-muted-foreground">Hanya lihat</span>;
+      if (!myApproval) return <span className="text-[13px] text-pkg-fg-3">Hanya lihat</span>;
       return (
         <div className="space-y-1">
-          <Button size="sm" variant="outline" disabled={!!why} onClick={() => setConfirmApprove({ as: myApproval, ids: [r.sale_id] })}>
+          <Button variant="outline" className="w-full sm:w-auto" disabled={!!why} onClick={() => setConfirmApprove({ as: myApproval, ids: [r.sale_id] })}>
             Setujui sebagai {myApproval}
           </Button>
-          {why && <p className="text-[12.5px] text-muted-foreground">{why}</p>}
+          {why && <p className="text-[12.5px] text-pkg-fg-3">{why}</p>}
         </div>
       );
     }
@@ -223,7 +223,7 @@ const CommissionPayouts = () => {
 
   const table = (list: CommissionRow[]) => (
     <>
-      <div className="hidden rounded-lg border bg-card sm:block">
+      <div className="hidden rounded-[14px] border border-pkg-hair sm:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -256,15 +256,15 @@ const CommissionPayouts = () => {
                 )}
                 <TableCell>
                   <p className="font-semibold">{r.agent_name}</p>
-                  <p className="text-[13px] text-muted-foreground">{r.agent_code} · {LEVEL_LABEL[r.agent_level as keyof typeof LEVEL_LABEL] ?? r.agent_level}</p>
+                  <p className="text-[13px] text-pkg-fg-3">{r.agent_code} · {LEVEL_LABEL[r.agent_level as keyof typeof LEVEL_LABEL] ?? r.agent_level}</p>
                 </TableCell>
                 <TableCell>
                   <p className="font-medium">{r.customer_name}</p>
-                  <p className="text-[13px] text-muted-foreground">{r.package_name} · {fmtDate(r.departure_date)}</p>
+                  <p className="text-[13px] text-pkg-fg-3">{r.package_name} · {fmtDate(r.departure_date)}</p>
                 </TableCell>
                 <TableCell className="text-right font-medium">{formatCurrency(r.gross_amount)}</TableCell>
                 <TableCell className="text-right">{formatCurrency(r.tax_amount)}</TableCell>
-                <TableCell className="text-right">{finalMoney ? <span className="font-medium">{formatCurrency(r.net_amount)}</span> : <span className="text-muted-foreground">{formatCurrency(r.net_amount)}</span>}</TableCell>
+                <TableCell className="text-right">{finalMoney ? <span className="font-medium">{formatCurrency(r.net_amount)}</span> : <span className="text-pkg-fg-3">{formatCurrency(r.net_amount)}</span>}</TableCell>
                 <TableCell className="whitespace-normal">
                   {tab === "layak" ? approvalChips(r) : null}
                   {notes(r)}
@@ -276,30 +276,30 @@ const CommissionPayouts = () => {
         </Table>
       </div>
 
-      <div className="space-y-3 sm:hidden">
+      <div className="sm:hidden">
         {list.map((r) => (
-          <Card key={r.sale_id} className={selected.has(r.sale_id) ? "border-foreground" : undefined}>
-            <CardContent className="space-y-3 p-4">
+          <div key={r.sale_id} className={`space-y-3 border-b border-pkg-hair py-4 last:border-0 ${selected.has(r.sale_id) ? "rounded-[14px] bg-pkg-cream-2 px-3" : ""}`}>
+            <div className="space-y-3">
               <div className="flex items-start gap-3">
                 {hasSelect && (
                   <Checkbox className="mt-1" checked={selected.has(r.sale_id)} onCheckedChange={() => toggle(r.sale_id)} disabled={!selectable(r)} aria-label={`Pilih ${r.customer_name}`} />
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{r.customer_name}</p>
-                  <p className="text-[13px] text-muted-foreground">{r.package_name} · {fmtDate(r.departure_date)}</p>
+                  <p className="text-[13px] text-pkg-fg-3">{r.package_name} · {fmtDate(r.departure_date)}</p>
                   <p className="mt-1 text-[13px]">{r.agent_name} · {r.agent_code} · {LEVEL_LABEL[r.agent_level as keyof typeof LEVEL_LABEL] ?? r.agent_level}</p>
                 </div>
               </div>
               <dl className="grid grid-cols-3 gap-2 text-sm">
-                <div><dt className="text-[12.5px] text-muted-foreground">Komisi</dt><dd className="font-medium">{formatCurrency(r.gross_amount)}</dd></div>
-                <div><dt className="text-[12.5px] text-muted-foreground">PPh 5%</dt><dd>{formatCurrency(r.tax_amount)}</dd></div>
-                <div><dt className="text-[12.5px] text-muted-foreground">Diterima</dt><dd className={finalMoney ? "font-medium" : "text-muted-foreground"}>{formatCurrency(r.net_amount)}</dd></div>
+                <div><dt className="text-[12.5px] text-pkg-fg-3">Komisi</dt><dd className="font-medium">{formatCurrency(r.gross_amount)}</dd></div>
+                <div><dt className="text-[12.5px] text-pkg-fg-3">PPh 5%</dt><dd>{formatCurrency(r.tax_amount)}</dd></div>
+                <div><dt className="text-[12.5px] text-pkg-fg-3">Diterima</dt><dd className={finalMoney ? "font-medium" : "text-pkg-fg-3"}>{formatCurrency(r.net_amount)}</dd></div>
               </dl>
               {tab === "layak" && approvalChips(r)}
               {notes(r)}
               {rowAction(r)}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
     </>
@@ -310,35 +310,23 @@ const CommissionPayouts = () => {
   );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold sm:text-3xl">
-          <Banknote className="h-7 w-7" aria-hidden />
-          Pembayaran Komisi
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Komisi layak dibayar setelah jamaah berangkat. Butuh dua persetujuan dari dua pengguna berbeda, manajemen dan finance, lalu dibayar per agen dengan bukti transfer. PPh 5% dipotong dari komisi.
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="h-auto flex-wrap justify-start">
-            {COMMISSION_TABS.map((t) => (
-              <TabsTrigger key={t.value} value={t.value} className="gap-1.5">
-                {t.label}
-                <span className="text-[12.5px] text-muted-foreground">
-                  {t.value === "ditahan" ? buckets.ditahan.length + openDisputes.length + openAdjustments.length : buckets[t.value].length}
-                </span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari agen, jamaah, atau paket" className="pl-9" aria-label="Cari" />
-        </div>
-      </div>
+    <AdminPage
+      title="Pembayaran Komisi"
+      intro="Layak dibayar setelah jamaah berangkat. Perlu dua persetujuan dari dua pengguna berbeda, lalu dibayar per agen dengan bukti transfer. PPh 5% dipotong dari komisi"
+      tabs={
+        <Chips<CommissionTab>
+          label="Tahap komisi"
+          value={tab}
+          onChange={setTab}
+          options={COMMISSION_TABS.map((t) => ({
+            value: t.value,
+            label: `${t.label} ${t.value === "ditahan" ? buckets.ditahan.length + openDisputes.length + openAdjustments.length : buckets[t.value].length}`,
+          }))}
+        />
+      }
+    >
+      <AdminPanel last>
+      <FilterBar search={search} onSearch={setSearch} searchPlaceholder="Cari agen, jamaah, atau paket" count={visible.length} unit="komisi" />
 
       {commissions.isLoading ? (
         <div className="space-y-3" aria-busy="true">
@@ -351,18 +339,18 @@ const CommissionPayouts = () => {
       ) : (
         <>
           {tab !== "ditahan" && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-pkg-fg-3">
               {visible.length} komisi, total {formatCurrency(sum(visible))} (bruto)
             </p>
           )}
 
           {hasSelect && selected.size > 0 && (
-            <div className="sticky top-2 z-10 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-card p-3 shadow-sm">
+            <div className="pkg-glass sticky bottom-3 z-10 mb-4 flex flex-col gap-3 rounded-[22px] p-4">
               <p className="text-sm font-medium">
                 {selected.size} komisi dipilih · {formatCurrency(sum(selectedRows))} bruto
                 {tab === "disetujui" ? ` · ${payGroups.length} agen` : ""}
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 {tab === "layak" && myApproval && (
                   <Button onClick={() => setConfirmApprove({ as: myApproval, ids: selectedRows.map((r) => r.sale_id) })}>
                     <ShieldCheck className="mr-2 h-4 w-4" aria-hidden />
@@ -389,7 +377,7 @@ const CommissionPayouts = () => {
             <div className="space-y-8">
               <section className="space-y-3">
                 <h2 className="text-lg font-bold">Komisi ditahan ({heldRows.length})</h2>
-                <p className="text-sm text-muted-foreground">Agen tidak aktif atau sengketa lead belum diputuskan. Dilepas otomatis begitu syaratnya terpenuhi.</p>
+                <p className="text-sm text-pkg-fg-3">Agen tidak aktif atau sengketa lead belum diputuskan. Dilepas otomatis begitu syaratnya terpenuhi.</p>
                 {heldRows.length === 0 ? <EmptyState icon={CheckCircle2} title="Tidak ada komisi yang ditahan" /> : table(heldRows)}
               </section>
 
@@ -402,25 +390,23 @@ const CommissionPayouts = () => {
                 ) : (
                   <div className="space-y-2">
                     {openDisputes.map((d) => (
-                      <Card key={d.id}>
-                        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div key={d.id} className="rounded-[18px] bg-pkg-cream-2"><div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                           <div className="text-sm">
                             <p className="font-semibold">{d.contact_name ?? "Calon jamaah"}</p>
-                            <p className="text-muted-foreground">
+                            <p className="text-pkg-fg-3">
                               Lead terlindungi: {d.lead_agent_name ?? "-"} ({d.lead_agent_code ?? "-"}) · didaftarkan oleh {d.intake_agent_name ?? "-"} ({d.intake_agent_code ?? "-"})
                             </p>
-                            <p className="text-[13px] text-muted-foreground">Sejak {fmtDate(d.created_at)}</p>
+                            <p className="text-[13px] text-pkg-fg-3">Sejak {fmtDate(d.created_at)}</p>
                           </div>
                           {canResolve ? (
-                            <Button variant="outline" onClick={() => setDispute(d)}>
+                            <Button variant="outline" className="w-full sm:w-auto" onClick={() => setDispute(d)}>
                               <Gavel className="mr-2 h-4 w-4" aria-hidden />
                               Putuskan
                             </Button>
                           ) : (
-                            <span className="text-[13px] text-muted-foreground">Hanya lihat</span>
+                            <span className="text-[13px] text-pkg-fg-3">Hanya lihat</span>
                           )}
-                        </CardContent>
-                      </Card>
+                        </div></div>
                     ))}
                   </div>
                 )}
@@ -428,7 +414,7 @@ const CommissionPayouts = () => {
 
               <section className="space-y-3">
                 <h2 className="text-lg font-bold">Potongan dari pembayaran berikutnya ({openAdjustments.length})</h2>
-                <p className="text-sm text-muted-foreground">Jamaah batal atau refund setelah komisinya dibayar. Jumlah yang diterima agen dipotong otomatis dari pembayaran komisi berikutnya.</p>
+                <p className="text-sm text-pkg-fg-3">Jamaah batal atau refund setelah komisinya dibayar. Jumlah yang diterima agen dipotong otomatis dari pembayaran komisi berikutnya.</p>
                 {adjustments.isError ? (
                   <LoadError what="Potongan komisi" error={adjustments.error} onRetry={() => adjustments.refetch()} />
                 ) : openAdjustments.length === 0 ? (
@@ -436,15 +422,13 @@ const CommissionPayouts = () => {
                 ) : (
                   <div className="space-y-2">
                     {openAdjustments.map((a) => (
-                      <Card key={a.id}>
-                        <CardContent className="flex flex-col gap-1 p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+                      <div key={a.id} className="rounded-[18px] bg-pkg-cream-2"><div className="flex flex-col gap-1 p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
                           <div>
                             <p className="font-semibold">{a.agent_name} · {a.agent_code}</p>
-                            <p className="text-muted-foreground">{a.customer_name ?? "-"}: {a.reason}</p>
+                            <p className="text-pkg-fg-3">{a.customer_name ?? "-"}: {a.reason}</p>
                           </div>
                           <p className="font-semibold">{formatCurrency(a.remaining)}{a.settled_amount > 0 ? ` (dari ${formatCurrency(a.amount)})` : ""}</p>
-                        </CardContent>
-                      </Card>
+                        </div></div>
                     ))}
                   </div>
                 )}
@@ -471,7 +455,8 @@ const CommissionPayouts = () => {
       />
       <PayoutDialog open={payoutOpen} onOpenChange={setPayoutOpen} groups={payGroups} />
       <DisputeDialog dispute={dispute} onOpenChange={(o) => !o && setDispute(null)} />
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

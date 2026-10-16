@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface Article {
   id: string;
   title: string;
@@ -157,13 +158,9 @@ const ArticlesPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Artikel</h1>
-          <p className="text-muted-foreground">Kelola artikel blog</p>
-        </div>
-        <div className="flex items-center gap-2">
+    <AdminPage title="Artikel"
+      intro="Kelola artikel blog"
+      actions={<><div className="flex items-center gap-2">
           {selectionMode ? (
             <Button variant="outline" onClick={handleExitSelectionMode}>
               Batal
@@ -177,10 +174,10 @@ const ArticlesPage = () => {
             <Plus className="mr-2 h-4 w-4" />
             Tambah Artikel
           </Button>
-        </div>
-      </div>
-
-      <Card>
+        </div></>}
+    >
+      <AdminPanel last>
+<Card>
         <CardHeader>
           <CardTitle>Daftar Artikel</CardTitle>
         </CardHeader>
@@ -257,8 +254,7 @@ const ArticlesPage = () => {
           </Table>
         </CardContent>
       </Card>
-
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+<AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Artikel?</AlertDialogTitle>
@@ -272,7 +268,8 @@ const ArticlesPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

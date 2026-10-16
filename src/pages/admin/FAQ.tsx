@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
 import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface FAQItem {
   id: string;
   question: string;
@@ -219,13 +220,9 @@ const FAQ = () => {
   if (!isAdmin) return null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Kelola FAQ</h1>
-          <p className="text-muted-foreground">Atur pertanyaan yang sering ditanyakan di website</p>
-        </div>
-        <div className="flex items-center gap-2">
+    <AdminPage title="Kelola FAQ"
+      intro="Atur pertanyaan yang sering ditanyakan di website"
+      actions={<><div className="flex items-center gap-2">
           {selectionMode ? (
             <Button variant="outline" onClick={handleExitSelectionMode}>
               Batal
@@ -305,10 +302,10 @@ const FAQ = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </div>
-      </div>
-
-      <Card>
+        </div></>}
+    >
+      <AdminPanel last>
+<Card>
         <CardHeader>
           <CardTitle>Daftar FAQ</CardTitle>
           <CardDescription>Semua pertanyaan yang sering ditanyakan</CardDescription>
@@ -372,8 +369,9 @@ const FAQ = () => {
           </Table>
         </CardContent>
       </Card>
-      {dialog}
-    </div>
+{dialog}
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

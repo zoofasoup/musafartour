@@ -64,6 +64,7 @@ import { id as localeId } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 const ChatRotation = () => {
   const { ask, dialog } = useConfirmDialog();
   const [csNumbers, setCsNumbers] = useState<CSNumber[]>([]);
@@ -267,16 +268,9 @@ const ChatRotation = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">WhatsApp Rotation</h1>
-          <p className="text-muted-foreground">
-            Kelola distribusi chat WhatsApp ke customer service
-          </p>
-        </div>
-        <div className="flex gap-2">
+    <AdminPage title="WhatsApp Rotation"
+      intro="Kelola distribusi chat WhatsApp ke customer service"
+      actions={<><div className="flex gap-2">
           <Button variant="outline" onClick={fetchData}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
@@ -351,11 +345,10 @@ const ChatRotation = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        </div></>}
+    >
+      <AdminPanel last>
+<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
@@ -414,9 +407,7 @@ const ChatRotation = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Weight Distribution Preview */}
-      {activeCSNumbers.length > 0 && (
+{activeCSNumbers.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -462,9 +453,7 @@ const ChatRotation = () => {
           </CardContent>
         </Card>
       )}
-
-      {/* CS Numbers Management with Drag & Drop */}
-      <Card>
+<Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Phone className="w-5 h-5" />
@@ -507,9 +496,7 @@ const ChatRotation = () => {
           )}
         </CardContent>
       </Card>
-
-      {/* Campaign Attribution Stats */}
-      {Object.keys(campaignStats).length > 0 && (
+{Object.keys(campaignStats).length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
             <CardHeader>
@@ -586,9 +573,7 @@ const ChatRotation = () => {
           </Card>
         </div>
       )}
-
-      {/* CS Distribution */}
-      {activeCSNumbers.length > 0 && (
+{activeCSNumbers.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Distribusi per CS</CardTitle>
@@ -626,9 +611,7 @@ const ChatRotation = () => {
           </CardContent>
         </Card>
       )}
-
-      {/* Recent Redirects */}
-      <Card>
+<Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Redirect Terakhir</CardTitle>
@@ -686,9 +669,7 @@ const ChatRotation = () => {
           )}
         </CardContent>
       </Card>
-
-      {/* Usage Guide */}
-      <Card>
+<Card>
         <CardHeader>
           <CardTitle>Cara Penggunaan</CardTitle>
         </CardHeader>
@@ -715,14 +696,11 @@ const ChatRotation = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Analytics Dashboard */}
-      <CSAnalyticsDashboard />
-
-      {/* URL Template Management */}
-      <URLTemplateManager />
-      {dialog}
-    </div>
+<CSAnalyticsDashboard />
+<URLTemplateManager />
+{dialog}
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

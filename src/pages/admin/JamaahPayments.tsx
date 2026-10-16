@@ -3,14 +3,14 @@ import { Link } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Chips } from "@/components/agent/AgentPage";
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
+import { FilterBar } from "@/components/admin/FilterBar";
 import { PaymentTable } from "@/components/admin/jamaah/PaymentTable";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
 import { rupiah, type Payment } from "@/lib/jamaah";
@@ -92,7 +92,7 @@ export default function JamaahPayments() {
       <span>
         <span className="font-medium">{reg?.full_name ?? "–"}</span>
         {pkg && (
-          <Link to={`/admin/jamaah?paket=${pkg.id}`} className="block text-xs text-muted-foreground underline-offset-2 hover:underline">
+          <Link to={`/admin/jamaah?paket=${pkg.id}`} className="block text-xs text-pkg-fg-3 underline-offset-2 hover:underline">
             {pkg.package_name} · {format(new Date(`${pkg.departure_date}T00:00:00`), "d MMM yyyy", { locale: localeId })}
           </Link>
         )}
@@ -100,88 +100,88 @@ export default function JamaahPayments() {
     );
   };
 
+  const describeText = (p: Payment) => {
+    const reg = (p as PaymentRow).jamaah_registrations;
+    return reg?.full_name ?? "–";
+  };
+
+  const tabs = (
+    <Chips<Tab>
+      label="Status pembayaran"
+      value={tab}
+      onChange={setTab}
+      options={[
+        { value: "pending", label: `Menunggu${pendingCount ? ` (${pendingCount})` : ""}` },
+        { value: "verified", label: "Terverifikasi" },
+        { value: "rejected", label: "Ditolak" },
+        { value: "all", label: "Semua" },
+      ]}
+    />
+  );
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Verifikasi Pembayaran</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {isOwner
-            ? "Cocokkan dengan mutasi rekening PT, lalu verifikasi. Hanya pembayaran terverifikasi yang dihitung masuk."
-            : "Pembayaran yang kamu catat menunggu verifikasi owner sebelum dihitung masuk."}
-        </p>
-      </div>
+    <AdminPage
+      title="Verifikasi Pembayaran"
+      intro={
+        isOwner
+          ? "Cocokkan dengan mutasi rekening PT, lalu verifikasi. Hanya pembayaran terverifikasi yang dihitung masuk."
+          : "Pembayaran yang kamu catat menunggu verifikasi owner sebelum dihitung masuk."
+      }
+      tabs={tabs}
+    >
+      <AdminPanel last>
+        <FilterBar search={search} onSearch={setSearch} searchPlaceholder="Cari nama jamaah" count={total} unit="pembayaran" />
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
-        <TabsList>
-          <TabsTrigger value="pending">Menunggu{pendingCount ? ` (${pendingCount})` : ""}</TabsTrigger>
-          <TabsTrigger value="verified">Terverifikasi</TabsTrigger>
-          <TabsTrigger value="rejected">Ditolak</TabsTrigger>
-          <TabsTrigger value="all">Semua</TabsTrigger>
-        </TabsList>
-      </Tabs>
+        {tab === "pending" && pendingCount > 0 && !term && (
+          <p className="mb-4 text-[15px] text-pkg-fg-2">
+            {pendingCount} pembayaran menunggu verifikasi, total <strong className="font-medium text-pkg-fg">{rupiah(pending?.total ?? 0)}</strong>
+          </p>
+        )}
 
-      <div className="relative max-w-sm">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-        <Input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Cari nama jamaah"
-          aria-label="Cari pembayaran berdasarkan nama jamaah"
-          className="pl-9"
-        />
-      </div>
-
-      {tab === "pending" && pendingCount > 0 && !term && (
-        <Card>
-          <CardContent className="p-4 text-sm">
-            {pendingCount} pembayaran menunggu verifikasi, total <strong>{rupiah(pending?.total ?? 0)}</strong>.
-          </CardContent>
-        </Card>
-      )}
-
-      {error && !data ? (
-        <LoadError what="Daftar pembayaran" error={error} onRetry={() => refetch()} retrying={isFetching} />
-      ) : isLoading ? (
-        <div className="space-y-2" aria-busy="true" aria-label="Memuat pembayaran">
-          {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-16 w-full" />)}
-        </div>
-      ) : (
-        <>
-          {error && <LoadError what="Halaman terbaru" error={error} onRetry={() => refetch()} retrying={isFetching} />}
-          <PaymentTable
-            payments={payments}
-            isOwner={isOwner}
-            currentUserId={user?.id}
-            describe={describe}
-            confirmName={(p) => (p as PaymentRow).jamaah_registrations?.full_name}
-            onChanged={invalidate}
-            empty={
-              term
-                ? `Tidak ada pembayaran atas nama "${term}" di tab ini.`
-                : tab === "pending"
-                  ? "Tidak ada pembayaran yang menunggu verifikasi."
-                  : "Belum ada pembayaran."
-            }
-          />
-          {total > 0 && (
-            <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
-              <span>
-                {page * PAGE_SIZE + 1} sampai {Math.min(total, (page + 1) * PAGE_SIZE)} dari {total} pembayaran
-              </span>
-              <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => setPage((n) => Math.max(0, n - 1))} disabled={page === 0 || isFetching} aria-label="Halaman sebelumnya">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span>Halaman {page + 1} dari {pages}</span>
-                <Button type="button" variant="outline" size="sm" onClick={() => setPage((n) => Math.min(pages - 1, n + 1))} disabled={page >= pages - 1 || isFetching} aria-label="Halaman berikutnya">
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+        {error && !data ? (
+          <LoadError what="Daftar pembayaran" error={error} onRetry={() => refetch()} retrying={isFetching} />
+        ) : isLoading ? (
+          <div className="space-y-2" aria-busy="true" aria-label="Memuat pembayaran">
+            {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-16 w-full" />)}
+          </div>
+        ) : (
+          <>
+            {error && <LoadError what="Halaman terbaru" error={error} onRetry={() => refetch()} retrying={isFetching} />}
+            <PaymentTable
+              payments={payments}
+              isOwner={isOwner}
+              currentUserId={user?.id}
+              describe={describe}
+              describeText={describeText}
+              confirmName={(p) => (p as PaymentRow).jamaah_registrations?.full_name}
+              onChanged={invalidate}
+              empty={
+                term
+                  ? `Tidak ada pembayaran atas nama "${term}" di tab ini`
+                  : tab === "pending"
+                    ? "Tidak ada pembayaran yang menunggu"
+                    : "Belum ada pembayaran"
+              }
+            />
+            {total > PAGE_SIZE && (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-pkg-fg-3">
+                <span>
+                  {page * PAGE_SIZE + 1} sampai {Math.min(total, (page + 1) * PAGE_SIZE)} dari {total}
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button type="button" variant="outline" size="icon" onClick={() => setPage((n) => Math.max(0, n - 1))} disabled={page === 0 || isFetching} aria-label="Halaman sebelumnya">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span>{page + 1} / {pages}</span>
+                  <Button type="button" variant="outline" size="icon" onClick={() => setPage((n) => Math.min(pages - 1, n + 1))} disabled={page >= pages - 1 || isFetching} aria-label="Halaman berikutnya">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
-        </>
-      )}
-    </div>
+            )}
+          </>
+        )}
+      </AdminPanel>
+    </AdminPage>
   );
 }

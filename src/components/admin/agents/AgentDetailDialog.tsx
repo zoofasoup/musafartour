@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { CheckCircle2, ExternalLink, ImageOff, Key, Loader2, Mail, MessageCircle, Phone, RefreshCw, UserCheck, XCircle } from "lucide-react";
+import { Award, CheckCircle2, ExternalLink, ImageOff, Key, Loader2, Mail, MessageCircle, Phone, RefreshCw, UserCheck, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { rupiah } from "@/lib/jamaah";
@@ -162,6 +162,44 @@ function Checklist({ missing }: { missing: MissingKey[] }) {
   );
 }
 
+const MANUAL_BADGES = [
+  { code: "class-act", label: "Class Act", hint: "Ikut pembinaan 6 kali setahun" },
+  { code: "top-of-the-board", label: "Top of the Board", hint: "Top 10 agen tahunan" },
+  { code: "rookie-of-the-year", label: "Rookie of the Year", hint: "Best Rookie tahunan" },
+] as const;
+
+/** The three badges only an admin can hand out. Safe to press twice: the database ignores a badge the agent already has. */
+function AwardBadges({ agent }: { agent: Agent }) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const award = async (code: string, label: string) => {
+    setBusy(code);
+    // The generated types do not list this function yet.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).rpc("admin_award_badge", { _agent: agent.id, _code: code });
+    setBusy(null);
+    if (error) toast.error(error.message);
+    else toast.success(`Badge ${label} diberikan ke ${agent.name}`);
+  };
+  return (
+    <section className="space-y-3">
+      <h3 className={SECTION}>Beri badge</h3>
+      <div className="divide-y divide-pkg-hair rounded-[18px] bg-pkg-cream-2">
+        {MANUAL_BADGES.map((b) => (
+          <div key={b.code} className="flex items-center justify-between gap-3 px-4 py-3">
+            <div className="min-w-0">
+              <p className="text-[15px] font-medium">{b.label}</p>
+              <p className="text-[13px] text-muted-foreground">{b.hint}</p>
+            </div>
+            <Button type="button" variant="outline" className="shrink-0 gap-1.5" disabled={busy === b.code} onClick={() => award(b.code, b.label)}>
+              {busy === b.code ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Award className="h-4 w-4" aria-hidden />} Beri
+            </Button>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function AgentDetailDialog({
   agent,
   open,
@@ -236,15 +274,15 @@ export function AgentDetailDialog({
             <div className="max-h-[60vh] space-y-6 overflow-y-auto bg-background p-6">
               {/* Money */}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div className="rounded-lg border bg-card p-4">
+                <div className="rounded-[18px] bg-pkg-cream-2 p-4">
                   <p className="text-xs font-medium text-muted-foreground">Total penjualan</p>
                   <p className="mt-1 text-xl font-bold">{agent.total_sales} <span className="text-sm font-normal text-muted-foreground">paket</span></p>
                 </div>
-                <div className="rounded-lg border bg-card p-4">
+                <div className="rounded-[18px] bg-pkg-cream-2 p-4">
                   <p className="text-xs font-medium text-muted-foreground">Total komisi</p>
                   <p className="mt-1 text-xl font-bold">{rupiah(Number(agent.total_commission))}</p>
                 </div>
-                <div className="rounded-lg border bg-card p-4">
+                <div className="rounded-[18px] bg-pkg-cream-2 p-4">
                   <p className="text-xs font-medium text-muted-foreground">Saldo tersedia</p>
                   <p className="mt-1 text-xl font-bold">{rupiah(Number(agent.available_balance))}</p>
                 </div>
@@ -253,7 +291,7 @@ export function AgentDetailDialog({
               {/* Completeness */}
               <section className="space-y-3">
                 <h3 className={SECTION}>Kelengkapan data</h3>
-                <div className="rounded-lg border bg-card p-4">
+                <div className="rounded-[18px] bg-pkg-cream-2 p-4">
                   <Checklist missing={missing} />
                   {missing.length > 0 && (
                     <p className="mt-3 text-sm text-muted-foreground">
@@ -266,7 +304,7 @@ export function AgentDetailDialog({
               {/* Registration fee and SOP */}
               <section className="space-y-3">
                 <h3 className={SECTION}>Biaya registrasi dan SOP</h3>
-                <div className="divide-y rounded-lg border bg-card">
+                <div className="divide-y divide-pkg-hair rounded-[18px] bg-pkg-cream-2">
                   <Row label={`Biaya registrasi ${rupiah(AGENT_REGISTRATION_FEE)}`}>
                     <StatusBadge kind={fee === "unpaid" ? "warn" : fee === "paid" ? "ok" : "info"}>{fee === "unpaid" && agent.status === "active" ? "Menunggu pembayaran biaya" : REGISTRATION_FEE_LABELS[fee]}</StatusBadge>
                   </Row>
@@ -299,7 +337,7 @@ export function AgentDetailDialog({
               {/* Identity */}
               <section className="space-y-3">
                 <h3 className={SECTION}>Identitas</h3>
-                <div className="divide-y rounded-lg border bg-card">
+                <div className="divide-y divide-pkg-hair rounded-[18px] bg-pkg-cream-2">
                   <Row label="Nomor KTP">{agent.ktp_number || <span className="font-normal text-muted-foreground">Belum diisi</span>}</Row>
                   <Row label="Alamat">{agent.address || <span className="font-normal text-muted-foreground">Belum diisi</span>}</Row>
                   <Row label="Kota">{agent.city || <span className="font-normal text-muted-foreground">-</span>}</Row>
@@ -312,7 +350,7 @@ export function AgentDetailDialog({
                 {/* Contact */}
                 <section className="space-y-3">
                   <h3 className={SECTION}>Kontak dan level</h3>
-                  <div className="divide-y rounded-lg border bg-card">
+                  <div className="divide-y divide-pkg-hair rounded-[18px] bg-pkg-cream-2">
                     <Row label={<><Phone className="h-4 w-4" aria-hidden /> Telepon</>}>{agent.phone}</Row>
                     <Row label={<><MessageCircle className="h-4 w-4" aria-hidden /> WhatsApp</>}>{agent.wa_number || agent.phone}</Row>
                     <div className="flex items-center justify-between gap-4 px-4 py-3">
@@ -343,23 +381,25 @@ export function AgentDetailDialog({
                 <section className="space-y-3">
                   <h3 className={SECTION}>Informasi bank</h3>
                   {agent.bank_name ? (
-                    <div className="divide-y rounded-lg border bg-card">
+                    <div className="divide-y divide-pkg-hair rounded-[18px] bg-pkg-cream-2">
                       <Row label="Bank">{agent.bank_name}</Row>
                       <Row label="No. rekening"><span className="font-mono">{agent.bank_account}</span></Row>
                       <Row label="Atas nama">{agent.account_name}</Row>
                     </div>
                   ) : (
-                    <div className="rounded-lg border border-dashed border-input p-4 text-center text-sm text-muted-foreground">
+                    <div className="rounded-[18px] border border-dashed border-pkg-hair p-4 text-center text-sm text-muted-foreground">
                       Agen belum melengkapi data bank.
                     </div>
                   )}
                 </section>
               </div>
 
+              {agent.status === "active" && <AwardBadges agent={agent} />}
+
               {/* Security */}
               <section className="space-y-3">
                 <h3 className={SECTION}>Keamanan dan akses</h3>
-                <div className="space-y-5 rounded-lg border bg-card p-4">
+                <div className="space-y-5 rounded-[18px] bg-pkg-cream-2 p-4">
                   <div className="space-y-2">
                     <Label htmlFor="new-agent-password">Setel ulang password (admin)</Label>
                     <div className="flex gap-2">

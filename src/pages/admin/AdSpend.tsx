@@ -12,6 +12,7 @@ import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface SpendRow {
   id: string;
   campaign_name: string;
@@ -139,15 +140,11 @@ export default function AdSpend() {
   }, [spendRows, waConversions, calculatorLeads]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-black tracking-tight">Biaya Iklan dan Performa</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Catat pengeluaran iklan per campaign supaya cost-per-conversion terlihat di sini, tanpa perlu bolak-balik ke Ads Manager.
-        </p>
-      </div>
-
-      <Card>
+    <AdminPage title="Biaya Iklan dan Performa"
+      intro="Catat pengeluaran iklan per campaign supaya cost-per-conversion terlihat di sini, tanpa perlu bolak-balik ke Ads Manager."
+    >
+      <AdminPanel last>
+<Card>
         <CardHeader>
           <CardTitle>Catat biaya iklan</CardTitle>
           <CardDescription>Nama campaign harus sama persis dengan utm_campaign yang dipakai di iklan supaya bisa dicocokkan dengan data konversi.</CardDescription>
@@ -195,8 +192,7 @@ export default function AdSpend() {
           </Button>
         </CardContent>
       </Card>
-
-      <Card>
+<Card>
         <CardHeader><CardTitle>Performa per Campaign</CardTitle></CardHeader>
         <CardContent>
           {performance.length === 0 ? (
@@ -227,8 +223,7 @@ export default function AdSpend() {
           )}
         </CardContent>
       </Card>
-
-      <Card>
+<Card>
         <CardHeader><CardTitle>Riwayat biaya iklan · {spendRows.length}</CardTitle></CardHeader>
         <CardContent>
           {isLoading ? (
@@ -270,6 +265,7 @@ export default function AdSpend() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 }

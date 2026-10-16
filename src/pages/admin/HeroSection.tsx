@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { FileUpload } from "@/components/admin/FileUpload";
 import { compressAndConvertToWebP } from "@/lib/imageUtils";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 const HeroSection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -183,13 +184,11 @@ const HeroSection = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Hero Beranda</h1>
-        <p className="text-muted-foreground">Atur judul dan gambar utama di beranda</p>
-      </div>
-
-      <Card>
+    <AdminPage title="Hero Beranda"
+      intro="Atur judul dan gambar utama di beranda"
+    >
+      <AdminPanel last>
+<Card>
         <CardHeader>
           <CardTitle>Isi hero</CardTitle>
           <CardDescription>
@@ -264,7 +263,8 @@ const HeroSection = () => {
           </Button>
         </CardContent>
       </Card>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

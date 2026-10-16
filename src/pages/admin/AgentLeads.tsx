@@ -15,6 +15,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FOLLOWUP_LABEL, LEAD_STATUS_KIND, LEAD_STATUS_LABEL, followupText, useLeadFollowups, type LeadStatus } from "@/hooks/useAgentLeads";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 const PAGE = 50;
 const ALL = "all";
 
@@ -143,15 +144,12 @@ export default function AgentLeads() {
   const opened = rows.find((r) => r.id === openId) ?? null;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold"><Target className="h-6 w-6" aria-hidden /> Lead Agen</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Calon jamaah yang dicatat agen. Perlindungan 30 hari sejak tanggal pendaftaran lead. Halaman ini hanya untuk dibaca.</p>
-      </div>
-
-      <Alert><AlertDescription>Pembagian komisi dua agen (30/70 atau 60/40) ditetapkan manajemen. Sistem hanya mencatat agen yang membantu.</AlertDescription></Alert>
-
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+    <AdminPage title="Lead Agen"
+      intro="Calon jamaah yang dicatat agen. Perlindungan 30 hari sejak tanggal pendaftaran lead. Halaman ini hanya untuk dibaca."
+    >
+      <AdminPanel last>
+<Alert><AlertDescription>Pembagian komisi dua agen (30/70 atau 60/40) ditetapkan manajemen. Sistem hanya mencatat agen yang membantu.</AlertDescription></Alert>
+<div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <div className="relative w-full lg:max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari nama atau nomor WhatsApp" className="pl-9" aria-label="Cari lead" />
@@ -174,10 +172,8 @@ export default function AgentLeads() {
           <AlertTriangle className="h-4 w-4" aria-hidden /> Sengketa ({conflicts})
         </Button>
       </div>
-
-      {leads.error && <LoadError what="Daftar lead" error={leads.error} onRetry={() => leads.refetch()} retrying={leads.isFetching} />}
-
-      {leads.isPending ? (
+{leads.error && <LoadError what="Daftar lead" error={leads.error} onRetry={() => leads.refetch()} retrying={leads.isFetching} />}
+{leads.isPending ? (
         <div className="flex justify-center rounded-lg border py-10" role="status" aria-label="Memuat"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
       ) : leads.error ? null : filtered.length === 0 ? (
         <EmptyState icon={Target} title={rows.length === 0 ? "Belum ada lead" : "Tidak ada lead yang cocok"}>
@@ -234,8 +230,8 @@ export default function AgentLeads() {
           </div>
         </>
       )}
-
-      <LeadSheet lead={opened} onClose={() => setOpenId(null)} />
-    </div>
+<LeadSheet lead={opened} onClose={() => setOpenId(null)} />
+      </AdminPanel>
+    </AdminPage>
   );
 }

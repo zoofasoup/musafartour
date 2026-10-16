@@ -31,6 +31,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface EquipmentItem {
   id: string;
   name: string;
@@ -215,13 +216,11 @@ const Equipment = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Perlengkapan Jamaah</h1>
-        <p className="text-muted-foreground">Kelola daftar perlengkapan yang diterima jamaah, lengkap dengan foto. Seret untuk mengurutkan.</p>
-      </div>
-
-      <Card>
+    <AdminPage title="Perlengkapan Jamaah"
+      intro="Kelola daftar perlengkapan yang diterima jamaah, lengkap dengan foto. Seret untuk mengurutkan."
+    >
+      <AdminPanel last>
+<Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2"><Backpack className="h-5 w-5 text-primary" /> Item Perlengkapan</CardTitle>
@@ -247,8 +246,7 @@ const Equipment = () => {
           )}
         </CardContent>
       </Card>
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{editItem ? "Ubah item" : "Tambah item"}</DialogTitle>
@@ -274,8 +272,9 @@ const Equipment = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {dialog}
-    </div>
+{dialog}
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

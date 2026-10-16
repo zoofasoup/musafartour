@@ -2,11 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Download, Loader2, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   PAY_STATE_CLASS,
@@ -26,6 +24,9 @@ import { exportAllJamaah } from "@/lib/jamaahExcel";
 import { JamaahCardList, type CardItem, type FamilySummary } from "@/components/admin/jamaah/JamaahCardList";
 import { JamaahViewSwitch } from "@/components/admin/jamaah/JamaahViewSwitch";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
+import { FilterBar } from "@/components/admin/FilterBar";
+import type { FilterConfig } from "@/components/package-list/PackageFilterSheet";
 import { StatCard } from "@/components/admin/jamaah/StatCard";
 import { STICKY_HEAD, stickyNameCell } from "@/components/admin/jamaah/stickyName";
 import { useAgentOptions, useAllJamaah, useJamaahPackages } from "@/hooks/useJamaah";
@@ -173,88 +174,108 @@ export default function JamaahAll() {
     );
 
 
+  const resetFilters = () => {
+    setPackageId(ALL);
+    setWhen("all");
+    setStatus("all");
+    setAgentId(ALL);
+    setSort("newest");
+  };
+  const filters: FilterConfig[] = [
+    {
+      key: "package",
+      value: packageId,
+      onChange: setPackageId,
+      placeholder: "Paket",
+      allLabel: "Semua paket",
+      options: [...packages].sort((a, b) => b.departure_date.localeCompare(a.departure_date)).map((p) => ({ value: p.id, label: `${day(p.departure_date)} · ${p.package_name} · ${p.duration_days}H` })),
+    },
+    {
+      key: "when",
+      value: when,
+      onChange: (v) => setWhen(v as When),
+      placeholder: "Waktu",
+      allLabel: "Semua waktu",
+      options: [{ value: "upcoming", label: "Akan berangkat" }, { value: "departed", label: "Sudah berangkat" }],
+    },
+    {
+      key: "status",
+      value: status,
+      onChange: (v) => setStatus(v as StatusFilter),
+      placeholder: "Status bayar",
+      allLabel: "Semua jamaah aktif",
+      options: [
+        { value: "belum_dp", label: "Belum DP" },
+        { value: "dp", label: "Sudah DP" },
+        { value: "lunas", label: "Lunas" },
+        { value: "lebih", label: "Lebih bayar" },
+        { value: "cancelled", label: "Batal" },
+      ],
+    },
+    {
+      key: "agent",
+      value: agentId,
+      onChange: setAgentId,
+      placeholder: "Agen",
+      allLabel: "Semua agen",
+      options: [{ value: NO_AGENT, label: "Tanpa agen" }, ...agents.map((a) => ({ value: a.id, label: a.name }))],
+    },
+    {
+      key: "sort",
+      value: sort === "newest" ? "all" : sort,
+      onChange: (v) => setSort(v === "all" ? "newest" : (v as SortKey)),
+      placeholder: "Urutkan",
+      allLabel: "Berangkat terbaru",
+      options: [
+        { value: "oldest", label: "Berangkat terlama" },
+        { value: "name", label: "Nama A sampai Z" },
+        { value: "outstanding", label: "Sisa tagihan terbesar" },
+      ],
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Data Jamaah</h1>
-        <p className="text-muted-foreground">Seluruh jamaah dari semua paket, sepanjang waktu. Klik nama untuk membukanya di paketnya.</p>
-      </div>
-
-      <JamaahViewSwitch active="semua" />
-
-      {(loadError || packagesError) && (
-        <LoadError
-          what="Daftar jamaah"
-          error={loadError ?? packagesError}
-          retrying={isFetching}
-          onRetry={() => {
-            refetch();
-            if (packagesError) refetchPackages();
-          }}
-        />
-      )}
-
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Jamaah aktif" value={String(active.length)} hint={`${visible.length - active.length} batal di tampilan ini`} />
-        <StatCard label="Total tagihan" value={juta(totals.agreed)} />
-        <StatCard label="Sudah masuk" value={juta(totals.paid)} />
-        <StatCard label="Sisa tagihan" value={juta(totals.outstanding)} />
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
-        <div className="relative col-span-2 w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari nama / no. WA" className="pl-9" aria-label="Cari jamaah" />
-        </div>
-        <div className="col-span-2 sm:col-span-1"><Select value={packageId} onValueChange={setPackageId}>
-          <SelectTrigger className="w-full sm:w-[300px]" aria-label="Paket"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>Semua paket</SelectItem>
-            {[...packages].sort((a, b) => b.departure_date.localeCompare(a.departure_date)).map((p) => (
-              <SelectItem key={p.id} value={p.id}>{day(p.departure_date)} · {p.package_name} · {p.duration_days}H</SelectItem>
-            ))}
-          </SelectContent>
-        </Select></div>
-        <Select value={when} onValueChange={(v) => setWhen(v as When)}>
-          <SelectTrigger className="w-full sm:w-[170px]" aria-label="Waktu"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Semua waktu</SelectItem>
-            <SelectItem value="upcoming">Akan berangkat</SelectItem>
-            <SelectItem value="departed">Sudah berangkat</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={status} onValueChange={(v) => setStatus(v as StatusFilter)}>
-          <SelectTrigger className="w-full sm:w-[170px]" aria-label="Status bayar"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Semua jamaah aktif</SelectItem>
-            <SelectItem value="belum_dp">Belum DP</SelectItem>
-            <SelectItem value="dp">Sudah DP</SelectItem>
-            <SelectItem value="lunas">Lunas</SelectItem>
-            <SelectItem value="lebih">Lebih bayar</SelectItem>
-            <SelectItem value="cancelled">Batal</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={agentId} onValueChange={setAgentId}>
-          <SelectTrigger className="w-full sm:w-[190px]" aria-label="Agen"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>Semua agen</SelectItem>
-            <SelectItem value={NO_AGENT}>Tanpa agen</SelectItem>
-            {agents.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
-          <SelectTrigger className="w-full sm:w-[190px]" aria-label="Urutkan"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">Berangkat terbaru</SelectItem>
-            <SelectItem value="oldest">Berangkat terlama</SelectItem>
-            <SelectItem value="name">Nama A sampai Z</SelectItem>
-            <SelectItem value="outstanding">Sisa tagihan terbesar</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button type="button" variant="outline" size="sm" className="col-span-2 gap-1 sm:ml-auto sm:col-span-1 [@media(pointer:coarse)]:h-11" onClick={download} disabled={!visible.length}>
-          <Download className="h-4 w-4" /> Ekspor Excel
+    <AdminPage
+      title="Data Jamaah"
+      intro="Seluruh jamaah dari semua paket. Ketuk nama untuk membukanya di paketnya"
+      tabs={<JamaahViewSwitch active="semua" />}
+      actions={
+        <Button type="button" variant="outline" className="gap-2" onClick={download} disabled={!visible.length}>
+          <Download className="h-4 w-4" aria-hidden /> Ekspor Excel
         </Button>
-      </div>
+      }
+    >
+      <AdminPanel title="Ringkasan">
+        {(loadError || packagesError) && (
+          <LoadError
+            what="Daftar jamaah"
+            error={loadError ?? packagesError}
+            retrying={isFetching}
+            onRetry={() => {
+              refetch();
+              if (packagesError) refetchPackages();
+            }}
+          />
+        )}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <StatCard label="Jamaah aktif" value={String(active.length)} hint={`${visible.length - active.length} batal di tampilan ini`} />
+          <StatCard label="Total tagihan" value={juta(totals.agreed)} />
+          <StatCard label="Sudah masuk" value={juta(totals.paid)} />
+          <StatCard label="Sisa tagihan" value={juta(totals.outstanding)} />
+        </div>
+      </AdminPanel>
+
+      <AdminPanel last>
+      <FilterBar
+        search={query}
+        onSearch={setQuery}
+        searchPlaceholder="Cari nama / no. WA"
+        filters={filters}
+        onReset={resetFilters}
+        count={visible.length}
+        title="Filter jamaah"
+        unit="jamaah"
+      />
 
       <div className="hidden overflow-x-auto rounded-md border bg-card md:block">
         <Table>
@@ -371,20 +392,21 @@ export default function JamaahAll() {
         }}
       />
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
+      <div className="mt-4 flex items-center justify-between text-sm text-pkg-fg-3">
         <span>
           {visible.length ? `${page * PAGE_SIZE + 1} sampai ${Math.min(visible.length, (page + 1) * PAGE_SIZE)} dari ${visible.length} jamaah` : "0 jamaah"}
         </span>
         <div className="flex items-center gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0} aria-label="Halaman sebelumnya">
+          <Button type="button" variant="outline" size="icon" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0} aria-label="Halaman sebelumnya">
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span>Halaman {page + 1} dari {pages}</span>
-          <Button type="button" variant="outline" size="sm" onClick={() => setPage((p) => Math.min(pages - 1, p + 1))} disabled={page >= pages - 1} aria-label="Halaman berikutnya">
+          <Button type="button" variant="outline" size="icon" onClick={() => setPage((p) => Math.min(pages - 1, p + 1))} disabled={page >= pages - 1} aria-label="Halaman berikutnya">
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 }

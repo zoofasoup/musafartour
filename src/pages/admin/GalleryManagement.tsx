@@ -18,6 +18,7 @@ import { compressAndConvertToWebP } from "@/lib/imageUtils";
 import { BulkActions, useBulkSelection, commonBulkActions } from "@/components/admin/BulkActions";
 import { useConfirmDialog } from "@/components/admin/useConfirmDialog";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface GalleryImage {
   id: string;
   title: string;
@@ -302,13 +303,9 @@ const GalleryManagement = () => {
   if (!isAdmin) return null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Kelola Galeri</h1>
-          <p className="text-muted-foreground">Atur foto galeri di website</p>
-        </div>
-        <div className="flex gap-2">
+    <AdminPage title="Kelola Galeri"
+      intro="Atur foto galeri di website"
+      actions={<><div className="flex gap-2">
           <div className="flex border rounded-md">
             <Button
               variant={viewMode === "grid" ? "secondary" : "ghost"}
@@ -412,10 +409,10 @@ const GalleryManagement = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </div>
-      </div>
-
-      {selectionMode && (
+        </div></>}
+    >
+      <AdminPanel last>
+{selectionMode && (
         <BulkActions
           selectedIds={selectedIds}
           totalCount={images.length}
@@ -425,8 +422,7 @@ const GalleryManagement = () => {
           onAction={handleBulkAction}
         />
       )}
-
-      {viewMode === "grid" ? (
+{viewMode === "grid" ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
           {images.map((item) => (
             <div 
@@ -541,8 +537,9 @@ const GalleryManagement = () => {
           </CardContent>
         </Card>
       )}
-      {dialog}
-    </div>
+{dialog}
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

@@ -351,15 +351,15 @@ export default function PackageBrochure() {
   }
 
   return (
-    <div className="-m-8">
+    <div className="-m-4 md:-m-8">
       {/* Top bar */}
-      <div className="border-b bg-card px-6 py-3 flex items-center justify-between sticky top-0 z-20">
+      <div className="border-b bg-card px-4 py-3 md:px-6 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate("/admin/packages")}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Paket
           </Button>
           <Separator orientation="vertical" className="h-6" />
-          <h1 className="text-lg font-bold tracking-tighter truncate max-w-md">{currentPkg.package_name}</h1>
+          <h1 className="text-lg font-bold tracking-tighter truncate max-w-[12rem] md:max-w-md">{currentPkg.package_name}</h1>
           <Badge variant="outline" className="text-xs tracking-tight">{fmtDate(currentPkg.departure_date)}</Badge>
         </div>
 

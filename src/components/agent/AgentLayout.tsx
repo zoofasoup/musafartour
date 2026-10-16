@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
 import {
-  House, CalendarDays, Banknote,
+  House, Banknote,
   Megaphone, Medal, BookOpenText, UserRoundPlus, UsersRound, LifeBuoy, Copy, Award,
 } from "lucide-react";
 import { AppShell, type ShellNavGroup, type ShellNavItem } from "@/components/shell";
@@ -16,7 +16,6 @@ const navItems: ShellNavItem[] = [
   { title: "Dashboard", url: "/agent/dashboard", icon: House },
   { title: "Daftarkan Jamaah", url: "/agent/daftar-jamaah", icon: UserRoundPlus },
   { title: "Jamaah Saya", url: "/agent/jamaah", icon: UsersRound },
-  { title: "Jadwal", url: "/agent/schedule", icon: CalendarDays },
   { title: "Komisi", url: "/agent/commission", icon: Banknote },
   { title: "Peringkat", url: "/agent/leaderboard", icon: Medal },
   { title: "Pencapaian", url: "/agent/achievements", icon: Award },
@@ -28,7 +27,7 @@ const navItems: ShellNavItem[] = [
 const byUrl = (...urls: string[]) => urls.map((url) => navItems.find((i) => i.url === url)!);
 // The drawer groups the pages by what the agent is doing; the phone bar picks its own four below.
 const nav: ShellNavGroup[] = [
-  { items: byUrl("/agent/dashboard", "/agent/jamaah", "/agent/marketing-kit", "/agent/schedule") },
+  { items: byUrl("/agent/dashboard", "/agent/jamaah", "/agent/marketing-kit") },
   { label: "Akun", items: byUrl("/agent/commission", "/agent/leaderboard", "/agent/achievements", "/agent/guide") },
 ];
 

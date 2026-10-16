@@ -836,12 +836,12 @@ html.pkg-app select { background-color: hsl(var(--field)); border-radius: 14px; 
 html.pkg-app .bg-white\/95, html.pkg-app .bg-white\/90 { background-color: hsl(var(--card) / 0.95); }
 
 /* The agent menu drawer on the phone: the ink panel with a soft right edge, pill rows, and the selected row red like the bottom bar. */
-html.pkg-agent [data-sidebar="sidebar"][data-mobile="true"] { border: 0; border-radius: 0 32px 32px 0; background: #1a1512; }
-html.pkg-agent [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-button"] { height: 48px; border-radius: 999px; padding-inline: 16px; font-size: 16px; font-weight: 400; }
-html.pkg-agent [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-button"][data-active="true"],
-html.pkg-agent [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-button"].bg-card {
+html:is(.pkg-agent, .pkg-admin) [data-sidebar="sidebar"][data-mobile="true"] { border: 0; border-radius: 0 32px 32px 0; background: #1a1512; }
+html:is(.pkg-agent, .pkg-admin) [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-button"] { height: 48px; border-radius: 999px; padding-inline: 16px; font-size: 16px; font-weight: 400; }
+html:is(.pkg-agent, .pkg-admin) [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-button"][data-active="true"],
+html:is(.pkg-agent, .pkg-admin) [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-button"].bg-card {
   background: linear-gradient(180deg, #d02029, #c4141b 45%, #a50f16); color: #fff; box-shadow: 0 8px 16px -6px rgb(196 20 27 / 0.55), inset 0 1px 0 rgb(255 228 231 / 0.4); font-weight: 500;
 }
-html.pkg-agent [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="header"] button { border-radius: 999px; }
+html:is(.pkg-agent, .pkg-admin) [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="header"] button { border-radius: 999px; }
 /* Only five pages are left in the phone drawer, so the group headings are noise there. */
 html.pkg-agent [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="group-label"] { display: none; }

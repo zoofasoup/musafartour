@@ -65,6 +65,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { formatNumber } from '@/lib/utils';
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface ShortLink {
   id: string;
   short_code: string;
@@ -342,23 +343,15 @@ const URLShortener = () => {
   const totalClicks = links.reduce((sum, l) => sum + l.click_count, 0);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Pemendek Link</h1>
-          <p className="text-muted-foreground">
-            Buat link pendek untuk broadcast follow-up
-          </p>
-        </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+    <AdminPage title="Pemendek Link"
+      intro="Buat link pendek untuk broadcast follow-up"
+      actions={<><Button onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Buat Link Baru
-        </Button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        </Button></>}
+    >
+      <AdminPanel last>
+<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
@@ -401,9 +394,7 @@ const URLShortener = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Search */}
-      <div className="relative">
+<div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           placeholder="Cari link..."
@@ -412,9 +403,7 @@ const URLShortener = () => {
           className="pl-10"
         />
       </div>
-
-      {/* Links Table */}
-      <Card>
+<Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Link2 className="w-5 h-5" />
@@ -558,9 +547,7 @@ const URLShortener = () => {
           )}
         </CardContent>
       </Card>
-
-      {/* Create Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+<Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Buat Link Baru</DialogTitle>
@@ -649,9 +636,7 @@ const URLShortener = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Ubah link</DialogTitle>
@@ -722,9 +707,7 @@ const URLShortener = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Analytics Dialog */}
-      <Dialog open={isAnalyticsDialogOpen} onOpenChange={setIsAnalyticsDialogOpen}>
+<Dialog open={isAnalyticsDialogOpen} onOpenChange={setIsAnalyticsDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -812,9 +795,7 @@ const URLShortener = () => {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Delete Confirmation */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+<AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Link?</AlertDialogTitle>
@@ -834,7 +815,8 @@ const URLShortener = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 };
 

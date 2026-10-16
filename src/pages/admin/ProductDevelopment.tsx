@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { canEditPackages, packageStatusBadgeClass, packageStatusLabel } from "@/lib/packageStatus";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 export default function ProductDevelopment() {
   const { userRole } = useAuth();
   const canEdit = canEditPackages(userRole);
@@ -68,17 +69,11 @@ export default function ProductDevelopment() {
   }, [filteredPackages]);
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Product Development</h1>
-          <p className="text-muted-foreground mt-2">
-            Kelola Costing (HPP), komponen harga mentah, dan profit per paket.
-          </p>
-        </div>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+    <AdminPage title="Product Development"
+      intro="Kelola Costing (HPP), komponen harga mentah, dan profit per paket."
+    >
+      <AdminPanel last>
+<div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div className="relative w-full sm:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input 
@@ -101,8 +96,7 @@ export default function ProductDevelopment() {
           ))}
         </div>
       </div>
-
-      <div className="space-y-6">
+<div className="space-y-6">
         {loading ? (
           <div className="text-center py-10 text-slate-500">Memuat data paket...</div>
         ) : Object.keys(groupedPackages).length === 0 ? (
@@ -192,6 +186,7 @@ export default function ProductDevelopment() {
           ))
         )}
       </div>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 }

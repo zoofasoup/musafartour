@@ -8,14 +8,13 @@ import { Check, CheckCircle2, Clock, Copy, ExternalLink, Loader2, Upload, type L
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgentAuth } from "@/hooks/useAgentAuth";
-import { AGENT_CS_WHATSAPP, REGISTRATION_FEE_LABELS, type RegistrationFeeStatus } from "@/lib/agentSupport";
+import { REGISTRATION_FEE_LABELS, type RegistrationFeeStatus } from "@/lib/agentSupport";
 import { rupiah } from "@/lib/jamaah";
 import { compressImage } from "@/utils/imageCompression";
 import {
   AGENT_FEE_ACCOUNTS,
   AGENT_FEE_ACCOUNT_HOLDER,
   AGENT_FEE_INCLUDES,
-  AGENT_PIC_NAME,
   AGENT_REGISTRATION_FEE,
   SOP_VERSION,
 } from "@/lib/sopAgen";

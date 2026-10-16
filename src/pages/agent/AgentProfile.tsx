@@ -13,15 +13,10 @@ import {
   Loader2,
   Copy,
   Check,
-  Share2,
-  Award,
   Camera,
   Lock,
-  Bell,
   Eye,
   EyeOff,
-  History,
-  Shield,
   LogOut,
   AlertTriangle,
   CheckCircle2,
@@ -37,8 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { 
   AlertDialog,
   AlertDialogAction,

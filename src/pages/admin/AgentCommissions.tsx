@@ -18,6 +18,7 @@ import { SaveCancelled, useCommissionRates, useSaveCommissionRate, type Commissi
 import { COMMISSION_LEVELS, COMMISSION_LEVEL_LABEL, STANDARD_COMMISSION, rupiah, tierLabel, tierRank, type CommissionLevel } from "@/lib/commission";
 import { todayJakarta } from "@/lib/utils";
 
+import { AdminPage, AdminPanel } from "@/components/admin/AdminPage";
 interface GridRow {
   key: string;
   package_id: string;
@@ -160,16 +161,11 @@ const AgentCommissions = () => {
   const filtersActive = month !== "upcoming" || status !== "all" || !!search.trim() || !!incompleteKeys;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold sm:text-3xl">
-          <Coins className="h-7 w-7" aria-hidden />
-          Komisi Agen
-        </h1>
-        <p className="mt-1 text-muted-foreground">Atur komisi per keberangkatan, kelas, dan tingkat agen. Perubahan tersimpan otomatis.</p>
-      </div>
-
-      <div className="flex items-start gap-3 rounded-lg bg-card p-4 shadow-sm">
+    <AdminPage title="Komisi Agen"
+      intro="Atur komisi per keberangkatan, kelas, dan tingkat agen. Perubahan tersimpan otomatis."
+    >
+      <AdminPanel last>
+<div className="flex items-start gap-3 rounded-lg bg-card p-4 shadow-sm">
         <Info className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
         <div className="space-y-1 text-sm">
           <p>
@@ -182,8 +178,7 @@ const AgentCommissions = () => {
           )}
         </div>
       </div>
-
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+<div className="flex flex-col gap-3 lg:flex-row lg:items-end">
         <div className="relative flex-1">
           <Label htmlFor="komisi-cari" className="sr-only">
             Cari nama paket
@@ -234,8 +229,7 @@ const AgentCommissions = () => {
           </Label>
         </div>
       </div>
-
-      {query.isLoading ? (
+{query.isLoading ? (
         <div className="space-y-2" aria-busy="true">
           {[0, 1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-12 w-full" />
@@ -325,8 +319,7 @@ const AgentCommissions = () => {
           </table>
         </div>
       )}
-
-      <Dialog open={!!firstRate} onOpenChange={(o) => !o && !fillingAll && void settleFirstRate("cancel")}>
+<Dialog open={!!firstRate} onOpenChange={(o) => !o && !fillingAll && void settleFirstRate("cancel")}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Paket ini belum punya tarif</DialogTitle>
@@ -353,9 +346,9 @@ const AgentCommissions = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <RateHistoryDrawer packageId={historyFor?.id ?? null} packageName={historyFor?.name ?? ""} onClose={() => setHistoryFor(null)} />
-    </div>
+<RateHistoryDrawer packageId={historyFor?.id ?? null} packageName={historyFor?.name ?? ""} onClose={() => setHistoryFor(null)} />
+      </AdminPanel>
+    </AdminPage>
   );
 };
 
