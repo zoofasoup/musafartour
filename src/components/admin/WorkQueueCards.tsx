@@ -3,18 +3,9 @@ import { AlertCircle, Banknote, ChevronRight, CalendarClock, Gavel, Inbox, UserC
 import { Skeleton } from "@/components/ui/skeleton";
 import { LoadError } from "@/components/admin/jamaah/LoadError";
 import { useAdminWorkCounts } from "@/hooks/useAdminWorkCounts";
-import { rupiah } from "@/lib/jamaah";
+import { buildWorkQueue } from "@/lib/workQueue";
 
-interface QueueCard {
-  key: string;
-  icon: LucideIcon;
-  label: string;
-  value: number;
-  hint?: string;
-  to: string;
-  /** Needs a person today (amber accent) when true and value > 0. */
-  urgent?: boolean;
-}
+const ICONS: Record<string, LucideIcon> = { payments: Wallet, intakes: Inbox, belumdp: AlertCircle, lunas: CalendarClock, komisi: Banknote, agen: UserCheck, sengketa: Gavel, seat: Users };
 
 /**
  * "Perlu ditangani": the owner's work queues in one glance, each card opens the page where the work is done.
@@ -35,27 +26,7 @@ export function WorkQueueCards() {
     );
   }
 
-  const cards: QueueCard[] = [
-    {
-      key: "payments", icon: Wallet, label: "Pembayaran menunggu verifikasi", value: data.payments_pending?.count ?? 0,
-      hint: data.payments_pending?.count ? `Total ${rupiah(data.payments_pending.amount)}` : undefined,
-      to: "/admin/jamaah/pembayaran", urgent: true,
-    },
-    { key: "intakes", icon: Inbox, label: "Pendaftaran baru belum diproses", value: data.intakes_new ?? 0, to: "/admin/jamaah/masuk", urgent: true },
-    { key: "belumdp", icon: AlertCircle, label: "Jamaah belum DP", value: data.belum_dp ?? 0, hint: "Keberangkatan yang akan datang", to: "/admin/jamaah" },
-    {
-      key: "lunas", icon: CalendarClock, label: "Jatuh tempo lunas dalam 14 hari", value: data.lunas_due?.count ?? 0,
-      hint: [data.lunas_due?.count ? `Sisa ${rupiah(data.lunas_due.amount)}` : "", data.lunas_overdue ? `${data.lunas_overdue} sudah lewat` : ""].filter(Boolean).join(" · ") || undefined,
-      to: "/admin/jamaah", urgent: true,
-    },
-    {
-      key: "komisi", icon: Banknote, label: "Komisi menunggu persetujuan", value: data.commission_eligible ?? 0,
-      hint: `${data.commission_approved ?? 0} sudah disetujui, layak dibayar`, to: "/admin/pembayaran-komisi", urgent: true,
-    },
-    { key: "agen", icon: UserCheck, label: "Agen menunggu persetujuan", value: data.agents_pending ?? 0, to: "/admin/agents", urgent: true },
-    { key: "sengketa", icon: Gavel, label: "Lead sengketa terbuka", value: data.disputes_open ?? 0, hint: "Komisinya ditahan sampai diputuskan", to: "/admin/agent-leads", urgent: true },
-    { key: "seat", icon: Users, label: "Seat hampir penuh", value: data.seats_low ?? 0, hint: "Sisa 3 seat atau kurang", to: "/admin/jadwal" },
-  ];
+  const cards = buildWorkQueue(data).map((c) => ({ ...c, icon: ICONS[c.key] }));
 
   return (
     <ul className="divide-y divide-pkg-hair md:grid md:grid-cols-2 md:gap-x-8 md:divide-y-0" aria-label="Perlu ditangani">
