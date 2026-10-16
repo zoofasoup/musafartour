@@ -110,6 +110,10 @@ const HOME_OVERRIDE: Record<string, string> = {
   product_admin: "/admin/packages",
   product_contributor: "/admin/packages",
   finance: "/admin/pembayaran-komisi",
+  cs_admin: "/admin/jamaah/masuk",
+  agent_admin: "/admin/agents",
+  content_admin: "/admin/articles",
+  advertiser: "/admin/analytics",
 };
 
 /**

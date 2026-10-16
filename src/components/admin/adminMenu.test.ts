@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { getMenuSectionsForRole } from "./adminMenu";
+import { getAdminHomePath, getMenuSectionsForRole } from "./adminMenu";
 import { menuBadgeFor } from "@/hooks/useAdminWorkCounts";
 import { findActiveItem } from "@/components/shell/navMatch";
 import type { ShellNavGroup } from "@/components/shell/types";
@@ -39,5 +39,29 @@ describe("menu Pendaftaran Masuk", () => {
     ];
     expect(findActiveItem(groups, "/admin/jamaah/masuk")?.title).toBe("Pendaftaran Masuk");
     expect(findActiveItem(groups, "/admin/jamaah/semua")?.title).toBe("Data Jamaah");
+  });
+});
+
+describe("beranda per peran", () => {
+  it.each([
+    ["cs_admin", "/admin/jamaah/masuk"],
+    ["agent_admin", "/admin/agents"],
+    ["content_admin", "/admin/articles"],
+    ["advertiser", "/admin/analytics"],
+    ["finance", "/admin/pembayaran-komisi"],
+    ["product_admin", "/admin/packages"],
+  ])("%s mendarat di %s", (role, path) => {
+    expect(getAdminHomePath(role)).toBe(path);
+  });
+
+  it("owner tetap di Dashboard", () => {
+    expect(getAdminHomePath("admin")).toBeNull();
+    expect(getAdminHomePath("superadmin")).toBeNull();
+  });
+
+  it("setiap beranda ada di menu peran itu", () => {
+    for (const role of ["cs_admin", "agent_admin", "content_admin", "advertiser", "finance", "product_admin"]) {
+      expect(paths(role)).toContain(getAdminHomePath(role));
+    }
   });
 });
